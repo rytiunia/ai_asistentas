@@ -35,7 +35,7 @@ DEF = {"client": "", "title": "DOUBLE-SIDED LIGHTBOX, WALL MOUNTED (PROJECTING)"
        # v144: "legs_type": "inset" - kojos ŽEMESNĖS už dėžę (atskiri □40x40x4 vamzdžiai po rėmo skersiniais, viena
        # montavimo plokštė, kojų uždengimai 2 mm Alu, trafo plokštelė); "frame" - pailginti rėmo skersiniai (v134)
        "legs_type": "frame", "leg": [40, 40, 4], "leg_in": 53, "leg_chamfer": 50, "plate": [140, None, 5],
-       "plate_pitch": 109, "plate_hole_d": 8, "cable_hole": 11, "cover_w": 50, "cover_thk": 2, "trafo_plate": [40, 1.5],
+       "plate_pitch": 109, "plate_hole_d": 8, "cable_hole": 11, "cover_w": 50, "cover_thk": 2, "cover_gap": 5, "trafo_plate": [40, 1.5],
        "proj": None}
 COL_BODY, COL_FRAME, COL_FACE, COL_PVC, COL_FL, COL_LED = (HexColor("#9C9C9C"), HexColor("#B4B4B4"), HexColor("#F4F4F2"),
                                                            HexColor("#C8C8C8"), HexColor("#8C8C8C"), HexColor("#F2C230"))
@@ -189,7 +189,7 @@ def bom_rows(g):
            [[9, "Logo, sides A + B", g["logo_mat"], "black", f"2 pcs., {g['logo_w']:g} x {g['logo_h']:.0f} mm"]]
            if g.get("logo_r") else []) + (
            [[10, f"Leg cover {g['cover_thk']:g} mm, A + B (mirror)", "Alu, folded, screwed", g["body_finish"],
-             f"2 pcs., {g['leg_len']:g} x {g['covers'][0]['y1'] - g['covers'][0]['y0']:g} x {g['covers'][0]['w'] / 2:g}"]]
+             f"2 pcs., {g['leg_len'] - g['cover_gap']:g} x {g['covers'][0]['y1'] - g['covers'][0]['y0']:g} x {g['covers'][0]['w'] / 2:g}"]]
            if g["covers"] else [])
 
 
@@ -203,6 +203,9 @@ def band(g, sheet, title_extra, md, bom, detail_fn):
     spec = {"client": g["client"], "title": g["title"] + title_extra, "order_no": g["order_no"],
             "drawing_no": g["drawing_no"], "sheet": sheet, "rev": g["rev"], "date": g["date"]}
     K.title_block(X_TB, W_TB, spec, "1:5 / 1:2 / 1:1")
+
+
+D1, D2 = 16, 36                                                     # v145: 1 eilė (grandinė), 2 eilė (gabaritas)
 
 
 def HM(x1, x2, y, label, e1, e2, size=None):
@@ -238,12 +241,12 @@ def flange_view(g, flx, fly, s2):
     rect(rx(-ci / 2), ry(-ci / 2), ci * s2, ci * s2, fill=white, lw=0.1)
     rect(rx(-fa / 2), ry(-fa / 2), fa * s2, fa * s2, lw=0.1, dash=(2, 1.5))
     K.centerline(rx(-FLw / 2 - 8), ry(0), rx(FLw / 2 + 8), ry(0)); K.centerline(rx(0), ry(-FLh / 2 - 8), rx(0), ry(FLh / 2 + 8))
-    hchain(ry(FLh / 2) + 34, [rx(-FLw / 2), rx(-hp), rx(hp), rx(FLw / 2)], [ry(FLh / 2)] + [ry(hp)] * 2 + [ry(FLh / 2)],
+    hchain(ry(FLh / 2) + D1, [rx(-FLw / 2), rx(-hp), rx(hp), rx(FLw / 2)], [ry(FLh / 2)] + [ry(hp)] * 2 + [ry(FLh / 2)],
            [f"{FLw / 2 - hp:g}", f"{2 * hp:g}", f"{FLw / 2 - hp:g}"], size=K.F_DIM_FRAME)
-    vchain(rx(FLw / 2) + 34, [ry(-FLh / 2), ry(-hp), ry(hp), ry(FLh / 2)], [rx(FLw / 2)] + [rx(hp)] * 2 + [rx(FLw / 2)],
+    vchain(rx(FLw / 2) + D1, [ry(-FLh / 2), ry(-hp), ry(hp), ry(FLh / 2)], [rx(FLw / 2)] + [rx(hp)] * 2 + [rx(FLw / 2)],
            [f"{FLh / 2 - hp:g}", f"{2 * hp:g}", f"{FLh / 2 - hp:g}"], size=K.F_DIM_FRAME)
-    HM(rx(-FLw / 2), rx(FLw / 2), ry(FLh / 2) + 16, f"{FLw:g}", ry(FLh / 2), ry(FLh / 2))
-    VM(rx(FLw / 2) + 16, ry(-FLh / 2), ry(FLh / 2), rx(FLw / 2), f"{FLh:g}")
+    HM(rx(-FLw / 2), rx(FLw / 2), ry(FLh / 2) + D2, f"{FLw:g}", ry(FLh / 2), ry(FLh / 2))
+    VM(rx(FLw / 2) + D2, ry(-FLh / 2), ry(FLh / 2), rx(FLw / 2), f"{FLh:g}")
     K.balloon_auto(rx(hp) + 2, ry(-hp) - 2, f"4 x Ø{g['hole_d']:g}", kind="tag", region=K.AUTO.get("region"))
     K.balloon_auto(rx(0) + 3, ry(0) + 3, f"□{ci:g} (tube inside)", kind="tag", region=K.AUTO.get("region"))
     T(flx + FLw * s2 / 2, ry(FLh / 2) + 50, f"t = {FLt:g}, R{rr:g}, welded to leg □{fa}x{fb}x{ft:g}", 8, align="c")
@@ -266,16 +269,16 @@ def plate_view(g, flx, fly, s2):
     rect(rx(-C["w"] / 2), ry(C["y0"]), C["w"] * s2, (C["y1"] - C["y0"]) * s2, stroke=HexColor("#555555"), lw=0.2, dash=(4, 2))
     K.centerline(rx(0), ry(P["yc"] - h2 - 6), rx(0), ry(P["yc"] + h2 + 6))
     hz = sorted(set(dz for dz, _ in P["holes"]))
-    hchain(ry(P["yc"] - h2) - 30, [rx(-w2), rx(hz[0]), rx(hz[-1]), rx(w2)], [ry(P["yc"] - h2)] * 4,
+    hchain(ry(P["yc"] - h2) - D1, [rx(-w2), rx(hz[0]), rx(hz[-1]), rx(w2)], [ry(P["yc"] - h2)] * 4,
            [f"{w2 + hz[0]:g}", f"{hz[-1] - hz[0]:g}", f"{w2 - hz[-1]:g}"], size=K.F_DIM_FRAME)
-    HM(rx(-w2), rx(w2), ry(P["yc"] - h2) - 14, f"{P['w']:g}", ry(P["yc"] - h2), ry(P["yc"] - h2))
+    HM(rx(-w2), rx(w2), ry(P["yc"] - h2) - D2, f"{P['w']:g}", ry(P["yc"] - h2), ry(P["yc"] - h2))
     hy = sorted(set(y_ for _, y_ in P["holes"]))
     yy = [P["yc"] - h2] + hy + [P["yc"] + h2]
-    vchain(rx(w2) + 30, [ry(v) for v in yy], [rx(w2)] + [rx(hz[-1])] * len(hy) + [rx(w2)],
+    vchain(rx(w2) + D1, [ry(v) for v in yy], [rx(w2)] + [rx(hz[-1])] * len(hy) + [rx(w2)],
            [f"{b - a:g}" for a, b in zip(yy, yy[1:])], size=K.F_DIM_FRAME)
-    VM(rx(w2) + 14, ry(yy[0]), ry(yy[-1]), rx(w2), f"{P['h']:g}")
+    VM(rx(w2) + D2, ry(yy[0]), ry(yy[-1]), rx(w2), f"{P['h']:g}")
     cy_ = P["cable"][1]
-    vchain(rx(-w2) - 14, [ry(hy[0]), ry(cy_)], [rx(-ld_ / 2)] * 2, [f"{cy_ - hy[0]:g}"], size=K.F_DIM_FRAME)
+    vchain(rx(-w2) - D1, [ry(hy[0]), ry(cy_)], [rx(-ld_ / 2)] * 2, [f"{cy_ - hy[0]:g}"], size=K.F_DIM_FRAME)
     K.balloon_auto(rx(hz[-1]), ry(hy[-1]), f"4 x Ø{P['d']:g}", kind="tag", region=K.AUTO.get("region"))
     K.balloon_auto(rx(0), ry(cy_), f"Ø{P['cable'][2]:g} cable", kind="tag", region=K.AUTO.get("region"))
     K.balloon_auto(rx(ld_ / 2), ry(hy[0] + lw_ / 2), f"leg {prof(lw_, ld_, lt_)} (1B)", kind="tag", region=K.AUTO.get("region"))
@@ -331,7 +334,7 @@ def scene3d(g, yaw, box, title):
             sc.box((g["xb"], Hd - L["y"] - L["h"] / 2, -L["d"] / 2), (LL, 0, 0), (0, L["h"], 0), (0, 0, L["d"]), COL_FRAME,
                    edge=EDGE)
     for C in g["covers"]:                                         # v144: kojų uždengimas (korpuso spalva)
-        sc.box((g["xb"], Hd - C["y1"], -C["w"] / 2), (LL, 0, 0), (0, C["y1"] - C["y0"], 0), (0, 0, C["w"]), COL_BODY, edge=EDGE)
+        sc.box((g["xb"] + g["cover_gap"], Hd - C["y1"], -C["w"] / 2), (LL - g["cover_gap"], 0, 0), (0, C["y1"] - C["y0"], 0), (0, 0, C["w"]), COL_BODY, edge=EDGE)
     for P in g["plates"]:
         _flange3d(sc, g, P)
     SCR = HexColor("#D0D0D0")
@@ -390,9 +393,9 @@ def sheet1(g, out):
             import vektorius
             vektorius.draw_rl(K.c, g["logo_r"], xl + g["logo_x"] * s, Yv(g["logo_y"]), s, K.H, g["logo_col"])
             lx0, lx1 = xl + g["logo_x"] * s, xl + (g["logo_x"] + g["logo_w"]) * s
-            hchain(Yv(0) - 40, [xl, lx0, lx1, xr_], [Yv(0), Yv(g["logo_y"]), Yv(g["logo_y"]), Yv(0)],
+            hchain(Yv(0) - D1, [xl, lx0, lx1, xr_], [Yv(0), Yv(g["logo_y"]), Yv(g["logo_y"]), Yv(0)],
                    [f"{g['logo_x']:g}", f"{g['logo_w']:g}", f"{g['logo_x']:g}"], size=K.F_DIM_FRAME)
-            xo2 = xl - 42 if not mirror else xr_ + 42
+            xo2 = xl - D1 if not mirror else xr_ + D1
             ly0, ly1 = g["logo_y"], g["logo_y"] + g["logo_h"]
             vchain(xo2, [Yv(0), Yv(ly0), Yv(ly1), Yv(Hd)], [xl if not mirror else xr_] + [lx0 if not mirror else lx1] * 2 +
                    [xl if not mirror else xr_], [f"{ly0:.0f}", f"{g['logo_h']:.0f}", f"{Hd - ly1:.0f}"], size=K.F_DIM_FRAME)
@@ -400,8 +403,10 @@ def sheet1(g, out):
         for L in g["legs"]:
             if not g["covers"]:
                 rect(a_, Yv(L["y"] - L["h"] / 2), LL * s, L["h"] * s, fill=COL_FRAME, lw=0.1)
+        cg = g["cover_gap"]                                         # v145: uždengimas 5 mm trumpesnis už tarpą (prie korpuso)
+        c_a, c_b = sorted((X(g["xb"] + cg), X(g["xf"])))
         for C in g["covers"]:                                       # v144: kojų uždengimas, kojos po juo - punktyru
-            rect(a_, Yv(C["y0"]), LL * s, (C["y1"] - C["y0"]) * s, fill=COL_BODY, lw=0.1)
+            rect(c_a, Yv(C["y0"]), (LL - cg) * s, (C["y1"] - C["y0"]) * s, fill=COL_BODY, lw=0.1)
             for L in g["legs"]:
                 rect(a_, Yv(L["y"] - L["h"] / 2), LL * s, L["h"] * s, stroke=HexColor("#D8D8D8"), lw=0.3, dash=(2, 1.5))
         for P in g["plates"]:
@@ -411,10 +416,11 @@ def sheet1(g, out):
             K.centerline(X(Wd - 20), Yv(L["y"]), X(g["PROJ"] + 8), Yv(L["y"]))
         xs_ = sorted([X(0), X(g["xb"]), X(g["xf"]), X(g["PROJ"])])
         labs = [f"{g['xb']:g}", f"{LL:g}", f"{g['plates'][0]['t']:g}"]
-        hchain(Yv(Hd) + 40, xs_, [Yv(Hd)] * 4, labs[::-1] if mirror else labs, size=K.F_DIM_FRAME)
-        HM(xl, xr_, Yv(0) - 22, f"{Wd:g}", Yv(0), Yv(0))                       # pagrindiniai - arčiausiai, paskutiniai
-        HM(xs_[0], xs_[-1], Yv(Hd) + 22, f"{g['PROJ']:g}", Yv(Hd), Yv(Hd))
-        xo = xl - 22 if not mirror else xr_ + 22
+        hchain(Yv(Hd) + D1, xs_, [Yv(Hd)] * 4, labs[::-1] if mirror else labs, size=K.F_DIM_FRAME)
+        lg = g.get("logo_r") is not None                           # v145: grandinė arčiausiai, gabaritas už jos
+        HM(xl, xr_, Yv(0) - (D2 if lg else D1), f"{Wd:g}", Yv(0), Yv(0))
+        HM(xs_[0], xs_[-1], Yv(Hd) + D2, f"{g['PROJ']:g}", Yv(Hd), Yv(Hd))
+        xo = (xl - (D2 if lg else D1)) if not mirror else (xr_ + (D2 if lg else D1))
         VM(xo, Yv(0), Yv(Hd), xl if not mirror else xr_, f"{Hd:g}")
         return X
 
@@ -425,12 +431,10 @@ def sheet1(g, out):
     P0 = g["plates"][0]
     if g["covers"]:
         C0 = g["covers"][0]
-        K.balloon_side([(XA(g["xb"] + LL * 0.5), Yv(Hd / 2), 10), (XA(g["xf"] + P0["t"] / 2), Yv(C0["y0"] + 10), "1A"),
-                        (XA(g["xb"] + LL * 0.3), Yv(ax), "1B")], XA(g["PROJ"]) + 16, "right", up=False)
-        yy_ = sorted([0, C0["y0"], ax, Hd - ax, C0["y1"], Hd])
-        vchain(XA(g["PROJ"]) + 16, [Yv(v) for v in yy_],
-               [XA(Wd) if v in (0, Hd) else XA(g["PROJ"]) for v in yy_],
-               [f"{b - a:g}" for a, b in zip(yy_, yy_[1:])], size=K.F_DIM_FRAME)
+        K.balloon_side([(XA(g["xb"] + g["cover_gap"] + (LL - g["cover_gap"]) * 0.5), Yv(Hd / 2), 10),
+                        (XA(g["xf"] + P0["t"] / 2), Yv(C0["y0"] + 10), "1A")], XA(g["PROJ"]) + 16, "right", up=False)
+        vchain(XA(g["PROJ"]) + D1, [Yv(0), Yv(ax), Yv(Hd - ax), Yv(Hd)], [XA(Wd)] + [XA(g["PROJ"])] * 2 + [XA(Wd)],
+               [f"{ax:g}", f"{Hd - 2 * ax:g} (legs)", f"{ax:g}"], size=K.F_DIM_FRAME)
     else:
         K.balloon_side([(XA(g["xb"] + LL * 0.6), Yv(ax), 1), (XA(g["xf"] + FLt / 2), Yv(ax + FLh / 2 - 8), "1A")],
                        XA(g["PROJ"]) + 16, "right", up=False)
@@ -463,23 +467,25 @@ def sheet1(g, out):
             circle(Xs(P["cable"][0]), Yv(P["cable"][1]), P["cable"][2] / 2 * s, fill=white, lw=0.1)
     for C in g["covers"]:                                         # uždengimas už plokštės - punktyru
         rect(Xs(-C["w"] / 2), Yv(C["y0"]), C["w"] * s, (C["y1"] - C["y0"]) * s, lw=0.2, dash=(2, 1.5))
-    face_label(Xs(-TOT / 2) + 2, Yv(ytop) - 50, "A", 9); face_label(Xs(TOT / 2) - 2, Yv(ytop) - 50, "B", 9)
-    K.centerline(Xs(0), Yv(ytop - 8), Xs(0), Yv(max(Hd, pl_bot) + 8))
-    hchain(Yv(ytop) - 30, [Xs(z_) for z_ in hz], [Yv(hyv[0])] * len(hz),
-           [f"{b - a:g}" for a, b in zip(hz, hz[1:])], size=K.F_DIM_FRAME)
-    zz_ = sorted(set([-TOT / 2, TOT / 2, -PW2, PW2] + hz))
+    face_label(Xs(-TOT / 2) + 2, Yv(ytop) - 56, "A", 9); face_label(Xs(TOT / 2) - 2, Yv(ytop) - 56, "B", 9)
     ybot = max(Hd, pl_bot)
-    hchain(Yv(ybot) + 14, [Xs(z_) for z_ in zz_], [Yv(ybot)] * len(zz_),
+    K.centerline(Xs(0), Yv(ytop - 8), Xs(0), Yv(ybot + 8))
+    # v145: VIENA linija - VIENA prasmė; grandinė arčiausiai, gabaritas už jos
+    zz_ = sorted(set([-PW2, PW2] + hz))                           # viršuje: skylės plokštėje + plokštės plotis
+    pl_e = Yv(pl_top) if PW2 * 2 >= TOT else Yv(ytop)
+    hchain(Yv(ytop) - D1, [Xs(z_) for z_ in zz_], [pl_e if z_ in (-PW2, PW2) else Yv(hyv[0]) for z_ in zz_],
            [f"{b - a:g}" for a, b in zip(zz_, zz_[1:])], size=K.F_DIM_FRAME)
+    HM(Xs(-PW2), Xs(PW2), Yv(ytop) - D2, f"{2 * PW2:g}", pl_e, pl_e)
+    HM(Xs(-TOT / 2), Xs(TOT / 2), Yv(ybot) + D1, f"{TOT:g}", Yv(Hd), Yv(Hd))     # apačioje: dėžės storis
     ex_ = max(PW2 * 2, TOT) / 2
-    vchain(Xs(ex_) + 36, [Yv(v) for v in hyv], [Xs(hz[-1])] * len(hyv),
-           [f"{b - a:g}" for a, b in zip(hyv, hyv[1:])], size=K.F_DIM_FRAME)
-    HM(Xs(-TOT / 2), Xs(TOT / 2), Yv(ytop) - 14, f"{TOT:g}", Yv(0), Yv(0))
-    if len(hyv) > 2:
-        VM(Xs(ex_) + 16, Yv(hyv[0]), Yv(hyv[-1]), Xs(hz[-1]), f"{hyv[-1] - hyv[0]:g}")
-    yl_ = sorted(set([0, Hd, hyv[0], hyv[-1], pl_top, pl_bot]))
-    vchain(Xs(-ex_) - 18, [Yv(v) for v in yl_], [Xs(-TOT / 2) if v in (0, Hd) else Xs(-PW2) for v in yl_],
+    yr_ = sorted(set([pl_top, pl_bot] + hyv))                     # dešinėje: skylės nuo plokštės kraštų + plokštės aukštis
+    vchain(Xs(ex_) + D1, [Yv(v) for v in yr_], [Xs(PW2) if v in (pl_top, pl_bot) else Xs(hz[-1]) for v in yr_],
+           [f"{b - a:g}" for a, b in zip(yr_, yr_[1:])], size=K.F_DIM_FRAME)
+    VM(Xs(ex_) + D2, Yv(pl_top), Yv(pl_bot), Xs(PW2), f"{pl_bot - pl_top:g}")
+    yl_ = sorted(set([0, Hd, pl_top, pl_bot]))                   # kairėje: plokštė nuo stiklo kraštų + stiklo aukštis
+    vchain(Xs(-ex_) - D1, [Yv(v) for v in yl_], [Xs(-TOT / 2) if v in (0, Hd) else Xs(-PW2) for v in yl_],
            [f"{b - a:g}" for a, b in zip(yl_, yl_[1:])], size=K.F_DIM_FRAME)
+    VM(Xs(-ex_) - D2, Yv(0), Yv(Hd), Xs(-TOT / 2), f"{Hd:g}")
     yw = g["scr_wall"][len(g["scr_wall"]) // 2]
     nh = sum(len(P["holes"]) for P in g["plates"])
     P0 = g["plates"][0]
@@ -525,9 +531,9 @@ def sheet1(g, out):
         line(Xa(0), ya(yl - 8), Xa(dz * D / 2), ya(yl - 8 - D / 2 / math.tan(math.radians(32.5))), 0.2,
              HexColor("#C9A000"), dash=(2, 1.5))
     face_label(Xa(-TOT / 2) + 2, ya(0) - 10, "A", 9); face_label(Xa(TOT / 2) - 2, ya(0) - 10, "B", 9)
-    hchain(ya(Hd) + 40, [Xa(-TOT / 2), Xa(-D / 2), Xa(-fb / 2), Xa(fb / 2), Xa(D / 2), Xa(TOT / 2)], [ya(Hd)] * 6,
+    hchain(ya(Hd) + D1, [Xa(-TOT / 2), Xa(-D / 2), Xa(-fb / 2), Xa(fb / 2), Xa(D / 2), Xa(TOT / 2)], [ya(Hd)] * 6,
            [f"{tf:g}", f"{(D - fb) / 2:g}", f"{fb:g}", f"{(D - fb) / 2:g}", f"{tf:g}"], size=K.F_DIM_FRAME)
-    HM(Xa(-TOT / 2), Xa(TOT / 2), ya(Hd) + 22, f"{TOT:g}", ya(Hd), ya(Hd))
+    HM(Xa(-TOT / 2), Xa(TOT / 2), ya(Hd) + D2, f"{TOT:g}", ya(Hd), ya(Hd))
     VM(Xa(-TOT / 2) - 24, ya(0), ya(Hd), Xa(-TOT / 2), f"{Hd:g}")
     K.balloon_side([(Xa(zs8) + 3.5 * s5, ya(ov - 0.8), 8), (Xa(fb / 2), ya(ov + tb + fa * 0.7), 1),
                     (Xa(TOT / 2), ya(Hd * 0.35), 5), (Xa(11), ya(yl - 4), 7),
@@ -536,7 +542,7 @@ def sheet1(g, out):
                     (Xa(-D / 2 + 26), ya(Hd - ov - tb / 2), 2)], Xa(-TOT / 2) - 24, "left", up=True)
 
     circle(Xa(TOT / 2 - 10), ya(Hd - 12), 16, lw=0.3, dash=(3, 1.5))
-    T(Xa(TOT / 2) + 10, ya(Hd + 12) + 4, "B", 10, font="FB")
+    T(Xa(TOT / 2) + 14, ya(Hd - 30), "B", 10, font="FB")
     view_title(Xa(0), top - 84, "SECTION A-A", "1:5")
     # ---------------------------------------------------------------- 3D: A ir B pusės
     y3 = Yv(Hd) + 80
@@ -555,7 +561,8 @@ def sheet1(g, out):
         rect(Xt(0), Zt(zz), Wd * s, tf * s, fill=COL_FACE, lw=0.1)
     if g["covers"]:
         cw = g["covers"][0]["w"]
-        rect(Xt(g["xb"]), Zt(-cw / 2), LL * s, cw * s, fill=COL_BODY, lw=0.1)
+        rect(Xt(g["xb"]), Zt(-g["leg"][1] / 2), LL * s, g["leg"][1] * s, fill=COL_FRAME, lw=0.1)
+        rect(Xt(g["xb"] + g["cover_gap"]), Zt(-cw / 2), (LL - g["cover_gap"]) * s, cw * s, fill=COL_BODY, lw=0.1)
     else:
         rect(Xt(g["xb"]), Zt(-fb / 2), LL * s, fb * s, fill=COL_FRAME, lw=0.1)
     P0 = g["plates"][0]
@@ -582,7 +589,7 @@ def sheet1(g, out):
         K.set_view(True)
         s3 = 2 * MM
         zend = D / 2 - pd - 9                                       # lūžis: rodomas tik kraštas (rėmas - pjūvyje A-A)
-        ox, oy = X_P6 + 40, BY0 + 30
+        ox, oy = X_P6 + 56, BY0 + 30
         Zx = lambda z: ox + (TOT / 2 - z) * s3
         Yb = lambda y: oy + y * s3
         ymax = (BH - 30) / s3 - 9
@@ -653,28 +660,20 @@ def frame_inset(g, X, Yv, s, led_x, yrow):
         yw = yr - 4 if up else yr + 4
         line(X(led_x[0]), Yv(yw), X(led_x[-1]), Yv(yw), 0.2, HexColor("#C00000"))
         line(X(led_x[-1]), Yv(yw), X(g["x_tp"]), Yv(yw), 0.2, HexColor("#C00000"))
-    # matmenys
-    hchain(Yv(x0) - 46, [X(x0), X(lx0), X(xr), X(g["xf"]), X(g["PROJ"])], [Yv(x0)] * 3 + [Yv(P["yc"] - P["h"] / 2)] * 2,
-           [f"{lx0 - x0:g}", f"{xr - lx0:g}", f"{g['xf'] - xr:g}", f"{P['t']:g}"], size=K.F_DIM_FRAME)
-    yl_ = Yv(x0 + FH) + 76
-    hdim(X(lx0), X(g["xf"]), yl_, f"{g['L_leg']:.0f}  (legs {prof(lw_, ld_, lt_)}, 2 pcs.)", e1=Yv(x0 + FH), e2=Yv(P["yc"] + P["h"] / 2),
-         size=K.F_DIM_FRAME)
-    ylb = x0 + FH
-    hchain(Yv(ylb) + 52, [X(x0), X(g["led_a"])] + [X(v) for v in led_x] + [X(g["led_b"]), X(lx0)], [Yv(ylb)] * (len(led_x) + 4),
-           [f"{fa:g}", f"{led_x[0] - g['led_a']:.1f}"] + [f"{g['led_step']:.1f}"] * (len(led_x) - 1) +
-           [f"{g['led_b'] - led_x[-1]:.1f}", f"{lx0 - g['led_b']:g}"], size=K.F_DIM_FRAME)
-    vchain(X(x0) - 48, [Yv(x0), Yv(x0 + fa), Yv(x0 + FH - fa), Yv(x0 + FH)], [X(x0)] * 4,
+    # matmenys (v145: viena linija - viena prasmė; grandinė arčiausiai, gabaritas už jos; tarp LED matmenų nėra)
+    hchain(Yv(x0) - D1, [X(x0), X(lx0), X(xr)], [Yv(x0)] * 3, [f"{lx0 - x0:g}", f"{xr - lx0:g} (leg in)"], size=K.F_DIM_FRAME)
+    HM(X(x0), X(xr), Yv(x0) - D2, f"{FW:g}", Yv(x0), Yv(x0))
+    yb_ = Yv(max(x0 + FH, P["yc"] + P["h"] / 2))
+    hchain(yb_ + D1, [X(xr), X(g["xf"]), X(g["PROJ"])], [Yv(x0 + FH), Yv(P["yc"] + P["h"] / 2), Yv(P["yc"] + P["h"] / 2)],
+           [f"{g['xf'] - xr:g}", f"{P['t']:g}"], size=K.F_DIM_FRAME)
+    HM(X(lx0), X(g["xf"]), yb_ + D2, f"{g['L_leg']:.0f} (leg 1B)", Yv(g["h"] - g["ax"] + lw_ / 2), Yv(P["yc"] + P["h"] / 2))
+    vchain(X(x0) - D1, [Yv(x0), Yv(x0 + fa), Yv(x0 + FH - fa), Yv(x0 + FH)], [X(x0)] * 4,
            [f"{fa:g}", f"{g['L_v']:g}", f"{fa:g}"], size=K.F_DIM_FRAME)
-    HM(X(g["led_a"]), X(g["led_b"]), Yv(ylb) + 32, f"{g['led_span']:g}  ({g['led_n_row']} x {g['led_step']:.1f})",
-       Yv(ylb), Yv(ylb), size=K.F_DIM_FRAME)
-    HM(X(x0), X(xr), Yv(x0) - 26, f"{FW:g}", Yv(x0), Yv(x0))
-    VM(X(x0) - 26, Yv(x0), Yv(x0 + FH), X(x0), f"{FH:g}")
-    ya_ = sorted([P["yc"] - P["h"] / 2, g["ax"] - lw_ / 2, g["ax"] + lw_ / 2, Hd - g["ax"] - lw_ / 2, Hd - g["ax"] + lw_ / 2,
-                  P["yc"] + P["h"] / 2])
-    vchain(X(g["PROJ"]) + 20, [Yv(v) for v in ya_], [X(g["xf"])] * len(ya_), [f"{b - a:g}" for a, b in zip(ya_, ya_[1:])],
+    VM(X(x0) - D2, Yv(x0), Yv(x0 + FH), X(x0), f"{FH:g}")
+    ylg = [g["ax"] - lw_ / 2, g["ax"] + lw_ / 2, Hd - g["ax"] - lw_ / 2, Hd - g["ax"] + lw_ / 2]
+    vchain(X(g["PROJ"]) + D1, [Yv(v) for v in ylg], [X(g["xf"])] * 4, [f"{lw_:g}", f"{ylg[2] - ylg[1]:g}", f"{lw_:g}"],
            size=K.F_DIM_FRAME)
-    VM(X(g["PROJ"]) + 44, Yv(ya_[0]), Yv(ya_[-1]), X(g["PROJ"]), f"{P['h']:g}")
-    vchain(X(g["x_tp"]) - 14, [Yv(g["ax"]), Yv(Hd - g["ax"])], [X(lx0)] * 2, [f"{Hd - 2 * g['ax']:g} (axes)"], size=K.F_DIM_FRAME)
+    VM(X(g["PROJ"]) + D2, Yv(P["yc"] - P["h"] / 2), Yv(P["yc"] + P["h"] / 2), X(g["PROJ"]), f"{P['h']:g} (plate)")
     T(X(lx0 + dxc / 2) + 8, Yv(g["ax"] + lw_ / 2) + 10, f"{g['leg_chamfer']:g}°", 8)
     K.balloon_side([(X(x0 + FW * 0.3), Yv(x0 + fa / 2), "1.1"), (X(x0 + FW * 0.3), Yv(x0 + FH - fa / 2), "1.2"),
                     (X(x0 + fa / 2), Yv(x0 + FH * 0.35), "1.3"), (X(g["xf"] - 10), Yv(g["ax"]), "1B"),
@@ -717,20 +716,15 @@ def sheet2(g, out):
             line(X(led_x[0]), Yv(yw), X(led_x[-1]), Yv(yw), 0.2, HexColor("#C00000"))
             line(X(led_x[-1]), Yv(yw), X(g["xb"] + 30), Yv(yw), 0.2, HexColor("#C00000"))
         # matmenys
-        hchain(Yv(x0) - 46, [X(x0), X(g["xb"]), X(g["xf"]), X(g["xf"] + FLt)], [Yv(x0)] * 2 + [Yv(x0 + fa / 2 - FLh / 2)] * 2,
+        hchain(Yv(x0) - D1, [X(x0), X(g["xb"]), X(g["xf"]), X(g["xf"] + FLt)], [Yv(x0)] * 2 + [Yv(x0 + fa / 2 - FLh / 2)] * 2,
                [f"{g['xb'] - x0:g}", f"{LL:g}", f"{FLt:g}"], size=K.F_DIM_FRAME)
-        hdim(X(x0), X(g["xf"]), Yv(x0) - 66, f"{g['L_h']:g}  (□{fa}x{fb}x{ft:g}, 2 pcs.)", e1=Yv(x0), e2=Yv(x0),
+        hdim(X(x0), X(g["xf"]), Yv(x0) - D2 - 20, f"{g['L_h']:g}  (□{fa}x{fb}x{ft:g}, 2 pcs.)", e1=Yv(x0), e2=Yv(x0),
              size=K.F_DIM_FRAME)
         ylb = x0 + FH
-        hchain(Yv(ylb) + 52, [X(x0), X(x0 + fa)] + [X(v) for v in led_x] + [X(xr - fa), X(xr)], [Yv(ylb)] * (len(led_x) + 4),
-               [f"{fa:g}", f"{led_x[0] - x0 - fa:.1f}"] + [f"{g['led_step']:.1f}"] * (len(led_x) - 1) +
-               [f"{xr - fa - led_x[-1]:.1f}", f"{fa:g}"], size=K.F_DIM_FRAME)
-        vchain(X(x0) - 48, [Yv(x0), Yv(x0 + fa), Yv(x0 + FH - fa), Yv(x0 + FH)], [X(x0)] * 4,
+        vchain(X(x0) - D1, [Yv(x0), Yv(x0 + fa), Yv(x0 + FH - fa), Yv(x0 + FH)], [X(x0)] * 4,
                [f"{fa:g}", f"{g['L_v']:g}", f"{fa:g}"], size=K.F_DIM_FRAME)
-        HM(X(x0 + fa), X(xr - fa), Yv(ylb) + 32, f"{g['led_span']:g}  ({g['led_n_row']} x {g['led_step']:.1f})",
-           Yv(ylb), Yv(ylb), size=K.F_DIM_FRAME)
-        HM(X(x0), X(xr), Yv(x0) - 26, f"{FW:g}", Yv(x0), Yv(x0))
-        VM(X(x0) - 26, Yv(x0), Yv(x0 + FH), X(x0), f"{FH:g}")
+        HM(X(x0), X(xr), Yv(x0) - D2, f"{FW:g}", Yv(x0), Yv(x0))
+        VM(X(x0) - D2, Yv(x0), Yv(x0 + FH), X(x0), f"{FH:g}")
         vchain(X(g["xf"] + FLt) + 24, [Yv(x0 + fa / 2), Yv(x0 + FH - fa / 2)], [X(g["xf"])] * 2, [f"{FH - fa:g}"],
                size=K.F_DIM_FRAME)
         K.balloon_side([(X(g["xb"] + 30), Yv(x0 + fa), "1.1"), (X(g["xf"] + FLt), Yv(x0 + fa / 2 + 28), "1A"),
@@ -757,9 +751,9 @@ def sheet2(g, out):
         hb_ = min(D / 2 / math.tan(math.radians(32.5)), up_ - 10)
         line(Zc(0), Yc(-8), Zc(dz * hb_ * math.tan(math.radians(32.5))), Yc(-8 - hb_), 0.25, HexColor("#C9A000"), dash=(2, 1.5))
     T(Zc(0), Yc(-up_) + 10, "65°", 8, align="c", color=HexColor("#8A6D00"))
-    hchain(Yc(fa + tb + ov) + 40, [Zc(-D / 2 - tf), Zc(-D / 2), Zc(-fb / 2), Zc(fb / 2), Zc(D / 2), Zc(D / 2 + tf)],
+    hchain(Yc(fa + tb + ov) + D1, [Zc(-D / 2 - tf), Zc(-D / 2), Zc(-fb / 2), Zc(fb / 2), Zc(D / 2), Zc(D / 2 + tf)],
            [Yc(fa + tb)] * 6, [f"{tf:g}", f"{(D - fb) / 2:g}", f"{fb:g}", f"{(D - fb) / 2:g}", f"{tf:g}"], size=K.F_DIM_FRAME)
-    HM(Zc(-D / 2 - tf), Zc(D / 2 + tf), Yc(fa + tb + ov) + 22, f"{D + 2 * tf:g}", Yc(fa + tb), Yc(fa + tb))
+    HM(Zc(-D / 2 - tf), Zc(D / 2 + tf), Yc(fa + tb + ov) + D2, f"{D + 2 * tf:g}", Yc(fa + tb), Yc(fa + tb))
     K.balloon_side([(Zc(D / 2 + tf), Yc(-up_ * 0.7), 5), (Zc(11), Yc(-6), 7), (Zc(D / 2), Yc(fa + tb / 2), 2)],
                    Zc(D / 2 + tf) + 2, "right", up=True)
     K.balloon_side([(Zc(-D / 2 - tf), Yc(-up_ * 0.7), 3), (Zc(-fb / 2), Yc(fa / 2), 1)], Zc(-D / 2 - tf) - 2, "left", up=True)
@@ -797,9 +791,9 @@ def sheet2(g, out):
     for uu in (g["ax"] - ov, g["BH"] - (g["ax"] - ov)):
         rect(BX(starts["wall"] + uu - cl / 2), BY(D / 2 - cd / 2), cl * s10, cd * s10, fill=white, lw=0.1)
     # matmenys: lenkimai, skylių eilės, vienos kraštinės skylių žingsnis
-    hchain(BY(0) - 32, [BX(starts[fn]) for fn, _ in faces] + [BX(Ltot)], [BY(0)] * 5, [f"{L:g}" for _, L in faces],
+    hchain(BY(0) - D1, [BX(starts[fn]) for fn, _ in faces] + [BX(Ltot)], [BY(0)] * 5, [f"{L:g}" for _, L in faces],
            size=K.F_DIM_FRAME)
-    HM(BX(0), BX(Ltot), BY(0) - 14, f"{Ltot:g}  (band {tb:g} mm, 3 x 90° fold + seam)", BY(0), BY(0))
+    HM(BX(0), BX(Ltot), BY(0) - D2, f"{Ltot:g}  (band {tb:g} mm, 3 x 90° fold + seam)", BY(0), BY(0))
     zs = D / 2 - g["pvc_edge"][1] / 2
     vchain(BX(Ltot) + 16, [BY(0), BY(D / 2 - zs), BY(D / 2), BY(D / 2 + zs), BY(D)], [BX(Ltot)] * 5,
            [f"{D / 2 - zs:g}", f"{zs:g}", f"{zs:g}", f"{D / 2 - zs:g}"], size=K.F_DIM_FRAME)
@@ -877,6 +871,7 @@ def main(spec_path, out):
         COL_BODY = HexColor(K.ralhex(S["body_finish"]))
     if str(S.get("frame_finish", "")).upper().startswith("RAL") and "_" not in S["frame_finish"]:
         COL_FRAME = COL_FL = HexColor(K.ralhex(S["frame_finish"]))
+    K.F_DIM_FRAME = K.F_DIM_MAIN                                    # v145 (Rytis): visi matmenys vienodo dydžio
     g = geom(S)
     p1, p2 = out + ".1.pdf", out + ".2.pdf"
     for fn, pp in ((sheet1, p1), (sheet2, p2)):                    # v139: 2 praėjimai - automatinis žymėjimas

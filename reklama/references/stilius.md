@@ -191,9 +191,13 @@ antraštė, P6 tipiniai pjūviai `p6_typical(variant=rail|folded|plate)`, 3D `Vi
   stiklo šviesus užpildas - užimta), trumpa įstriža išvadinė (30-60°), kuo mažiau kerta brėžinio linijų, nekerta kitų išvadinių.
   Ribota zona (DETAIL juostoje) - `K.AUTO["region"]`. `balloon_side` / `balloon_column` automatinio režimo metu - per balloon_auto.
 - Varžtai 3D - apvalios galvutės (diskai), stiklas 3D - baltas (amb 0,97), ne pilkas.
-- **v141 (Rytis 2026-10-12): MATMENŲ EILIŠKUMAS** - pagrindinis (gabaritinis, paprasčiausias) matmuo PIRMAS - arčiausiai
-  objekto, 12 pt, tekstas su baltu fonu (kitų išvadinės jo neuždengia), braižomas paskutinis; papildomos grandinės (8 pt) -
-  TOLIAU nuo objekto už jo. Funkcijos `HM` / `VM` (`scripts/sviesdeze.py`) - taip daryti visuose naujuose lapuose.
-- **Šriftai vienodi visame lape:** gabaritiniai matmenys 12 pt, visi kiti matmenys, žymos, pastabos - 8 pt (ne 7, ne 9);
-  vaizdų pavadinimai 13 pt, masteliai 9 pt.
+- **v145 (Rytis 2026-10-12, PATAISO v141): MATMENŲ EILIŠKUMAS** - arčiausiai objekto (1 eilė, `D1` 16 pt) - papildoma
+  grandinė, už jos (2 eilė, `D2` 36 pt) - bendras (gabaritinis) matmuo, kad grandinės išvadinės NEKIRSTŲ bendro matmens
+  linijos. Funkcijos `HM` / `VM` (`scripts/sviesdeze.py`), taip daryti visuose naujuose lapuose.
+- **v145: VIENA LINIJA - VIENA PRASMĖ.** Grandinėje nemaišyti skirtingų dalykų (pvz. stiklo storio, plokštės kraštų ir skylių
+  vienoje eilutėje): skylės nuo plokštės kraštų - viena grandinė, plokštės plotis - jos gabaritas, dėžės storis - kitoje pusėje.
+  Grandinėje su keliais vienodais skaičiais - prierašas (pvz. „284 (legs)", „53 (leg in)", „340 (plate)").
+- **v145: matmenų tarp LED nededama** (LED kiekis ir žingsnis - LED lentelėje / MAIN DATA).
+- **Šriftai vienodi visame lape (v145 Rytis: „nepataisyti šriftų dydžiai"):** VISI matmenys vieno dydžio - 12 pt (ir grandinės,
+  ir gabaritai); žymos, pastabos - 8 pt; vaizdų pavadinimai 13 pt, masteliai 9 pt. Šviesdėžė: `K.F_DIM_FRAME = K.F_DIM_MAIN`.
 - **Spalvos vaizduose = užsakytos RAL** (pvz. RAL 7024 korpusas / rėmas - tamsiai pilka vaizduose ir 3D); A2 varžtai - šviesūs.

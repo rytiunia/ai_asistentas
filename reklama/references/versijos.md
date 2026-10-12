@@ -2,6 +2,12 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v145 (2026-10-12)
+
+v145, Rytis 2026-10-12: matmenų eiliškumas pataisytas (v141 suprastas atvirkščiai) - grandinė arčiausiai objekto, gabaritas už
+jos; viena linija - viena prasmė; matmenų tarp LED nėra; visi matmenys 12 pt; šviesdėžės kojų uždengimas 5 mm trumpesnis už
+tarpą (`cover_gap`).
+
 ## v144 (2026-10-12)
 
 v144, Rytis 2026-10-12: šviesdėžė - kojos žemesnės už dėžę, su uždengimais (`legs_type: inset`): rėmas 40x20x2 be sienos
