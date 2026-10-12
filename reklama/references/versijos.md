@@ -2,6 +2,11 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v141 (2026-10-12)
+
+v141, Rytis 2026-10-12: gabaritinis matmuo arčiausiai objekto (12 pt, baltas fonas), grandinės toliau (8 pt); vienodi šriftai
+(pastabos / žymos 8 pt); šviesdėžė RAL 7024 (vaizdai, 3D), logotipas ORACAL 551 702.
+
 ## v140 (2026-10-12)
 
 v140, Rytis 2026-10-12: šviesdėžė - tūris 140 mm (500 x 500), logotipas 300 mm pločio abiejose pusėse iš kliento PNG

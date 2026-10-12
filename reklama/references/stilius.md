@@ -191,3 +191,9 @@ antraštė, P6 tipiniai pjūviai `p6_typical(variant=rail|folded|plate)`, 3D `Vi
   stiklo šviesus užpildas - užimta), trumpa įstriža išvadinė (30-60°), kuo mažiau kerta brėžinio linijų, nekerta kitų išvadinių.
   Ribota zona (DETAIL juostoje) - `K.AUTO["region"]`. `balloon_side` / `balloon_column` automatinio režimo metu - per balloon_auto.
 - Varžtai 3D - apvalios galvutės (diskai), stiklas 3D - baltas (amb 0,97), ne pilkas.
+- **v141 (Rytis 2026-10-12): MATMENŲ EILIŠKUMAS** - pagrindinis (gabaritinis, paprasčiausias) matmuo PIRMAS - arčiausiai
+  objekto, 12 pt, tekstas su baltu fonu (kitų išvadinės jo neuždengia), braižomas paskutinis; papildomos grandinės (8 pt) -
+  TOLIAU nuo objekto už jo. Funkcijos `HM` / `VM` (`scripts/sviesdeze.py`) - taip daryti visuose naujuose lapuose.
+- **Šriftai vienodi visame lape:** gabaritiniai matmenys 12 pt, visi kiti matmenys, žymos, pastabos - 8 pt (ne 7, ne 9);
+  vaizdų pavadinimai 13 pt, masteliai 9 pt.
+- **Spalvos vaizduose = užsakytos RAL** (pvz. RAL 7024 korpusas / rėmas - tamsiai pilka vaizduose ir 3D); A2 varžtai - šviesūs.
