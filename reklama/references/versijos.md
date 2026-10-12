@@ -2,6 +2,12 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v135 (2026-10-12)
+
+v135, Rytis 2026-10-12 (šviesdėžė: „reikia detaliau ... stiklas visada didesnis už korpusą, korpusas mažesnis 1.5-2mm"):
+`sviesdeze.py` - 2 lapai (GA + FRAME + LED), gręžimo schema, rėmo matmenys, LED Kaisen DUOLITE DS15 (6 vnt. 500 x 500, 2300 lx
+pagal lentelę), korpusas 497 x 497 po stiklu 500 x 500; `kaisen_led.json` + `duolite` (DS15 / DS20 lentelės).
+
 ## v134 (2026-10-12)
 
 v134, Rytis 2026-10-12 (dvipuse_sviesdeze_nuo_sienos.pdf - „paprasčiausia dvipusė šviesdėžė nuo fasado ... padaryk gamybinį"):
