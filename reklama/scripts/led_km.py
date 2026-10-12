@@ -523,10 +523,10 @@ def pack(g, pitch):
 #  - ribojimas: langelyje 0,38 p x 0,38 p - ne daugiau 1 modulio (nesusispaudžia);
 #  - tikslas: MAŽIAUSIAI modulių; lygiaverčių - arčiau ašies (baudos taškas už nutolimą nuo ašies);
 #  - rezultatas pastovus (ta pati raidė - tas pats išdėstymas).
-IL_R, IL_EDGE, IL_REL, IL_SEP, IL_STEP, IL_WALL, IL_RV = 0.60, 0.10, 0.35, 0.75, 0.10, 0.03, 0.85
+IL_R, IL_EDGE, IL_REL, IL_SEP, IL_STEP, IL_WALL, IL_RV, IL_RE, IL_ENDF, IL_DENS = 0.60, 0.10, 0.35, 0.75, 0.10, 0.03, 0.80, 0.64, 0.42, 0.90
 
 
-def ilp(g, pitch, time_limit=30):
+def ilp(g, pitch, time_limit=30, n_min=0):
     from scipy import ndimage
     from scipy.optimize import milp, LinearConstraint, Bounds
     from scipy.sparse import csr_matrix
@@ -574,9 +574,17 @@ def ilp(g, pitch, time_limit=30):
     # kampo „šešėlyje" (už lenkimo, prie sienelės) šonų atspindys neapšviečia, todėl ten būtinas savas modulis.
     wmask = dsub & m & (edt >= IL_WALL * pitch) & ~dmask
     wx, wy = X[wmask], Y[wmask]
-    RV = IL_RV * pitch
+    # v133 (Rytis: „t viršus, brūkšnelio kairė pusė, apatinis galas - šviesos pritruks; EXTRA E galiukai nešvies"):
+    # LINIJOS GALAI - taškas, kurio aplinkoje (0,5 p) mažai raidės ploto (< IL_ENDF) -> modulis <= IL_RE x p
+    # (atitinka taisyklę „modulis p/2 nuo galo, linijos ašyje"), kiti sienelės taškai - <= IL_RV x p.
+    from scipy.signal import fftconvolve
+    kk = int(math.ceil(0.5 * pitch / res)); yy_, xx_ = np.mgrid[-kk:kk + 1, -kk:kk + 1]
+    dk = ((xx_ * xx_ + yy_ * yy_) * res * res <= (0.5 * pitch) ** 2).astype(float)
+    frac = fftconvolve(m.astype(float), dk, mode="same") / dk.sum()
+    wend = frac[wmask] < IL_ENDF
     rows2, cols2 = [], []
     for k in range(wx.size):
+        RV = (IL_RE if wend[k] else IL_RV) * pitch
         j = np.nonzero((cx - wx[k]) ** 2 + (cy - wy[k]) ** 2 <= RV * RV)[0]
         if j.size:
             j = j[visible(wx[k], wy[k], cx[j], cy[j])]
@@ -597,10 +605,12 @@ def ilp(g, pitch, time_limit=30):
     off = 1.0 - edt[cmask] / np.maximum(loc[cmask], 1e-6)          # 0 - ašis, 1 - kraštas
     c = 1.0 + 0.15 * np.clip(off, 0, 1)
     cons = [LinearConstraint(Acov, lb=1, ub=np.inf), LinearConstraint(Acell, lb=0, ub=1)]
+    if n_min:
+        cons.append(LinearConstraint(np.ones((1, cx.size)), lb=n_min, ub=np.inf))
     r_ = milp(c, constraints=cons, integrality=np.ones(cx.size), bounds=Bounds(0, 1),
               options={"time_limit": time_limit, "mip_rel_gap": 0.01, "disp": False})
     if r_.x is None:                          # langelio ribojimas per griežtas (labai maža forma) - be jo
-        r_ = milp(c, constraints=cons[:1], integrality=np.ones(cx.size), bounds=Bounds(0, 1),
+        r_ = milp(c, constraints=[cons[0]] + cons[2:], integrality=np.ones(cx.size), bounds=Bounds(0, 1),
                   options={"time_limit": time_limit, "mip_rel_gap": 0.01, "disp": False})
     sel = np.nonzero(r_.x > 0.5)[0]
     out = []
@@ -671,6 +681,16 @@ def run(spec):
         for g in L:
             pts, mode, a_, r_ = place(g, p, p_lx, gr.get("layout") or spec.get("layout") or "ilp")
             per.append({"g": g, "pts": pts, "mode": mode, "cov": (a_, r_)})
+        lay = gr.get("layout") or spec.get("layout") or "ilp"
+        if lay == "ilp" and len(per) > 1:
+            # v133 (Rytis: „7 ir 3 bendroje grandinėje atrodys blankiau"): vienodas ryškumas grupėje - modulių tankis
+            # (vnt. / veido plotas) kiekvienoje raidėje >= IL_DENS x grupės medianos; trūksta - ILP su min. kiekiu
+            dens = [len(x["pts"]) / max(x["g"].area, 1) for x in per]
+            D = float(np.median(dens))
+            for x, d_ in zip(per, dens):
+                need = int(math.ceil(IL_DENS * D * x["g"].area - 1e-9))
+                if len(x["pts"]) < need:
+                    x["pts"] = ilp(x["g"], p, n_min=need); x["cov"] = (need - len(x["pts"]), 0)
         n = sum(len(x["pts"]) for x in per)
         watts = n * MODDB[m]["W"]
         res.append({"gr": gr, "mod": m, "pitch": p, "plx": p_lx, "letters": per, "n": n, "W": watts, "psu": psu_for(watts, MODDB[m]["V"])})

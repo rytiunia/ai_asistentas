@@ -2,6 +2,12 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v133 (2026-10-12)
+
+v133, Rytis 2026-10-12 (öppet t viršus / skersinio kairė / koja, EXTRA E galiukai, 7 ir 3 blankesni grupėje): `ilp()` - galų
+taisyklė (<= 0,64 p) ir tankio išlyginimas grupėje (>= 0,9 medianos). Alltid öppet 72 (t 6, e 7), EXTRA X + EXTRA 46 (E 8),
+FAS700 7-23 19 (7: 5, 3: 7), Åpn894 41, Åpn496 19, SPAR 62 / 62.
+
 ## v132 (2026-10-12)
 
 v132, Rytis 2026-10-12 („LED dėliojama lovyje ... kampas blokuoja šviesą"): `ilp()` - sienelių užstojimas (2D matomumas,
