@@ -2,6 +2,12 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v131 (2026-10-12)
+
+v131, Rytis 2026-10-12 („vistiek keletoje vietų nedėti LED" - e skersinis, t skersinis, d pilvas; „rekomenduok sprendimą gamybos
+lygio LED išdėstymui" -> „bandyk"): `led_km.py ilp()` - aprėpties optimizavimas (HiGHS). Alltid öppet 66, EXTRA Åpn496 19,
+Åpn894 37, FAS700 41 + 17, SPAR 62 / 61.
+
 ## v130 (2026-10-12)
 
 v130, Rytis LED testas „Alltid öppet" (testaC.pdf, P6, gylis 80, 1 pt = 1 pt): `pack()` - 67 x KM-P2-W, KPS-V12-100W;

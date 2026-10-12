@@ -515,7 +515,80 @@ def pack(g, pitch):
     return out
 
 
-def place(g, pitch, p_lx=None, layout="pack"):
+# v131 (Rytis 2026-10-12: „vistiek keletoje vietų nedėti LED, nors jie ten turėtų būti" -> rekomenduotas ir patvirtintas
+# („bandyk") GAMYBOS LYGIO sprendimas): LED išdėstymas - OPTIMIZAVIMO uždavinys (aprėptis, sveikųjų sk. programavimas, HiGHS):
+#  - kandidatai - raidės taškai kas ~p/10 (centras ne prie pat krašto: edt >= min(0,22 p, 0,6 vietinio pusploto));
+#  - SĄLYGA: kiekvienas raidės veido taškas (be krašto juostos IL_EDGE x p - šonų atspindys) <= IL_R x p nuo modulio
+#    -> tuščių vietų (t skersinio galas, e skersinis, d pilvo viršus) NEGALI likti;
+#  - ribojimas: langelyje 0,38 p x 0,38 p - ne daugiau 1 modulio (nesusispaudžia);
+#  - tikslas: MAŽIAUSIAI modulių; lygiaverčių - arčiau ašies (baudos taškas už nutolimą nuo ašies);
+#  - rezultatas pastovus (ta pati raidė - tas pats išdėstymas).
+IL_R, IL_EDGE, IL_REL, IL_SEP, IL_STEP = 0.60, 0.10, 0.35, 0.75, 0.10
+
+
+def ilp(g, pitch, time_limit=30):
+    from scipy import ndimage
+    from scipy.optimize import milp, LinearConstraint, Bounds
+    from scipy.sparse import csr_matrix
+    res = max(1.5, pitch / 40.0)
+    m, (ox, oy) = LS.raster(g, res)
+    pad = 3
+    m = np.pad(m, pad); ox -= pad * res; oy -= pad * res
+    edt = ndimage.distance_transform_edt(m) * res
+    loc = ndimage.maximum_filter(edt, size=max(3, int(pitch / res) | 1))
+    YY, XX = np.mgrid[0:m.shape[0], 0:m.shape[1]]
+    X = ox + XX * res; Y = oy + YY * res
+    st = max(1, int(round(IL_STEP * pitch / res)))
+    sub = np.zeros(m.shape, bool); sub[::st, ::st] = True
+    cmask = sub & m & (edt >= np.minimum(0.22 * pitch, 0.6 * loc))
+    dst = max(1, int(round(0.08 * pitch / res)))
+    dsub = np.zeros(m.shape, bool); dsub[::dst, ::dst] = True
+    dmask = dsub & m & (edt >= np.maximum(np.minimum(IL_EDGE * pitch, 0.5 * loc), IL_REL * loc))
+    cx, cy = X[cmask], Y[cmask]; dx, dy = X[dmask], Y[dmask]
+    if cx.size == 0:
+        return []
+    R = IL_R * pitch
+    rows, cols = [], []
+    for k in range(dx.size):
+        j = np.nonzero((cx - dx[k]) ** 2 + (cy - dy[k]) ** 2 <= R * R)[0]
+        if j.size == 0:                       # nepasiekiamas taškas (labai siauras galas) - artimiausias kandidatas
+            j = np.array([int(np.argmin((cx - dx[k]) ** 2 + (cy - dy[k]) ** 2))])
+        rows += [k] * j.size; cols += j.tolist()
+    Acov = csr_matrix((np.ones(len(rows)), (rows, cols)), shape=(dx.size, cx.size))
+    # tarpas tarp modulių >= IL_SEP x p: kiekviename IL_SEP/2 spindulio skritulyje - ne daugiau 1 modulio
+    hr = IL_SEP * pitch / 2.0
+    rr2, cc2 = [], []
+    for k in range(cx.size):
+        j = np.nonzero((cx - cx[k]) ** 2 + (cy - cy[k]) ** 2 <= hr * hr)[0]
+        rr2 += [k] * j.size; cc2 += j.tolist()
+    Acell = csr_matrix((np.ones(len(rr2)), (rr2, cc2)), shape=(cx.size, cx.size))
+    off = 1.0 - edt[cmask] / np.maximum(loc[cmask], 1e-6)          # 0 - ašis, 1 - kraštas
+    c = 1.0 + 0.15 * np.clip(off, 0, 1)
+    cons = [LinearConstraint(Acov, lb=1, ub=np.inf), LinearConstraint(Acell, lb=0, ub=1)]
+    r_ = milp(c, constraints=cons, integrality=np.ones(cx.size), bounds=Bounds(0, 1),
+              options={"time_limit": time_limit, "mip_rel_gap": 0.01, "disp": False})
+    if r_.x is None:                          # langelio ribojimas per griežtas (labai maža forma) - be jo
+        r_ = milp(c, constraints=cons[:1], integrality=np.ones(cx.size), bounds=Bounds(0, 1),
+                  options={"time_limit": time_limit, "mip_rel_gap": 0.01, "disp": False})
+    sel = np.nonzero(r_.x > 0.5)[0]
+    out = []
+    for k in sel:
+        x, y = float(cx[k]), float(cy[k])
+        q = m & (np.hypot(X - x, Y - y) <= 0.6 * pitch)
+        px, py = X[q] - x, Y[q] - y
+        if px.size > 3:
+            w_, v_ = np.linalg.eigh(np.cov(np.vstack([px, py]))); ang = math.atan2(v_[1, 1], v_[0, 1])
+        else:
+            ang = 0.0
+        if ang > math.pi / 2: ang -= math.pi
+        if ang <= -math.pi / 2: ang += math.pi
+        out.append((x, y, ang))
+    return out
+
+
+def place(g, pitch, p_lx=None, layout="ilp"):
+    if layout == "ilp":
+        return ilp(g, pitch), "ilp", 0, 0
     if layout == "pack":
         return pack(g, pitch), "pack", 0, 0
     w = LS.stroke_max(g)
@@ -564,14 +637,14 @@ def run(spec):
             p = int(min(p, max(60, round(1.6 * w_med / 10.0) * 10)))
         per = []
         for g in L:
-            pts, mode, a_, r_ = place(g, p, p_lx, gr.get("layout") or spec.get("layout") or "pack")
+            pts, mode, a_, r_ = place(g, p, p_lx, gr.get("layout") or spec.get("layout") or "ilp")
             per.append({"g": g, "pts": pts, "mode": mode, "cov": (a_, r_)})
         n = sum(len(x["pts"]) for x in per)
         watts = n * MODDB[m]["W"]
         res.append({"gr": gr, "mod": m, "pitch": p, "plx": p_lx, "letters": per, "n": n, "W": watts, "psu": psu_for(watts, MODDB[m]["V"])})
         print(f"  {gr.get('name') or 'grupė'}: {mod_label(m, gr.get('led', 'white'))} žingsnis ~{p} -> " +
               ", ".join(str(len(x['pts'])) for x in per) + f" = {n} vnt., {watts:.1f} W, {psu_for(watts, MODDB[m]['V'])[0]}" +
-              ("" if all(x["mode"] in ("chain", "pack") for x in per) else "  (plati linija - tinklelis)") +
+              ("" if all(x["mode"] in ("chain", "pack", "ilp") for x in per) else "  (plati linija - tinklelis)") +
               f"  [padengimas: +{sum(x['cov'][0] for x in per)} / -{sum(x['cov'][1] for x in per)}]")
     return res
 
