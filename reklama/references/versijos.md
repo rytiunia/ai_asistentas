@@ -2,6 +2,12 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v125 (2026-10-12)
+
+v125, Rytis 2026-10-12 („p120 klaida. naudojami led moduliai ir transformatoriai iš https://baltled.com"): `assets/baltled_led.json`
+(BaltLED: 39 moduliai, 18 PSU, nuskaityta iš produktų puslapių; 6 moduliai ir dalis PSU - HTTP 429, neperskaityta),
+`led_km.py` - PRISMA S1+ / S2+ / S3+ / S4+, MINI HE pagal gylį, PSU BaltLED BPS <= 75 %, LED imitacija su simboliniu korpusu.
+
 ## v124 (2026-10-12)
 
 Rytis: „šitas dėliojimo principas" (test_Oracal_641_070_black.pdf - 4 dalys: užrašas, automobilis, 2 dušai, kompaktiškai).
