@@ -223,9 +223,172 @@ def grid(g, pitch):
     return best
 
 
-def place(g, pitch):
+# v128 (Rytis 2026-10-12: „kai kur labai gerai, o kai kur net LED nepridėti ... taisyklės tik rekomendacijos ... labiau žiūrimas
+# švietimo padengimas ... švietimas turi būti tolygus miksuojant taisyklių ir formos algoritmą"):
+# 1) taisyklių išdėstymas (chain / grid) - pradinis;
+# 2) ŠVIESOS PADENGIMO MODELIS veide: modulio šviesos dėmė E(d) = 1 / (1 + (d / s)^2)^2, s = COV_S x p_lx (p_lx - žingsnis pagal
+#    gylio / lx lentelę, t.y. modulio optika + gylis; 1 = tiesiai virš modulio), moduliai sumuojami. Kalibruota pagal Ryčio
+#    priimtus lapus: tarp modulių p atstumu ašyje / krašte - šviesu, galas p/2 nuo krašto - šviesu, 7 kampas už 0,8 p - tamsu.
+#    Taškas TAMSUS, jei E < COV_E x E_ref, kur E_ref - tiesios tos pačios raidės pločio linijos su moduliais kas p apšvieta
+#    krašte tarp modulių (t.y. tai, ką duoda taisyklė tiesioje vietoje - „gerai“ etalonas). Siaura krašto juosta (COV_EDGE x p) nevertinama - ją apšviečia šonų atspindys.
+#    Tamsios dėmės (>= COV_MIN x p²) užpildomos godžiai: modulis ten, kur labiausiai pašviesina tamsų plotą (ašies / gilaus
+#    ploto taškai, >= 0,45 p nuo kitų), pasuktas pagal vietinę ašį;
+# 3) perteklius: modulis arčiau nei COV_DUP x p, be kurio tamsių dėmių nepadaugėja - šalinamas (karštos dėmės, pvz. brūkšnys
+#    su 3 -> 2).
+COV_S, COV_E, COV_EDGE, COV_MIN, COV_DUP = 0.60, 0.65, 0.08, 0.025, 0.70
+
+
+def _cov_state(g, pitch):
+    from scipy import ndimage
+    res = max(1.5, pitch / 35.0)
+    m, (ox, oy) = LS.raster(g, res)
+    edt = ndimage.distance_transform_edt(m) * res
+    ev = m & (edt >= COV_EDGE * pitch)
+    mx = ndimage.maximum_filter(edt, size=3)
+    ridge = m & (edt >= mx - 0.75 * res)
+    cand = m & (ridge | (edt >= 0.35 * pitch)) & (edt >= min(0.15 * pitch, 0.6 * edt.max()))
+    cand2 = m & (edt >= min(0.15 * pitch, 0.6 * edt.max()))
+    sm = ndimage.gaussian_filter(edt, 1.5)
+    gyy, gyx = np.gradient(np.gradient(sm, axis=0)); gxy, gxx = np.gradient(np.gradient(sm, axis=1))
+    YY, XX = np.mgrid[0:m.shape[0], 0:m.shape[1]]
+    return dict(res=res, m=m, ox=ox, oy=oy, edt=edt, ev=ev, cand=cand, cand2=cand2, ridge=ridge, X=ox + XX * res, Y=oy + YY * res,
+                hxx=gxx, hyy=gyy, hxy=(gxy + gyx) / 2)
+
+
+def illum(st, pts, sp):
+    E = np.zeros(st["m"].shape)
+    for q in pts:
+        d2 = (st["X"] - q[0]) ** 2 + (st["Y"] - q[1]) ** 2
+        E += 1.0 / (1.0 + d2 / (sp * sp)) ** 2
+    return E
+
+
+def _e_ref(st, pitch, sp):
+    """tiesios linijos (plotis - raidės ašies mediana) krašto taškas tarp modulių kas p"""
+    hw = float(np.median(st["edt"][st["cand"]])) if st["cand"].any() else 0.3 * pitch
+    y = max(0.0, hw - COV_EDGE * pitch)
+    return sum(1.0 / (1.0 + ((i + 0.5) ** 2 * pitch * pitch + y * y) / (sp * sp)) ** 2 for i in range(-4, 4))
+
+
+def _spots(st, E, pitch):
+    from scipy import ndimage
+    dark = st["ev"] & (E < COV_E * st["eref"])
+    lab, n = ndimage.label(dark)
+    if not n:
+        return 0.0, np.zeros_like(dark)
+    area = ndimage.sum(dark, lab, range(1, n + 1)) * st["res"] ** 2
+    keep = [i + 1 for i, a in enumerate(area) if a >= COV_MIN * pitch * pitch]
+    big = np.isin(lab, keep)
+    return float(big.sum() * st["res"] ** 2), big
+
+
+def _axis_angle(st, r, c):
+    a, b, d = st["hxx"][r, c], st["hxy"][r, c], st["hyy"][r, c]
+    w, v = np.linalg.eigh(np.array([[a, b], [b, d]]))
+    vx, vy = v[:, 1]                      # mažiausiai išlinkusi kryptis = ašis
+    return math.atan2(vy, vx)
+
+
+def _obj(st, E):
+    T = 0.95 * st["eref"]                 # tikslas - tiesios linijos lygis (tolygumas), ne tik slenkstis
+    e = E[st["ev"]]
+    return float(np.sum(np.maximum(0, T - e) ** 2) + 0.05 * np.sum(np.maximum(0, e - 2.2 * st["eref"]) ** 2))
+
+
+def _relax(st, pts, pitch, h, iters=6):
+    """modulių pastūmimas (taškas raidės viduje, >= 0,12 p nuo krašto, <= 0,3 p nuo pradinės vietos), mažinant trūkumą"""
+    from scipy.ndimage import map_coordinates
+    pts = list(pts); home = [q[:2] for q in pts]
+    E = illum(st, pts, h); J = _obj(st, E)
+    step = 0.12 * pitch
+    def inside(x, y):
+        c = (x - st["ox"]) / st["res"]; r = (y - st["oy"]) / st["res"]
+        return float(map_coordinates(st["edt"], [[r], [c]], order=1)[0]) >= min(0.12 * pitch, 0.6 * st["edt"].max())
+    def one(q):
+        d2 = (st["X"] - q[0]) ** 2 + (st["Y"] - q[1]) ** 2
+        return 1.0 / (1.0 + d2 / (h * h)) ** 2
+    for _ in range(iters):
+        moved = False
+        for i, q in enumerate(pts):
+            base = E - one(q)
+            best = None
+            for a in range(8):
+                x = q[0] + step * math.cos(a * math.pi / 4); y = q[1] + step * math.sin(a * math.pi / 4)
+                if math.dist((x, y), home[i]) > 0.3 * pitch or not inside(x, y):
+                    continue
+                dn = min([math.dist((x, y), o[:2]) for j, o in enumerate(pts) if j != i] or [9e9])
+                d0 = min([math.dist(q[:2], o[:2]) for j, o in enumerate(pts) if j != i] or [9e9])
+                if dn < 0.45 * pitch and dn <= d0:
+                    continue
+                E2 = base + one((x, y)); J2 = _obj(st, E2)
+                if J2 < J - 1e-9 and (best is None or J2 < best[0]):
+                    best = (J2, x, y, E2)
+            if best:
+                J, x, y, E = best; pts[i] = (x, y, q[2]); moved = True
+        if not moved:
+            step /= 2
+            if step < 0.03 * pitch:
+                break
+    return pts
+
+
+def coverage(g, pts, pitch, p_lx):
+    """v128 švietimo tolygumo papildymas / perteklius; grąžina (pts, pridėta, pašalinta)"""
+    from scipy.signal import fftconvolve
+    st = _cov_state(g, pitch)
+    h = COV_S * max(pitch, p_lx or pitch)
+    st["eref"] = _e_ref(st, max(pitch, p_lx or pitch), h)
+    pts = list(pts)
+    k = int(math.ceil(2.5 * h / st["res"]))
+    yy, xx = np.mgrid[-k:k + 1, -k:k + 1]
+    K = 1.0 / (1.0 + (xx * xx + yy * yy) * st["res"] ** 2 / (h * h)) ** 2
+    added = 0
+    E = illum(st, pts, h)
+    a_unc, big = _spots(st, E, pitch)
+    for _ in range(40):
+        if a_unc <= 0:
+            break
+        gain = fftconvolve(big.astype(float) * (COV_E * st["eref"] - np.minimum(E, COV_E * st["eref"])), K, mode="same")
+        ok = st["cand2"].copy()
+        for q in pts:
+            ok &= np.hypot(st["X"] - q[0], st["Y"] - q[1]) >= 0.35 * pitch
+        if not ok.any():
+            break
+        score = np.where(ok, gain * np.where(st["cand"], 1.0, 0.85), -1)   # ašis / gilus plotas - pirmenybė
+        r, c = np.unravel_index(int(np.argmax(score)), score.shape)
+        q = (float(st["X"][r, c]), float(st["Y"][r, c]), _axis_angle(st, r, c))
+        E1 = illum(st, pts + [q], h)
+        a1, big1 = _spots(st, E1, pitch)
+        if a1 > a_unc - 0.5 * COV_MIN * pitch * pitch:
+            break
+        pts.append(q); E, a_unc, big = E1, a1, big1
+        added += 1
+    # 3) pakoreguotos vietos: jei buvo tamsių dėmių - moduliai pastumiami (<= 0,3 p nuo pradinės vietos), kol tamsių / karštų
+    #    dėmių mažėja (formos algoritmas taisyklių išdėstymą tik pataiso)
+    if added or a_unc > 0:
+        pts = _relax(st, pts, pitch, h)
+        E = illum(st, pts, h); a_unc, big = _spots(st, E, pitch)
+    removed = 0
+    changed = True
+    while changed and len(pts) > 1:
+        changed = False
+        nn = [min(math.dist(q[:2], o[:2]) for o in pts if o is not q) for q in pts]
+        for i in sorted(range(len(pts)), key=lambda i: nn[i]):
+            if nn[i] >= COV_DUP * pitch:
+                break
+            trial = pts[:i] + pts[i + 1:]
+            a1, _ = _spots(st, illum(st, trial, h), pitch)
+            if a1 <= a_unc + 1e-6:
+                pts = trial; removed += 1; changed = True
+                break
+    return pts, added, removed
+
+
+def place(g, pitch, p_lx=None):
     w = LS.stroke_max(g)
-    return (grid(g, pitch), "grid") if w > 2.0 * pitch else (chain(g, pitch), "chain")
+    pts, mode = (grid(g, pitch), "grid") if w > 2.0 * pitch else (chain(g, pitch), "chain")
+    pts, a, r = coverage(g, pts, pitch, p_lx)
+    return pts, mode, a, r
 
 
 def run(spec):
@@ -262,19 +425,21 @@ def run(spec):
         w_med = float(np.median([LS.stroke_max(g) for g in L])) if L else None
         m = mod_for(depth, gr.get("module") or spec.get("module"), gr.get("led", "white"), w_med)
         p = gr.get("pitch") or spec.get("pitch") or pitch_for(depth, m, gr.get("led", "white"))
+        p_lx = p
         if not (gr.get("pitch") or spec.get("pitch")) and L:
             # v126: plonos linijos (mažos raidės) - žingsnis <= 1,6 x linijos plotis (geometrinė aprėptis)
             p = int(min(p, max(60, round(1.6 * w_med / 10.0) * 10)))
         per = []
         for g in L:
-            pts, mode = place(g, p)
-            per.append({"g": g, "pts": pts, "mode": mode})
+            pts, mode, a_, r_ = place(g, p, p_lx)
+            per.append({"g": g, "pts": pts, "mode": mode, "cov": (a_, r_)})
         n = sum(len(x["pts"]) for x in per)
         watts = n * MODDB[m]["W"]
-        res.append({"gr": gr, "mod": m, "pitch": p, "letters": per, "n": n, "W": watts, "psu": psu_for(watts, MODDB[m]["V"])})
+        res.append({"gr": gr, "mod": m, "pitch": p, "plx": p_lx, "letters": per, "n": n, "W": watts, "psu": psu_for(watts, MODDB[m]["V"])})
         print(f"  {gr.get('name') or 'grupė'}: {mod_label(m, gr.get('led', 'white'))} žingsnis ~{p} -> " +
               ", ".join(str(len(x['pts'])) for x in per) + f" = {n} vnt., {watts:.1f} W, {psu_for(watts, MODDB[m]['V'])[0]}" +
-              ("" if all(x["mode"] == "chain" for x in per) else "  (plati linija - tinklelis)"))
+              ("" if all(x["mode"] == "chain" for x in per) else "  (plati linija - tinklelis)") +
+              f"  [padengimas: +{sum(x['cov'][0] for x in per)} / -{sum(x['cov'][1] for x in per)}]")
     return res
 
 
@@ -413,8 +578,28 @@ def sheet(spec, res, out):
     return out
 
 
+def sim(spec, res, out):
+    """v128 švietimo patikra (ne gamybai): santykinė apšvieta raidėse (1 = tiesios linijos etalonas), tamsios dėmės - mėlynai"""
+    import matplotlib; matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    L = [(r, x) for r in res for x in r["letters"]]
+    fig, axs = plt.subplots(1, len(L), figsize=(2.6 * len(L), 3.6)); axs = np.atleast_1d(axs)
+    for ax, (r, x) in zip(axs, L):
+        st = _cov_state(x["g"], r["pitch"]); h = COV_S * max(r["pitch"], r["plx"])
+        er = _e_ref(st, max(r["pitch"], r["plx"]), h); E = illum(st, x["pts"], h) / er
+        ext = [st["ox"], st["ox"] + st["m"].shape[1] * st["res"], st["oy"] + st["m"].shape[0] * st["res"], st["oy"]]
+        ax.imshow(np.where(st["m"], E, np.nan), cmap="inferno", vmin=0.3, vmax=1.1, extent=ext)
+        ax.contour(st["X"], st["Y"], st["ev"] & (E < COV_E), levels=[0.5], colors="cyan", linewidths=0.8)
+        ax.plot([q[0] for q in x["pts"]], [q[1] for q in x["pts"]], "w.", ms=4)
+        ax.set_title(f"{len(x['pts'])} vnt., min {E[st['ev']].min():.2f}", fontsize=8); ax.axis("off")
+    plt.tight_layout(); plt.savefig(out, dpi=80); plt.close(fig)
+    return out
+
+
 if __name__ == "__main__":
     sp = json.load(open(sys.argv[1], encoding="utf-8"))
     r = run(sp)
     if len(sys.argv) > 2:
         print("OK", sheet(sp, r, sys.argv[2]))
+    if len(sys.argv) > 3:
+        print("OK", sim(sp, r, sys.argv[3]))

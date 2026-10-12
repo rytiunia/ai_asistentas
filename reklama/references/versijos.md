@@ -2,6 +2,13 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v128 (2026-10-12)
+
+v128, Rytis 2026-10-12 (ekrano nuotraukos: „kai kur labai gerai, o kai kur net LED nepridėti ... švietimas turi būti tolygus
+miksuojant taisyklių ir formos algoritmą"): `led_km.py coverage()` - šviesos modelis, tamsių dėmių užpildymas, `_relax()`
+tolygumui, perteklius šalinamas; `sim()` patikros vaizdas. Rezultatas: EXTRA Åpn496 21, Åpn894 40 (buvo 35), FAS700 X + EXTRA 44,
+7-23 19; SPAR VH400 / VH500 po 66.
+
 ## v127 (2026-10-12)
 
 v127, Rytis 2026-10-12 (pridėti gamybos failai 2023_Modules_Depth_table_ENG.xlsx ir Kaisen kainoraštis Alt Reklama - „laikyti kaip
