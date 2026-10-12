@@ -2,6 +2,11 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v130 (2026-10-12)
+
+v130, Rytis LED testas „Alltid öppet" (testaC.pdf, P6, gylis 80, 1 pt = 1 pt): `pack()` - 67 x KM-P2-W, KPS-V12-100W;
+LED lape kiekis po raide, kai virš jos ö / i taškai.
+
 ## v129 (2026-10-12)
 
 v129, Rytis 2026-10-12 („vistiek dėliojimas labai keistas, neatitinka nei gamybinių, nei teorinių planų" - X, E, 3, 7 ekrano nuotraukos):

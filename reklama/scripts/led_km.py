@@ -669,12 +669,19 @@ def sheet(spec, res, out):
                     lx = -ml / 2 + ml * (i_ + 0.5) / nl
                     c.circle(lx, 0, max(0.6, mw * 0.28), stroke=0, fill=1)
                 c.restoreState()
-            # kiekis virš raidės
+            # kiekis virš raidės; v129: jei virš raidės yra kita forma (ö / i taškai) - po raide
             bx0, by0, bx1, by1 = g.bounds
             ymax = min(q[1] for q in x["pts"]) - r["pitch"] / 2 if x["pts"] else by0
-            tx, ty = T((bx0 + bx1) / 2, min(by0, ymax))
+            ybot = max(q[1] for q in x["pts"]) + r["pitch"] / 2 if x["pts"] else by1
+            above = any(o is not x and o["g"].bounds[0] < bx1 and o["g"].bounds[2] > bx0 and o["g"].bounds[3] <= by0 + 1
+                        for rr_ in res for o in rr_["letters"])
             c.setFillColor(black); c.setFont("Helvetica-Bold", 13)
-            c.drawCentredString(tx, ty + 8, str(len(x["pts"])))
+            if above:
+                tx, ty = T((bx0 + bx1) / 2, max(by1, ybot))
+                c.drawCentredString(tx, ty - 18, str(len(x["pts"])))
+            else:
+                tx, ty = T((bx0 + bx1) / 2, min(by0, ymax))
+                c.drawCentredString(tx, ty + 8, str(len(x["pts"])))
     # matmenys
     c.setStrokeColor(black); c.setFillColor(black); c.setLineWidth(0.5)
     xa, yb = T(x0, y1); xb, _ = T(x1, y1)
