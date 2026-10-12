@@ -2,6 +2,13 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v117 (2026-10-12)
+
+v117, Rytis 2026-10-12 („skill: extra h1800 gamybos principas", failas extra_H1800.pdf - Extra Order 225818, ALT8852):
+`references/klientai/extra.md` skyrius „EXTRA H1800 - gamybos principas" (išmatuota iš 1:1: X 1410x1226, Ø1800, 60x60x2 X
+rėmas, 8 x Ø3.2 ant įstrižainių ašių, Ø11 šalia profilio), etalonas `assets/etalonai/extra_H1800_ALT8852_gamyba.pdf`.
+Kodas nekeistas (p6_dxf X rėmo 60x60 automatiškai dar nedaro).
+
 ## v116 (2026-10-12)
 
 v116, Rytis 2026-10-12 („p1 taisyklė: inside kontūras 0.7mm, nereikia drenažo skylių, kadangi led nesideda"): `p6_dxf.py --p1`

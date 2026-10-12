@@ -71,3 +71,36 @@ išvalomas `clean_client.py ... 16,17,18,19,20,21,22,23,113,114,115,116`).
 ## Kita
 - Stogo atramų precedentas - EXTRA order 225597 (kojos 25x25, plokštė 120x120x5); order 225978 - FAS 700H80 takskilt.
 - ŽINOMA PROBLEMA: `auseles.py` EXTRA 1800H80 (U40, H 1080) - žr. SKILL.md „Žinomos klaidos".
+
+## EXTRA H1800 - GAMYBOS PRINCIPAS (v117, Rytis 2026-10-12; etalonas `assets/etalonai/extra_H1800_ALT8852_gamyba.pdf`)
+Extra Order 225818, ALT8852_10.06_RS (lapas 2 / 3), 1 vnt. Bendras 5603 x 1800. Failas = mūsų lapas + 1:1 gamybos detalės (mm).
+
+**Sudėtis - TRYS atskiri gaminiai, NE vienas rėmas:**
+| Gaminys | Dydis | Profilis | Montavimas |
+|---|---|---|---|
+| X ant apskritimo | apskritimas Ø1800, X 1410 x 1226 | **6+3**: P6 X ant 3 mm Alu lakšto (apskritimas RAL 1023), X šonai RAL 3020, distanceriai 30 mm | **60x60x2 Alu profilis X forma** (2 įstrižainės) už apskritimo (poz. 6) + 3 mm Alu lakštas (poz. 7) |
+| EXTRA | 3515 x 720 | P6_3mm, šonai RAL 3020 | U 30x30x2 bėgeliai + L 30x30x2 tvirtinimo plokštelės Ø8 (rėmas RAL 7035 matt) |
+| 7-23 | 1380 x 596 | P6_3mm, šonai RAL 1023 | U 30x30x2 bėgeliai + L 30x30x2 plokštelės Ø8 |
+
+Bendra: gylis 100, exterior (skylė laidui), priekis balta plexi 3 mm, kraštai PVC 3 mm, šonai Alu 1 mm, galas Alu 1,5 mm;
+plėvelės 3M 3630-33 (raudona) / 3630-125 (geltona); LED: X viduje RED, apskritimo gale (BACKSIDE) White 6500K, EXTRA RED,
+7-23 White 6500K; laidas iš raidės / konstrukcijos 1,5 m 12V (+3 m 12V išvestis), trafo box ATSKIRAI (outside letters),
+RAL dažyta, PWM + potenciometras, ~230V. Laidas nuo X - UŽ apskritimo (Cable going behind aluminium sheet).
+Perimetras: X 7 m, EXTRA + 7-23 25 m.
+
+**X ant apskritimo - 1:1 detalės (išmatuota iš etalono):**
+- X stiklas 1410 x 1226; dugnas -3 (1400 x 1220).
+- **X rėmas = 60x60x2 profilis dviem įstrižainėmis, einančiomis per X ŠAKŲ AŠIS**, susikerta X centre (rėmo centras =
+  X centras ±3 mm). Profilio galai ~100-130 mm (vertikaliai) X šakos viduje nuo šakos galo. Rėmo kontūras brėžiamas
+  apskritimo DXF'e mėlynai (atskiras sluoksnis), 60 mm pločio juostos.
+- **X tvirtinimas: 8 x Ø3.2 - po 2 kiekvienoje šakoje, ANT PROFILIO AŠIES** (60x60 centro linijos): viena ~55 mm nuo
+  profilio galo, kita ~300 mm toliau link centro (pvz. viršutinė kairė šaka: 56 ir 301 mm vertikaliai nuo profilio galo).
+  Simetriška X ašiai.
+- **Ø11 laidui - viena**, apatinėje dešinėje šakoje, ŠALIA profilio (~60 mm nuo ašies), apskritime toje pačioje vietoje.
+- **Apskritimas Ø1800 (3 mm Alu)** - tos pačios 8 x Ø3.2 + Ø11, X pozicija apskritime (X glass kairys viršus ~82 / 286 mm nuo
+  apskritimo bbox). ETALONE apskritimo skylės - TOJE PAČIOJE orientacijoje kaip X (vaizdas iš priekio, ne veidrodis).
+- EXTRA / 7-23 1:1 - stiklas + dugnas -3, tvirtinimas kaip įprasta (U30 bėgeliai, D3.2, D11 - `p6_dxf.py`).
+
+**Skirtumas nuo vieno rėmo (FAS700 / FAS1000):** ten X tvirtinamas per bendro rėmo U bėgelių horizontalią ašį (v115);
+H1800 (didelis, Ø1800) - X turi SAVO 60x60 X formos rėmą, skylės ant jo įstrižainių ašių. Kai EXTRA aukštis >= ~1500
+(apskritimas >= ~1500) ir užsakyme / lape „60x60" - taikyti šį principą; neaišku - KLAUSTI.
