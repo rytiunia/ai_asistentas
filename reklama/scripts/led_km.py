@@ -285,7 +285,7 @@ def sheet(spec, res, out):
         c.drawString(xa + 200, yi - 14, r['psu'][0] if "24V" in r['psu'][0] else f"{r['psu'][0]}  ({r['psu'][1]} W, 12 V, IP67)")
         if not MODDB[r["mod"]].get("size_mm"):
             c.setFont("Helvetica", 8); c.setFillColor(HexColor("#C00000"))
-            c.drawString(xa + 430, yi - 14, f"! {r['mod']} matmenų lentelėje nėra - imitacija P130L korpusu, patikslinti")
+            c.drawString(xa + 430, yi - 14, f"! {r['mod']} size not in LED table - drawn as P130L body, confirm")
             c.setFillColor(black)
         yi -= 34
     # apačia
