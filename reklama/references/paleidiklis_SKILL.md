@@ -6,23 +6,21 @@ description: Rytio iškabų gamybos techninė dokumentacija - iš kliento PDF/DX
 # Iškabų techninis lapas - PALEIDIKLIS
 
 Šis paskyros SKILL.md yra TIK paleidiklis. Tikrasis skill'as (SKILL.md, `scripts/`, `assets/`, `references/`) yra
-VIENOJE vietoje - Rycio iCloud:
-
-`~/Library/Mobile Documents/com~apple~CloudDocs/AI_ASISTENTAS/reklama.zip`
-
-Taip paskyroje ir iCloud visada ta pati, naujausia versija. Jei paskyroje šalia šio failo liko senų `scripts/` ar
-`assets/` - jų NENAUDOTI.
+VIENOJE vietoje - Ryčio privačiame GitHub repo **`rytiunia/ai_asistentas`**, aplanke `reklama/`
+(https://github.com/rytiunia/ai_asistentas). iCloud zip'ai nebenaudojami (archyvuoti 2026-10-12).
 
 ## Paleidimas (PRIEŠ bet kokį darbą)
 
-1. **Pokalbis susietas su Rycio kompiuteriu:** `device_stage_files` -> zip aukščiau (jei aplankas `AI_ASISTENTAS`
-   neprijungtas - `device_request_folder_access` jam). Išarchyvuoti į NAUJĄ tuščią darbo aplanką (scratchpad),
-   perskaityti `reklama/SKILL.md` ir dirbti TIK pagal jį ir jo failus.
-2. **Nesusietas / kompiuteris nepasiekiamas:** PRIEŠ darbą paprašyti Ryčio įkelti zip į pokalbį (arba susieti
-   pokalbį su kompiuteriu). Be zip lapų nedaryti ir taisyklių neatkurti iš atminties.
-3. Atsakyme VISADA nurodyti versiją iš zip SKILL.md „Versija" eilutės (pvz. „reklama v72, iCloud zip").
-4. **Pakeitus skill'ą:** pakelti „Versija", senąjį zip -> `AI_ASISTENTAS/_archyvas/reklama_vNN_YYYY-MM-DD.zip`,
-   naują zip įrašyti į tą pačią vietą (`device_commit_files`). Šio paleidiklio (paskyros) NEKEISTI - jis visada
-   paima naujausią zip. Failų vardai zip'e - tik ASCII.
+1. `add_repo` (owner `rytiunia`, repo `ai_asistentas`, access `push`), tada
+   `git clone --depth 1 https://github.com/rytiunia/ai_asistentas <darbo_aplankas>/ai_asistentas`
+   (jei klonas jau yra - `git pull --ff-only`). Perskaityti `ai_asistentas/reklama/SKILL.md` ir dirbti TIK pagal jį ir
+   jo failus. Kompiuterio (Mac) tam nereikia.
+2. **Repo nepasiekiamas** (nėra `add_repo`, GitHub neprijungtas): PRIEŠ darbą pasakyti Ryčiui ir paprašyti prijungti
+   GitHub (claude.ai -> Settings -> Connectors) arba įkelti `reklama` aplanką zip'u į pokalbį. Be skill'o failų darbo
+   nedaryti ir taisyklių neatkurti iš atminties.
+3. Atsakyme VISADA nurodyti versiją iš `reklama/SKILL.md` „Versija" eilutės ir trumpą commit'o hash (pvz. „reklama vNN, GitHub abc1234").
+4. **Pakeitus skill'ą:** pakelti „Versija", commit'inti į `main` su žinute „reklama vNN: ką pakeitė" ir `git push`
+   (prieš push - `git pull --rebase`). Zip'ų ir archyvo nebereikia - istoriją saugo git. Šio paleidiklio NEKEISTI,
+   nebent keičiasi repo vieta. Failų vardai - tik ASCII.
 
 Su Ryčiu kalbėti lietuviškai, tiesiai, be komplimentų.

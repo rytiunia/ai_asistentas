@@ -33,7 +33,7 @@ with st.sidebar:
         st.caption(f"reklama skill'as: **{ver}**")
     else:
         st.error("reklama skill'as neįdiegtas")
-    if st.button("Atnaujinti skill'ą iš iCloud"):
+    if st.button("Atnaujinti skill'ą iš GitHub"):
         ok, msg = ss.install()
         (st.success if ok else st.info)(msg)
     up_zip = st.file_uploader("arba įkelk reklama.zip", type=["zip"], key="zipup")

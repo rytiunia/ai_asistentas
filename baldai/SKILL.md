@@ -5,16 +5,17 @@ description: "Virtuvės korpusinių baldų parametrinis generatorius Ryčio bald
 
 # Baldai – virtuvės korpusų generatorius
 
-**Versija: 2026-10-10 v3** (v3: eskizo etalonas pataisytas – viršutiniai 954 iki lubų (860 + 560 + 954 = H2374), niša 2374 / 374; viršutiniams ≥ 700 mm – 2 lentynos (siena A: 73 → 76 detalės); projekcijos viršutinė paraštė korpusams iki lubų; plautuvė 3D šviesi. PAMOKA: pasukto eskizo skaitmenis skaityti du kartus – „954" pasuktas 90° buvo perskaitytas kaip „556"; aukščių grandinę VISADA sutikrinti su išmatuotu lubų aukščiu (suma turi sutapti). v2: standartinė korpusų biblioteka – indaplovės frontas, orkaitės korpusas su kaitlente, niša šaldytuvui su viršutine, aukštas su durimis; dekorai atskirai apatiniams / viršutiniams; HPL siena, LED; standarto perrašymas projekte; prietaisai 3D ir projekcijoje; etaloninis projektas iš kliento eskizo `eskizas_3280`. v1: variklis iš pokalbio prototipo – 4 tipai, pjovimo lapas, 3D puslapis, Excel.)
+**Versija: 2026-10-12 v4** (v4: šaltinis - GitHub repo `rytiunia/ai_asistentas` vietoj iCloud zip. v3: eskizo etalonas pataisytas – viršutiniai 954 iki lubų (860 + 560 + 954 = H2374), niša 2374 / 374; viršutiniams ≥ 700 mm – 2 lentynos (siena A: 73 → 76 detalės); projekcijos viršutinė paraštė korpusams iki lubų; plautuvė 3D šviesi. PAMOKA: pasukto eskizo skaitmenis skaityti du kartus – „954" pasuktas 90° buvo perskaitytas kaip „556"; aukščių grandinę VISADA sutikrinti su išmatuotu lubų aukščiu (suma turi sutapti). v2: standartinė korpusų biblioteka – indaplovės frontas, orkaitės korpusas su kaitlente, niša šaldytuvui su viršutine, aukštas su durimis; dekorai atskirai apatiniams / viršutiniams; HPL siena, LED; standarto perrašymas projekte; prietaisai 3D ir projekcijoje; etaloninis projektas iš kliento eskizo `eskizas_3280`. v1: variklis iš pokalbio prototipo – 4 tipai, pjovimo lapas, 3D puslapis, Excel.)
 
-**!!! VIENAS ŠALTINIS – iCloud zip !!!**
-1. Pilnas skill'as (SKILL.md + `scripts/`, `assets/`, `references/`) – `~/Library/Mobile Documents/com~apple~CloudDocs/AI_ASISTENTAS/baldai.zip`.
-   Paskyroje (Claude) – tik paleidiklis (`references/paleidiklis_SKILL.md`). Dirbti TIK iš išarchyvuoto zip.
-2. Kompiuteris nepasiekiamas – PRIEŠ darbą paprašyti Ryčio įkelti zip į pokalbį. Variklio iš atminties neatkurti.
-3. Atsakyme nurodyti versiją (pvz. „baldai v1, iCloud zip").
-4. Pakeitus skill'ą: pakelti „Versija", senąjį zip → `AI_ASISTENTAS/_archyvas/baldai_vNN_YYYY-MM-DD.zip`, naują zip – į tą pačią vietą
-   (`device_commit_files`, `expectedMtimeMs` = stage metu gautas). Failų vardai zip'e – tik ASCII. Paleidiklio nekeisti,
-   nebent keičiasi zip vieta.
+**!!! VIENAS ŠALTINIS - GitHub repo `rytiunia/ai_asistentas`, aplankas `baldai/` (nuo 2026-10-12; iCloud zip'ai archyvuoti) !!!**
+1. Pilnas skill'as (SKILL.md + `scripts/`, `assets/`, `references/`) - https://github.com/rytiunia/ai_asistentas , `baldai/`.
+   Paskyroje (Claude) - tik paleidiklis (`references/paleidiklis_SKILL.md`); paskyroje likę seni failai - NENAUDOTI.
+2. Prieš darbą: `add_repo` (rytiunia/ai_asistentas) -> `git clone --depth 1` (ar `git pull --ff-only`) -> dirbti TIK iš klono.
+3. Repo nepasiekiamas - PRIEŠ darbą pasakyti Ryčiui (prijungti GitHub arba įkelti aplanką zip'u į pokalbį).
+4. Atsakyme VISADA nurodyti versiją ir commit'ą (pvz. „baldai vNN, GitHub abc1234").
+5. Pakeitus skill'ą: pakelti „Versija", `git pull --rebase`, commit (žinutė „baldai vNN: ...") ir `git push` į `main`.
+   Zip'ų ir `_archyvas` nebereikia. Failų vardai - tik ASCII.
+
 
 Vartotojas: Rytis (Alytus, iškabų gamyba, CNC nestingas). Galutinis naudotojas – baldininkas, kuris nemoka 3D.
 Kalbėti lietuviškai, tiesiai, be komplimentų. Puslapio ir Excel užrašai – lietuviškai.

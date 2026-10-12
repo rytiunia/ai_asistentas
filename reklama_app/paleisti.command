@@ -14,7 +14,7 @@ if [ ! -d .venv ]; then
   ./.venv/bin/pip install -r requirements.txt || { read -r -p "Klaida diegiant. Enter - uždaryti"; exit 1; }
 fi
 
-# reklama skill'as iš iCloud (įdiegia tik jei versija pasikeitė)
+# reklama skill'as iš GitHub repo klono ~/ai_asistentas (git pull; įdiegia tik jei versija pasikeitė)
 ./.venv/bin/python skill_setup.py
 
 if ! command -v pdftoppm >/dev/null 2>&1; then

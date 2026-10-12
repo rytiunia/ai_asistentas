@@ -3,26 +3,24 @@ name: baldai
 description: "Virtuvės korpusinių baldų parametrinis generatorius Ryčio baldininkams: iš sienos matmenų ir korpusų sekos (tekstas, eskizas ar lentelė) vienu paleidimu padaro 3D peržiūrą klientui su dekoro keitimu, priekinę projekciją su matmenimis ir pjovimo lapą Excel pjaustymo centrui (detalės, kantai, raštas, furnitūra, medžiagų suvestinė). Naudok VISADA, kai pokalbyje yra virtuvė, korpusai, spintelės, apatiniai / viršutiniai, fasadai, stalčiai, pjovimo lapas, detalių sąrašas, LMDP / HDF, kantavimas, Egger / Kronospan dekorai, konfigūratorius ar baldininkui reikia vaizdo klientui ir detalių skaičiavimo."
 ---
 
-# Baldai – PALEIDIKLIS
+# Baldai - PALEIDIKLIS
 
 Šis paskyros SKILL.md yra TIK paleidiklis. Tikrasis skill'as (SKILL.md, `scripts/`, `assets/`, `references/`) yra
-VIENOJE vietoje – Ryčio iCloud:
-
-`~/Library/Mobile Documents/com~apple~CloudDocs/AI_ASISTENTAS/baldai.zip`
-
-Taip paskyroje ir iCloud visada ta pati, naujausia versija. Variklio (engine.py), standarto ar puslapio šablono iš
-atminties neatkurti – be zip darbas nedaromas.
+VIENOJE vietoje - Ryčio privačiame GitHub repo **`rytiunia/ai_asistentas`**, aplanke `baldai/`
+(https://github.com/rytiunia/ai_asistentas). iCloud zip'ai nebenaudojami (archyvuoti 2026-10-12).
 
 ## Paleidimas (PRIEŠ bet kokį darbą)
 
-1. **Pokalbis susietas su Ryčio kompiuteriu:** `device_stage_files` → zip aukščiau (jei aplankas `AI_ASISTENTAS`
-   neprijungtas – `device_request_folder_access` jam). Išarchyvuoti į NAUJĄ tuščią darbo aplanką (scratchpad),
-   perskaityti `baldai/SKILL.md` ir dirbti TIK pagal jį ir jo failus.
-2. **Nesusietas / kompiuteris nepasiekiamas:** PRIEŠ darbą paprašyti Ryčio įkelti zip į pokalbį (arba susieti pokalbį
-   su kompiuteriu).
-3. Atsakyme nurodyti versiją iš zip SKILL.md „Versija" eilutės (pvz. „baldai v1, iCloud zip").
-4. **Pakeitus skill'ą:** pakelti „Versija", senąjį zip → `AI_ASISTENTAS/_archyvas/baldai_vNN_YYYY-MM-DD.zip`, naują zip
-   įrašyti į tą pačią vietą (`device_commit_files`). Šio paleidiklio NEKEISTI – jis visada paima naujausią zip.
-   Failų vardai zip'e – tik ASCII.
+1. `add_repo` (owner `rytiunia`, repo `ai_asistentas`, access `push`), tada
+   `git clone --depth 1 https://github.com/rytiunia/ai_asistentas <darbo_aplankas>/ai_asistentas`
+   (jei klonas jau yra - `git pull --ff-only`). Perskaityti `ai_asistentas/baldai/SKILL.md` ir dirbti TIK pagal jį ir
+   jo failus. Kompiuterio (Mac) tam nereikia.
+2. **Repo nepasiekiamas** (nėra `add_repo`, GitHub neprijungtas): PRIEŠ darbą pasakyti Ryčiui ir paprašyti prijungti
+   GitHub (claude.ai -> Settings -> Connectors) arba įkelti `baldai` aplanką zip'u į pokalbį. Be skill'o failų darbo
+   nedaryti ir taisyklių neatkurti iš atminties.
+3. Atsakyme VISADA nurodyti versiją iš `baldai/SKILL.md` „Versija" eilutės ir trumpą commit'o hash (pvz. „baldai vNN, GitHub abc1234").
+4. **Pakeitus skill'ą:** pakelti „Versija", commit'inti į `main` su žinute „baldai vNN: ką pakeitė" ir `git push`
+   (prieš push - `git pull --rebase`). Zip'ų ir archyvo nebereikia - istoriją saugo git. Šio paleidiklio NEKEISTI,
+   nebent keičiasi repo vieta. Failų vardai - tik ASCII.
 
 Su Ryčiu kalbėti lietuviškai, tiesiai, be komplimentų.

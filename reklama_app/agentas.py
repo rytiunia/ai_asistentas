@@ -91,7 +91,7 @@ def system_append(job):
     return f"""
 TU DIRBI RYČIO IŠKABŲ GAMYBOS PROGRAMOJE (ne pokalbyje claude.ai).
 - Darbui VISADA naudok skill'ą `reklama`. Jis jau išpakuotas: {SKILL_DIR} (versija {skill_version()}).
-  Tai ir yra šaltinis: iCloud zip, paskyros skill'o ir device_* įrankių NETIKRINK ir nenaudok. Skill'o failų NEKEISK.
+  Tai ir yra šaltinis: GitHub repo klonas, paskyros skill'o ir device_* įrankių NETIKRINK ir nenaudok. Skill'o failų NEKEISK.
   Skriptai: {SKILL_DIR}/scripts, assets: {SKILL_DIR}/assets, taisyklės: {SKILL_DIR}/references.
 - Darbo aplankas (cwd): {d}
   Kliento failai: {d}/inputs . VISUS rezultatus (lapų PDF, 1:1 PDF, DXF, patikros PNG, spec.json) rašyk į {d}/out

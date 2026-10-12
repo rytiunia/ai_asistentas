@@ -4,10 +4,12 @@ Kliento failas + aprašymas -> **reklama skill'as** (tas pats kaip pokalbyje) ->
 Viduje veikia Claude Agent SDK: agentas skaito skill'o taisykles, leidžia skill'o Python skriptus, žiūri PNG ir klausia, ko trūksta.
 
 ## Įdiegimas (Mac, vieną kartą)
-1. Išarchyvuok `reklama_app.zip` į **ne iCloud** aplanką, pvz. `~/reklama_app` (programos aplinka iCloud'e sinchronizuotųsi be reikalo).
+1. Programa yra repo aplanke `reklama_app/`. Paleisk ją iš klono: `~/ai_asistentas/reklama_app/paleisti.command`.
+2a. Vieną kartą Terminale: `git clone https://github.com/rytiunia/ai_asistentas ~/ai_asistentas`
+    (repo privatus - GitHub paprašys prisijungti; paprasčiausia per `gh auth login` arba GitHub Desktop).
 2. Turi būti Python 3.10+ (`python3 --version` Terminale; jei nėra - https://www.python.org/downloads/).
 3. Dukart spustelk `paleisti.command`. Pirmą kartą įdiegia bibliotekas (2-5 min), įdiegia reklama skill'ą iš
-   `iCloud/AI_ASISTENTAS/reklama.zip` ir atidaro programą naršyklėje (http://localhost:8501).
+   GitHub repo klono `~/ai_asistentas` (žr. 2a) ir atidaro programą naršyklėje (http://localhost:8501).
    - macOS neleidžia atidaryti? Dešinys pelės mygtukas -> Open, arba Terminale: `bash ~/reklama_app/paleisti.command`.
 4. Šoninėje juostoje įvesk **Anthropic API raktą** (https://console.anthropic.com -> API Keys). Jis išsaugomas `.env`
    faile programos aplanke ir niekur nesiunčiamas, tik Anthropic.
@@ -20,7 +22,7 @@ Viduje veikia Claude Agent SDK: agentas skaito skill'o taisykles, leidžia skill
 - Seni užsakymai - šoninėje juostoje, galima tęsti bet kada.
 
 ## Skill'o atnaujinimas
-Vienas šaltinis lieka iCloud `reklama.zip`. Atnaujinus skill'ą pokalbyje - programoje spausk „Atnaujinti skill'ą iš iCloud"
+Vienas šaltinis - GitHub repo `rytiunia/ai_asistentas`. Atnaujinus skill'ą pokalbyje - programoje spausk „Atnaujinti skill'ą iš GitHub"
 (arba tiesiog paleisk programą iš naujo - `paleisti.command` patikrina versiją pats).
 
 ## Kaina
@@ -35,6 +37,6 @@ aplanke ir skill'o failų nekeisti. Nenaudok programos su failais, kuriais nepas
 ## Failai
 - `app.py` - langas (Streamlit)
 - `agentas.py` - agento paleidimas, užsakymų aplankai, instrukcijos agentui
-- `skill_setup.py` - skill'o diegimas iš iCloud zip
+- `skill_setup.py` - skill'o diegimas iš GitHub repo klono (arba iš zip)
 - `.claude/skills/reklama/` - įdiegtas skill'as (sukuriamas automatiškai)
 - `jobs/` - užsakymai
