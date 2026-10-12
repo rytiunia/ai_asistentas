@@ -2,6 +2,11 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v143 (2026-10-12)
+
+v143, Rytis 2026-10-12: „juoda nepersišviečia, toks sumanymas" - opaque plėvelė (551 / 777) ant šviečiančio veido leidžiama
+(tamsus siluetas), perspėjimas pašalintas.
+
 ## v142 (2026-10-12)
 
 v142, Rytis 2026-10-12: plėvelių spalvų biblioteka `assets/pleveles.json` (ORACAL 8500, ORACAL 551, Avery 4500 TF / 5500 QM / 777,
