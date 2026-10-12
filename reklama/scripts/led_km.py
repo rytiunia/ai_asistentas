@@ -384,7 +384,140 @@ def coverage(g, pts, pitch, p_lx):
     return pts, added, removed
 
 
-def place(g, pitch, p_lx=None):
+# v129 (Rytis 2026-10-12: „vistiek dėliojimas labai keistas, neatitinka nei gamybinių, nei teorinių planų"):
+# NUMATYTAS - APSKRITIMŲ PAKAVIMAS kaip Ryčio gamybos lapuose (ALT8873 Åpn894, ALT8852 EXTRA, ALT8855 Matkroken):
+# kiekvienas modulis = apskritimas Ø žingsnis (Kaisen „teorinis“ modulio plotas), apskritimai raidės VIDUJE, liečia vienas kitą
+# (centrų atstumas ~0,85-1,0 p, galai - liečia raidės galą) ir raidės kraštus; siaura linija (< p) - centrai ašyje, apskritimas išlenda per šonus.
+#  1) leistinos centrų vietos A: edt >= min(p/2, 0,85 x vietinis linijos pusplotis);
+#  2) pradžia - linijos galas: apskritimas liečia galą (min [plotas 1,5 p spinduliu] - 3 x [raidės plotas apskritime]);
+#  3) fronto augimas: kitas apskritimas LIEČIA jau padėtą (atstumas 0,9-1,0 p) ten, kur padengia daugiausia nepadengto ploto
+#     (todėl eina linija, šakojasi sankirtose, plačioje linijoje - 2 eilės kaip ALT8852);
+#  4) nepasiekta dalis - naujas frontas; likę tarpai (>= 45 % apskritimo naujo ploto) - užpildomi (atstumas >= 0,6 p);
+#  5) modulis pasuktas pagal vietinę raidės kryptį (raidės taškų PCA apskritime).
+PK_MIN, PK_MAX, PK_GAP = 0.70, 1.00, 0.75
+
+
+def pack(g, pitch):
+    from scipy import ndimage
+    from scipy.signal import fftconvolve
+    res = max(1.5, pitch / 28.0)
+    m, (ox, oy) = LS.raster(g, res)
+    pad = int(math.ceil(0.8 * pitch / res))
+    m = np.pad(m, pad); ox -= pad * res; oy -= pad * res
+    edt = ndimage.distance_transform_edt(m) * res
+    r = pitch / 2.0
+    loc = ndimage.maximum_filter(edt, size=max(3, int(pitch / res) | 1))
+    ridge = m & (edt >= ndimage.maximum_filter(edt, size=3) - 0.75 * res)
+    A = m & ((edt >= np.minimum(r, 0.85 * loc)) | (ridge & (edt >= 0.5 * np.minimum(r, loc))))   # ašis - iki galų / kampų
+    YY, XX = np.mgrid[0:m.shape[0], 0:m.shape[1]]
+    X = ox + XX * res; Y = oy + YY * res
+    def disk(rad):
+        k = int(math.ceil(rad / res)); yy, xx = np.mgrid[-k:k + 1, -k:k + 1]
+        return ((xx * xx + yy * yy) * res * res <= rad * rad).astype(float)
+    D = disk(r)
+    mf = m.astype(float)
+    maxcov = fftconvolve(mf, D, mode="same") * res * res
+    area15 = fftconvolve(mf, disk(1.5 * pitch), mode="same") * res * res
+    _, (ni, nj) = ndimage.distance_transform_edt(~A, return_indices=True)
+
+    def grow(P, gap_only=False):
+        P = [tuple(q) for q in P]
+        cov = np.zeros(m.shape, bool); dmin = np.full(m.shape, np.inf)
+        for x, y in P:
+            d = np.hypot(X - x, Y - y); cov |= d <= r; dmin = np.minimum(dmin, d)
+        for _ in range(400):
+            newc = fftconvolve((m & ~cov).astype(float), D, mode="same") * res * res
+            ratio = np.where(maxcov > 1, newc / np.maximum(maxcov, 1), 0)
+            ok = A & (dmin >= 0.9 * pitch)
+            ring = A & (dmin >= PK_MIN * pitch) & (dmin <= PK_MAX * pitch + res)   # galas - arčiau (tolygiai - relax)
+            cand = ring & (ratio >= (0.45 if gap_only else 0.30))
+            if cand.any():
+                sc = np.where(cand, newc, -1)
+            else:
+                st = ok & (ratio >= 0.60)
+                if st.any():
+                    sc = np.where(st, 3.0 * maxcov - area15, -np.inf)
+                else:
+                    gp = m & (dmin >= PK_GAP * pitch) & (ratio >= 0.55) & (edt >= min(0.3 * pitch, 0.6 * edt.max()))
+                    if not gp.any():
+                        break
+                    sc = np.where(gp, newc, -1)
+            i, j = np.unravel_index(int(np.argmax(sc)), sc.shape)
+            x, y = float(X[i, j]), float(Y[i, j])
+            d = np.hypot(X - x, Y - y); cov |= d <= r; dmin = np.minimum(dmin, d)
+            P.append((x, y))
+        return np.array(P, float).reshape(-1, 2)
+
+    def proj(x, y):
+        i = int(round((y - oy) / res)); j = int(round((x - ox) / res))
+        i = min(max(i, 0), m.shape[0] - 1); j = min(max(j, 0), m.shape[1] - 1)
+        return float(X[ni[i, j], nj[i, j]]), float(Y[ni[i, j], nj[i, j]])
+
+    def covmask(P):
+        c = np.zeros(m.shape, int)
+        for x, y in P:
+            c += (X - x) ** 2 + (Y - y) ** 2 <= r * r
+        return c
+
+    def relax(P, iters, prune):
+        # 6) tolygumas: persidengę (< 0,95 p) apskritimai stumiami vienas nuo kito, nepadengta raidės dalis traukia;
+        #    centras lieka A; prune - šalinamas apskritimas, kurio nuosavas plotas < 20 %.
+        for it in range(iters):
+            if len(P) < 2:
+                break
+            C = covmask(P)
+            unc = m & (C == 0)
+            uy, ux = Y[unc], X[unc]
+            newP = P.copy()
+            for k, (x, y) in enumerate(P):
+                f = np.zeros(2)
+                for l, (x2, y2) in enumerate(P):
+                    if l == k:
+                        continue
+                    d = math.hypot(x - x2, y - y2)
+                    if d < 0.95 * pitch:
+                        f += 0.35 * (0.95 * pitch - d) * np.array([x - x2, y - y2]) / max(d, 1e-6)
+                if ux.size:
+                    dd = np.hypot(ux - x, uy - y); sel = dd < 1.1 * pitch
+                    if sel.any():
+                        f += 0.25 * np.array([ux[sel].mean() - x, uy[sel].mean() - y]) * \
+                            min(1.0, sel.sum() * res * res / (0.3 * math.pi * r * r))
+                newP[k] = proj(x + f[0], y + f[1])
+            done = np.abs(newP - P).max() < 0.3 * res
+            P = newP
+            if prune and it in (15, 30) or (prune and done):
+                C = covmask(P)
+                own = [(m & (C == 1) & ((X - x) ** 2 + (Y - y) ** 2 <= r * r)).sum() /
+                       max((m & ((X - x) ** 2 + (Y - y) ** 2 <= r * r)).sum(), 1) for x, y in P]
+                k = int(np.argmin(own))
+                if own[k] < 0.20 and len(P) > 1:
+                    P = np.delete(P, k, axis=0); done = False
+            if done:
+                break
+        return P
+
+    P = grow([])
+    P = relax(P, 40, True)
+    P = grow(P, gap_only=True)
+    P = relax(P, 20, False)
+    out = []
+    rr = 0.6 * pitch
+    for x, y in P:
+        sel = m & (np.hypot(X - x, Y - y) <= rr)
+        px, py = X[sel] - x, Y[sel] - y
+        if px.size > 3:
+            Cv = np.cov(np.vstack([px, py])); w_, v_ = np.linalg.eigh(Cv); ang = math.atan2(v_[1, 1], v_[0, 1])
+        else:
+            ang = 0.0
+        if ang > math.pi / 2: ang -= math.pi
+        if ang <= -math.pi / 2: ang += math.pi
+        out.append((float(x), float(y), ang))
+    return out
+
+
+def place(g, pitch, p_lx=None, layout="pack"):
+    if layout == "pack":
+        return pack(g, pitch), "pack", 0, 0
     w = LS.stroke_max(g)
     pts, mode = (grid(g, pitch), "grid") if w > 2.0 * pitch else (chain(g, pitch), "chain")
     pts, a, r = coverage(g, pts, pitch, p_lx)
@@ -431,14 +564,14 @@ def run(spec):
             p = int(min(p, max(60, round(1.6 * w_med / 10.0) * 10)))
         per = []
         for g in L:
-            pts, mode, a_, r_ = place(g, p, p_lx)
+            pts, mode, a_, r_ = place(g, p, p_lx, gr.get("layout") or spec.get("layout") or "pack")
             per.append({"g": g, "pts": pts, "mode": mode, "cov": (a_, r_)})
         n = sum(len(x["pts"]) for x in per)
         watts = n * MODDB[m]["W"]
         res.append({"gr": gr, "mod": m, "pitch": p, "plx": p_lx, "letters": per, "n": n, "W": watts, "psu": psu_for(watts, MODDB[m]["V"])})
         print(f"  {gr.get('name') or 'grupė'}: {mod_label(m, gr.get('led', 'white'))} žingsnis ~{p} -> " +
               ", ".join(str(len(x['pts'])) for x in per) + f" = {n} vnt., {watts:.1f} W, {psu_for(watts, MODDB[m]['V'])[0]}" +
-              ("" if all(x["mode"] == "chain" for x in per) else "  (plati linija - tinklelis)") +
+              ("" if all(x["mode"] in ("chain", "pack") for x in per) else "  (plati linija - tinklelis)") +
               f"  [padengimas: +{sum(x['cov'][0] for x in per)} / -{sum(x['cov'][1] for x in per)}]")
     return res
 

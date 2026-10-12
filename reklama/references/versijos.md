@@ -2,6 +2,12 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v129 (2026-10-12)
+
+v129, Rytis 2026-10-12 („vistiek dėliojimas labai keistas, neatitinka nei gamybinių, nei teorinių planų" - X, E, 3, 7 ekrano nuotraukos):
+`led_km.py pack()` - apskritimų pakavimas kaip Ryčio gamybos lapuose (numatytas), `chain` + `coverage` - tik `"layout": "chain"`.
+EXTRA Åpn496 19, Åpn894 34 (Ryčio 36), FAS700 X + EXTRA 43, 7-23 19; SPAR VH400 62, VH500 61.
+
 ## v128 (2026-10-12)
 
 v128, Rytis 2026-10-12 (ekrano nuotraukos: „kai kur labai gerai, o kai kur net LED nepridėti ... švietimas turi būti tolygus
