@@ -1022,18 +1022,41 @@ if PLATES:
             safe_ = o["back"].buffer(-A.spacer_edge, join_style=2, mitre_limit=10)
             x0_, y0_, x1_, y1_ = o["bb"]; w_, h_ = x1_ - x0_, y1_ - y0_
             hs_ = []
-            if not safe_.is_empty:
+            # v115 (Rytis 2026-10-12): VIENAS RĖMAS - X tvirtinimas kaip raidžių: skylės ant bėgelio profilio
+            # horizontalios ašies (holes_on_rail), ne „centras + 4 galai"
+            _xr = [r_ for r_ in rails if r_["x0"] < x1_ and r_["x1"] > x0_ and y0_ < r_["cy"] < y1_]
+            for r_ in _xr:
+                for z_ in holes_on_rail(o["back"], r_, A.hole_edge):
+                    hs_ += [(x_, r_["cy"]) for x_ in z_["xs"]]
+            o["on_rails"] = bool(hs_)
+            if o["on_rails"]:
+                print(f"  raidė ant plokštės: tvirtinimas ant bėgelių ašių ({len(_xr)} bėg.) - {len(hs_)} x Ø{A.spacer_d:g}")
+            if not hs_ and not safe_.is_empty:
                 hs_.append(_pole(safe_))
                 for qx0, qx1 in ((x0_, x0_ + 0.4 * w_), (x1_ - 0.4 * w_, x1_)):
                     for qy0, qy1 in ((y0_, y0_ + 0.3 * h_), (y1_ - 0.3 * h_, y1_)):
                         q_ = safe_.intersection(sbox(qx0, qy0, qx1, qy1))
                         if not q_.is_empty and q_.area > 1:
                             hs_.append(_pole(q_))
-            if len(hs_) < 5:
-                print(f"  ! raidė ant plokštės: tik {len(hs_)} Ø{A.spacer_d:g} skylės (< 5) - tikrinti / dėti ranka")
+            if len(hs_) < (4 if o["on_rails"] else 5):
+                print(f"  ! raidė ant plokštės: tik {len(hs_)} Ø{A.spacer_d:g} skylės - tikrinti / dėti ranka")
             o["sp_holes"] = hs_
             o["d11p"] = None
-            if A.cable != "none" and hs_:
+            if A.cable != "none" and o["on_rails"]:          # v115: D11 - apatinio bėgelio ašyje, kaip raidėms
+                rb_ = max(_xr, key=lambda r_: r_["cy"])
+                ax_ = LineString([(x0_, rb_["cy"]), (x1_, rb_["cy"])]).intersection(o["back"].buffer(-A.d11_edge))
+                cands_ = []
+                for g_ in getattr(ax_, "geoms", [ax_]):
+                    if isinstance(g_, LineString) and g_.length > 0:
+                        a_, b_ = g_.bounds[0], g_.bounds[2]
+                        cands_ += [a_ + (b_ - a_) * k / 20 for k in range(21)]
+                cands_ = [x_ for x_ in cands_ if all(math.dist((x_, rb_["cy"]), h_) >= A.d11_fix_clear for h_ in hs_)]
+                if cands_:
+                    right_ = _main_cx >= (x0_ + x1_) / 2
+                    o["d11p"] = (max(cands_) if right_ else min(cands_), rb_["cy"])
+                else:
+                    print("  ! raidė ant plokštės: Ø11 apatinio bėgelio ašyje netelpa - dėti ranka")
+            elif A.cable != "none" and hs_:
                 right_ = _main_cx >= (x0_ + x1_) / 2
                 bot_ = [q for q in hs_[1:] if q[1] > (y0_ + y1_) / 2] or hs_[1:]
                 if bot_:

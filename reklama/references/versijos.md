@@ -2,6 +2,12 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v115 (2026-10-12)
+
+v115, Rytis 2026-10-12 („kai extra naudojama ant vieno rėmo, X tvirtinimas atitinka raidžių tvirtinimą - eina per rėmo profilio
+horizontalų centrą", pavyzdys pzs_a.pdf): `p6_dxf.py` - raidės ant plokštės skylės `holes_on_rail()` kiekvieno X kertančio
+bėgelio ašyje, D11 apatinio bėgelio ašyje; be bėgelių - senas „centras + 4 galai". EXTRA 225978: FAS700 X 6 x Ø4, FAS1000 8 x Ø4.
+
 ## v114 (2026-10-12)
 
 Rytis: „įtrauk į skill medžiagų matmenų biblioteką - Alu, ACM, profiliai, patikrink Lietuvos tiekėjus ... kad nebūtų, kad
