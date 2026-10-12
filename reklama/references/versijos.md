@@ -2,6 +2,11 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v142 (2026-10-12)
+
+v142, Rytis 2026-10-12: plėvelių spalvų biblioteka `assets/pleveles.json` (ORACAL 8500, ORACAL 551, Avery 4500 TF / 5500 QM / 777,
+3M 3630), `lapas_core.film_lookup`, `code_hex` per biblioteką, CLI `scripts/pleveles.py`. Šaltiniai - `_info` JSON faile.
+
 ## v141 (2026-10-12)
 
 v141, Rytis 2026-10-12: gabaritinis matmuo arčiausiai objekto (12 pt, baltas fonas), grandinės toliau (8 pt); vienodi šriftai

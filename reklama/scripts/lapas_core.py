@@ -50,12 +50,58 @@ FOIL = {"8500 614": "#00A859", "8500-614": "#00A859", "8500 034": "#EB690F", "85
         "DAY/NIGHT": "#1C1C1C"}     # v57: Day/Night perforuota plėvelė, juoda spauda (SPAR 226004)
 
 
+_FILMS = None
+
+
+def films():
+    """v142: plėvelių biblioteka assets/pleveles.json (ORACAL 8500 / 551, Avery 4500 / 5500 / 777, 3M 3630)"""
+    global _FILMS
+    if _FILMS is None:
+        import json
+        p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "pleveles.json")
+        try:
+            _FILMS = json.load(open(p, encoding="utf-8"))
+        except Exception:
+            _FILMS = {}
+    return _FILMS
+
+
+def film_lookup(v):
+    """'ORACAL 8500 034' / '8500-034' / 'ORACAL 551 702' / '3M 3630-33' / 'Avery 4506' / 'Avery 5510-01' / 'Avery 777-002CF'
+    -> (serija, kodas, {name, hex, approx, ...}) arba None"""
+    import re
+    u = str(v).upper().replace("ORALITE", "ORACAL")
+    F = films()
+    m = re.search(r"\b(8500|551)[\s\-]+(\d{3})", u)
+    if m:
+        s = "ORACAL " + m.group(1); e = F.get(s, {}).get("colors", {}).get(m.group(2))
+        return (s, m.group(2), e) if e else None
+    m = re.search(r"\b3630[\s\-]+(\d{1,3})\b", u)
+    if m:
+        k = "3630-" + m.group(1); e = F.get("3M 3630", {}).get("colors", {}).get(k)
+        return ("3M 3630", k, e) if e else None
+    m = re.search(r"\b777[\s\-]+(\d{3})", u)
+    if m:
+        k = "777-" + m.group(1); e = F.get("AVERY 777", {}).get("colors", {}).get(k)
+        return ("AVERY 777", k, e) if e else None
+    for s_ in ("AVERY 4500", "AVERY 5500"):
+        for k, e in F.get(s_, {}).get("colors", {}).items():
+            if re.search(r"(?<![\d])" + re.escape(k) + r"(?![\d])", u.replace(" TF", "").replace(" QM", "")):
+                if k in ("4500", "5500") and not re.search(k + r"[\s\-]*(WHITE|BALT|$)", u):
+                    continue                          # '4500 TF 4506' - serijos pavadinimas, ne baltas
+                return s_, k, e
+    return None
+
+
 def code_hex(v, ral=True):
     """langelio spalva pagal kodą: RAL / 3M / PMS / ORACAL / Avery / sandblast; None - nežinoma"""
     v0 = str(v).split("\n")[0].strip()
     u = v0.upper()
     if ral and u.startswith("RAL") and len(v0.split()) > 1:
         return ralhex(v0.split()[1].rstrip(","))
+    f_ = film_lookup(v0)
+    if f_:
+        return f_[2]["hex"]
     if u.startswith("3M") and len(v0.split()) > 1:
         return VINYL.get(v0.split()[1])
     if u.startswith("PMS") and len(v0.split()) > 1:

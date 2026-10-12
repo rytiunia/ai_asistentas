@@ -1,0 +1,2946 @@
+{
+ "_info": "Compiled 2026-10-12 for BOM colour swatches. Hex: ORACAL 8500 and 551 from Orafol-published sRGB (EU product pages; 8500 'hex' = natural-light view, 'hex_backlit' = back-lit view). Avery and 3M publish no RGB values -> hex are on-screen approximations (approx:true); never use them for colour matching - use the physical colour card. Codes only as found in manufacturer sources; see sources.md.",
+ "ORACAL 8500": {
+  "type": "translucent calendered (Translucent Cal), matt, for backlit signs",
+  "manufacturer": "ORAFOL",
+  "source": "https://www.orafol.com/en/europe/products/oracal-8500-translucent-cal",
+  "complete": true,
+  "_info": "54 colours on Orafol EU page (swatch ids carry suffix 'S', e.g. 010S). Americas page additionally lists 015 Yellow (not in EU range). No 019 in 8500. 330 is 'Bright orange' (EU) / 'Fox red' (AU/US). Order code format: 8500-031.",
+  "colors": {
+   "010": {
+    "name": "White",
+    "hex": "#E7E8E5",
+    "approx": false,
+    "hex_backlit": "#AF9D70",
+    "translucent": true
+   },
+   "025": {
+    "name": "Brimstone yellow",
+    "hex": "#D1C600",
+    "approx": false,
+    "hex_backlit": "#CAA900",
+    "translucent": true
+   },
+   "021": {
+    "name": "Yellow",
+    "hex": "#FFCF00",
+    "approx": false,
+    "hex_backlit": "#F5BD00",
+    "translucent": true
+   },
+   "013": {
+    "name": "Zinc yellow",
+    "hex": "#F3C300",
+    "approx": false,
+    "hex_backlit": "#BE8200",
+    "translucent": true
+   },
+   "020": {
+    "name": "Golden yellow",
+    "hex": "#FAAD00",
+    "approx": false,
+    "hex_backlit": "#F59400",
+    "translucent": true
+   },
+   "207": {
+    "name": "Ochre yellow",
+    "hex": "#E1A529",
+    "approx": false,
+    "hex_backlit": "#B84100",
+    "translucent": true
+   },
+   "034": {
+    "name": "Orange",
+    "hex": "#E05400",
+    "approx": false,
+    "hex_backlit": "#AB402D",
+    "translucent": true
+   },
+   "330": {
+    "name": "Bright orange",
+    "hex": "#C82411",
+    "approx": false,
+    "hex_backlit": "#B80000",
+    "translucent": true,
+    "note": "EU page names it 'Bright orange'; AU/US pages name it 'Fox red' (same sRGB)"
+   },
+   "323": {
+    "name": "Coral red",
+    "hex": "#D3273B",
+    "approx": false,
+    "hex_backlit": "#BC0000",
+    "translucent": true
+   },
+   "032": {
+    "name": "Light red",
+    "hex": "#CC311C",
+    "approx": false,
+    "hex_backlit": "#C60000",
+    "translucent": true
+   },
+   "329": {
+    "name": "Carnation red",
+    "hex": "#C3050E",
+    "approx": false,
+    "hex_backlit": "#940000",
+    "translucent": true
+   },
+   "016": {
+    "name": "Crimson",
+    "hex": "#CF110A",
+    "approx": false,
+    "hex_backlit": "#BB0000",
+    "translucent": true
+   },
+   "031": {
+    "name": "Red",
+    "hex": "#C11C13",
+    "approx": false,
+    "hex_backlit": "#AC0000",
+    "translucent": true
+   },
+   "017": {
+    "name": "Cherry red",
+    "hex": "#A5000E",
+    "approx": false,
+    "hex_backlit": "#B30000",
+    "translucent": true
+   },
+   "030": {
+    "name": "Dark red",
+    "hex": "#770017",
+    "approx": false,
+    "hex_backlit": "#840000",
+    "translucent": true
+   },
+   "085": {
+    "name": "Pale pink",
+    "hex": "#DF8E8F",
+    "approx": false,
+    "hex_backlit": "#FFC29D",
+    "translucent": true
+   },
+   "413": {
+    "name": "Light pink",
+    "hex": "#D361B1",
+    "approx": false,
+    "hex_backlit": "#C21B6B",
+    "translucent": true
+   },
+   "041": {
+    "name": "Pink",
+    "hex": "#B3006A",
+    "approx": false,
+    "hex_backlit": "#E6008D",
+    "translucent": true
+   },
+   "008": {
+    "name": "Heather red",
+    "hex": "#760630",
+    "approx": false,
+    "hex_backlit": "#8B0038",
+    "translucent": true
+   },
+   "040": {
+    "name": "Violet",
+    "hex": "#64005C",
+    "approx": false,
+    "hex_backlit": "#A12696",
+    "translucent": true
+   },
+   "403": {
+    "name": "Light violet",
+    "hex": "#5E2287",
+    "approx": false,
+    "hex_backlit": "#863B84",
+    "translucent": true
+   },
+   "012": {
+    "name": "Lilac",
+    "hex": "#450357",
+    "approx": false,
+    "hex_backlit": "#74008D",
+    "translucent": true
+   },
+   "527": {
+    "name": "Pastel blue",
+    "hex": "#5791AD",
+    "approx": false,
+    "hex_backlit": "#154D50",
+    "translucent": true
+   },
+   "053": {
+    "name": "Light blue",
+    "hex": "#008ED5",
+    "approx": false,
+    "hex_backlit": "#009BB0",
+    "translucent": true
+   },
+   "052": {
+    "name": "Azure blue",
+    "hex": "#0062B7",
+    "approx": false,
+    "hex_backlit": "#0095B7",
+    "translucent": true
+   },
+   "051": {
+    "name": "Gentian blue",
+    "hex": "#0059AC",
+    "approx": false,
+    "hex_backlit": "#005789",
+    "translucent": true
+   },
+   "528": {
+    "name": "Grey blue",
+    "hex": "#00659D",
+    "approx": false,
+    "hex_backlit": "#003856",
+    "translucent": true
+   },
+   "005": {
+    "name": "Middle blue",
+    "hex": "#0539A2",
+    "approx": false,
+    "hex_backlit": "#005FA2",
+    "translucent": true
+   },
+   "006": {
+    "name": "Intensive blue",
+    "hex": "#002D75",
+    "approx": false,
+    "hex_backlit": "#004380",
+    "translucent": true
+   },
+   "049": {
+    "name": "King blue",
+    "hex": "#24047B",
+    "approx": false,
+    "hex_backlit": "#003DB1",
+    "translucent": true
+   },
+   "542": {
+    "name": "Caribic blue",
+    "hex": "#142479",
+    "approx": false,
+    "hex_backlit": "#002772",
+    "translucent": true
+   },
+   "065": {
+    "name": "Cobalt blue",
+    "hex": "#210066",
+    "approx": false,
+    "hex_backlit": "#0024A0",
+    "translucent": true
+   },
+   "007": {
+    "name": "Dark blue",
+    "hex": "#25235F",
+    "approx": false,
+    "hex_backlit": "#000D4F",
+    "translucent": true
+   },
+   "541": {
+    "name": "Dark turquoise",
+    "hex": "#005373",
+    "approx": false,
+    "hex_backlit": "#00555B",
+    "translucent": true
+   },
+   "066": {
+    "name": "Turquoise blue",
+    "hex": "#008B96",
+    "approx": false,
+    "hex_backlit": "#008671",
+    "translucent": true
+   },
+   "054": {
+    "name": "Turquoise",
+    "hex": "#00AC92",
+    "approx": false,
+    "hex_backlit": "#009354",
+    "translucent": true
+   },
+   "062": {
+    "name": "Light green",
+    "hex": "#009935",
+    "approx": false,
+    "hex_backlit": "#00B100",
+    "translucent": true
+   },
+   "063": {
+    "name": "Lime-tree green",
+    "hex": "#4AB600",
+    "approx": false,
+    "hex_backlit": "#89C500",
+    "translucent": true
+   },
+   "009": {
+    "name": "Middle green",
+    "hex": "#009D68",
+    "approx": false,
+    "hex_backlit": "#00651A",
+    "translucent": true
+   },
+   "614": {
+    "name": "Reed green",
+    "hex": "#007332",
+    "approx": false,
+    "hex_backlit": "#00BE44",
+    "translucent": true
+   },
+   "068": {
+    "name": "Grass green",
+    "hex": "#006E38",
+    "approx": false,
+    "hex_backlit": "#006700",
+    "translucent": true
+   },
+   "618": {
+    "name": "Dragon green",
+    "hex": "#003F42",
+    "approx": false,
+    "hex_backlit": "#00563B",
+    "translucent": true
+   },
+   "087": {
+    "name": "Emerald",
+    "hex": "#007832",
+    "approx": false,
+    "hex_backlit": "#005B00",
+    "translucent": true
+   },
+   "060": {
+    "name": "Dark green",
+    "hex": "#003E29",
+    "approx": false,
+    "hex_backlit": "#004000",
+    "translucent": true
+   },
+   "070": {
+    "name": "Black",
+    "hex": "#1B1D20",
+    "approx": false,
+    "hex_backlit": "#0B0602",
+    "translucent": true,
+    "note": "black - practically opaque when backlit"
+   },
+   "074": {
+    "name": "Middle grey",
+    "hex": "#878F8F",
+    "approx": false,
+    "hex_backlit": "#5C5235",
+    "translucent": true
+   },
+   "076": {
+    "name": "Telegrey",
+    "hex": "#9BA1A7",
+    "approx": false,
+    "hex_backlit": "#716447",
+    "translucent": true
+   },
+   "072": {
+    "name": "Light grey",
+    "hex": "#C6C9CA",
+    "approx": false,
+    "hex_backlit": "#AC9C72",
+    "translucent": true
+   },
+   "805": {
+    "name": "Ivory",
+    "hex": "#E3D5B3",
+    "approx": false,
+    "hex_backlit": "#C39E40",
+    "translucent": true
+   },
+   "011": {
+    "name": "Pale brown",
+    "hex": "#DFBB87",
+    "approx": false,
+    "hex_backlit": "#E6B759",
+    "translucent": true
+   },
+   "081": {
+    "name": "Light brown",
+    "hex": "#B48959",
+    "approx": false,
+    "hex_backlit": "#9D5700",
+    "translucent": true
+   },
+   "088": {
+    "name": "Coffee brown",
+    "hex": "#462921",
+    "approx": false,
+    "hex_backlit": "#3E0000",
+    "translucent": true
+   },
+   "090": {
+    "name": "Silver grey",
+    "hex": "#7D8184",
+    "approx": false,
+    "hex_backlit": "#6E6D5B",
+    "translucent": true,
+    "note": "metallic"
+   },
+   "091": {
+    "name": "Gold",
+    "hex": "#907F44",
+    "approx": false,
+    "hex_backlit": "#AB8B00",
+    "translucent": true,
+    "note": "metallic"
+   }
+  }
+ },
+ "ORACAL 551": {
+  "type": "opaque calendered (High Performance Cal - polymeric calendered, NOT cast)",
+  "manufacturer": "ORAFOL",
+  "source": "https://www.orafol.com/en/europe/products/oracal-551-high-performance-cal",
+  "complete": true,
+  "_info": "86 colours on Orafol EU page; swatch id suffix G = gloss, M = matt (027, 603, 073 had no suffix). 702 exists = Deep black MATT (702M); 701 = Deep black gloss. There is no 070 in 551. 101/102 = Arctic white gloss/matt.",
+  "colors": {
+   "201": {
+    "name": "Crocus yellow",
+    "hex": "#EBDC00",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "201G",
+    "translucent": false
+   },
+   "022": {
+    "name": "Shell yellow",
+    "hex": "#FFD500",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "022G",
+    "translucent": false
+   },
+   "202": {
+    "name": "Mustard yellow",
+    "hex": "#FED000",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "202G",
+    "translucent": false
+   },
+   "021": {
+    "name": "Yellow",
+    "hex": "#FFC200",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "021G",
+    "translucent": false
+   },
+   "203": {
+    "name": "Straw yellow",
+    "hex": "#FDBC00",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "203G",
+    "translucent": false
+   },
+   "019": {
+    "name": "Signal yellow",
+    "hex": "#E7A800",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "019G",
+    "translucent": false
+   },
+   "204": {
+    "name": "Melon yellow",
+    "hex": "#FEB200",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "204G",
+    "translucent": false
+   },
+   "020": {
+    "name": "Golden yellow",
+    "hex": "#FBA800",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "020G",
+    "translucent": false
+   },
+   "215": {
+    "name": "Apricot",
+    "hex": "#F59B00",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "215G",
+    "translucent": false
+   },
+   "395": {
+    "name": "Pumpkin",
+    "hex": "#F07A16",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "395G",
+    "translucent": false
+   },
+   "301": {
+    "name": "Traffic orange",
+    "hex": "#E86000",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "301G",
+    "translucent": false
+   },
+   "035": {
+    "name": "Pastel orange",
+    "hex": "#FB6400",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "035G",
+    "translucent": false
+   },
+   "034": {
+    "name": "Orange",
+    "hex": "#ED5300",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "034G",
+    "translucent": false
+   },
+   "302": {
+    "name": "Poppy red",
+    "hex": "#D82C00",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "302G",
+    "translucent": false
+   },
+   "303": {
+    "name": "Blood orange",
+    "hex": "#D81000",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "303G",
+    "translucent": false
+   },
+   "032": {
+    "name": "Light red",
+    "hex": "#CA0800",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "032G",
+    "translucent": false
+   },
+   "304": {
+    "name": "Fire red",
+    "hex": "#C11F03",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "304G",
+    "translucent": false
+   },
+   "337": {
+    "name": "Cardinal",
+    "hex": "#CD0726",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "337G",
+    "translucent": false
+   },
+   "321": {
+    "name": "Tomato",
+    "hex": "#D10008",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "321G",
+    "translucent": false
+   },
+   "027": {
+    "name": "Tomato red",
+    "hex": "#BC0603",
+    "approx": false,
+    "finish": "not stated",
+    "swatch_id": "027",
+    "translucent": false
+   },
+   "028": {
+    "name": "Cardinal red",
+    "hex": "#C70010",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "028G",
+    "translucent": false
+   },
+   "031": {
+    "name": "Red",
+    "hex": "#B71313",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "031G",
+    "translucent": false
+   },
+   "305": {
+    "name": "Geranium red",
+    "hex": "#AB000D",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "305G",
+    "translucent": false
+   },
+   "398": {
+    "name": "Venetian red",
+    "hex": "#AC0005",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "398G",
+    "translucent": false
+   },
+   "306": {
+    "name": "Carmine red",
+    "hex": "#B10000",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "306G",
+    "translucent": false
+   },
+   "320": {
+    "name": "Dark red",
+    "hex": "#87000F",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "320G",
+    "translucent": false
+   },
+   "307": {
+    "name": "Brown red",
+    "hex": "#81161F",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "307G",
+    "translucent": false
+   },
+   "308": {
+    "name": "Wine red",
+    "hex": "#680821",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "308G",
+    "translucent": false
+   },
+   "411": {
+    "name": "Magenta",
+    "hex": "#CD387B",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "411G",
+    "translucent": false
+   },
+   "402": {
+    "name": "Cyclamen",
+    "hex": "#BD1A5D",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "402G",
+    "translucent": false
+   },
+   "403": {
+    "name": "Light violet",
+    "hex": "#593186",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "403G",
+    "translucent": false
+   },
+   "601": {
+    "name": "Limette green",
+    "hex": "#65CC30",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "601G",
+    "translucent": false
+   },
+   "602": {
+    "name": "Grass green",
+    "hex": "#129F00",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "602G",
+    "translucent": false
+   },
+   "491": {
+    "name": "Shamrock green",
+    "hex": "#008C39",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "491G",
+    "translucent": false
+   },
+   "603": {
+    "name": "Mint green",
+    "hex": "#008C5C",
+    "approx": false,
+    "finish": "not stated",
+    "swatch_id": "603",
+    "translucent": false
+   },
+   "604": {
+    "name": "Cactus green",
+    "hex": "#006B3C",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "604G",
+    "translucent": false
+   },
+   "061": {
+    "name": "Green",
+    "hex": "#007446",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "061G",
+    "translucent": false
+   },
+   "078": {
+    "name": "Foliage green",
+    "hex": "#005319",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "078G",
+    "translucent": false
+   },
+   "605": {
+    "name": "Forest green",
+    "hex": "#004A31",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "605G",
+    "translucent": false
+   },
+   "060": {
+    "name": "Dark green",
+    "hex": "#004125",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "060G",
+    "translucent": false
+   },
+   "502": {
+    "name": "Blue turquoise",
+    "hex": "#009896",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "502G",
+    "translucent": false
+   },
+   "503": {
+    "name": "Water blue",
+    "hex": "#00808E",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "503G",
+    "translucent": false
+   },
+   "608": {
+    "name": "Petrol",
+    "hex": "#00596C",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "608G",
+    "translucent": false
+   },
+   "169": {
+    "name": "Baby blue",
+    "hex": "#79C4E4",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "169G",
+    "translucent": false
+   },
+   "504": {
+    "name": "Pastel blue",
+    "hex": "#3AA3D0",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "504G",
+    "translucent": false
+   },
+   "505": {
+    "name": "Olympic blue",
+    "hex": "#0086CA",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "505G",
+    "translucent": false
+   },
+   "167": {
+    "name": "Electric blue",
+    "hex": "#0074B4",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "167G",
+    "translucent": false
+   },
+   "506": {
+    "name": "Paradise blue",
+    "hex": "#0077B4",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "506G",
+    "translucent": false
+   },
+   "152": {
+    "name": "Caribbean blue",
+    "hex": "#0063B8",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "152G",
+    "translucent": false
+   },
+   "507": {
+    "name": "Capri blue",
+    "hex": "#0062AF",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "507G",
+    "translucent": false
+   },
+   "166": {
+    "name": "Prussian blue",
+    "hex": "#0050A7",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "166G",
+    "translucent": false
+   },
+   "508": {
+    "name": "Signal blue",
+    "hex": "#0054A9",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "508G",
+    "translucent": false
+   },
+   "509": {
+    "name": "Marine blue",
+    "hex": "#004494",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "509G",
+    "translucent": false
+   },
+   "157": {
+    "name": "Middle blue",
+    "hex": "#00408E",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "157G",
+    "translucent": false
+   },
+   "165": {
+    "name": "Jeans blue",
+    "hex": "#004878",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "165G",
+    "translucent": false
+   },
+   "534": {
+    "name": "Standard blue",
+    "hex": "#003B7B",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "534G",
+    "translucent": false
+   },
+   "150": {
+    "name": "Brilliant blue L",
+    "hex": "#0532AF",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "150G",
+    "translucent": false
+   },
+   "510": {
+    "name": "Clematis blue",
+    "hex": "#003287",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "510G",
+    "translucent": false
+   },
+   "535": {
+    "name": "Sapphire",
+    "hex": "#10287A",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "535G",
+    "translucent": false
+   },
+   "049": {
+    "name": "King blue",
+    "hex": "#052778",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "049G",
+    "translucent": false
+   },
+   "065": {
+    "name": "Cobalt blue",
+    "hex": "#0C206E",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "065G",
+    "translucent": false
+   },
+   "511": {
+    "name": "Night blue",
+    "hex": "#00266C",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "511G",
+    "translucent": false
+   },
+   "164": {
+    "name": "Azurite blue",
+    "hex": "#0F1A5A",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "164G",
+    "translucent": false
+   },
+   "050": {
+    "name": "Dark blue",
+    "hex": "#142C5B",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "050G",
+    "translucent": false
+   },
+   "512": {
+    "name": "Sapphire blue",
+    "hex": "#001E4C",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "512G",
+    "translucent": false
+   },
+   "513": {
+    "name": "Black blue",
+    "hex": "#0B1B31",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "513G",
+    "translucent": false
+   },
+   "803": {
+    "name": "Chocolate brown",
+    "hex": "#412614",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "803G",
+    "translucent": false
+   },
+   "804": {
+    "name": "Beige brown",
+    "hex": "#DCC491",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "804G",
+    "translucent": false
+   },
+   "072": {
+    "name": "Light grey",
+    "hex": "#C3C8C5",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "072G",
+    "translucent": false
+   },
+   "711": {
+    "name": "Stone grey",
+    "hex": "#C2C4C5",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "711G",
+    "translucent": false
+   },
+   "712": {
+    "name": "Traffic grey",
+    "hex": "#8F9591",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "712G",
+    "translucent": false
+   },
+   "756": {
+    "name": "Steel grey",
+    "hex": "#768189",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "756G",
+    "translucent": false
+   },
+   "076": {
+    "name": "Telegrey",
+    "hex": "#848889",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "076G",
+    "translucent": false
+   },
+   "757": {
+    "name": "Agate grey",
+    "hex": "#5C6364",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "757G",
+    "translucent": false
+   },
+   "713": {
+    "name": "Iron grey",
+    "hex": "#5B5F5F",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "713G",
+    "translucent": false
+   },
+   "073": {
+    "name": "Dark grey",
+    "hex": "#4D4E4E",
+    "approx": false,
+    "finish": "not stated",
+    "swatch_id": "073",
+    "translucent": false
+   },
+   "714": {
+    "name": "Graphite grey",
+    "hex": "#404445",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "714G",
+    "translucent": false
+   },
+   "701": {
+    "name": "Deep black",
+    "hex": "#060608",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "701G",
+    "translucent": false
+   },
+   "702": {
+    "name": "Deep black",
+    "hex": "#2C2D2F",
+    "approx": false,
+    "finish": "matt",
+    "swatch_id": "702M",
+    "translucent": false
+   },
+   "010": {
+    "name": "White",
+    "hex": "#E9EDEE",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "010G",
+    "translucent": false
+   },
+   "101": {
+    "name": "Arctic white",
+    "hex": "#E8E9EE",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "101G",
+    "translucent": false
+   },
+   "102": {
+    "name": "Arctic white",
+    "hex": "#E2E3E7",
+    "approx": false,
+    "finish": "matt",
+    "swatch_id": "102M",
+    "translucent": false
+   },
+   "093": {
+    "name": "Anthracite",
+    "hex": "#424440",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "093G",
+    "translucent": false
+   },
+   "090": {
+    "name": "Silver",
+    "hex": "#7F8285",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "090G",
+    "translucent": false,
+    "note": "metallic"
+   },
+   "930": {
+    "name": "Gold",
+    "hex": "#84633C",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "930G",
+    "translucent": false,
+    "note": "metallic"
+   },
+   "000": {
+    "name": "Transparent",
+    "hex": "#DAD9E0",
+    "approx": false,
+    "finish": "gloss",
+    "swatch_id": "000G",
+    "translucent": true,
+    "note": "transparent/clear"
+   }
+  }
+ },
+ "AVERY 4500": {
+  "type": "translucent calendered (4500 TF Translucent Film)",
+  "manufacturer": "Avery Dennison",
+  "source": "https://graphics.averydennison.com/content/dam/averydennison/graphics/eu/en/product-overview/color-cards/po-color-card-5500-qm-translucent-film.pdf",
+  "complete": true,
+  "_info": "Avery EU states 38 stock colours. 32 read from the Translucent Films colour card + 6 (4514, 4519, 4520, 4522, 4529, 4534) from technical bulletin TB 3.23 = 38. Code format e.g. '4506 TF'. Hex approximate.",
+  "colors": {
+   "4500": {
+    "name": "White",
+    "hex": "#F5F5F2",
+    "approx": true,
+    "translucent": true
+   },
+   "4501": {
+    "name": "Black",
+    "hex": "#1A1A1A",
+    "approx": true,
+    "translucent": true,
+    "note": "black - low light transmission"
+   },
+   "4502": {
+    "name": "Yellow",
+    "hex": "#FFD200",
+    "approx": true,
+    "translucent": true
+   },
+   "4503": {
+    "name": "Lemon Yellow",
+    "hex": "#FFE600",
+    "approx": true,
+    "translucent": true
+   },
+   "4504": {
+    "name": "Chrome Yellow",
+    "hex": "#F7B500",
+    "approx": true,
+    "translucent": true
+   },
+   "4506": {
+    "name": "Red",
+    "hex": "#C8102E",
+    "approx": true,
+    "translucent": true
+   },
+   "4507": {
+    "name": "Light Green",
+    "hex": "#43B02A",
+    "approx": true,
+    "translucent": true
+   },
+   "4508": {
+    "name": "Pepper Red",
+    "hex": "#D22630",
+    "approx": true,
+    "translucent": true
+   },
+   "4509": {
+    "name": "Cardinal Red",
+    "hex": "#A6192E",
+    "approx": true,
+    "translucent": true
+   },
+   "4511": {
+    "name": "Pink",
+    "hex": "#D6338A",
+    "approx": true,
+    "translucent": true
+   },
+   "4512": {
+    "name": "Blue",
+    "hex": "#0055A4",
+    "approx": true,
+    "translucent": true
+   },
+   "4513": {
+    "name": "Violet",
+    "hex": "#5F259F",
+    "approx": true,
+    "translucent": true
+   },
+   "4514": {
+    "name": "Brown",
+    "hex": "#6B3E26",
+    "approx": true,
+    "translucent": true,
+    "note": "listed in Avery TB 3.23 (not visible in current colour-card text extraction)"
+   },
+   "4516": {
+    "name": "Green",
+    "hex": "#00843D",
+    "approx": true,
+    "translucent": true
+   },
+   "4517": {
+    "name": "Dark Blue",
+    "hex": "#002B5C",
+    "approx": true,
+    "translucent": true
+   },
+   "4518": {
+    "name": "Sapphire Blue",
+    "hex": "#00478A",
+    "approx": true,
+    "translucent": true
+   },
+   "4519": {
+    "name": "Grey",
+    "hex": "#8A8D8F",
+    "approx": true,
+    "translucent": true,
+    "note": "listed in Avery TB 3.23 (not visible in current colour-card text extraction)"
+   },
+   "4520": {
+    "name": "Wine Red",
+    "hex": "#7C1E2E",
+    "approx": true,
+    "translucent": true,
+    "note": "listed in Avery TB 3.23 (not visible in current colour-card text extraction)"
+   },
+   "4522": {
+    "name": "Burgundy",
+    "hex": "#6C1D3A",
+    "approx": true,
+    "translucent": true,
+    "note": "listed in Avery TB 3.23 (not visible in current colour-card text extraction)"
+   },
+   "4523": {
+    "name": "Light Blue",
+    "hex": "#3AA0DA",
+    "approx": true,
+    "translucent": true
+   },
+   "4525": {
+    "name": "Royal Blue",
+    "hex": "#1E3F99",
+    "approx": true,
+    "translucent": true
+   },
+   "4527": {
+    "name": "Ocean Blue",
+    "hex": "#0072B5",
+    "approx": true,
+    "translucent": true
+   },
+   "4528": {
+    "name": "Reflex Blue",
+    "hex": "#001E8C",
+    "approx": true,
+    "translucent": true
+   },
+   "4529": {
+    "name": "Deep Blue",
+    "hex": "#1C2D6B",
+    "approx": true,
+    "translucent": true,
+    "note": "listed in Avery TB 3.23 (not visible in current colour-card text extraction)"
+   },
+   "4531": {
+    "name": "Aqua",
+    "hex": "#00A3AD",
+    "approx": true,
+    "translucent": true
+   },
+   "4532": {
+    "name": "Forest Green",
+    "hex": "#00563F",
+    "approx": true,
+    "translucent": true
+   },
+   "4533": {
+    "name": "Meadow Green",
+    "hex": "#5BAA2D",
+    "approx": true,
+    "translucent": true
+   },
+   "4534": {
+    "name": "Pacific Green",
+    "hex": "#00877A",
+    "approx": true,
+    "translucent": true,
+    "note": "listed in Avery TB 3.23 (not visible in current colour-card text extraction)"
+   },
+   "4535": {
+    "name": "Pigeon Grey",
+    "hex": "#9AA0A6",
+    "approx": true,
+    "translucent": true
+   },
+   "4536": {
+    "name": "Medium Grey",
+    "hex": "#7A7F84",
+    "approx": true,
+    "translucent": true
+   },
+   "4537": {
+    "name": "Chocolate",
+    "hex": "#4A2C20",
+    "approx": true,
+    "translucent": true
+   },
+   "4538": {
+    "name": "Beige",
+    "hex": "#D9C3A0",
+    "approx": true,
+    "translucent": true
+   },
+   "4539": {
+    "name": "Turquoise",
+    "hex": "#00A9B0",
+    "approx": true,
+    "translucent": true
+   },
+   "4540": {
+    "name": "Silver",
+    "hex": "#A7A9AC",
+    "approx": true,
+    "translucent": true,
+    "note": "metallic"
+   },
+   "4541": {
+    "name": "Gold",
+    "hex": "#A68A4E",
+    "approx": true,
+    "translucent": true,
+    "note": "metallic"
+   },
+   "4542": {
+    "name": "Yellow Orange",
+    "hex": "#F9A11B",
+    "approx": true,
+    "translucent": true
+   },
+   "4543": {
+    "name": "Pumpkin Orange",
+    "hex": "#F26B21",
+    "approx": true,
+    "translucent": true
+   },
+   "4544": {
+    "name": "Sunset Orange",
+    "hex": "#E8541E",
+    "approx": true,
+    "translucent": true
+   }
+  }
+ },
+ "AVERY 5500": {
+  "type": "translucent cast (5500 QM Translucent Film)",
+  "manufacturer": "Avery Dennison",
+  "source": "https://graphics.averydennison.com/content/dam/averydennison/graphics/eu/en/product-overview/color-cards/po-color-card-5500-qm-translucent-film.pdf",
+  "complete": true,
+  "_info": "65 colours per Avery EU colour card (matches stated count). Some codes carry '-01' suffix (e.g. 5510-01). TB 3.23 also mentions 5535 Berry Red, 5539 New Blue, 5557 Pistachio, 5559 Bright Green - not on current card, omitted. 5600 LD light-diffusing variants exist for 5500/5510-01/5516-01/5521/5547/5550. Blockout: 5301 white, 5303 black. Hex approximate.",
+  "colors": {
+   "5500": {
+    "name": "White",
+    "hex": "#F5F5F2",
+    "approx": true,
+    "translucent": true,
+    "note": "also available as 5600 LD (light-diffusing) version"
+   },
+   "5501": {
+    "name": "Black",
+    "hex": "#1A1A1A",
+    "approx": true,
+    "translucent": true,
+    "note": "black - lower light transmission"
+   },
+   "5503": {
+    "name": "Sun Yellow",
+    "hex": "#FFD400",
+    "approx": true,
+    "translucent": true
+   },
+   "5504-01": {
+    "name": "Yellow",
+    "hex": "#FFDD00",
+    "approx": true,
+    "translucent": true
+   },
+   "5505": {
+    "name": "Citrus Yellow",
+    "hex": "#F5E200",
+    "approx": true,
+    "translucent": true
+   },
+   "5506": {
+    "name": "Medium Red",
+    "hex": "#D0202E",
+    "approx": true,
+    "translucent": true
+   },
+   "5507-01": {
+    "name": "Curry Yellow",
+    "hex": "#E7A614",
+    "approx": true,
+    "translucent": true
+   },
+   "5508": {
+    "name": "Kelly Green",
+    "hex": "#00A04A",
+    "approx": true,
+    "translucent": true
+   },
+   "5509": {
+    "name": "Sapphire Blue",
+    "hex": "#00478A",
+    "approx": true,
+    "translucent": true
+   },
+   "5510-01": {
+    "name": "Golden Yellow",
+    "hex": "#FDB913",
+    "approx": true,
+    "translucent": true,
+    "note": "also available as 5600 LD (light-diffusing) version"
+   },
+   "5512": {
+    "name": "Gentian Blue",
+    "hex": "#0057A0",
+    "approx": true,
+    "translucent": true
+   },
+   "5513-01": {
+    "name": "Yellow Orange",
+    "hex": "#F9A11B",
+    "approx": true,
+    "translucent": true
+   },
+   "5514": {
+    "name": "Fire Orange",
+    "hex": "#EE6A1F",
+    "approx": true,
+    "translucent": true
+   },
+   "5515-01": {
+    "name": "Tangerine Orange",
+    "hex": "#F47B20",
+    "approx": true,
+    "translucent": true
+   },
+   "5516-01": {
+    "name": "Deep Orange",
+    "hex": "#E8561F",
+    "approx": true,
+    "translucent": true,
+    "note": "also available as 5600 LD (light-diffusing) version"
+   },
+   "5517-01": {
+    "name": "Sunset Orange",
+    "hex": "#E44D26",
+    "approx": true,
+    "translucent": true
+   },
+   "5518": {
+    "name": "Coral Red",
+    "hex": "#E03A3E",
+    "approx": true,
+    "translucent": true
+   },
+   "5519": {
+    "name": "Apple Red",
+    "hex": "#D7282F",
+    "approx": true,
+    "translucent": true
+   },
+   "5520": {
+    "name": "Ruby Red",
+    "hex": "#B5121B",
+    "approx": true,
+    "translucent": true
+   },
+   "5521": {
+    "name": "Red",
+    "hex": "#C8102E",
+    "approx": true,
+    "translucent": true,
+    "note": "also available as 5600 LD (light-diffusing) version"
+   },
+   "5522": {
+    "name": "Oriental Red",
+    "hex": "#D52B1E",
+    "approx": true,
+    "translucent": true
+   },
+   "5523": {
+    "name": "Cherry Red",
+    "hex": "#A50F2D",
+    "approx": true,
+    "translucent": true
+   },
+   "5524": {
+    "name": "Scarlet Red",
+    "hex": "#DA291C",
+    "approx": true,
+    "translucent": true
+   },
+   "5525": {
+    "name": "Fire Red",
+    "hex": "#CE1126",
+    "approx": true,
+    "translucent": true
+   },
+   "5526": {
+    "name": "Garnet Red",
+    "hex": "#8E1B2E",
+    "approx": true,
+    "translucent": true
+   },
+   "5527": {
+    "name": "Strawberry Red",
+    "hex": "#C7243A",
+    "approx": true,
+    "translucent": true
+   },
+   "5528": {
+    "name": "Sharp Red",
+    "hex": "#E4002B",
+    "approx": true,
+    "translucent": true
+   },
+   "5530": {
+    "name": "Wine Red",
+    "hex": "#7C1E2E",
+    "approx": true,
+    "translucent": true
+   },
+   "5531": {
+    "name": "Tulip Pink",
+    "hex": "#E0457B",
+    "approx": true,
+    "translucent": true
+   },
+   "5532": {
+    "name": "Rose Pink",
+    "hex": "#D6336C",
+    "approx": true,
+    "translucent": true
+   },
+   "5533": {
+    "name": "Lavender",
+    "hex": "#8E7CC3",
+    "approx": true,
+    "translucent": true
+   },
+   "5534": {
+    "name": "Rosewine",
+    "hex": "#A3195B",
+    "approx": true,
+    "translucent": true
+   },
+   "5536": {
+    "name": "Grape Purple",
+    "hex": "#5B2C83",
+    "approx": true,
+    "translucent": true
+   },
+   "5541": {
+    "name": "Delft Blue",
+    "hex": "#1F4E9A",
+    "approx": true,
+    "translucent": true
+   },
+   "5543": {
+    "name": "Night Blue",
+    "hex": "#1A2F5F",
+    "approx": true,
+    "translucent": true
+   },
+   "5544": {
+    "name": "Rain Blue",
+    "hex": "#4F8FC9",
+    "approx": true,
+    "translucent": true
+   },
+   "5545": {
+    "name": "Steel Blue",
+    "hex": "#2F5D8A",
+    "approx": true,
+    "translucent": true
+   },
+   "5546": {
+    "name": "Shadow Blue",
+    "hex": "#28457A",
+    "approx": true,
+    "translucent": true
+   },
+   "5547": {
+    "name": "Azure Blue",
+    "hex": "#0084C8",
+    "approx": true,
+    "translucent": true,
+    "note": "also available as 5600 LD (light-diffusing) version"
+   },
+   "5548": {
+    "name": "Electric Blue",
+    "hex": "#0072BC",
+    "approx": true,
+    "translucent": true
+   },
+   "5549": {
+    "name": "Sailing Blue",
+    "hex": "#00539B",
+    "approx": true,
+    "translucent": true
+   },
+   "5550": {
+    "name": "Island Blue",
+    "hex": "#0099CC",
+    "approx": true,
+    "translucent": true,
+    "note": "also available as 5600 LD (light-diffusing) version"
+   },
+   "5551": {
+    "name": "Primrose Yellow",
+    "hex": "#FFE97F",
+    "approx": true,
+    "translucent": true
+   },
+   "5552": {
+    "name": "Shocking Blue",
+    "hex": "#0047BB",
+    "approx": true,
+    "translucent": true
+   },
+   "5553": {
+    "name": "Mediterranean Blue",
+    "hex": "#0067A5",
+    "approx": true,
+    "translucent": true
+   },
+   "5555": {
+    "name": "Ocean Green",
+    "hex": "#00897B",
+    "approx": true,
+    "translucent": true
+   },
+   "5558": {
+    "name": "Forest Green",
+    "hex": "#00563F",
+    "approx": true,
+    "translucent": true
+   },
+   "5560": {
+    "name": "Autumn Green",
+    "hex": "#6E8B2E",
+    "approx": true,
+    "translucent": true
+   },
+   "5561": {
+    "name": "Summer Green",
+    "hex": "#3FAE49",
+    "approx": true,
+    "translucent": true
+   },
+   "5562": {
+    "name": "Yellow Green",
+    "hex": "#8CC63F",
+    "approx": true,
+    "translucent": true
+   },
+   "5563": {
+    "name": "Pine Green",
+    "hex": "#005E45",
+    "approx": true,
+    "translucent": true
+   },
+   "5565": {
+    "name": "Lime Green",
+    "hex": "#A4C639",
+    "approx": true,
+    "translucent": true
+   },
+   "5567": {
+    "name": "Ice",
+    "hex": "#DDEFF5",
+    "approx": true,
+    "translucent": true
+   },
+   "5568": {
+    "name": "Beige Grey",
+    "hex": "#BFB5A0",
+    "approx": true,
+    "translucent": true
+   },
+   "5569": {
+    "name": "Mouse Grey",
+    "hex": "#8C8C88",
+    "approx": true,
+    "translucent": true
+   },
+   "5570": {
+    "name": "Smoke Grey",
+    "hex": "#6E7276",
+    "approx": true,
+    "translucent": true
+   },
+   "5571": {
+    "name": "Ash Grey",
+    "hex": "#B2B4B2",
+    "approx": true,
+    "translucent": true
+   },
+   "5573": {
+    "name": "Beige",
+    "hex": "#D9C3A0",
+    "approx": true,
+    "translucent": true
+   },
+   "5574": {
+    "name": "Copper Brown",
+    "hex": "#9A5A30",
+    "approx": true,
+    "translucent": true
+   },
+   "5578": {
+    "name": "Dark Brown",
+    "hex": "#4E2E20",
+    "approx": true,
+    "translucent": true,
+    "note": "colour card: 'Dark Brown'; TB 3.23 names it 'Bark Brown'"
+   },
+   "5579": {
+    "name": "Chocolate Brown",
+    "hex": "#3E2620",
+    "approx": true,
+    "translucent": true
+   },
+   "5581": {
+    "name": "Sky Blue",
+    "hex": "#7FC3E8",
+    "approx": true,
+    "translucent": true
+   },
+   "5589": {
+    "name": "Dark Grey",
+    "hex": "#4D5054",
+    "approx": true,
+    "translucent": true
+   },
+   "5590": {
+    "name": "Silver Metallic",
+    "hex": "#A7A9AC",
+    "approx": true,
+    "translucent": true,
+    "note": "metallic (code/name pairing slightly uncertain in card text)"
+   },
+   "5591": {
+    "name": "Gold Metallic",
+    "hex": "#A68A4E",
+    "approx": true,
+    "translucent": true,
+    "note": "metallic (code/name pairing slightly uncertain in card text)"
+   }
+  }
+ },
+ "AVERY 777": {
+  "type": "opaque cast (777 Cast Film) - NOT translucent",
+  "manufacturer": "Avery Dennison",
+  "source": "https://graphics-eu-test.averydennison.com/content/dam/averydennison/graphics/eu/en/Sell-sheets-and-brochures/Avery777cast-film.pdf",
+  "complete": true,
+  "_info": "100 stock colours (Avery: 'no less than 100'). 777-002 = Sweet Red Gloss. Suffix in drawings like '777-002CF' is not in the colour list (likely an ordering/liner suffix) - unverified. Hex approximate.",
+  "colors": {
+   "777-000": {
+    "name": "White Gloss",
+    "hex": "#F4F4F2",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-001": {
+    "name": "Black Gloss",
+    "hex": "#121212",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-002": {
+    "name": "Sweet Red Gloss",
+    "hex": "#D2232A",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-003": {
+    "name": "Cherry Red Gloss",
+    "hex": "#A6192E",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-004": {
+    "name": "Sun Yellow Gloss",
+    "hex": "#FFC72C",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-005": {
+    "name": "Orange Gloss",
+    "hex": "#EE7623",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-006": {
+    "name": "Sunflower Yellow Gloss",
+    "hex": "#FFCD00",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-007": {
+    "name": "Cardinal Red Gloss",
+    "hex": "#B5121B",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-008": {
+    "name": "Cosmos Blue Gloss",
+    "hex": "#0065A4",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-009": {
+    "name": "Ocean Blue Gloss",
+    "hex": "#0077C8",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-010": {
+    "name": "Gold Yellow Gloss",
+    "hex": "#FDB515",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-011": {
+    "name": "Euro Blue Gloss",
+    "hex": "#003399",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-012": {
+    "name": "Cactus Green Gloss",
+    "hex": "#006B3F",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-013": {
+    "name": "Geranium Red Gloss",
+    "hex": "#B3121F",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-014": {
+    "name": "Lime Gloss",
+    "hex": "#8DC63F",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-015": {
+    "name": "Cyclamen Gloss",
+    "hex": "#B5267B",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-016": {
+    "name": "Pink Gloss",
+    "hex": "#E37FA8",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-017": {
+    "name": "Light Grey Gloss",
+    "hex": "#C5C8C8",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-018": {
+    "name": "Middle Grey Gloss",
+    "hex": "#8C9091",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-019": {
+    "name": "Beige Gloss",
+    "hex": "#D8C7A4",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-020": {
+    "name": "Grey Gloss",
+    "hex": "#7C8083",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-021": {
+    "name": "Black Matt",
+    "hex": "#1E1E1E",
+    "approx": true,
+    "finish": "matt",
+    "translucent": false
+   },
+   "777-022": {
+    "name": "Pastel Orange Gloss",
+    "hex": "#F7941D",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-023": {
+    "name": "Dark Blue Gloss",
+    "hex": "#1E2A55",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-024": {
+    "name": "Cobalt Blue Gloss",
+    "hex": "#1C2F6E",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-025": {
+    "name": "Cloud Grey Gloss",
+    "hex": "#A9ADB0",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-026": {
+    "name": "Medium Red Gloss",
+    "hex": "#D52B1E",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-027": {
+    "name": "Passion Blue Gloss",
+    "hex": "#203A80",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-028": {
+    "name": "Caramel Gloss",
+    "hex": "#B5763A",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-029": {
+    "name": "Mint Gloss",
+    "hex": "#5FBF9F",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-030": {
+    "name": "White Matt",
+    "hex": "#EFEFEC",
+    "approx": true,
+    "finish": "matt",
+    "translucent": false
+   },
+   "777-031": {
+    "name": "Turquoise Gloss",
+    "hex": "#00A6A6",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-032": {
+    "name": "Ice Grey Gloss",
+    "hex": "#D4D7D8",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-033": {
+    "name": "Blue Gloss",
+    "hex": "#00539F",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-034": {
+    "name": "Yellow Green Gloss",
+    "hex": "#9ACA3C",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-035": {
+    "name": "Silver Metallic",
+    "hex": "#A7A9AC",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false,
+    "note": "metallic"
+   },
+   "777-036": {
+    "name": "Gold Metallic",
+    "hex": "#A68A4E",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false,
+    "note": "metallic"
+   },
+   "777-037": {
+    "name": "Alfa Blue Gloss",
+    "hex": "#14306B",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-038": {
+    "name": "Traffic Blue Gloss",
+    "hex": "#005387",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-039": {
+    "name": "Bright Yellow Gloss",
+    "hex": "#FFE500",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-040": {
+    "name": "Transparent Gloss",
+    "hex": "#E8EEF0",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": true,
+    "note": "transparent/clear"
+   },
+   "777-041": {
+    "name": "Scuba Blue Gloss",
+    "hex": "#0091C7",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-042": {
+    "name": "Teal Gloss",
+    "hex": "#007C80",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-043": {
+    "name": "King Blue Gloss",
+    "hex": "#1A2C8C",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-044": {
+    "name": "Dove Grey Gloss",
+    "hex": "#B4B7B5",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-045": {
+    "name": "Telegrey Gloss",
+    "hex": "#8F9599",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-046": {
+    "name": "Grey Metallic Gloss",
+    "hex": "#7D7F80",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false,
+    "note": "metallic"
+   },
+   "777-047": {
+    "name": "Marine Blue Gloss",
+    "hex": "#00336A",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-048": {
+    "name": "Bright Orange Gloss",
+    "hex": "#F25C19",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-049": {
+    "name": "Fawn Brown Gloss",
+    "hex": "#8C6239",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-050": {
+    "name": "Tomato Red Gloss",
+    "hex": "#E03C31",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-051": {
+    "name": "Azure Blue Gloss",
+    "hex": "#0072CE",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-052": {
+    "name": "Ultramarine Blue Gloss",
+    "hex": "#1F3B9B",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-053": {
+    "name": "Royal Blue Gloss",
+    "hex": "#1D428A",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-054": {
+    "name": "Deep Green Gloss",
+    "hex": "#004F2D",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-055": {
+    "name": "Yellow Gloss",
+    "hex": "#FFD700",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-056": {
+    "name": "Green Gloss",
+    "hex": "#00843D",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-057": {
+    "name": "Ivory Gloss",
+    "hex": "#E8DCC0",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-058": {
+    "name": "Dark Red Gloss",
+    "hex": "#8A1B2B",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-059": {
+    "name": "Dark Grey Gloss",
+    "hex": "#4A4D50",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-060": {
+    "name": "Orange Yellow Gloss",
+    "hex": "#FAA61A",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-061": {
+    "name": "Cream Gloss",
+    "hex": "#F2E8CF",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-062": {
+    "name": "Dark Brown Gloss",
+    "hex": "#4A2E22",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-063": {
+    "name": "Regal Red Gloss",
+    "hex": "#A6192E",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-064": {
+    "name": "Red Gloss",
+    "hex": "#C8102E",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-065": {
+    "name": "Stone Grey Gloss",
+    "hex": "#A3A49F",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-066": {
+    "name": "Light Orange Gloss",
+    "hex": "#F9A13A",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-067": {
+    "name": "Purple Red Gloss",
+    "hex": "#7B1E3F",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-068": {
+    "name": "Steel Blue Gloss",
+    "hex": "#3D5A80",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-069": {
+    "name": "Dodger Blue Gloss",
+    "hex": "#1E88E5",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-070": {
+    "name": "Deep Grey Gloss",
+    "hex": "#55595C",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-071": {
+    "name": "Lipstick Red Gloss",
+    "hex": "#BE0F34",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-072": {
+    "name": "Fuchsia Gloss",
+    "hex": "#C4007A",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-073": {
+    "name": "Telemagenta Gloss",
+    "hex": "#B0306A",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-074": {
+    "name": "Magenta Gloss",
+    "hex": "#D4007F",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-075": {
+    "name": "Lavender Gloss",
+    "hex": "#9B8BC4",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-076": {
+    "name": "Lilac Gloss",
+    "hex": "#7B5AA6",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-077": {
+    "name": "Purple Gloss",
+    "hex": "#5B2A86",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-078": {
+    "name": "Nut Brown Gloss",
+    "hex": "#5E3A24",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-079": {
+    "name": "Bright Green Gloss",
+    "hex": "#2DB34A",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-080": {
+    "name": "Denim Blue Gloss",
+    "hex": "#2F5D8A",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-081": {
+    "name": "Emerald Gloss",
+    "hex": "#009060",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-082": {
+    "name": "Pastel Blue Gloss",
+    "hex": "#7FB2DC",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-083": {
+    "name": "Light Green Gloss",
+    "hex": "#5CB85C",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-084": {
+    "name": "Light Brown Gloss",
+    "hex": "#A87B4F",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-085": {
+    "name": "Iron Grey Gloss",
+    "hex": "#5E6266",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-086": {
+    "name": "Dark Teal Gloss",
+    "hex": "#00575C",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-087": {
+    "name": "Bordeaux Gloss",
+    "hex": "#5E1A2E",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-088": {
+    "name": "Black Blue Gloss",
+    "hex": "#141C2E",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-089": {
+    "name": "Ink Blue Gloss",
+    "hex": "#1B2A4A",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-090": {
+    "name": "Red Brown Gloss",
+    "hex": "#7A2E22",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-091": {
+    "name": "Silver Grey Metallic Gloss",
+    "hex": "#9A9C9E",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false,
+    "note": "metallic"
+   },
+   "777-092": {
+    "name": "Komatsu Grey Gloss",
+    "hex": "#6F7376",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-093": {
+    "name": "Olive Green Gloss",
+    "hex": "#5B6236",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-094": {
+    "name": "Graphite Metal Gloss",
+    "hex": "#4E5154",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false,
+    "note": "metallic"
+   },
+   "777-095": {
+    "name": "Anthracite Gloss",
+    "hex": "#383B3E",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-096": {
+    "name": "Blue Green Gloss",
+    "hex": "#00737A",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-097": {
+    "name": "Turquoise Blue Gloss",
+    "hex": "#0098A8",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-098": {
+    "name": "Petrol Gloss",
+    "hex": "#005A6E",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   },
+   "777-099": {
+    "name": "Deep Blue Gloss",
+    "hex": "#1A2B5E",
+    "approx": true,
+    "finish": "gloss",
+    "translucent": false
+   }
+  }
+ },
+ "3M 3630": {
+  "type": "translucent (Scotchcal Translucent Graphic Film Series 3630), satin matte",
+  "manufacturer": "3M",
+  "source": "https://www.wensco.com/customer/docs/skudocs/3M_3630_3730_productbulletin.pdf",
+  "complete": true,
+  "_info": "78 colours (matches count stated in 3M 3630/3730 product bulletin; list from the bulletin's colour overview page, US edition). 3M EU availability per colour not verified (EU product page shows no colour list). Official digital colour card (multimedia.3m.com ...2087726O) could not be fetched. 3M writes 2-digit codes without leading zero (3630-33) but 015/005 with one. 3630-22 Black and 3630-69 Duranodic effectively opaque. LED-optimised 3730 series (25 colours) not included. Hex approximate.",
+  "colors": {
+   "3630-143": {
+    "name": "Poppy Red",
+    "hex": "#E0402B",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-163": {
+    "name": "Scarlet",
+    "hex": "#D8262B",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-93": {
+    "name": "Fire Engine Red",
+    "hex": "#C8102E",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-33": {
+    "name": "Red",
+    "hex": "#C4161C",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-73": {
+    "name": "Dark Red",
+    "hex": "#9E1B32",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-53": {
+    "name": "Cardinal Red",
+    "hex": "#B5121B",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-83": {
+    "name": "Regal Red",
+    "hex": "#A6192E",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-49": {
+    "name": "Burgundy",
+    "hex": "#7A1F3D",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-328": {
+    "name": "Berry Burgundy",
+    "hex": "#6E1E3A",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-118": {
+    "name": "Intense Magenta",
+    "hex": "#C6007E",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-38": {
+    "name": "Fuchsia",
+    "hex": "#C4006E",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-133": {
+    "name": "Raspberry",
+    "hex": "#B0004E",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-98": {
+    "name": "Electric Pink",
+    "hex": "#E5007D",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-78": {
+    "name": "Vivid Rose",
+    "hex": "#D6336C",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-128": {
+    "name": "Plum Purple",
+    "hex": "#5C2D6E",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-158": {
+    "name": "Bright Violet",
+    "hex": "#6B3FA0",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-77": {
+    "name": "Indigo",
+    "hex": "#3A2A6E",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-87": {
+    "name": "Royal Blue",
+    "hex": "#1F3C88",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-27": {
+    "name": "Electric Blue",
+    "hex": "#0072BC",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-36": {
+    "name": "Blue",
+    "hex": "#003A8C",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-47": {
+    "name": "Patriot Blue",
+    "hex": "#1B2A5C",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-157": {
+    "name": "Sultan Blue",
+    "hex": "#26358C",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-217": {
+    "name": "Deep Sea Blue",
+    "hex": "#00507A",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-227": {
+    "name": "Azure",
+    "hex": "#0095D6",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-015": {
+    "name": "Yellow",
+    "hex": "#FFD100",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-75": {
+    "name": "Marigold",
+    "hex": "#F5A800",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-25": {
+    "name": "Sunflower",
+    "hex": "#FFC20E",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-125": {
+    "name": "Golden Yellow",
+    "hex": "#FDB913",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-235": {
+    "name": "Autumn Yellow",
+    "hex": "#F2A900",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-135": {
+    "name": "Yellow Rose",
+    "hex": "#FFE24A",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-144": {
+    "name": "Poppy Orange",
+    "hex": "#F26522",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-74": {
+    "name": "Kumquat Orange",
+    "hex": "#F58220",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-84": {
+    "name": "Tangerine",
+    "hex": "#F37021",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-44": {
+    "name": "Orange",
+    "hex": "#EE5F1B",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-124": {
+    "name": "Burnt Orange",
+    "hex": "#D35400",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-43": {
+    "name": "Light Tomato Red",
+    "hex": "#E03C31",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-147": {
+    "name": "Light European Blue",
+    "hex": "#3E7CC1",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-57": {
+    "name": "Olympic Blue",
+    "hex": "#0077C0",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-337": {
+    "name": "Process Blue",
+    "hex": "#0085CA",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-127": {
+    "name": "Intense Blue",
+    "hex": "#0055A5",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-167": {
+    "name": "Bright Blue",
+    "hex": "#0060A9",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-97": {
+    "name": "Bristol Blue",
+    "hex": "#005DAA",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-37": {
+    "name": "Sapphire",
+    "hex": "#00468B",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-287": {
+    "name": "Marine Blue",
+    "hex": "#003B71",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-297": {
+    "name": "Twilight Blue",
+    "hex": "#2B3A67",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-187": {
+    "name": "Infinity Blue",
+    "hex": "#1D4F91",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-137": {
+    "name": "European Blue",
+    "hex": "#004B93",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-56": {
+    "name": "Glacial Green",
+    "hex": "#5BC2B5",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-216": {
+    "name": "Blue Coral",
+    "hex": "#00A3AD",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-246": {
+    "name": "Teal Green",
+    "hex": "#00857C",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-236": {
+    "name": "Turquoise",
+    "hex": "#00A7B5",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-86": {
+    "name": "Blue Lagoon",
+    "hex": "#007C8A",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-316": {
+    "name": "Jade Green",
+    "hex": "#00976B",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-126": {
+    "name": "Dark Emerald Green",
+    "hex": "#006747",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-26": {
+    "name": "Green",
+    "hex": "#00843D",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-76": {
+    "name": "Holly Green",
+    "hex": "#00573F",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-276": {
+    "name": "KY Blue Grass",
+    "hex": "#4C8C2B",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-196": {
+    "name": "Forest",
+    "hex": "#2E5E2A",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-146": {
+    "name": "Light Kelly Green",
+    "hex": "#3AAA35",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-156": {
+    "name": "Vivid Green",
+    "hex": "#00A651",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-136": {
+    "name": "Lime Green",
+    "hex": "#8DC63F",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-106": {
+    "name": "Brilliant Green",
+    "hex": "#00B140",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-115": {
+    "name": "Light Lemon Yellow",
+    "hex": "#FFF06A",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-005": {
+    "name": "Ivory",
+    "hex": "#F2E6C9",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-149": {
+    "name": "Light Beige",
+    "hex": "#E6D3B3",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-39": {
+    "name": "Warm Beige",
+    "hex": "#C9A982",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-63": {
+    "name": "Rust Brown",
+    "hex": "#8B3A1E",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-59": {
+    "name": "Dark Brown",
+    "hex": "#4E2A1E",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-69": {
+    "name": "Duranodic",
+    "hex": "#4A3B2F",
+    "approx": true,
+    "translucent": false,
+    "note": "effectively opaque (per 3M bulletin footnote)"
+   },
+   "3630-121": {
+    "name": "Silver",
+    "hex": "#A7A9AC",
+    "approx": true,
+    "translucent": true,
+    "note": "metallic - reduced MCS warranty"
+   },
+   "3630-141": {
+    "name": "Gold Nugget",
+    "hex": "#B08D57",
+    "approx": true,
+    "translucent": true,
+    "note": "metallic - reduced MCS warranty"
+   },
+   "3630-131": {
+    "name": "Gold Metallic",
+    "hex": "#A68A4E",
+    "approx": true,
+    "translucent": true,
+    "note": "metallic - reduced MCS warranty"
+   },
+   "3630-111": {
+    "name": "Dover White",
+    "hex": "#F4F1E8",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-20": {
+    "name": "White",
+    "hex": "#F7F7F5",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-71": {
+    "name": "Shadow Gray",
+    "hex": "#8A8D8F",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-51": {
+    "name": "Silver Gray",
+    "hex": "#A5A8AA",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-61": {
+    "name": "Slate Gray",
+    "hex": "#5B6066",
+    "approx": true,
+    "translucent": true
+   },
+   "3630-22": {
+    "name": "Black",
+    "hex": "#1A1A1A",
+    "approx": true,
+    "translucent": false,
+    "note": "effectively opaque (per 3M bulletin footnote)"
+   }
+  }
+ }
+}
