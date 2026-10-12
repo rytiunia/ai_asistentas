@@ -2,6 +2,13 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v121 (2026-10-12)
+
+Rytis: „plėvelė skaičiuojama pagal sunaudojimą pagal medžiagą, ne pagal pačios plėvelės plotą. Standartas spalvota plėvelė
+1190 mm darbinis plotas ... balta arba spaudos 1320 mm, išimtiniais atvejais ir tik su pastaba 1500 mm. Dėliojant pjaustymo
+failą stengtis kuo mažiau išskaidyti originalią formą" (OKQ8 „Alltid öppet": lapas 1 - visa, lapas 2 - bendrais objektais).
+Naujas `scripts/plevele.py`; `okq8_vaster/okq8.py` BOM - sunaudojimas vietoj grafikos ploto; SKILL.md skyrius + maršrutas.
+
 ## v120 (2026-10-12)
 
 v120, Rytis 2026-10-12 („buvau pridėjęs mūsų naudojamų led lentelę, ten ne tik p130L ir p190L, buvo daugiau modelių. ir

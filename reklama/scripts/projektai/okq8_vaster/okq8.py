@@ -6,6 +6,9 @@ import common as C
 from common import *
 import data as D                                          # _subs, flat, lenkimo konstantos
 import r3d
+import os as _os
+sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", ".."))
+import plevele as PL                                      # v121: plėvelės sunaudojimas pagal rulono plotį
 import pymupdf as fitz
 from shapely.geometry import Polygon, box as sbox
 from shapely.ops import unary_union
@@ -269,13 +272,17 @@ def build(pos, out):
         T(x + w / 2, y + h - 5, "+ ORACAL 551 101 white, cut vinyl", 8, color=K.GREY, align="c", auto_red=False)
     flats = [(D.flat_size(W)[0], h + 2 * PD - 2 * D.BD) for h in hp]
     A_flat = sum(a_ * b_ for a_, b_ in flats) / 1e6
-    A_vin = sum(g["geom"].area for g in G if not g["geom"].is_empty) / 1e6
+    A_vin = sum(g["geom"].area for g in G if not g["geom"].is_empty) / 1e6       # tik informacijai
+    # v121 (Rytis 2026-10-12): plėvelė - pagal SUNAUDOJIMĄ (rulono darbinis plotis x ilgis), ne pagal grafikos plotą;
+    #  balta -> 1320 mm; telpa visa - ploteriuojama neskaidant, netelpa - skaidoma bendrais objektais (plevele.py)
+    VIN = PL.plan([g["geom"] for g in G], "ORACAL 551 101 white")
+    print("  " + VIN["text"]); [print("  " + n_) for n_ in VIN["notes"][1:]]
     L_tot = 2 * (W - 50) / 1000
     Wt = A_flat * 2 * 2.70 + L_tot * 116e-6 * 2700
     n_bolt = (nj + 1) if joint else 0
     bom = [["1", (f"Folded plate {W} x {hp[0]} (top) +\n{W} x {hp[1]} (bottom), 40 deep" if joint else f"Folded plate {W} x {H}, 40 deep"),
             "Alu 2 mm folded", "RAL 5002", ("1 + 1 pcs. / flats\n" if joint else "1 pcs. / flat ") + " + ".join(f"{a_:.0f} x {b_:.0f}" for a_, b_ in flats)],
-           ["2", "Graphic - cut vinyl (car, showers, text)", "ORACAL 551 101", "551 101", f"{A_vin:.2f} m²"],
+           ["2", "Graphic - cut vinyl (car, showers, text)", "ORACAL 551 101", "551 101", PL.bom_text(VIN).replace(" = ", "\n= ")],
            ["3", "L profile 30x30x2 (top + bottom)", "Aluminium", "-", f"2 x {(W - 50) / 1000:.2f} = {L_tot:.2f} m"],
            ["4", "Screw plate -> L, DIN 7504 N 4.2x16", "Steel, hard.", "-", f"{n_scr} pcs. ({n + 1}/L)"],
            ["5", "Wall fixing", "?", "?", "?"]]

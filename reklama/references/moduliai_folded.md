@@ -71,8 +71,8 @@ Pavyzdys `assets/spec_folded_2parts.json`, eiga `scripts/projektai/spar_type670/
 Bendra visoms folded plokštėms su vinilo grafika (ORACAL, Avery, 3M ...):
 - Lapas: FRONT su kliento grafika (plėvelės spalva), SIDE, REAR (L, Ø3.2 7 nuo krašto, sandūra jei yra),
   DETAIL A (briauna + plėvelė 1:2), DETAIL B (sandūra, jei yra), 3D (r3d); juostoje - pjūvis.
-- BOM: plokštė (RAL), plėvelė (kodas spalvotame langelyje), L, varžtai, tvirtinimas į sieną „?".
-- Atskirai: vinilo 1:1 PDF (sluoksniai: pjovimas / plokštės kontūras / sandūra) + išklotinių DXF.
+- BOM: plokštė (RAL), plėvelė (kodas spalvotame langelyje; KIEKIS - pagal sunaudojimą `plevele.py`: rulonas x ilgis, ne grafikos m², SKILL.md „Plėvelė - sunaudojimas ir pjaustymo failas"), L, varžtai, tvirtinimas į sieną „?".
+- Atskirai: vinilo 1:1 PDF (sluoksniai: pjovimas / plokštės kontūras / sandūra) + išklotinių DXF; ploterio failas - `plevele.write_dxf` (dalys ant rulono, forma skaidoma kuo mažiau).
 - SPALVAS KLAUSTI (plokštės RAL ir plėvelės kodą) - kliento CMYK tik vaizdui.
 
 ### Folded / back plate + skaitmeninė SPAUDA (v56, pirmas atvejis SPAR 226004)
