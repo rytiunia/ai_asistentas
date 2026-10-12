@@ -2,6 +2,12 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v124 (2026-10-12)
+
+Rytis: „šitas dėliojimo principas" (test_Oracal_641_070_black.pdf - 4 dalys: užrašas, automobilis, 2 dušai, kompaktiškai).
+`plevele.logical_objects` - netelpa -> visi bendri objektai (MST tarpai >= 3 x mediana), ne mažiausias dalių skaičius.
+Alltid öppet: 1320 - 4 dalys 2.81 m = 3.71 m² (buvo 2 dalys 3.94 m = 5.20 m²); 1190 - 4 dalys 3.35 m².
+
 ## v123 (2026-10-12)
 
 Plėvelės testas (Rytis, OKQ8 „Alltid öppet" PDF - visa grafika vienas compound path): `objects_from_pdf` -> `islands()`

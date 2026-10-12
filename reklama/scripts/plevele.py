@@ -8,7 +8,8 @@ grafikos plotą.
   - 1500 mm - TIK išimtiniais atvejais ir TIK su pastaba (`allow_1500=True`).
 Pjaustymo failas: originali forma skaidoma KUO MAŽIAU. Telpa visa (trumpesnė pusė <= darbinis plotis) - ploteriuojama
 visa, neskaidant (sunaudojimas = ilgesnė pusė). Netelpa - skaidoma TIK bendrais objektais (automobilis / tekstas /
-dušai ...): pirmiausia per DIDŽIAUSIĄ tarpą tarp objektų, kol kiekviena dalis telpa; vienas objektas (pvz. raidė, kontūras)
+dušai ...): v124 - į VISUS bendrus objektus (ryškus tarpas >= 3 x mediana), sudėliojami kompaktiškai; objektas, kuris
+pats netelpa, - per didžiausią tarpą; vienas objektas (pvz. raidė, kontūras)
 niekada nekarpomas. v122: UŽRAŠAS VIENOJE LINIJOJE (visi jo žodžiai) - VIENAS objektas, neskaidomas į žodžius / raides
 vien dėl plėvelės taupymo: gamybininkui klijuoti kelias dalis į vieną liniją, matuoti tarpus - brangiau ir rizikinga.
 Skaidoma tik tada, kai NETELPA į rulono plotį, niekada - vien taupant plėvelę. Objektas / eilutė, kuri pati netelpa, -
@@ -105,6 +106,17 @@ def _components(n, edges):
     for i in range(n):
         comp.setdefault(f(i), []).append(i)
     return list(comp.values())
+
+
+def logical_objects(objs, k=3.0, min_gap=20.0):
+    """v124 (Rytis 2026-10-12, „šitas dėliojimo principas"): bendri objektai (užrašas, automobilis, kiekvienas dušas ...) -
+    MST kraštinės su tarpu >= max(k x tarpų mediana, min_gap) kerpamos. Grąžina [[indeksai], ...]."""
+    if len(objs) < 2:
+        return [list(range(len(objs)))]
+    edges = _mst_edges(objs)
+    gs = sorted(e[0] for e in edges)
+    thr = max(k * gs[len(gs) // 2], min_gap)
+    return _components(len(objs), [e for e in edges if e[0] < thr])
 
 
 def split_pieces(objs, W):
@@ -229,7 +241,17 @@ def plan(objs, film="", gap_mm=GAP_MM, allow_1500=False, kind=None, roll_mm=None
                 "text": "plėvelės nėra"}
     lines = text_lines(objs) if keep_lines else [[i] for i in range(len(objs))]
     atoms = [unary_union([objs[i] for i in ids]) for ids in lines]          # užrašų eilutės - nekarpomi objektai
-    groups = [[i for a in ids for i in lines[a]] for ids in split_pieces(atoms, W)]
+    whole = unary_union(atoms)
+    if _fits(whole, W):
+        parts = [list(range(len(atoms)))]                  # telpa visa - ploteriuojama visa, neskaidant
+    else:
+        # v124: netelpa -> skaidoma į VISUS bendrus objektus ir jie dėliojami kompaktiškai (Rytis patvirtino 1190 pavyzdį);
+        #  objektas, kuris pats netelpa, - dar skeliamas per didžiausią tarpą (split_pieces)
+        parts = []
+        for ids in logical_objects(atoms):
+            sub = split_pieces([atoms[i] for i in ids], W)
+            parts += [[ids[i] for i in q] for q in sub]
+    groups = [[i for a in ids for i in lines[a]] for ids in parts]
     pieces = [unary_union([objs[i] for i in ids]) for ids in groups]
     for k, p in enumerate(pieces):
         if not _fits(p, W):
