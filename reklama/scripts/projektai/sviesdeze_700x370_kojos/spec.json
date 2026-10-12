@@ -1,0 +1,22 @@
+{
+ "client": "",
+ "order_no": "",
+ "drawing_no": "Lightbox 700x370 double-sided, low legs",
+ "qty": 1,
+ "w": 700,
+ "h": 370,
+ "depth": 114,
+ "proj": 800,
+ "frame": [20, 40, 2],
+ "legs_type": "inset",
+ "leg": [40, 40, 4],
+ "leg_in": 53,
+ "leg_chamfer": 50,
+ "plate": [140, 340, 5],
+ "plate_pitch": 109,
+ "plate_hole_d": 8,
+ "cable_hole": 11,
+ "cover_w": 50,
+ "body_finish": "RAL 7024",
+ "frame_finish": "RAL 7024"
+}

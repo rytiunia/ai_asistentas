@@ -2,6 +2,12 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v144 (2026-10-12)
+
+v144, Rytis 2026-10-12: šviesdėžė - kojos žemesnės už dėžę, su uždengimais (`legs_type: inset`): rėmas 40x20x2 be sienos
+statmens, kojos □40x40x4 po skersiniais (įlenda 53, galas 50°), viena montavimo plokštė 140x340x5 (4 x Ø8 / 109 x 284, Ø11),
+trafo plokštelė 1,5 mm, kojų uždengimai 2 mm A + B; projektas `scripts/projektai/sviesdeze_700x370_kojos/`.
+
 ## v143 (2026-10-12)
 
 v143, Rytis 2026-10-12: „juoda nepersišviečia, toks sumanymas" - opaque plėvelė (551 / 777) ant šviečiančio veido leidžiama
