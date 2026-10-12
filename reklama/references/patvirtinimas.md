@@ -45,6 +45,6 @@ Pirmas bandymas: Joker 226001 (`scripts/projektai/joker_reinslettveien/`, „Pat
 - v111: kiekvienai šviečiančiai grupei spec `"led"` (galiniame vaizde užrašas, kokie LED) - be jo lapas negamybinis
   (braizyti_begeliai rašo perspėjimą).
 - v112 EXTRA 225978: FAS700 `--page 2 --scale 20 --crop 125,100,715,225 --fill "0.784,0.063,0.18;1,0.761,0.055"
-  --plate-fill 0.969,0.71,0 --names "EXTRA723-"`; FAS1000 P1 `--page 3 --scale 25 --crop 95,115,822,250 --fill
-  "0.757,0.071,0.11" --plate-fill 0.969,0.71,0 --cable none`.
+  --plate-fill 0.969,0.71,0 --names "EXTRA723-"`; FAS1000 P1 `--p1 --page 3 --scale 25 --crop 95,115,822,250 --fill
+  "0.757,0.071,0.11" --plate-fill 0.969,0.71,0` (v116: P1 dugnas -0,7, be drenažo / D11).
 - v113: DXF kontūrai tiesėmis + lankais (mažai mazgų) - nieko papildomai daryti nereikia.

@@ -67,7 +67,8 @@ g_.add_argument("--ref-mm", type=float, default=None, help="raidžių grupės be
 ap.add_argument("--names", default="", help="raidžių vardai iš kairės, pvz. TESTAS (failų pavadinimams)")
 ap.add_argument("--prefix", default=None, help="failų prefiksas (numatyta - PDF vardas)")
 ap.add_argument("--rail", type=float, default=30, help="bėgelio profilio plotis mm (U30 / U40)")
-ap.add_argument("--inset", type=float, default=3, help="dugnas mažesnis už stiklą, mm į vidų (back_inset)")
+ap.add_argument("--p1", action="store_true", help="v116: P1 NON-LIT - dugnas (inside kontūras) -0,7 mm, be drenažo, be D11 (LED nėra)")
+ap.add_argument("--inset", type=float, default=None, help="dugnas mažesnis už stiklą, mm į vidų (back_inset)")
 ap.add_argument("--blunt-len", type=float, default=12, help="v108: dugno smaili įpjova ilgesnė nei tiek mm nuo stiklo viršūnės -> nukertama (2 taškai, buki kampai)")
 ap.add_argument("--hole-d", type=float, default=3.2)
 ap.add_argument("--hole-edge", type=float, default=10, help="skylės centras nuo DUGNO kontūro, mm")
@@ -95,6 +96,12 @@ ap.add_argument("--d11", type=float, default=11, help="laido skylės skersmuo")
 ap.add_argument("--d11-edge", type=float, default=20, help="D11 centras nuo dugno kontūro, mm")
 ap.add_argument("--d11-fix-clear", type=float, default=25, help="D11 centras nuo D3.2 centrų, mm")
 A = ap.parse_args()
+# v116 (Rytis 2026-10-12): P1 - inside kontūras 0,7 mm, drenažo skylių nereikia (LED nesideda), laido skylių nėra
+if A.inset is None:
+    A.inset = 0.7 if A.p1 else 3.0
+if A.p1:
+    A.interior = True        # be drenažo
+    A.cable = "none"         # be D11
 
 page = fitz.open(A.pdf)[A.page]
 

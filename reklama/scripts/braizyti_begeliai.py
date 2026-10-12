@@ -2757,7 +2757,7 @@ def export_1to1(path):
                 sh.draw_line(cur, start)
         sh.finish(width=HW, color=C_LET, fill=None, closePath=False, oc=L_LET); sh.commit()
     # 2 - dugnas: raidės kontūras 3 mm į vidų (smulkiai išlygintos kreivės)
-    inset = spec.get("back_inset_mm", 3)
+    inset = spec.get("back_inset_mm", 0.7 if FRONT == "P1" else 3)   # v116: P1 inside kontūras 0,7 mm
     for o in uniq:
         ps = [Polygon(K.flatten(sp, 32)).buffer(0) for sp in o["sub"] if len(K.flatten(sp, 32)) >= 3]
         if not ps:

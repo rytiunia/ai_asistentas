@@ -2,6 +2,12 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v116 (2026-10-12)
+
+v116, Rytis 2026-10-12 („p1 taisyklė: inside kontūras 0.7mm, nereikia drenažo skylių, kadangi led nesideda"): `p6_dxf.py --p1`
+(inset 0,7, be drenažo, be D11; `--inset` numatyta 3 P6 / 0,7 P1), `braizyti_begeliai.py` 1:1 PDF P1 `back_inset_mm` 0,7.
+EXTRA 225978 FAS1000 P1 DXF perdarytas.
+
 ## v115 (2026-10-12)
 
 v115, Rytis 2026-10-12 („kai extra naudojama ant vieno rėmo, X tvirtinimas atitinka raidžių tvirtinimą - eina per rėmo profilio
