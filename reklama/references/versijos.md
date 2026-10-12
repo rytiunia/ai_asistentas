@@ -2,6 +2,13 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v119 (2026-10-12)
+
+v119, Rytis 2026-10-12 („led dėliojimas vis dar blogas“, 7 pavyzdžiai, tarp jų jo perdaryti ALT8873 225978_1 / _2):
+naujas `scripts/led_km.py` - KM-P2 / KM-P2-R, žingsnis pagal gylį (50 100, 70 120, 80 130, 100 140), led_sim skeletas +
+galai p/2 + round(L / p), plati linija > 2p - tinklelis, PSU KPS <= 75 %, Ryčio lapo stilius. Patikra Åpn496 20 = 20,
+Åpn894 35 / 36. Pavyzdžiai `assets/led_pavyzdziai/*_v2.jpg`, `*_RYCIO.jpg`, `ALT8869_coop_prix...`.
+
 ## v118 (2026-10-12)
 
 v118, Rytis 2026-10-12 („kadangi h1800 pažymėti kur dedasi X tvirtinimo rėmai - tada vaizdas iš priekio ... kai nėra rėmo

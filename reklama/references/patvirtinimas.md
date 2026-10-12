@@ -6,7 +6,7 @@ Tada BE papildomų klausimų sukuriama:
    `<ALT>_<užsakymas>.pdf`;
 2. **DXF 1:1** (`p6_dxf.py --no-letters`, su `--rails-json` - rėmas, ausėlės / hangers, D3.2, D11, drenažas) -
    TIK VIENTISI failai `<ALT>_<lapas>_P6_1-1_*.dxf` po vieną lapui (be failų po raidę, be ZIP, be patikros PNG);
-3. **LED dėliojimo lapas** (`led_sim.py`) - visi lapai į `<ALT>_..._LED.pdf`.
+3. **LED dėliojimo lapas** (v119: `led_km.py` - KM-P2; `led_sim.py` tik paprašius) - visi lapai į `<ALT>_..._LED.pdf`.
 
 ## ALT numerio normalizavimas
 - Formatas `ALT<nr>_<MM.DD>_<inicialai>` (lapo šablonas `ALT0000_00.00_RS`).
@@ -48,3 +48,4 @@ Pirmas bandymas: Joker 226001 (`scripts/projektai/joker_reinslettveien/`, „Pat
   --plate-fill 0.969,0.71,0 --names "EXTRA723-"`; FAS1000 P1 `--p1 --page 3 --scale 25 --crop 95,115,822,250 --fill
   "0.757,0.071,0.11" --plate-fill 0.969,0.71,0` (v116: P1 dugnas -0,7, be drenažo / D11).
 - v113: DXF kontūrai tiesėmis + lankais (mažai mazgų) - nieko papildomai daryti nereikia.
+- v119: LED dėliojimas - `led_km.py` (KM-P2 / KM-P2-R, žingsnis pagal gylį), NE `led_sim.py`.

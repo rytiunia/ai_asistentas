@@ -14,6 +14,9 @@ Tai įmonės patvirtintas, gamyboje naudojamas stilius - algoritmo rezultatas tu
 | ALT8854 SJOKOLADE | KM-P2 0,72 W | 50 | ~100 | 85 | KPS-100W |
 | ALT8854 GODTERI / SMÅGODT | KM-P2 0,72 W | 100 | ~100 | 62 / 78 | |
 | ALT8855 Matkroken (rankraštis) | KM-P2 0,72 W | 100 | ~140 | 90 | |
+| ALT8869 coop prix 225921 | KM-P2 0,72 W | 70 | ~120 | 70 + 22 | v119 |
+| **ALT8873 EXTRA 225978_1 Åpn496 (Ryčio pataisa)** | KM-P2 0,72 W | 100 | ~140 | 5-1-7-7 = 20, ~14 W | KPS-V12-20W67-5Y-RM |
+| **ALT8873 EXTRA 225978_2 Åpn894 (Ryčio pataisa)** | KM-P2 0,72 W | 100 | ~140 | 9-2-12-13 = 36, ~26 W | KPS-V12-36W67-5Y-RP |
 
 ## Taisyklės, kurias rodo pavyzdžiai (įtrauktos į `led_sim.py` v32)
 1. **Apskritimas = žingsnis.** Aplink kiekvieną modulį braižomas apskritimas, kurio skersmuo = „tarp centrų".
@@ -33,3 +36,6 @@ Tai įmonės patvirtintas, gamyboje naudojamas stilius - algoritmo rezultatas tu
 ## Lens moduliams
 Kaizen pavyzdžių žingsniai (P2 0,72 W - ~100 mm prie 50-100 mm gylio) Lens moduliams netaikomi tiesiogiai:
 Lens žingsnis - iš tiekėjo gido ir simuliacijos (`references/led_sim.md`), forma ir lapo stilius - iš šių pavyzdžių.
+
+## v119 (Rytis 2026-10-12: „led dėliojimas vis dar blogas“)
+Numatytas įrankis - `scripts/led_km.py` (KM-P2, žingsnis pagal gylį, viena eilė per ašį). Lens simuliacija - tik paprašius.
