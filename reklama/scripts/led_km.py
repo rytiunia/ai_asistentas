@@ -523,7 +523,7 @@ def pack(g, pitch):
 #  - ribojimas: langelyje 0,38 p x 0,38 p - ne daugiau 1 modulio (nesusispaudžia);
 #  - tikslas: MAŽIAUSIAI modulių; lygiaverčių - arčiau ašies (baudos taškas už nutolimą nuo ašies);
 #  - rezultatas pastovus (ta pati raidė - tas pats išdėstymas).
-IL_R, IL_EDGE, IL_REL, IL_SEP, IL_STEP = 0.60, 0.10, 0.35, 0.75, 0.10
+IL_R, IL_EDGE, IL_REL, IL_SEP, IL_STEP, IL_WALL, IL_RV = 0.60, 0.10, 0.35, 0.75, 0.10, 0.03, 0.85
 
 
 def ilp(g, pitch, time_limit=30):
@@ -548,13 +548,45 @@ def ilp(g, pitch, time_limit=30):
     if cx.size == 0:
         return []
     R = IL_R * pitch
+    # v132 (Rytis: „LED dėliojama lovyje ... įdėjus į tūrį kampas blokuoja šviesą"): taškas apšviečiamas tik jei tiesi linija
+    # modulis -> taškas (vaizdas iš viršaus) visa eina raidės viduje - šoninės sienelės užstoja (kampai, e / t / 3 lenkimai).
+    mi = m.copy()
+    nsamp = max(8, int(R / res))
+    ts = np.linspace(0.0, 1.0, nsamp)[1:-1]
+    def visible(x0, y0, xs, ys):
+        px = x0 + (xs[:, None] - x0) * ts[None, :]; py = y0 + (ys[:, None] - y0) * ts[None, :]
+        jj = np.clip(np.rint((px - ox) / res).astype(int), 0, m.shape[1] - 1)
+        ii = np.clip(np.rint((py - oy) / res).astype(int), 0, m.shape[0] - 1)
+        return mi[ii, jj].all(axis=1)
     rows, cols = [], []
     for k in range(dx.size):
         j = np.nonzero((cx - dx[k]) ** 2 + (cy - dy[k]) ** 2 <= R * R)[0]
-        if j.size == 0:                       # nepasiekiamas taškas (labai siauras galas) - artimiausias kandidatas
-            j = np.array([int(np.argmin((cx - dx[k]) ** 2 + (cy - dy[k]) ** 2))])
+        if j.size:
+            j = j[visible(dx[k], dy[k], cx[j], cy[j])]
+        if j.size == 0:                       # nepasiekiamas taškas - artimiausias MATOMAS kandidatas (bet kokiu atstumu)
+            d2 = (cx - dx[k]) ** 2 + (cy - dy[k]) ** 2
+            order = np.argsort(d2)[:200]
+            vis = visible(dx[k], dy[k], cx[order], cy[order])
+            j = order[vis][:1] if vis.any() else order[:1]
         rows += [k] * j.size; cols += j.tolist()
     Acov = csr_matrix((np.ones(len(rows)), (rows, cols)), shape=(dx.size, cx.size))
+    # v132: VISAS veidas iki pat sienelės (juosta IL_WALL x p) turi MATYTI bent vieną modulį <= IL_RV x p atstumu -
+    # kampo „šešėlyje" (už lenkimo, prie sienelės) šonų atspindys neapšviečia, todėl ten būtinas savas modulis.
+    wmask = dsub & m & (edt >= IL_WALL * pitch) & ~dmask
+    wx, wy = X[wmask], Y[wmask]
+    RV = IL_RV * pitch
+    rows2, cols2 = [], []
+    for k in range(wx.size):
+        j = np.nonzero((cx - wx[k]) ** 2 + (cy - wy[k]) ** 2 <= RV * RV)[0]
+        if j.size:
+            j = j[visible(wx[k], wy[k], cx[j], cy[j])]
+        if j.size:
+            rows2 += [len(set(rows2)) if False else k] * j.size; cols2 += j.tolist()
+    if rows2:
+        r2 = np.array(rows2); ur, ri = np.unique(r2, return_inverse=True)
+        Awall = csr_matrix((np.ones(len(cols2)), (ri, cols2)), shape=(ur.size, cx.size))
+        from scipy.sparse import vstack as _vs
+        Acov = _vs([Acov, Awall]).tocsr()
     # tarpas tarp modulių >= IL_SEP x p: kiekviename IL_SEP/2 spindulio skritulyje - ne daugiau 1 modulio
     hr = IL_SEP * pitch / 2.0
     rr2, cc2 = [], []

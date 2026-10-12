@@ -2,6 +2,12 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v132 (2026-10-12)
+
+v132, Rytis 2026-10-12 („LED dėliojama lovyje ... kampas blokuoja šviesą"): `ilp()` - sienelių užstojimas (2D matomumas,
+tikslus vertikalioms sienelėms) + visas veidas iki sienelės turi matyti modulį <= 0,85 p. Esamuose testuose rezultatų nepakeitė;
+paklausta, kurios vietos / kokio efekto (modulis per arti sienelės? lęšio kampas?).
+
 ## v131 (2026-10-12)
 
 v131, Rytis 2026-10-12 („vistiek keletoje vietų nedėti LED" - e skersinis, t skersinis, d pilvas; „rekomenduok sprendimą gamybos
