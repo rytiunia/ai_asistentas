@@ -2,6 +2,11 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v136 (2026-10-12)
+
+v136, Rytis 2026-10-12 (šviesdėžė): be stiklo pastabos priekyje; SIDE A + SIDE B vaizdai ir 3D iš abiejų pusių; GA 1:8;
+D3.2 varžtų skylės (40 vnt.) - juostos išklotinė 1:10 2 lape.
+
 ## v135 (2026-10-12)
 
 v135, Rytis 2026-10-12 (šviesdėžė: „reikia detaliau ... stiklas visada didesnis už korpusą, korpusas mažesnis 1.5-2mm"):
