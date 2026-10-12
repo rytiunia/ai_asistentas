@@ -31,7 +31,7 @@ DEF = {"client": "", "title": "DOUBLE-SIDED LIGHTBOX, WALL MOUNTED (PROJECTING)"
        "leg_len": 100, "flange": [100, 100, 8], "flange_r": 10, "hole_d": 10, "hole_pitch": 64,
        "body_finish": "RAL ____", "frame_finish": "RAL ____", "face": "3 mm opal white plexiglass",
        "pvc_edge": [3, 15], "screw_step": 150, "led": "DS15", "led_rows": None, "led_pitch": None,
-       "cable": "", "anchors": "", "scale_ga": 8}
+       "cable": "", "anchors": "", "scale_ga": 8, "screws_per_edge": 3}
 COL_BODY, COL_FRAME, COL_FACE, COL_PVC, COL_FL, COL_LED = (HexColor("#9C9C9C"), HexColor("#B4B4B4"), HexColor("#F4F4F2"),
                                                            HexColor("#C8C8C8"), HexColor("#8C8C8C"), HexColor("#F2C230"))
 EDGE = HexColor("#555555")
@@ -64,7 +64,7 @@ def geom(S):
     p = S["led_pitch"] or best[1]
     span = g["FW"] - 2 * fa                                         # tarp statmenų (skersinio vidinis paviršius)
     n_row = math.ceil(span / p)
-    rows_n = S["led_rows"] or (1 if H_ <= 600 else 2)               # Kaisen lentelė: ~26 vnt./m² -> 1 eilė iki ~600 aukščio
+    rows_n = S["led_rows"] or 2                                      # v139 Rytis: LED apačioje IR viršuje
     g.update(du=du, led_name="DUOLITE " + S["led"], led_box=hb, led_dep=dep, led_lux=best[3], led_p=p,
              led_step=span / n_row, led_n_row=n_row, led_rows=rows_n, led_n=n_row * rows_n, led_span=span)
     g["led_W"] = g["led_n"] * du["W"]
@@ -87,12 +87,12 @@ def geom(S):
     faces = [("top", g["BW"]), ("wall", g["BH"]), ("bottom", g["BW"]), ("front", g["BH"])]
     holes = []
     for fn, L in faces:
-        n = math.ceil(L / S["screw_step"])
+        n = S["screws_per_edge"] or math.ceil(L / S["screw_step"])     # v139 Rytis: 3 vnt. kraštinei
         for i in range(n):
             for z in (-zs, zs):
                 holes.append((fn, L * (i + 0.5) / n, z, "pvc"))
     g["scr_holes"] = holes
-    g["scr_n_face"] = math.ceil(g["BW"] / S["screw_step"])
+    g["scr_n_face"] = S["screws_per_edge"] or math.ceil(g["BW"] / S["screw_step"])
     g["scr_wall"] = [(ov + u, z, k) for fn, u, z, k in holes if fn == "wall"]
     g["n_scr"] = len(holes)
     return g
@@ -155,8 +155,8 @@ def flange_view(g, flx, fly, s2):
     vchain(rx(FLw / 2) + 16, [ry(-FLh / 2), ry(-hp), ry(hp), ry(FLh / 2)], [rx(FLw / 2)] + [rx(hp)] * 2 + [rx(FLw / 2)],
            [f"{FLh / 2 - hp:g}", f"{2 * hp:g}", f"{FLh / 2 - hp:g}"], size=K.F_DIM_FRAME)
     vchain(rx(FLw / 2) + 34, [ry(-FLh / 2), ry(FLh / 2)], [rx(FLw / 2)] * 2, [f"{FLh:g}"], size=K.F_DIM_FRAME)
-    K.tag(rx(hp) + 2, ry(-hp) - 2, rx(-FLw / 2) - 6, ry(-FLh / 2) - 14, f"4 x Ø{g['hole_d']:g}", align="r")
-    K.tag(rx(0) + 3, ry(0) + 3, rx(-FLw / 2) - 6, ry(FLh / 2) + 10, f"□{ci:g} (tube inside)", align="r")
+    K.balloon_auto(rx(hp) + 2, ry(-hp) - 2, f"4 x Ø{g['hole_d']:g}", kind="tag", region=K.AUTO.get("region"))
+    K.balloon_auto(rx(0) + 3, ry(0) + 3, f"□{ci:g} (tube inside)", kind="tag", region=K.AUTO.get("region"))
     T(flx + FLw * s2 / 2, ry(FLh / 2) + 50, f"t = {FLt:g}, R{rr:g}, welded to leg □{fa}x{fb}x{ft:g}", 8, align="c")
 
 
@@ -195,26 +195,24 @@ def scene3d(g, yaw, box, title):
     fa, fb, ft = g["frame"]; FLw, FLh, FLt = g["flange"]; ax = g["ax"]; LL = g["leg_len"]
     sc = r3d.Scene(yaw=yaw, pitch=18)
     sc.box((ov, ov, -D / 2), (g["BW"], 0, 0), (0, g["BH"], 0), (0, 0, D), COL_BODY, edge=EDGE)
-    sc.box((0, 0, D / 2), (Wd, 0, 0), (0, Hd, 0), (0, 0, tf), COL_FACE, edge=EDGE)
-    sc.box((0, 0, -D / 2 - tf), (Wd, 0, 0), (0, Hd, 0), (0, 0, tf), COL_FACE, edge=EDGE)
+    WHITE3 = HexColor("#FFFFFF")
+    sc.box((0, 0, D / 2), (Wd, 0, 0), (0, Hd, 0), (0, 0, tf), WHITE3, edge=EDGE, amb=0.97)
+    sc.box((0, 0, -D / 2 - tf), (Wd, 0, 0), (0, Hd, 0), (0, 0, tf), WHITE3, edge=EDGE, amb=0.97)
     for yc in (ax, Hd - ax):
         sc.box((g["xb"], yc - fa / 2, -fb / 2), (LL, 0, 0), (0, fa, 0), (0, 0, fb), COL_FRAME, edge=EDGE)
         _flange3d(sc, g, yc)
     SCR = HexColor("#2E2E2E")
-    for fn, u, z, k in g["scr_holes"]:                            # varžtų galvutės ant juostos
-        hr = 3.5
+    hr = 3.5
+    for fn, u, z, k in g["scr_holes"]:                            # varžtų galvutės - APVALIOS (diskas ant juostos)
         if fn == "top":
-            x, y = ov + u, Hd - ov
-            sc.box((x - hr, y, z - hr), (2 * hr, 0, 0), (0, 1.6, 0), (0, 0, 2 * hr), SCR)
+            P = lambda a_, b_, x=ov + u: (x + a_, Hd - ov + 0.6, z + b_); n = (0, 1, 0)
         elif fn == "bottom":
-            x, y = Wd - ov - u, ov
-            sc.box((x - hr, y - 1.6, z - hr), (2 * hr, 0, 0), (0, 1.6, 0), (0, 0, 2 * hr), SCR)
+            P = lambda a_, b_, x=Wd - ov - u: (x + a_, ov - 0.6, z + b_); n = (0, -1, 0)
         elif fn == "wall":
-            x, y = Wd - ov, Hd - ov - u
-            sc.box((x, y - hr, z - hr), (1.6, 0, 0), (0, 2 * hr, 0), (0, 0, 2 * hr), SCR)
+            P = lambda a_, b_, y=Hd - ov - u: (Wd - ov + 0.6, y + a_, z + b_); n = (1, 0, 0)
         else:
-            x, y = ov, ov + u
-            sc.box((x - 1.6, y - hr, z - hr), (1.6, 0, 0), (0, 2 * hr, 0), (0, 0, 2 * hr), SCR)
+            P = lambda a_, b_, y=ov + u: (ov - 0.6, y + a_, z + b_); n = (-1, 0, 0)
+        sc.face([P(*q) for q in _circle_pts(0, 0, hr, 16)], n, SCR, tile=False, amb=0.9)
     sc.render(box)
     V = sc.V
     for zf, lab in ((D / 2 + tf, "SIDE A"), (-D / 2 - tf, "SIDE B")):
@@ -263,9 +261,9 @@ def sheet1(g, out):
     # ---------------------------------------------------------------- SIDE A | VIEW FROM WALL | SIDE B
     fxA = K.IX0 + 70
     XA = front(fxA, False, "SIDE A")
-    K.balloon_column([(XA(Wd * 0.12), Yv(Hd * 0.15), 3)], XA(0) - 52)
-    K.balloon_column([(XA(g["xb"] + LL * 0.5), Yv(ax), 1), (XA(g["xf"] + FLt / 2), Yv(Hd - ax + FLh / 2 - 6), "1A")],
-                     XA(g["PROJ"]) + 56)
+    K.balloon_side([(XA(Wd * 0.05), Yv(Hd * 0.1), 3)], XA(0) - 22, "left", up=True)
+    K.balloon_side([(XA(g["xb"] + LL * 0.6), Yv(ax), 1), (XA(g["xf"] + FLt / 2), Yv(ax + FLh / 2 - 8), "1A")],
+                   XA(g["PROJ"]) + 16, "right", up=False)
     vchain(XA(g["PROJ"]) + 16, [Yv(0), Yv(ax), Yv(Hd - ax), Yv(Hd)], [XA(Wd)] + [XA(g["PROJ"])] * 2 + [XA(Wd)],
            [f"{ax:g}", f"{Hd - 2 * ax:g}", f"{ax:g}"], size=K.F_DIM_FRAME)
     xcut = Wd * 0.3
@@ -298,14 +296,14 @@ def sheet1(g, out):
     vchain(Xs(-FLw / 2) - 24, [Yv(hy[0]), Yv(0), Yv(Hd), Yv(hy[3])], [Xs(-hp), Xs(-TOT / 2), Xs(-TOT / 2), Xs(-hp)],
            [f"{-hy[0]:g}", f"{Hd:g}", f"{hy[3] - Hd:g}"], size=K.F_DIM_FRAME)
     yw = g["scr_wall"][len(g["scr_wall"]) // 2]
-    K.tag_column([(Xs(hp), Yv(hy[1]), f"8 x Ø{g['hole_d']:g}"), (Xs(0), Yv(Hd - ax), f"cable □{fa - 2 * ft:g}"),
-                  (Xs(yw[1]), Yv(yw[0]), "screw 8 (D3.2)")], Xs(FLw / 2) + 56, size=8)
+    K.balloon_side([(Xs(yw[1]), Yv(yw[0]), "screw 8 (D3.2)"), (Xs(hp), Yv(hy[2]), f"8 x Ø{g['hole_d']:g}"),
+                    (Xs(0), Yv(Hd - ax), f"cable □{fa - 2 * ft:g}")], Xs(FLw / 2) + 36, "right", up=True, tags=True)
     T(Xs(0), Yv(Hd) + 38, "= WALL DRILLING", 8, align="c", color=K.GREY)
     view_title(Xs(0), top - 84, "VIEW FROM WALL", sl)
     # SIDE B (veidrodinis - kojos kairėje)
     fxB = Xs(TOT / 2) + 128
     XB = front(fxB, True, "SIDE B")
-    K.balloon_column([(XB(Wd * 0.12), Yv(Hd * 0.15), 5)], XB(0) + 52)
+    K.balloon_side([(XB(Wd * 0.05), Yv(Hd * 0.1), 5)], XB(0) + 22, "right", up=True)
     view_title((XB(0) + XB(g["PROJ"])) / 2, top - 84, "FRONT VIEW - SIDE B", sl + "  (mirrored)")
     # ---------------------------------------------------------------- SECTION A-A 1:5
     s5 = MM / 5
@@ -341,10 +339,12 @@ def sheet1(g, out):
     vchain(Xa(-TOT / 2) - 24, [ya(0), ya(Hd)], [Xa(-TOT / 2)] * 2, [f"{Hd:g}"], size=K.F_DIM_FRAME)
     hchain(ya(Hd) + 22, [Xa(-TOT / 2), Xa(-D / 2), Xa(-fb / 2), Xa(fb / 2), Xa(D / 2), Xa(TOT / 2)], [ya(Hd)] * 6,
            [f"{tf:g}", f"{(D - fb) / 2:g}", f"{fb:g}", f"{(D - fb) / 2:g}", f"{tf:g}"], size=K.F_DIM_FRAME)
-    K.balloon_column([(Xa(fb / 2 - 4), ya(ov + tb + fa / 2), 1), (Xa(TOT / 2 - tf / 2), ya(Hd * 0.3), 5),
-                      (Xa(4), ya(yl - 4), 7), (Xa(D / 2 - pd / 2), ya(Hd - ov - tb - pw / 2), 6), (Xa(zs8) + 1, ya(ov - 0.8), 8)], Xa(TOT / 2) + 34)
-    K.balloon_column([(Xa(-TOT / 2 + tf / 2), ya(Hd * 0.3), 3), (Xa(-D / 2 + pd / 2), ya(Hd - ov - tb - pw / 2), 4),
-                      (Xa(-D / 2 + 20), ya(Hd - ov - tb / 2), 2)], Xa(-TOT / 2) - 52, ymax=ya(Hd) + 2)
+    K.balloon_side([(Xa(zs8) + 3.5 * s5, ya(ov - 0.8), 8), (Xa(fb / 2), ya(ov + tb + fa * 0.7), 1),
+                    (Xa(TOT / 2), ya(Hd * 0.35), 5), (Xa(11), ya(yl - 4), 7),
+                    (Xa(D / 2 - 2), ya(Hd - ov - tb - pw / 2), 6)], Xa(TOT / 2) + 4, "right", up=True)
+    K.balloon_side([(Xa(-TOT / 2), ya(Hd * 0.35), 3), (Xa(-D / 2 + 2), ya(Hd - ov - tb - pw / 2), 4),
+                    (Xa(-D / 2 + 26), ya(Hd - ov - tb / 2), 2)], Xa(-TOT / 2) - 24, "left", up=True)
+
     circle(Xa(TOT / 2 - 10), ya(Hd - 12), 16, lw=0.3, dash=(3, 1.5))
     T(Xa(TOT / 2) + 10, ya(Hd + 12) + 4, "B", 10, font="FB")
     view_title(Xa(0), top - 84, "SECTION A-A", "1:5")
@@ -374,44 +374,43 @@ def sheet1(g, out):
            [f"{us[0]:.1f}"] + [f"{b - a:.1f}" for a, b in zip(us, us[1:])] + [f"{g['BW'] - us[-1]:.1f}"], size=K.F_DIM_FRAME)
     vchain(Xt(g["PROJ"]) + 14, [Zt(-D / 2), Zt(-zs8), Zt(zs8), Zt(D / 2)], [Xt(Wd - ov)] * 4,
            [f"{D / 2 - zs8:g}", f"{2 * zs8:g}", f"{D / 2 - zs8:g}"], size=K.F_DIM_FRAME)
-    K.balloon_column([(Xt(ov + us[0]) - 3.5 * s, Zt(-zs8), 8), (Xt(ov + us[0] / 2), Zt(0), 2)], Xt(0) - 34)
+    K.balloon_side([(Xt(ov + us[0]) - 3.5 * s, Zt(zs8), 8), (Xt(ov + 6), Zt(0), 2)], Xt(0) - 16, "left", up=False)
     T(Xt(Wd / 2), Zt(D / 2 + tf) + 44, f"{len(g['scr_holes'])} screws: {2 * len(us)} per side of band, into PVC edge", 7,
       align="c", color=K.GREY)
     view_title(Xt(g["PROJ"] / 2), Zt(-FLw / 2) - 40, "TOP VIEW", sl)
     K.set_view(False)
 
     def detail(X_P6, BY0, W_P6, BH):
-        K.header(X_P6, BY0, W_P6, "DETAIL B - EDGE (AS P6 / 3 mm)  1:1")
+        K.header(X_P6, BY0, W_P6, "DETAIL B - EDGE (AS P6 / 3 mm)  2:1")
+        K.AUTO["region"] = (X_P6 + 3, BY0 + 15, X_P6 + W_P6 - 3, BY0 + BH - 3)
         rect(X_P6, BY0 + 12, W_P6, BH - 12, lw=0.6)
         K.set_view(True)
-        s3 = MM
-        ox, oy = X_P6 + 46, BY0 + 34
+        s3 = 2 * MM
+        zend = D / 2 - pd - 9                                       # lūžis: rodomas tik kraštas (rėmas - pjūvyje A-A)
+        ox, oy = X_P6 + 40, BY0 + 30
         Zx = lambda z: ox + (TOT / 2 - z) * s3
         Yb = lambda y: oy + y * s3
-        ymax = (BH - 34) / s3 - 6
-        zend = fb / 2 - 2 * ft - 6
+        ymax = (BH - 30) / s3 - 9
         wpx = lambda z0, z1: (z0 - z1) * s3
         rect(Zx(TOT / 2), Yb(0), tf * s3, ymax * s3, fill=COL_FACE, lw=0.1)
         rect(Zx(D / 2), Yb(ov), wpx(D / 2, zend), tb * s3, fill=COL_BODY, lw=0.1)
         rect(Zx(D / 2), Yb(ov + tb), pd * s3, pw * s3, fill=COL_PVC, lw=0.1)
-        rect(Zx(fb / 2), Yb(ov + tb), wpx(fb / 2, zend), fa * s3, fill=COL_FRAME, lw=0.1)
-        rect(Zx(fb / 2 - ft), Yb(ov + tb + ft), wpx(fb / 2 - ft, zend), (fa - 2 * ft) * s3, fill=white, lw=0.1)
-        line(Zx(zend), Yb(ov - 3), Zx(zend), Yb(ov + tb + fa + 3), 0.1, dash=([4, 1, 1, 1], 0))
+        line(Zx(zend), Yb(ov - 4), Zx(zend), Yb(ov + tb + pw + 4), 0.1, dash=([4, 1, 1, 1], 0))
         zs = D / 2 - pd / 2
-        rect(Zx(zs) - 2.4 * s3, Yb(ov - 1.6), 4.8 * s3, 1.6 * s3, fill=HexColor("#3A3A3A"), lw=0.1)
-        rect(Zx(zs) - 1.1 * s3, Yb(ov), 2.2 * s3, (tb + pw + 4) * s3, fill=HexColor("#3A3A3A"), lw=0.1)
+        rect(Zx(zs) - 3.5 * s3, Yb(ov - 1.6), 7 * s3, 1.6 * s3, fill=HexColor("#2E2E2E"), lw=0.1)
+        rect(Zx(zs) - 1.1 * s3, Yb(ov), 2.2 * s3, (tb + pw + 4) * s3, fill=HexColor("#2E2E2E"), lw=0.1)
         K.centerline(Zx(zs), Yb(ov - 5), Zx(zs), Yb(ov + tb + pw + 7))
         K.set_view(False)
-        hchain(Yb(ymax) + 4, [Zx(TOT / 2), Zx(D / 2), Zx(zs), Zx(D / 2 - pd)], [Yb(ymax)] * 4,
+        hchain(Yb(ymax) + 6, [Zx(TOT / 2), Zx(D / 2), Zx(zs), Zx(D / 2 - pd)], [Yb(ymax)] * 4,
                [f"{tf:g}", f"{pd / 2:g}", f"{pd / 2:g}"], size=K.F_DIM_FRAME)
         vchain(Zx(TOT / 2) - 10, [Yb(0), Yb(ov), Yb(ov + tb), Yb(ov + tb + pw)], [Zx(TOT / 2)] + [Zx(D / 2)] * 3,
                [f"{ov:g}", f"{tb:g}", f"{pw:g}"], size=K.F_DIM_FRAME)
-        K.balloon_column([(Zx(zs) + 2.4 * s3, Yb(ov - 0.8), 8), (Zx(D / 2 - 1.5), Yb(ov + tb / 2), 2),
-                          (Zx(D / 2 - 2.5), Yb(ov + tb + pw / 2), 4), (Zx(fb / 2 - ft - 2), Yb(ov + tb + fa * 0.5), 1),
-                          (Zx(TOT / 2 - tf / 2), Yb(ymax * 0.75), 3)], X_P6 + W_P6 - 12, ymin=BY0 + 30, ymax=BY0 + BH - 10,
-                         up=False, gap=15)
-        K.tag(Zx(zs) + 1.1 * s3, Yb(ov + tb + pw + 3), Zx(zs) + 16, Yb(ov + tb + pw + 14), "D3.2", size=7, align="l")
-        T(X_P6 + W_P6 - 4, BY0 + 22, "side A shown; side B mirror (5 / 6)", 7, align="r", color=K.GREY)
+        K.balloon_side([(Zx(zs) + 3.5 * s3, Yb(ov - 0.8), 8), (Zx(zend), Yb(ov + tb / 2), 2),
+                        (Zx(D / 2 - pd), Yb(ov + tb + pw * 0.5), 4)], Zx(zend) + 4, "right", up=False, d=14)
+        K.balloon_side([(Zx(TOT / 2 - tf), Yb(ymax * 0.8), 3)], Zx(TOT / 2 - tf) + 4, "right", up=False, d=14)
+        K.balloon_auto(Zx(zs) - 1.1 * s3, Yb(ov + tb + pw + 2), "D3.2", kind="tag", region=K.AUTO.get("region"), size=7)
+        T(X_P6 + W_P6 - 4, BY0 + BH - 6, "band welded to frame (1, A-A); side B mirror", 7, align="r", color=K.GREY)
+        K.AUTO["region"] = None
 
     md = [["Product", "double-sided lightbox, projecting"],
           ["Size (glass)", f"{Wd:g} x {Hd:g} x {TOT:g} mm"],
@@ -474,9 +473,10 @@ def sheet2(g, out):
     vchain(X(x0) - 48, [Yv(x0), Yv(x0 + FH)], [X(x0)] * 2, [f"{FH:g}"], size=K.F_DIM_MAIN)
     vchain(X(g["xf"] + FLt) + 24, [Yv(x0 + fa / 2), Yv(x0 + FH - fa / 2)], [X(g["xf"])] * 2, [f"{FH - fa:g}"],
            size=K.F_DIM_FRAME)
-    K.balloon_column([(X(xr - 60), Yv(x0 + fa / 2), "1.1"), (X(g["xf"] + FLt / 2), Yv(x0 + fa / 2 + FLh / 2 - 6), "1A"),
-                      (X(xr - fa / 2), Yv(x0 + FH * 0.45), "1.3"), (X(led_x[-1]) + 3 * s, Yv(yrow[0] - 4), 7),
-                      (X(xr - 60), Yv(x0 + FH - fa / 2), "1.2")], X(g["xf"] + FLt) + 58, r=7)
+    K.balloon_side([(X(g["xb"] + 30), Yv(x0 + fa), "1.1"), (X(g["xf"] + FLt), Yv(x0 + fa / 2 + 28), "1A"),
+                    (X(xr), Yv(x0 + FH * 0.3), "1.3")], X(g["xf"] + FLt) + 24, "right", up=False, r=7)
+    K.balloon_side([(X(xr - fa), Yv(yrow[0] - 4), 7), (X(g["xb"] + 30), Yv(x0 + FH - fa), "1.2")],
+                   X(g["xf"] + FLt) + 24, "right", up=True, r=7)
 
     xc_ = led_x[len(led_x) // 2]
     K.cut_plane(X(xc_), Yv(x0 + FH - fa) - 10, Yv(x0 + FH), "C", look="right")
@@ -498,9 +498,9 @@ def sheet2(g, out):
     T(Zc(0), Yc(-up_) + 10, "65°", 8, align="c", color=HexColor("#8A6D00"))
     hchain(Yc(fa + tb + ov) + 22, [Zc(-D / 2 - tf), Zc(-D / 2), Zc(-fb / 2), Zc(fb / 2), Zc(D / 2), Zc(D / 2 + tf)],
            [Yc(fa + tb)] * 6, [f"{tf:g}", f"{(D - fb) / 2:g}", f"{fb:g}", f"{(D - fb) / 2:g}", f"{tf:g}"], size=K.F_DIM_FRAME)
-    K.balloon_column([(Zc(D / 2 + tf / 2), Yc(-up_ * 0.75), 5), (Zc(8), Yc(-4), 7), (Zc(D / 2 - 10), Yc(fa + tb / 2), 2)],
-                     Zc(D / 2 + tf) + 32)
-    K.balloon_column([(Zc(-D / 2 - tf / 2), Yc(-up_ * 0.6), 3), (Zc(-fb / 2 + 3), Yc(fa / 2), 1)], Zc(-D / 2 - tf) - 32)
+    K.balloon_side([(Zc(D / 2 + tf), Yc(-up_ * 0.7), 5), (Zc(11), Yc(-6), 7), (Zc(D / 2), Yc(fa + tb / 2), 2)],
+                   Zc(D / 2 + tf) + 2, "right", up=True)
+    K.balloon_side([(Zc(-D / 2 - tf), Yc(-up_ * 0.7), 3), (Zc(-fb / 2), Yc(fa / 2), 1)], Zc(-D / 2 - tf) - 2, "left", up=True)
     T(Zc(0), Yc(fa + tb) + 52, "LED on member centre - light to both faces", 8, align="c", color=K.GREY)
     view_title(Zc(0), top - 96, "SECTION C-C (LED)", "1:2")
     # ---------------------------------------------------------------- FLANGE 1:2
@@ -543,7 +543,7 @@ def sheet2(g, out):
     uu = g["ax"] - ov
     hchain(BY(D) + 32, [BX(starts["wall"]), BX(starts["wall"] + uu), BX(starts["wall"] + g["BH"] - uu), BX(starts["wall"] + g["BH"])],
            [BY(D / 2)] * 4, [f"{uu:g}", f"{g['BH'] - 2 * uu:g}", f"{uu:g}"], size=K.F_DIM_FRAME)
-    K.tag(BX(starts["wall"] + uu), BY(D / 2 + cl / 2), BX(starts["wall"] + uu) + 30, BY(D) + 48, f"□{cl:g} leg hole (2)", size=7)
+    K.balloon_auto(BX(starts["wall"] + uu), BY(D / 2 + cl / 2), f"□{cl:g} leg hole (2)", kind="tag", region=K.AUTO.get("region"), size=7)
     K.tag(BX(starts["top"] + hu[0]), BY(D / 2 - zs), BX(starts["top"] + hu[0]) + 10, BY(0) - 44,
           f"D3.2 - {g['n_scr']} holes (screws 8, into PVC 4 / 6)", size=7)
     T(BX(0) - 4, BY(0) + 6, "A", 8, font="FB", align="r", color=K.GREY)
@@ -560,7 +560,7 @@ def sheet2(g, out):
             ["Qty / pitch", f"{g['led_n']} pcs., {g['led_step']:.1f} mm (table {g['led_p']:g})"],
             ["Kaisen table", f"box 1000x{g['led_box']}, depth {g['led_dep']}: {g['led_lux']} lx"],
             ["Power total", f"{g['led_W']:.1f} W"],
-            ["PSU", f"{g['psu'][0]} ({g['psu'][1]} W, IP67), place:"],
+            ["PSU", f"{g['psu'][0].replace('-5Y', '')} ({g['psu'][1]} W), place:"],
             ["Supply", "not in Alt Reklama price list - check:"]], title="LED (7)", lab_w=64)
 
     ci = fa - 2 * ft
@@ -591,8 +591,13 @@ def main(spec_path, out):
     S = dict(DEF); S.update(json.load(open(spec_path, encoding="utf-8")))
     g = geom(S)
     p1, p2 = out + ".1.pdf", out + ".2.pdf"
-    sheet1(g, p1)
-    sheet2(g, p2)
+    for fn, pp in ((sheet1, p1), (sheet2, p2)):                    # v139: 2 praėjimai - automatinis žymėjimas
+        K.auto_begin("collect"); K.AUTO["region"] = None
+        fn(g, pp)
+        pl = K.auto_place(pp)
+        K.auto_begin("draw", pl); K.AUTO["region"] = None
+        fn(g, pp)
+        K.auto_begin(None)
     import pymupdf as fitz
     d = fitz.open()
     for p in (p1, p2):

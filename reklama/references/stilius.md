@@ -184,3 +184,10 @@ antraštė, P6 tipiniai pjūviai `p6_typical(variant=rail|folded|plate)`, 3D `Vi
   parenkama, kad linijos nesikirstų (taikiniai tuo pačiu kraštu - tvarka pagal y).
 - **Tvirtinimo elementai (varžtai) matomi projekcijose:** galvutės vaizduose, kur matoma jų plokštuma (vaizdas iš sienos,
   TOP VIEW), pjūviuose - galvutė + kotas, 3D - galvutės. Montavimo plokštės 3D - su skylėmis ir vamzdžio anga (ne vientisos).
+- **v139 (Rytis 2026-10-12): AUTOMATINIS ŽYMĖJIMAS - NUMATYTAS visiems naujiems lapams** („nuorodų linijos chaotiškos ...
+  gamybininkas pirmiausiai skaito vizualinę informaciją"): `K.balloon_auto(tx, ty, label | tekstas, kind="balloon"|"tag")`,
+  lapas braižomas 2 kartus (`K.auto_begin("collect")` -> PDF -> `K.auto_place(pdf)` -> `K.auto_begin("draw", vietos)` -> vėl).
+  Kiekvienas balionas - ARTIMIAUSIOJE laisvoje vietoje šalia detalės (rastro kaukė: linijos, užpildai, matmenys, tekstai,
+  stiklo šviesus užpildas - užimta), trumpa įstriža išvadinė (30-60°), kuo mažiau kerta brėžinio linijų, nekerta kitų išvadinių.
+  Ribota zona (DETAIL juostoje) - `K.AUTO["region"]`. `balloon_side` / `balloon_column` automatinio režimo metu - per balloon_auto.
+- Varžtai 3D - apvalios galvutės (diskai), stiklas 3D - baltas (amb 0,97), ne pilkas.

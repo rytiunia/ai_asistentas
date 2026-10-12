@@ -1146,6 +1146,186 @@ def tag_column(items, x_col, size=8, ymin=None, ymax=None, gap=None, align=None,
         tag(tx, ty, x_col, yb, txt, size=size, align=al)
 
 
+# v139 (Rytis 2026-10-12: „skaičių nuorodų linijos labai chaotiškai žiūrisi, sunku suprasti kur ir kas - optimalesnis sprendimas";
+# „vizualinė dalis gamyboje labai svarbi - gamybininkas pirmiausiai skaito vizualinę informaciją"):
+# BALIONAI ŠALIA DETALĖS, VISOS IŠVADINĖS VIENO VAIZDO PUSĖJE - LYGIAGREČIOS 45°: balionas už vaizdo krašto (edge + d) ant 45° linijos
+# iš taikinio; persidengiantis - stumiamas toliau TOJE PAČIOJE linijoje (lygiagretumas išlieka, linijos nesikerta).
+def balloon_side(items, edge, side="right", up=True, d=16, r=6.5, gap=None, tags=False, size=8):
+    """items: [(tx, ty, label)]; edge - vaizdo (su matmenimis) kraštas x; side 'right'/'left'; up - linijos kryptis"""
+    if AUTO.get("mode"):                                     # v139: automatinis žymėjimas
+        for tx, ty, lab in items:
+            balloon_auto(tx, ty, lab, r=r, region=AUTO.get("region"), kind="tag" if tags else "balloon", size=size)
+        return
+    sx = 1 if side == "right" else -1
+    sy = -1 if up else 1
+    gap = gap or (2 * r + 3 if not tags else size + 6)
+    placed = []
+    order = sorted(items, key=lambda it: sx * (edge - it[0]))
+    for tx, ty, lab in order:
+        bx = edge + sx * d
+        t = abs(bx - tx)
+        by = ty + sy * t
+        def clash(x_, y_):
+            for px, py, w_ in placed:
+                if abs(y_ - py) < gap and abs(x_ - px) < (w_ if tags else 2 * r + 3):
+                    return True
+            return False
+        k = 0
+        while clash(bx, by) and k < 40:
+            bx += sx * gap * 0.75; by += sy * gap * 0.75; k += 1
+        if tags:
+            w_ = pdfmetrics.stringWidth(str(lab), "F", size) + 8
+            tag(tx, ty, bx, by, lab, size=size, align="l" if sx > 0 else "r")
+            placed.append((bx + sx * w_ / 2, by, w_))
+        else:
+            leader(tx, ty, bx, by, lab, r)
+            placed.append((bx, by, 0))
+
+
+# ------------------------------------------------------------------ v139: AUTOMATINIS ŽYMĖJIMAS (2 praėjimai)
+# Rytis 2026-10-12: „skaičių nuorodų linijos labai chaotiškai žiūrisi ... reikia optimalesnio sprendimo; vizualinė dalis
+# gamyboje labai svarbi - gamybininkas pirmiausiai skaito vizualinę informaciją". Sprendimas: lapas braižomas 2 kartus.
+# 1 praėjimas - be balionų (užklausos surenkamos), PDF -> rastras (užimtumo kaukė); kiekvienam balionui ieškoma ARTIMIAUSIOS
+# laisvos vietos ŠALIA detalės: trumpa ĮSTRIŽA išvadinė (30-60°, ne lygiagreti matmenims), balionas visas baltame plote,
+# išvadinė kuo mažiau kerta brėžinio linijų ir nekerta kitų išvadinių; 2 praėjimas - piešiama su rastomis vietomis.
+AUTO = {"mode": None, "reqs": [], "place": [], "i": 0}
+
+
+def auto_begin(mode, placements=None):
+    AUTO["mode"] = mode; AUTO["i"] = 0
+    if mode == "collect":
+        AUTO["reqs"] = []
+    else:
+        AUTO["place"] = placements or []
+
+
+def balloon_auto(tx, ty, label, r=6.5, region=None, kind="balloon", size=8, prefer=None):
+    """balionas (kind='balloon') arba žyma su tekstu (kind='tag') - vieta parenkama automatiškai (auto_begin)"""
+    if AUTO["mode"] == "collect":
+        AUTO["reqs"].append(dict(tx=tx, ty=ty, label=str(label), r=r, region=region, kind=kind, size=size, prefer=prefer))
+        return
+    if AUTO["mode"] == "draw" and AUTO["i"] < len(AUTO["place"]):
+        bx, by = AUTO["place"][AUTO["i"]]; AUTO["i"] += 1
+        if kind == "tag":
+            tag(tx, ty, bx, by, label, size=size, align="l" if bx >= tx else "r")
+        else:
+            leader(tx, ty, bx, by, label, r)
+        return
+    leader(tx, ty, tx + 20, ty - 20, label, r)                # atsarginis
+
+
+def auto_place(pdf_path, page=0, zoom=2.0):
+    """1 praėjimo PDF -> balionų vietos [(bx, by)] AUTO['reqs'] tvarka"""
+    import numpy as np
+    doc = fitz.open(pdf_path)
+    pix = doc[page].get_pixmap(matrix=fitz.Matrix(zoom, zoom), colorspace=fitz.csGRAY)
+    img = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.height, pix.width)
+    ink = img < 250                                            # ir šviesūs užpildai (stiklas) - užimta
+    Hh, Ww = ink.shape
+    def px(x, y):
+        return int(round(x * zoom)), int(round(y * zoom))
+    def box_free(x0, y0, x1, y1):
+        a0, b0 = px(x0, y0); a1, b1 = px(x1, y1)
+        if a0 < 0 or b0 < 0 or a1 >= Ww or b1 >= Hh:
+            return False
+        return not ink[b0:b1 + 1, a0:a1 + 1].any()
+    def circ_free(cx, cy, rr):
+        a0, b0 = px(cx - rr, cy - rr); a1, b1 = px(cx + rr, cy + rr)
+        if a0 < 0 or b0 < 0 or a1 >= Ww or b1 >= Hh:
+            return False
+        sub = ink[b0:b1 + 1, a0:a1 + 1]
+        yy, xx = np.mgrid[b0:b1 + 1, a0:a1 + 1]
+        m = (xx - cx * zoom) ** 2 + (yy - cy * zoom) ** 2 <= (rr * zoom) ** 2
+        return not (sub & m).any()
+    def crossings(x0, y0, x1, y1, skip=5.0):
+        L = math.hypot(x1 - x0, y1 - y0)
+        if L <= skip:
+            return 0
+        n = int(L * zoom)
+        cnt, prev = 0, False
+        for k in range(n):
+            t = k / n
+            d = t * L
+            if d < skip:
+                continue
+            a, b = px(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t)
+            if 0 <= a < Ww and 0 <= b < Hh:
+                cur = bool(ink[b, a])
+                if cur and not prev:
+                    cnt += 1
+                prev = cur
+        return cnt
+    def seg_x(p1, p2, p3, p4):
+        def ccw(a, b, c):
+            return (c[1] - a[1]) * (b[0] - a[0]) > (b[1] - a[1]) * (c[0] - a[0])
+        return ccw(p1, p3, p4) != ccw(p2, p3, p4) and ccw(p1, p2, p3) != ccw(p1, p2, p4)
+    def paint_circle(cx, cy, rr):
+        a0, b0 = px(cx - rr, cy - rr); a1, b1 = px(cx + rr, cy + rr)
+        a0, b0 = max(a0, 0), max(b0, 0)
+        yy, xx = np.mgrid[b0:b1 + 1, a0:a1 + 1]
+        m = (xx - cx * zoom) ** 2 + (yy - cy * zoom) ** 2 <= (rr * zoom) ** 2
+        ink[b0:b1 + 1, a0:a1 + 1] |= m
+    def paint_box(x0, y0, x1, y1):
+        a0, b0 = px(x0, y0); a1, b1 = px(x1, y1)
+        ink[max(b0, 0):b1 + 1, max(a0, 0):a1 + 1] = True
+    def paint_seg(x0, y0, x1, y1):
+        L = math.hypot(x1 - x0, y1 - y0); n = max(2, int(L * zoom))
+        for k in range(n + 1):
+            a, b = px(x0 + (x1 - x0) * k / n, y0 + (y1 - y0) * k / n)
+            if 0 <= a < Ww and 0 <= b < Hh:
+                ink[max(b - 1, 0):b + 2, max(a - 1, 0):a + 2] = True
+    angs = [45, 135, 225, 315, 30, 150, 210, 330, 60, 120, 240, 300]
+    rads = [14, 18, 23, 29, 36, 44, 54, 66, 80, 96]
+    segs, out = [], []
+    for q in AUTO["reqs"]:
+        tx, ty, rr = q["tx"], q["ty"], q["r"] + 1.5
+        reg = q["region"] or (IX0 + 2, IY0 + 2, IX1 - 2, BAND_Y - 2)
+        best = None
+        for R in rads:
+            for k_, a in enumerate(angs):
+                if q["prefer"] and not any(abs(((a - p_ + 180) % 360) - 180) <= 50 for p_ in q["prefer"]):
+                    continue
+                ca, sa = math.cos(math.radians(a)), -math.sin(math.radians(a))
+                bx, by = tx + R * ca, ty + R * sa
+                if q["kind"] == "tag":
+                    w_ = pdfmetrics.stringWidth(q["label"], "F", q["size"]) + 4
+                    right = ca >= 0
+                    x0b, x1b = (bx + 1, bx + w_ + 2) if right else (bx - w_ - 2, bx - 1)
+                    y0b, y1b = by - q["size"] * 0.8, by + q["size"] * 0.3
+                    if not (reg[0] <= x0b and x1b <= reg[2] and reg[1] <= y0b and y1b <= reg[3]):
+                        continue
+                    free = box_free(x0b - 1, y0b - 1, x1b + 1, y1b + 1)
+                    ex, ey = bx, by
+                else:
+                    if not (reg[0] + rr <= bx <= reg[2] - rr and reg[1] + rr <= by <= reg[3] - rr):
+                        continue
+                    free = circ_free(bx, by, rr + 1.5)
+                    ex, ey = bx - ca * rr, by - sa * rr
+                if not free:
+                    continue
+                cr = crossings(tx, ty, ex, ey)
+                lx = sum(1 for s_ in segs if seg_x((tx, ty), (ex, ey), s_[0], s_[1]))
+                score = R + 14 * cr + 200 * lx + k_ * 0.6
+                if best is None or score < best[0]:
+                    best = (score, bx, by, ex, ey, x0b if q["kind"] == "tag" else None,
+                            (x1b, y0b, y1b) if q["kind"] == "tag" else None)
+            if best is not None and best[0] < R + 4:              # tobulas (be kirtimų) - toliau neieškoti
+                break
+        if best is None:
+            bx, by = tx + 24, ty - 24; ex, ey = bx, by
+        else:
+            _, bx, by, ex, ey, x0b, rest = best
+        out.append((bx, by))
+        segs.append(((tx, ty), (ex, ey)))
+        paint_seg(tx, ty, ex, ey)
+        if q["kind"] == "tag" and best is not None and rest:
+            paint_box(x0b - 2, rest[1] - 2, rest[0] + 2, rest[2] + 2)
+        else:
+            paint_circle(bx, by, rr + 3)
+    doc.close()
+    return out
+
+
 # ------------------------------------------------------------------ v20: PDF -> CorelDRAW (tekstas lieka tekstu)
 def pdf_fix_fonts(path_in, path_out=None):
     """Rytis 2026-10-08 (patikrinta CorelDRAW 2026): atidarant PDF su CorelDRAW tekstas turi likti TEKSTU ir

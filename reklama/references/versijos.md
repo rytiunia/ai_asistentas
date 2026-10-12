@@ -2,6 +2,11 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v139 (2026-10-12)
+
+v139, Rytis 2026-10-12: automatinis žymėjimas 2 praėjimais (`lapas_core.balloon_auto`, `auto_place` - rastro kaukė, artimiausia
+laisva vieta, trumpa įstriža išvadinė); šviesdėžė: 3 varžtai kraštinei, LED viršuje ir apačioje, 3D baltas stiklas, apvalūs varžtai.
+
 ## v138 (2026-10-12)
 
 v138, Rytis 2026-10-12: įstrižos išvadinės (ISO 128-22); šviesdėžė - varžtai visose projekcijose + TOP VIEW, 3D padai su
