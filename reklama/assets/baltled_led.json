@@ -1,7 +1,7 @@
 {
  "_info": "BaltLED (https://baltled.com) - MŪSŲ LED modulių ir maitinimo šaltinių tiekėjas (Rytis 2026-10-12). Duomenys nuskaityti iš produktų puslapių 2026-10-12 (ne visi - dalis puslapių HTTP 429; tokie fetch_status != ok). Neišgalvoti: ko nėra - klausti / pažiūrėti datasheet.",
  "letters_default": {
-  "_info": "led_km.py v121 parinktis raidėms pagal gylį (BaltLED rekomenduojami gyliai) + žingsnis iš Ryčio gamybos lapų (<= CC max)",
+  "_info": "led_km.py v125 parinktis raidėms pagal gylį (BaltLED rekomenduojami gyliai) + žingsnis iš Ryčio gamybos lapų (<= CC max)",
   "rules": [
    {
     "depth_min": 0,

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""LED (BaltLED PRISMA, v121) išdėstymas raidėse - GAMYBOS STILIUS (v119, Rytis 2026-10-12: „led dėliojimas vis dar blogas",
+"""LED (BaltLED PRISMA, v125) išdėstymas raidėse - GAMYBOS STILIUS (v119, Rytis 2026-10-12: „led dėliojimas vis dar blogas",
 pavyzdžiai: assets/led_pavyzdziai/, ypač ALT8873 EXTRA 225978_1 / _2 - Ryčio perdaryti mūsų lapai).
 
 NUMATYTAS LED įrankis (led_sim.py Lens simuliacija - tik paprašius). Principas:
@@ -27,7 +27,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import led_sim as LS  # noqa: E402  read_letters, skeleton_paths, _at, stroke_max
 
-# v121 (Rytis 2026-10-12: „p120 klaida. naudojami led moduliai ir transformatoriai iš https://baltled.com"):
+# v125 (Rytis 2026-10-12: „p120 klaida. naudojami led moduliai ir transformatoriai iš https://baltled.com"):
 # moduliai ir PSU - IŠ BaltLED katalogo (assets/baltled_led.json). Raidėms pagal gylį (BaltLED rekomenduojami gyliai):
 # < 30 MINI HE, 30-49 PRISMA S1+, 50-100 PRISMA S2+ (= Kaizen KM-P2 HE 0,72W), 101-125 PRISMA S3+, > 125 PRISMA S4+;
 # žingsnis - Ryčio gamybos lapų (assets/led_pavyzdziai), ne didesnis už BaltLED CC; spec "module" - kitaip.
