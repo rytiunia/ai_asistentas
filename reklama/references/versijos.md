@@ -2,6 +2,12 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v134 (2026-10-12)
+
+v134, Rytis 2026-10-12 (dvipuse_sviesdeze_nuo_sienos.pdf - „paprasčiausia dvipusė šviesdėžė nuo fasado ... padaryk gamybinį"):
+naujas `scripts/sviesdeze.py` (lapas_core stiliumi), etalonas `assets/etalonai/sviesdeze_dvipuse_nuo_sienos.pdf`; matmenys iš
+etalono (1:8): 500 x 500 x 100 (+2 x 3 plexi = 106), kojos 100 + padas 8 = 108 iki sienos, kojų ašys 467.
+
 ## v133 (2026-10-12)
 
 v133, Rytis 2026-10-12 (öppet t viršus / skersinio kairė / koja, EXTRA E galiukai, 7 ir 3 blankesni grupėje): `ilp()` - galų
