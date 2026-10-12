@@ -159,10 +159,30 @@ def text_lines(objs, h_ratio=0.6, gap_k=1.5, align_k=0.12):
             if lo / hm >= h_ratio and ov >= 0.6 * lo and aligned and gap <= gap_k * hm:
                 par[f(i)] = f(j)
                 continue
-            # diakritikas: mažas objektas VIRŠ raidės (y aukštyn), jos x ribose
-            (s0, t0, s1, t1), (L0, M0, L1, M1) = (bb[i], bb[j]) if hi < hj else (bb[j], bb[i])
+    cnt = {}
+    for i in range(n):
+        cnt[f(i)] = cnt.get(f(i), 0) + 1
+    is_text = [cnt[f(i)] >= 3 for i in range(n)]          # eilutė pagal raides (iki įdėtų objektų jungimo)
+    # objektas KITO VIDUJE (rato centras rato žiede, taškas raidės skylėje) - visada su juo (v123)
+    from shapely.geometry import Polygon as _P
+    filled = []
+    for g in objs:
+        parts = getattr(g, "geoms", [g])
+        filled.append(unary_union([_P(q.exterior) for q in parts if hasattr(q, "exterior")]))
+    for i in range(n):
+        for j in range(n):
+            if i != j and objs[j].area < objs[i].area and filled[i].contains(objs[j].representative_point()):
+                par[f(j)] = f(i)
+    # diakritikas (ö, ä, å, i taškai): mažas objektas VIRŠ raidės, jos x ribose - TIK prie teksto eilutės (>= 3 raidės),
+    #  ne prie piktogramos (v123: dušo taškai virš automobilio - ne diakritikai)
+    for i in range(n):
+        for j in range(n):
+            if i == j or not is_text[j] or is_text[i]:
+                continue
+            (s0, t0, s1, t1), (L0, M0, L1, M1) = bb[i], bb[j]
+            hm, lo = M1 - M0, t1 - t0
             cx = (s0 + s1) / 2
-            if lo < 0.35 * hm and L0 <= cx <= L1 and t0 >= M1 - 0.05 * hm and t0 - M1 <= 0.35 * hm:
+            if hm > 0 and lo < 0.35 * hm and L0 <= cx <= L1 and t0 >= M1 - 0.05 * hm and t0 - M1 <= 0.35 * hm:
                 par[f(i)] = f(j)
     out = {}
     for i in range(n):
@@ -286,7 +306,7 @@ def _flat_items(items, steps=12):
 
 
 def objects_from_pdf(pdf, page=0, rect_pt=None, width_mm=None, fill=None, tol=0.02):
-    """Kiekvienas užpildytas piešinys (compound path) - vienas nekarpomas objektas, mm (mastelis: rect plotis = width_mm).
+    """Kiekviena užpildyto piešinio sala (v123: compound path skaidomas į salas su skylėmis) - vienas objektas, mm (mastelis: rect plotis = width_mm).
     fill - 'FFFFFF' (tik ta spalva) arba None (visi užpildyti)."""
     import pymupdf as fitz
     pg = fitz.open(pdf)[page]
@@ -303,16 +323,33 @@ def objects_from_pdf(pdf, page=0, rect_pt=None, width_mm=None, fill=None, tol=0.
             continue
         if want and max(abs(a - b) for a, b in zip(f_, want)) > tol:
             continue
-        g = None
+        rings = []
         for s in _flat_items(d["items"]):
             pts = [((x - r.x0) * k, (r.y1 - y) * k) for x, y in s]
-            if len(pts) < 3:
-                continue
-            pg_ = Polygon(pts).buffer(0)
-            g = pg_ if g is None else g.symmetric_difference(pg_)     # even-odd: raidžių skylės
-        if g is not None and not g.is_empty:
-            out.append(g)
+            if len(pts) >= 3:
+                pg_ = Polygon(pts).buffer(0)
+                if not pg_.is_empty and pg_.area > 1e-6:
+                    rings.append(pg_)
+        out += islands(rings)
     return out
+
+
+def islands(rings):
+    """v123: sudėtinis kontūras (visa grafika vienas compound path) -> atskiri objektai (salos). Lyginis įdėjimo gylis -
+    išorinis kontūras, nelyginis - skylė artimiausiame jį gaubiančiame kontūre (even-odd: o, a, ratų žiedai)."""
+    n = len(rings)
+    order = sorted(range(n), key=lambda i: -rings[i].area)
+    depth, parent = {}, {}
+    for a, i in enumerate(order):
+        rp = rings[i].representative_point()
+        cont = [j for j in order[:a] if rings[j].contains(rp)]
+        depth[i] = len(cont)
+        parent[i] = min(cont, key=lambda j: rings[j].area) if cont else None
+    shells = {i: rings[i] for i in range(n) if depth[i] % 2 == 0}
+    for i in range(n):
+        if depth[i] % 2 == 1 and parent[i] in shells:
+            shells[parent[i]] = shells[parent[i]].difference(rings[i])
+    return [g for g in shells.values() if not g.is_empty]
 
 
 # ------------------------------------------------------------------ išvestis

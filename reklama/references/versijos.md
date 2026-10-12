@@ -2,6 +2,12 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v123 (2026-10-12)
+
+Plėvelės testas (Rytis, OKQ8 „Alltid öppet" PDF - visa grafika vienas compound path): `objects_from_pdf` -> `islands()`
+(salos + skylės), `text_lines` - objektas kito viduje prijungiamas (rato centras), diakritikai tik prie teksto eilučių
+(dušo taškai nebe automobilio). Rezultatas: 1320 - 2 dalys 5.20 m², 1190 - 4 dalys 3.35 m²; užrašas visada vientisas.
+
 ## v122 (2026-10-12)
 
 Rytis: „užrašas vientisas vienoje linijoje, taip perslėlus gamybininkui teks taikyti 2 užrašus į vieną liniją, matuoti tarpus,
