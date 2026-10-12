@@ -2,6 +2,12 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v120 (2026-10-12)
+
+v120, Rytis 2026-10-12 („buvau pridėjęs mūsų naudojamų led lentelę, ten ne tik p130L ir p190L, buvo daugiau modelių. ir
+atvaizdavimą daryk su led imitacija"): `led_km.py` - moduliai iš `assets/led_lens.json` (12V + 24V), raidėms P120 0,72W 24V
+(< 50 mm gylis - P65L), LED imitacija (korpusas + LED + laidas + apskritimas), 24V PSU - tik galia (modelis - patikslinti).
+
 ## v119 (2026-10-12)
 
 v119, Rytis 2026-10-12 („led dėliojimas vis dar blogas“, 7 pavyzdžiai, tarp jų jo perdaryti ALT8873 225978_1 / _2):

@@ -27,21 +27,40 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import led_sim as LS  # noqa: E402  read_letters, skeleton_paths, _at, stroke_max
 
-W_MOD = 0.72
-MODS = {"white": "KM-P2 HE 0,72W", "red": "KM-P2-R HE 0,72W"}
+# v120 (Rytis 2026-10-12): moduliai - IŠ MŪSŲ LED LENTELĖS (assets/led_lens.json: 12V P65L / P130L / P190L,
+# 24V P120 / P170L / P320L), ne Kaizen. Raidėms: gylis < 40 - P65L (70-80), 40-49 - P65L (100), >= 50 - P120 0,72W 24V
+# (raidžių modulis, max 180 mm); spec "module" - kitaip. P170L / P320L - šviesdėžėms.
+_LJ = json.load(open(os.path.join(HERE, "..", "assets", "led_lens.json"), encoding="utf-8"))
+MODDB = dict(_LJ["modules"]); MODDB.update({k: v for k, v in _LJ["modules_24v"].items() if not k.startswith("_")})
+
+
+def mod_for(depth, spec_mod=None):
+    if spec_mod:
+        return spec_mod
+    return "P65L" if depth < 50 else "P120"
+
+
+def mod_label(m, led):
+    d = MODDB[m]
+    return f"{d['name']} {str(d['W']).replace('.', ',')}W {d['V']}V" + (" RED" if led == "red" else "")
 PITCH_BY_DEPTH = [(40, 80), (50, 100), (70, 120), (80, 130), (100, 140), (150, 160)]
 PSU = [("KPS-V12-20W67-5Y-RM", 20), ("KPS-V12-36W67-5Y-RP", 36), ("KPS-V12-60W67-5Y-RP", 60), ("KPS-100W", 100),
        ("KPS-150W", 150), ("KPS-200W", 200)]
 PSU_LOAD = 0.75
 
 
-def pitch_for(depth):
+def pitch_for(depth, m="P120"):
+    if m == "P65L":
+        return 75 if depth < 40 else 100
     xs = [a for a, _ in PITCH_BY_DEPTH]; ys = [b for _, b in PITCH_BY_DEPTH]
     p = float(np.interp(depth, xs, ys))
-    return int(round(p / 10.0) * 10)
+    return int(min(round(p / 10.0) * 10, MODDB[m].get("spacing_max_mm") or 999))
 
 
-def psu_for(watts):
+def psu_for(watts, V=12):
+    if V != 12:                       # 24V maitinimo šaltinių modelių lentelėje nėra - neišgalvoti
+        need = math.ceil(watts / PSU_LOAD / 10) * 10
+        return f"PSU 24V >= {need} W (modelis - patikslinti)", need
     for nm, w in PSU:
         if watts <= PSU_LOAD * w:
             return nm, w
@@ -65,32 +84,33 @@ def chain(g, pitch):
                 err = float(np.min(np.hypot(M_[:, None, 0] - A_[None, :, 0], M_[:, None, 1] - A_[None, :, 1]), axis=1).sum())
                 if best is None or err < best[0]:
                     best = (err, ph)
-            pos += [LS._at(pa, (best[1] + i * L / n) % L)[:2] for i in range(n)]
+            pos += [LS._at(pa, (best[1] + i * L / n) % L) for i in range(n)]
             continue
         e0, e1 = pa["ends"]
         for e_, et in ((0, e0), (1, e1)):
             if et == "j":
                 P = pa["P"] if e_ == 0 else pa["P"][::-1]
-                junc.append((float(P[0][0]), float(P[0][1])))
+                k_ = min(len(P) - 1, 25)
+                junc.append((float(P[0][0]), float(P[0][1]), math.atan2(P[k_][1] - P[0][1], P[k_][0] - P[0][0])))
         off = lambda et: pitch / 2 if et == "edge" else 0.0
         a_, b_ = off(e0), L - off(e1)
         if e0 != "j" and e1 != "j" and b_ - a_ < 0.5 * pitch:
-            pos.append(LS._at(pa, L / 2)[:2]); continue
+            pos.append(LS._at(pa, L / 2)); continue
         k_ = max(1, round((b_ - a_) / pitch))
         us = [a_ + i * (b_ - a_) / k_ for i in range(k_ + 1)]
         if e0 == "j":
             us = us[1:]
         if e1 == "j":
             us = us[:-1]
-        pos += [LS._at(pa, u)[:2] for u in us]
+        pos += [LS._at(pa, u) for u in us]
     jp = []
     for q in junc:
-        if all(math.dist(q, r) > 12 for r in jp):
+        if all(math.dist(q[:2], r[:2]) > 12 for r in jp):
             jp.append(q)
     out = []
     for q in jp + pos:                                      # artimi (< 0,6 p) - vienas
-        if all(math.dist(q, r) >= 0.6 * pitch for r in out):
-            out.append(q)
+        if all(math.dist(q[:2], r[:2]) >= 0.6 * pitch for r in out):
+            out.append(tuple(float(v) for v in q[:3]))
     return out
 
 
@@ -107,7 +127,7 @@ def grid(g, pitch):
             xs = np.arange(x0 + fx, x1, pitch); ys = np.arange(y0 + fy, y1, pitch)
             X, Y = np.meshgrid(xs, ys); X, Y = X.ravel(), Y.ravel()
             k = contains_xy(inner, X, Y)
-            pts = list(zip(X[k].tolist(), Y[k].tolist()))
+            pts = [(x_, y_, 0.0) for x_, y_ in zip(X[k].tolist(), Y[k].tolist())]
             if len(pts) > len(best):
                 best = pts
     return best
@@ -149,16 +169,17 @@ def run(spec):
     for k, (gr, L) in enumerate(zip(groups, allL)):
         dx, dy = (org[k][0] - gx) * sc, (org[k][1] - gy) * sc
         L = [affinity.translate(g, dx, dy) for g in L]
-        p = gr.get("pitch") or spec.get("pitch") or pitch_for(depth)
+        m = mod_for(depth, gr.get("module") or spec.get("module"))
+        p = gr.get("pitch") or spec.get("pitch") or pitch_for(depth, m)
         per = []
         for g in L:
             pts, mode = place(g, p)
             per.append({"g": g, "pts": pts, "mode": mode})
         n = sum(len(x["pts"]) for x in per)
-        watts = n * W_MOD
-        res.append({"gr": gr, "pitch": p, "letters": per, "n": n, "W": watts, "psu": psu_for(watts)})
-        print(f"  {gr.get('name') or 'grupė'}: {MODS[gr.get('led', 'white')]} žingsnis ~{p} -> " +
-              ", ".join(str(len(x['pts'])) for x in per) + f" = {n} vnt., {watts:.1f} W, PSU {psu_for(watts)[0]}" +
+        watts = n * MODDB[m]["W"]
+        res.append({"gr": gr, "mod": m, "pitch": p, "letters": per, "n": n, "W": watts, "psu": psu_for(watts, MODDB[m]["V"])})
+        print(f"  {gr.get('name') or 'grupė'}: {mod_label(m, gr.get('led', 'white'))} žingsnis ~{p} -> " +
+              ", ".join(str(len(x['pts'])) for x in per) + f" = {n} vnt., {watts:.1f} W, {psu_for(watts, MODDB[m]['V'])[0]}" +
               ("" if all(x["mode"] == "chain" for x in per) else "  (plati linija - tinklelis)"))
     return res
 
@@ -209,13 +230,34 @@ def sheet(spec, res, out):
                     p_.close()
                 c.setFillColor(GREY); c.setStrokeColor(GREY); c.setLineWidth(0.1)
                 c.drawPath(p_, stroke=0, fill=1, fillMode=0)
-            c.setStrokeColor(col); c.setLineWidth(0.6)
-            for (px, py) in x["pts"]:
+            c.setStrokeColor(col); c.setLineWidth(0.35)
+            for (px, py, ang) in x["pts"]:
                 cx, cy = T(px, py)
                 c.circle(cx, cy, r["pitch"] / 2 * s, stroke=1, fill=0)
+            # v120: LED IMITACIJA - modulio korpusas (lentelės matmenys) pagal ašies kryptį + LED / lęšiai (Rytis: gamybai
+            # priimtiniau nei vieni apskritimai); grandinės laidas tarp gretimų modulių
+            md = MODDB[r["mod"]]
+            sz = md.get("size_mm") or MODDB["P130L"]["size_mm"]
+            nl = md.get("leds") or 2
+            ml, mw = sz[0] * s, sz[1] * s
+            seq = x["pts"]
+            c.setStrokeColor(HexColor("#555555")); c.setLineWidth(0.3)
+            for a_, b_ in zip(seq, seq[1:]):
+                if math.dist(a_[:2], b_[:2]) <= 1.6 * r["pitch"]:
+                    p0, p1 = T(*a_[:2]), T(*b_[:2]); c.line(p0[0], p0[1], p1[0], p1[1])
+            for (px, py, ang) in seq:
+                cx, cy = T(px, py)
+                c.saveState(); c.translate(cx, cy); c.rotate(-math.degrees(ang))
+                c.setFillColor(white); c.setStrokeColor(black); c.setLineWidth(0.4)
+                c.roundRect(-ml / 2, -mw / 2, ml, mw, min(1.5, mw / 4), stroke=1, fill=1)
+                c.setFillColor(col if r["gr"].get("led") == "red" else HexColor("#F2C200"))
+                for i_ in range(nl):
+                    lx = -ml / 2 + ml * (i_ + 0.5) / nl
+                    c.circle(lx, 0, max(0.6, mw * 0.28), stroke=0, fill=1)
+                c.restoreState()
             # kiekis virš raidės
             bx0, by0, bx1, by1 = g.bounds
-            ymax = min(py for _, py in x["pts"]) - r["pitch"] / 2 if x["pts"] else by0
+            ymax = min(q[1] for q in x["pts"]) - r["pitch"] / 2 if x["pts"] else by0
             tx, ty = T((bx0 + bx1) / 2, min(by0, ymax))
             c.setFillColor(black); c.setFont("Helvetica-Bold", 13)
             c.drawCentredString(tx, ty + 8, str(len(x["pts"])))
@@ -234,13 +276,17 @@ def sheet(spec, res, out):
         led = r["gr"].get("led", "white")
         c.setFont("Helvetica", 12); c.setFillColor(black)
         nm = (r["gr"].get("name") + ":  ") if r["gr"].get("name") and len(res) > 1 else ""
-        c.drawString(xa, yi, f"{nm}LED module {MODS[led]}  |  {r['n']} PCS.  |  Galia: ~{r['W']:.0f}W  |  "
+        c.drawString(xa, yi, f"{nm}LED module {mod_label(r['mod'], led)}  |  {r['n']} PCS.  |  Galia: ~{r['W']:.0f}W  |  "
                              f"Depth: {spec['depth']} mm  |  Atstumas tarp centru ~{r['pitch']} mm")
         if led == "red":
             c.setFillColor(RED); c.drawString(xa, yi - 14, "RED LED Modules"); c.setFillColor(black)
         else:
             c.drawString(xa, yi - 14, "White LED Modules, 6500K")
-        c.drawString(xa + 200, yi - 14, f"{r['psu'][0]}  ({r['psu'][1]} W, 12 V, IP67)")
+        c.drawString(xa + 200, yi - 14, r['psu'][0] if "24V" in r['psu'][0] else f"{r['psu'][0]}  ({r['psu'][1]} W, 12 V, IP67)")
+        if not MODDB[r["mod"]].get("size_mm"):
+            c.setFont("Helvetica", 8); c.setFillColor(HexColor("#C00000"))
+            c.drawString(xa + 430, yi - 14, f"! {r['mod']} matmenų lentelėje nėra - imitacija P130L korpusu, patikslinti")
+            c.setFillColor(black)
         yi -= 34
     # apačia
     c.setFillColor(black); c.rect(10 * mm, 22 * mm, 34 * mm, 14 * mm, stroke=0, fill=1)

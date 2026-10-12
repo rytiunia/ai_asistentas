@@ -49,3 +49,4 @@ Pirmas bandymas: Joker 226001 (`scripts/projektai/joker_reinslettveien/`, „Pat
   "0.757,0.071,0.11" --plate-fill 0.969,0.71,0` (v116: P1 dugnas -0,7, be drenažo / D11).
 - v113: DXF kontūrai tiesėmis + lankais (mažai mazgų) - nieko papildomai daryti nereikia.
 - v119: LED dėliojimas - `led_km.py` (KM-P2 / KM-P2-R, žingsnis pagal gylį), NE `led_sim.py`.
+\n- v120: `led_km.py` moduliai iš LED lentelės (raidėms P120 24V), lape LED imitacija.\n
