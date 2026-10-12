@@ -9,7 +9,10 @@ grafikos plotą.
 Pjaustymo failas: originali forma skaidoma KUO MAŽIAU. Telpa visa (trumpesnė pusė <= darbinis plotis) - ploteriuojama
 visa, neskaidant (sunaudojimas = ilgesnė pusė). Netelpa - skaidoma TIK bendrais objektais (automobilis / tekstas /
 dušai ...): pirmiausia per DIDŽIAUSIĄ tarpą tarp objektų, kol kiekviena dalis telpa; vienas objektas (pvz. raidė, kontūras)
-niekada nekarpomas. Objektas, kuris pats netelpa, - perspėjimas (siūlė / kitas rulonas, sprendžia Rytis).
+niekada nekarpomas. v122: UŽRAŠAS VIENOJE LINIJOJE (visi jo žodžiai) - VIENAS objektas, neskaidomas į žodžius / raides
+vien dėl plėvelės taupymo: gamybininkui klijuoti kelias dalis į vieną liniją, matuoti tarpus - brangiau ir rizikinga.
+Skaidoma tik tada, kai NETELPA į rulono plotį, niekada - vien taupant plėvelę. Objektas / eilutė, kuri pati netelpa, -
+perspėjimas (siūlė / kitas rulonas, sprendžia Rytis).
 
 Funkcijos:
   roll_for(film, allow_1500)             -> (darbinis plotis mm, pastaba)
@@ -126,6 +129,47 @@ def split_pieces(objs, W):
     return done
 
 
+def text_lines(objs, h_ratio=0.6, gap_k=1.5, align_k=0.12):
+    """v122 (Rytis 2026-10-12): UŽRAŠAS VIENOJE LINIJOJE - VIENAS NEKARPOMAS OBJEKTAS. Sujungiami objektai, kurie stovi
+    vienoje eilutėje: panašaus aukščio (santykis >= h_ratio: didžioji / mažoji / su nuleidimu), bendra apačia (bazinė linija)
+    ARBA bendras viršus (± align_k x aukštis; „p" jungiasi per „e"), tarpas <= gap_k x didesnis aukštis (tarpas tarp
+    žodžių - taip pat). Diakritikai / taškai (ö, ä, å, i, ė - < 0,35 raidės aukščio, VIRŠ raidės jos x ribose,
+    <= 0,35 h) - prie raidės. Piktograma (automobilis, dušas) - ne tokio aukščio / ne toje linijoje -> atskiras objektas.
+    Grąžina [[objektų indeksai], ...]."""
+    n = len(objs)
+    bb = [g.bounds for g in objs]
+    par = list(range(n))
+
+    def f(x):
+        while par[x] != x:
+            par[x] = par[par[x]]
+            x = par[x]
+        return x
+    for i in range(n):
+        x0, y0, x1, y1 = bb[i]
+        for j in range(i + 1, n):
+            a0, b0, a1, b1 = bb[j]
+            hi, hj = y1 - y0, b1 - b0
+            lo, hm = min(hi, hj), max(hi, hj)
+            if hm <= 0:
+                continue
+            ov = min(y1, b1) - max(y0, b0)
+            gap = max(a0 - x1, x0 - a1, 0)
+            aligned = abs(y0 - b0) <= align_k * hm or abs(y1 - b1) <= align_k * hm
+            if lo / hm >= h_ratio and ov >= 0.6 * lo and aligned and gap <= gap_k * hm:
+                par[f(i)] = f(j)
+                continue
+            # diakritikas: mažas objektas VIRŠ raidės (y aukštyn), jos x ribose
+            (s0, t0, s1, t1), (L0, M0, L1, M1) = (bb[i], bb[j]) if hi < hj else (bb[j], bb[i])
+            cx = (s0 + s1) / 2
+            if lo < 0.35 * hm and L0 <= cx <= L1 and t0 >= M1 - 0.05 * hm and t0 - M1 <= 0.35 * hm:
+                par[f(i)] = f(j)
+    out = {}
+    for i in range(n):
+        out.setdefault(f(i), []).append(i)
+    return list(out.values())
+
+
 # ------------------------------------------------------------------ išdėstymas ant rulono
 def _pack(sizes, W, gap, policy):
     """sizes [(w, h)] -> stulpeliai išilgai rulono: kiekvienas stulpelis - dalys viena po kitos skersai rulono
@@ -153,7 +197,7 @@ def _pack(sizes, W, gap, policy):
     return total, cols
 
 
-def plan(objs, film="", gap_mm=GAP_MM, allow_1500=False, kind=None, roll_mm=None):
+def plan(objs, film="", gap_mm=GAP_MM, allow_1500=False, kind=None, roll_mm=None, keep_lines=True):
     """Pagrindinė funkcija. objs - shapely geometrijos mm (originalo koordinatėmis), vienas = nekarpomas objektas."""
     objs = [g for g in objs if g is not None and not g.is_empty]
     W, note = roll_for(film, allow_1500, kind)
@@ -163,12 +207,14 @@ def plan(objs, film="", gap_mm=GAP_MM, allow_1500=False, kind=None, roll_mm=None
     if not objs:
         return {"roll": W, "pieces": [], "placements": [], "length_mm": 0, "m2": 0, "split": False, "notes": notes,
                 "text": "plėvelės nėra"}
-    groups = split_pieces(objs, W)
+    lines = text_lines(objs) if keep_lines else [[i] for i in range(len(objs))]
+    atoms = [unary_union([objs[i] for i in ids]) for ids in lines]          # užrašų eilutės - nekarpomi objektai
+    groups = [[i for a in ids for i in lines[a]] for ids in split_pieces(atoms, W)]
     pieces = [unary_union([objs[i] for i in ids]) for ids in groups]
     for k, p in enumerate(pieces):
         if not _fits(p, W):
             w, h = _bb(p)
-            notes.append(f"! dalis {k + 1} ({w:.0f} x {h:.0f}) - vienas objektas platesnis už {W:.0f} mm rulono darbinį plotį: "
+            notes.append(f"! dalis {k + 1} ({w:.0f} x {h:.0f}) - vienas objektas / užrašo eilutė platesnis už {W:.0f} mm rulono darbinį plotį: "
                          f"siūlė objekte arba platesnis rulonas - Rytis sprendžia")
     sizes = [_bb(p) for p in pieces]
     best = min((_pack(sizes, W, gap_mm, pol) + (pol,) for pol in ("long", "short")), key=lambda t: t[0])

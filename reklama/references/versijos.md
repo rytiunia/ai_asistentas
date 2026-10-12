@@ -2,6 +2,12 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v122 (2026-10-12)
+
+Rytis: „užrašas vientisas vienoje linijoje, taip perslėlus gamybininkui teks taikyti 2 užrašus į vieną liniją, matuoti tarpus,
+galimos klaidos ... negalima išskaidyti užrašų iki atskirų raidžių, kad sutaupyti plėvelės". `plevele.py` - `text_lines`
+(vienos eilutės raidės, žodžiai ir diakritikai sujungiami į vieną nekarpomą objektą prieš skaidymą), `plan(keep_lines=True)`.
+
 ## v121 (2026-10-12)
 
 Rytis: „plėvelė skaičiuojama pagal sunaudojimą pagal medžiagą, ne pagal pačios plėvelės plotą. Standartas spalvota plėvelė
