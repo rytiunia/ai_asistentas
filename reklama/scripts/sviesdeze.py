@@ -27,11 +27,11 @@ from reportlab.lib.colors import HexColor, white  # noqa: E402
 
 DEF = {"client": "", "title": "DOUBLE-SIDED LIGHTBOX, WALL MOUNTED (PROJECTING)", "order_no": "", "drawing_no": "",
        "date": "2026-10-12", "rev": "A", "qty": 1,
-       "w": 500, "h": 500, "depth": 100, "face_thk": 3.0, "face_over": 1.5, "band_thk": 1.5, "frame": [30, 30, 2],
+       "w": 500, "h": 500, "depth": 140, "face_thk": 3.0, "face_over": 1.5, "band_thk": 1.5, "frame": [30, 30, 2],
        "leg_len": 100, "flange": [100, 100, 8], "flange_r": 10, "hole_d": 10, "hole_pitch": 64,
        "body_finish": "RAL ____", "frame_finish": "RAL ____", "face": "3 mm opal white plexiglass",
        "pvc_edge": [3, 15], "screw_step": 150, "led": "DS15", "led_rows": None, "led_pitch": None,
-       "cable": "", "anchors": "", "scale_ga": 8, "screws_per_edge": 3}
+       "cable": "", "anchors": "", "scale_ga": 8, "screws_per_edge": 3, "logo": None}
 COL_BODY, COL_FRAME, COL_FACE, COL_PVC, COL_FL, COL_LED = (HexColor("#9C9C9C"), HexColor("#B4B4B4"), HexColor("#F4F4F2"),
                                                            HexColor("#C8C8C8"), HexColor("#8C8C8C"), HexColor("#F2C230"))
 EDGE = HexColor("#555555")
@@ -95,6 +95,17 @@ def geom(S):
     g["scr_n_face"] = S["screws_per_edge"] or math.ceil(g["BW"] / S["screw_step"])
     g["scr_wall"] = [(ov + u, z, k) for fn, u, z, k in holes if fn == "wall"]
     g["n_scr"] = len(holes)
+    # v140: logotipas (kliento PNG -> vektorius), abiejose pusėse, centre
+    g["logo_r"] = None
+    if S.get("logo"):
+        import vektorius
+        L_ = S["logo"]
+        g["logo_r"] = vektorius.rings(L_["file"], L_["width"])
+        g["logo_w"], g["logo_h"] = vektorius.size(g["logo_r"])
+        g["logo_x"] = (W_ - g["logo_w"]) / 2
+        g["logo_y"] = L_.get("top", (H_ - g["logo_h"]) / 2)
+        g["logo_col"] = HexColor(L_.get("color", "#000000"))
+        g["logo_mat"] = L_.get("material", "film:")
     return g
 
 
@@ -113,7 +124,9 @@ def bom_rows(g):
             [6, f"PVC edge {pw:g} x {pd:g} (face B)", "PVC, glued to face", "white", f"{g['pvc_len']:g} mm"],
             [7, f"LED Kaisen {g['led_name']} + PSU", f"PSU {g['psu'][0].replace('-5Y', '')}", "6500 K",
              f"{g['led_n']} pcs. ({g['led_W']:.1f} W) + 1 PSU"],
-            [8, "Tapping screw, D3.2 holes", "A2", "-", f"{g['n_scr']} pcs. (into PVC edge)"]]
+            [8, "Tapping screw, D3.2 holes", "A2", "-", f"{g['n_scr']} pcs. (into PVC edge)"]] + (
+           [[9, "Logo, sides A + B", g["logo_mat"], "black", f"2 pcs., {g['logo_w']:g} x {g['logo_h']:.0f} mm"]]
+           if g.get("logo_r") else [])
 
 
 def band(g, sheet, title_extra, md, bom, detail_fn):
@@ -215,11 +228,21 @@ def scene3d(g, yaw, box, title):
         sc.face([P(*q) for q in _circle_pts(0, 0, hr, 16)], n, SCR, tile=False, amb=0.9)
     sc.render(box)
     V = sc.V
+    import vektorius
     for zf, lab in ((D / 2 + tf, "SIDE A"), (-D / 2 - tf, "SIDE B")):
         n = (0, 0, 1 if zf > 0 else -1)
         if V.rot(*n)[2] > 0:
-            px, py = V.S(Wd / 2, Hd / 2, zf)
-            face_label(px, K.H - py, lab, 11)
+            if g.get("logo_r"):                                     # logotipas ant matomo stiklo (B - skaitomas iš B)
+                def xf(u, v, zf=zf):
+                    x = g["logo_x"] + u if zf > 0 else Wd - (g["logo_x"] + u)
+                    px_, py_ = V.S(x, Hd - (g["logo_y"] + v), zf)
+                    return px_, K.H - py_
+                vektorius.draw_rl(K.c, g["logo_r"], 0, 0, 1, K.H, g["logo_col"], xform=xf)
+                px, py = V.S(Wd / 2, Hd * 0.04, zf)
+                face_label(px, K.H - py - 2, lab, 8)
+            else:
+                px, py = V.S(Wd / 2, Hd / 2, zf)
+                face_label(px, K.H - py, lab, 11)
     view_title(box[0] + box[2] / 2, box[1] + box[3] + 18, title, "ILLUSTRATIVE - NOT TO SCALE")
 
 
@@ -228,7 +251,7 @@ def sheet1(g, out):
     fa, fb, ft = g["frame"]
     LL = g["leg_len"]; FLw, FLh, FLt = g["flange"]; ax = g["ax"]; TOT = g["TOT"]
     pw, pd = g["pvc_edge"]
-    K.set_band(9)
+    K.set_band(10 if g.get("logo_r") else 9)
     K.init(out + ".tmp", "sheet1")
     K.frame(); K.set_view(True)
     s = MM / g["scale_ga"]
@@ -243,6 +266,16 @@ def sheet1(g, out):
         X = (lambda x: fx + (g["PROJ"] - x) * s) if mirror else (lambda x: fx + x * s)
         xl, xr_ = (X(Wd), X(0)) if mirror else (X(0), X(Wd))
         rect(xl, Yv(0), Wd * s, Hd * s, fill=COL_FACE, lw=0.1)
+        if g.get("logo_r"):                                         # logotipas - abiejose pusėse skaitomas normaliai
+            import vektorius
+            vektorius.draw_rl(K.c, g["logo_r"], xl + g["logo_x"] * s, Yv(g["logo_y"]), s, K.H, g["logo_col"])
+            lx0, lx1 = xl + g["logo_x"] * s, xl + (g["logo_x"] + g["logo_w"]) * s
+            hchain(Yv(0) - 50, [xl, lx0, lx1, xr_], [Yv(0), Yv(g["logo_y"]), Yv(g["logo_y"]), Yv(0)],
+                   [f"{g['logo_x']:g}", f"{g['logo_w']:g}", f"{g['logo_x']:g}"], size=K.F_DIM_FRAME)
+            xo2 = xl - 44 if not mirror else xr_ + 44
+            ly0, ly1 = g["logo_y"], g["logo_y"] + g["logo_h"]
+            vchain(xo2, [Yv(0), Yv(ly0), Yv(ly1), Yv(Hd)], [xl if not mirror else xr_] + [lx0 if not mirror else lx1] * 2 +
+                   [xl if not mirror else xr_], [f"{ly0:.0f}", f"{g['logo_h']:.0f}", f"{Hd - ly1:.0f}"], size=K.F_DIM_FRAME)
         for yc in (ax, Hd - ax):
             a_, b_ = sorted((X(g["xb"]), X(g["xf"])))
             rect(a_, Yv(yc - fa / 2), LL * s, fa * s, fill=COL_FRAME, lw=0.1)
@@ -266,7 +299,7 @@ def sheet1(g, out):
                    XA(g["PROJ"]) + 16, "right", up=False)
     vchain(XA(g["PROJ"]) + 16, [Yv(0), Yv(ax), Yv(Hd - ax), Yv(Hd)], [XA(Wd)] + [XA(g["PROJ"])] * 2 + [XA(Wd)],
            [f"{ax:g}", f"{Hd - 2 * ax:g}", f"{ax:g}"], size=K.F_DIM_FRAME)
-    xcut = Wd * 0.3
+    xcut = Wd * 0.1
     K.cut_plane(XA(xcut), Yv(0), Yv(Hd), "A", look="right")
     view_title(XA(g["PROJ"] / 2), top - 84, "FRONT VIEW - SIDE A", sl)
     # vaizdas iš sienos (gręžimo schema)
@@ -414,7 +447,7 @@ def sheet1(g, out):
 
     md = [["Product", "double-sided lightbox, projecting"],
           ["Size (glass)", f"{Wd:g} x {Hd:g} x {TOT:g} mm"],
-          ["Sides", "A + B (graphics per side)"],
+          ["Sides", (f"A + B: logo {g['logo_w']:g} x {g['logo_h']:.0f} (9)" if g.get("logo_r") else "A + B (graphics per side)")],
           ["From wall", f"{g['PROJ']:g} mm (body {LL + FLt:g})"],
           ["Fixing", f"2 flanges, 8 x Ø{g['hole_d']:g}, {g['hole_pitch']:g} x {g['hole_pitch']:g} {g['anchors']}".strip()],
           ["LED / PSU", f"{g['led_n']} x {g['led_name']}, {g['psu'][0].replace('-5Y', '')}"],
@@ -494,7 +527,8 @@ def sheet2(g, out):
     rect(Zc(-fb / 2 + ft), Yc(ft), (fb - 2 * ft) * s2, (fa - 2 * ft) * s2, fill=white, lw=0.1)
     rect(Zc(-11), Yc(-8), 22 * s2, 8 * s2, fill=COL_LED, lw=0.1)
     for dz in (-1, 1):
-        line(Zc(0), Yc(-8), Zc(dz * D / 2), Yc(-8 - D / 2 / math.tan(math.radians(32.5))), 0.25, HexColor("#C9A000"), dash=(2, 1.5))
+        hb_ = min(D / 2 / math.tan(math.radians(32.5)), up_ - 10)
+        line(Zc(0), Yc(-8), Zc(dz * hb_ * math.tan(math.radians(32.5))), Yc(-8 - hb_), 0.25, HexColor("#C9A000"), dash=(2, 1.5))
     T(Zc(0), Yc(-up_) + 10, "65°", 8, align="c", color=HexColor("#8A6D00"))
     hchain(Yc(fa + tb + ov) + 22, [Zc(-D / 2 - tf), Zc(-D / 2), Zc(-fb / 2), Zc(fb / 2), Zc(D / 2), Zc(D / 2 + tf)],
            [Yc(fa + tb)] * 6, [f"{tf:g}", f"{(D - fb) / 2:g}", f"{fb:g}", f"{(D - fb) / 2:g}", f"{tf:g}"], size=K.F_DIM_FRAME)

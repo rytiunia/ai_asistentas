@@ -2,6 +2,11 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v140 (2026-10-12)
+
+v140, Rytis 2026-10-12: šviesdėžė - tūris 140 mm (500 x 500), logotipas 300 mm pločio abiejose pusėse iš kliento PNG
+(`scripts/vektorius.py`, potracer); projektas `scripts/projektai/sviesdeze_500_logo/` (spec + logo.png).
+
 ## v139 (2026-10-12)
 
 v139, Rytis 2026-10-12: automatinis žymėjimas 2 praėjimais (`lapas_core.balloon_auto`, `auto_place` - rastro kaukė, artimiausia
