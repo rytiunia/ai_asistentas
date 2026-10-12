@@ -2,6 +2,13 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v127 (2026-10-12)
+
+v127, Rytis 2026-10-12 (pridėti gamybos failai 2023_Modules_Depth_table_ENG.xlsx ir Kaisen kainoraštis Alt Reklama - „laikyti kaip
+naują versiją LED dėliojime"): `assets/kaisen_led.json` (moduliai, KPS PSU, 35 ryškumo lentelės, „in the leg" lentelės);
+`led_km.py` - Kaisen modulis pagal gylį, žingsnis pagal lx >= 2200, PSU KPS. Patikra: Åpn496 KM-P2-W p140 20 vnt. / KPS-V12-20W,
+Åpn894 35 vnt. / 36W, X + EXTRA KM-P2-R 39 vnt., SPAR VH400 / VH500 (gylis 80) p110 / p140 po 67 vnt. / KPS-V12-100W.
+
 ## v126 (2026-10-12)
 
 v126, Rytis 2026-10-12 („kodėl čia taip keistai nepridėti led?" - FAS700 A be modulių kojose, 7 be modulio kampe):

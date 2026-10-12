@@ -1,4 +1,4 @@
-> **v125 (Rytis 2026-10-12): Lens moduliai NE mūsų tiekėjas - naudojami BaltLED (`assets/baltled_led.json`, `led_km.py`). Šis failas - tik istorijai.**
+> **v125 (Rytis 2026-10-12): Lens moduliai NE mūsų tiekėjas - v127 - naudojami Kaisen (`assets/kaisen_led.json`, `led_km.py`). Šis failas - tik istorijai.**
 
 # LED Lens moduliai - TIEKĖJO DUOMENYS (Rytis 2026-10-08)
 

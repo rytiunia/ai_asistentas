@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""LED (BaltLED PRISMA, v125) išdėstymas raidėse - GAMYBOS STILIUS (v119, Rytis 2026-10-12: „led dėliojimas vis dar blogas",
+"""LED (Kaisen PRISM, v127) išdėstymas raidėse - GAMYBOS STILIUS (v119, Rytis 2026-10-12: „led dėliojimas vis dar blogas",
 pavyzdžiai: assets/led_pavyzdziai/, ypač ALT8873 EXTRA 225978_1 / _2 - Ryčio perdaryti mūsų lapai).
 
 NUMATYTAS LED įrankis (led_sim.py Lens simuliacija - tik paprašius). Principas:
@@ -27,66 +27,79 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import led_sim as LS  # noqa: E402  read_letters, skeleton_paths, _at, stroke_max
 
-# v125 (Rytis 2026-10-12: „p120 klaida. naudojami led moduliai ir transformatoriai iš https://baltled.com"):
-# moduliai ir PSU - IŠ BaltLED katalogo (assets/baltled_led.json). Raidėms pagal gylį (BaltLED rekomenduojami gyliai):
-# < 30 MINI HE, 30-49 PRISMA S1+, 50-100 PRISMA S2+ (= Kaizen KM-P2 HE 0,72W), 101-125 PRISMA S3+, > 125 PRISMA S4+;
-# žingsnis - Ryčio gamybos lapų (assets/led_pavyzdziai), ne didesnis už BaltLED CC; spec "module" - kitaip.
-_BJ = json.load(open(os.path.join(HERE, "..", "assets", "baltled_led.json"), encoding="utf-8"))
-
-
-def _num(v, k=0):
-    import re as _re
-    xs = _re.findall(r"\d+(?:\.\d+)?", str(v or ""))
-    return float(xs[k]) if len(xs) > k else None
-
-
-MODDB = {}
-for _m in _BJ["modules"]:
-    if not _m.get("name") or _m.get("fetch_status") != "ok":
-        continue
-    cc = str(_m.get("cc_distance_mm") or "")
-    MODDB[_m["name"]] = {"name": _m["name"], "W": _num(_m.get("power_W")), "V": int(_num(_m.get("voltage_V")) or 12),
-                         "cc": _num(cc), "cc_red": (_num(cc, 1) if "red" in cc else None),
-                         "codes": _m.get("product_codes"), "url": _m.get("url"), "depth": _m.get("recommended_depth_mm"),
-                         "size_mm": None, "leds": None}
-PSU = sorted([(q["model"], int(q["rated_power_w"])) for q in _BJ["power_supplies"]
-              if q.get("model") and q.get("rated_power_w") and str(q.get("ip_rating", "")).startswith("IP6")
-              and "12" in str(q.get("output_voltage", "")) and "C700" not in q["model"] and "BPSS" not in q["model"]],
-             key=lambda t: (t[1], 0 if t[0].startswith("BPS-") else 1))
+# v127 (Rytis 2026-10-12: „pridedu papildomą informaciją dėl LED ... failai gauti gamyboje, laikyti kaip NAUJĄ VERSIJĄ"):
+# moduliai, PSU ir ryškumo lentelės - Kaisen Electric (assets/kaisen_led.json: kainoraštis 2023 Alt Reklama + Modules Depth
+# table 2023). Modulis pagal gylį (kainoraščio diapazonai, PRISM 12V): 30-49 KM-P0, 50-59 KM-P1, 60-100 KM-P2 0,72W,
+# 101-120 KM-P2 1W, 121-150 KM-P3 1,5W, 151-250 KM-P4 2W; raudoni - KM-P*-R; plona linija (< 35 mm) - MINI3.
+# Žingsnis - DIDŽIAUSIAS ryškumo lentelėje su lx >= lux_target (2200; Ryčio lapai: KM-P2 d100 p140 = 2250 lx), <= CC.
+# PSU - Kaisen KPS outdoor IP67 (12V / 24V), apkrova <= 75 %.
+_KJ = json.load(open(os.path.join(HERE, "..", "assets", "kaisen_led.json"), encoding="utf-8"))
+MODDB = {m["code"]: dict(m, name=m["code"]) for m in _KJ["modules"]}
+_TAB = {b["name"]: [(float(d), float(p_), float(l)) for d, p_, l in b["table"]] for b in _KJ["depth_tables"]}
+PSU = [tuple(x) for x in _KJ["psu_12v_outdoor"]]
+PSU24 = [tuple(x) for x in _KJ["psu_24v_outdoor"]]
 PSU_LOAD = 0.75
-# žingsnis (tarp centrų) pagal gylį - Ryčio gamybos lapai (PRISMA / KM-P): S1+ d40 60, d60 90; S2+ d50 100, d70 120,
-# d80 130, d100 140; S3+ d100 130-150
-PITCH = {"MINI HE": [(20, 45), (60, 86)], "PRISMA S1+": [(30, 50), (40, 60), (60, 90)],
-         "PRISMA S2+": [(50, 100), (70, 120), (80, 130), (100, 140)], "PRISMA S3+": [(100, 140), (125, 160)],
-         "PRISMA S4+": [(125, 180), (150, 200)]}
+LUX = float(_KJ.get("lux_target", 2200))
 
 
-def mod_for(depth, spec_mod=None):
+def mod_for(depth, spec_mod=None, led="white", w=None):
     if spec_mod:
         return spec_mod
-    for r in _BJ["letters_default"]["rules"]:
-        if r["depth_min"] <= depth <= r["depth_max"]:
-            return r["module"]
-    return "PRISMA S2+"
+    if w is not None and w < _KJ.get("narrow_stroke_mm", 35) and led != "red":
+        for r in _KJ["narrow"]:
+            if r["depth"][0] <= depth <= r["depth"][1]:
+                return r["code"]
+    code = "KM-P2-W"
+    for r in _KJ["letters_default"]:
+        if r["depth"][0] <= depth <= r["depth"][1]:
+            code = r["code"]; break
+    if led == "red":
+        code = _KJ["red"].get(code, code)
+    return code
 
 
 def mod_label(m, led):
     d = MODDB[m]
-    return f"BaltLED {d['name']} {str(d['W']).replace('.', ',')}W {d['V']}V" + (" RED" if led == "red" else " 6500K")
+    return f"{d['code']} {str(d['W']).replace('.', ',')}W {d['V']}V" + (" RED" if d.get("color") == "red" else " 6500K")
 
 
-def pitch_for(depth, m="PRISMA S2+", led="white"):
-    tab = PITCH.get(m) or [(depth, (MODDB[m]["cc"] or 140) * 0.6)]
-    p = float(np.interp(depth, [a for a, _ in tab], [b for _, b in tab]))
-    cap = (MODDB[m]["cc_red"] if led == "red" and MODDB[m].get("cc_red") else MODDB[m]["cc"]) or 999
-    return int(min(round(p / 10.0) * 10, cap))
+def leds_of(m):
+    w = MODDB[m]["W"]
+    return 1 if w <= 0.5 else 2 if w <= 1.0 else 3 if w <= 1.5 else 4
+
+
+def pitch_for(depth, m="KM-P2-W", led="white"):
+    """didžiausias lentelės žingsnis su lx >= LUX (tarp lentelės gylių - tiesinė interpoliacija pagal gylį)"""
+    md = MODDB[m]
+    tab = _TAB.get(md.get("table") or "")
+    cap = md.get("cc_mm") or 999
+    if not tab:
+        return int(min(cap, 0.7 * cap) // 10 * 10)
+    ds = sorted(set(d for d, _, _ in tab))
+    dd = min(max(depth, ds[0]), ds[-1])
+    lo = max([d for d in ds if d <= dd]); hi = min([d for d in ds if d >= dd])
+    best = None
+    for p_ in sorted(set(p_ for _, p_, _ in tab)):
+        def lx(d):
+            v = [l for d2, p2, l in tab if d2 == d and p2 == p_]
+            return v[0] if v else None
+        a, b = lx(lo), lx(hi)
+        if a is None or b is None:
+            continue
+        l = a if hi == lo else a + (b - a) * (dd - lo) / (hi - lo)
+        if l >= LUX and p_ <= cap:
+            best = p_
+    if best is None:
+        best = min(p_ for _, p_, _ in tab)
+    return int(best)
 
 
 def psu_for(watts, V=12):
-    for nm, w in PSU:
+    lst = PSU if V == 12 else PSU24
+    for nm, w in lst:
         if watts <= PSU_LOAD * w:
             return nm, w
-    nm, w = PSU[-1]
+    nm, w = lst[-1]
     n = math.ceil(watts / (PSU_LOAD * w))
     return f"{n} x {nm}", w * n
 
@@ -246,12 +259,11 @@ def run(spec):
     for k, (gr, L) in enumerate(zip(groups, allL)):
         dx, dy = (org[k][0] - gx) * sc, (org[k][1] - gy) * sc
         L = [affinity.translate(g, dx, dy) for g in L]
-        m = mod_for(depth, gr.get("module") or spec.get("module"))
+        w_med = float(np.median([LS.stroke_max(g) for g in L])) if L else None
+        m = mod_for(depth, gr.get("module") or spec.get("module"), gr.get("led", "white"), w_med)
         p = gr.get("pitch") or spec.get("pitch") or pitch_for(depth, m, gr.get("led", "white"))
         if not (gr.get("pitch") or spec.get("pitch")) and L:
-            # v126: plonos linijos (mažos raidės) - žingsnis <= 1,6 x linijos plotis (Ryčio lapai: Åpn496 w 90 -> 140;
-            # be to FAS700 7-23 w 62 su 140 likdavo tuščios kojos / kampai)
-            w_med = float(np.median([LS.stroke_max(g) for g in L]))
+            # v126: plonos linijos (mažos raidės) - žingsnis <= 1,6 x linijos plotis (geometrinė aprėptis)
             p = int(min(p, max(60, round(1.6 * w_med / 10.0) * 10)))
         per = []
         for g in L:
@@ -342,7 +354,7 @@ def sheet(spec, res, out):
             # priimtiniau nei vieni apskritimai); grandinės laidas tarp gretimų modulių
             md = MODDB[r["mod"]]
             sz = md.get("size_mm") or [0.32 * r["pitch"], 0.12 * r["pitch"]]   # BaltLED matmenų nenurodo - simbolinis
-            nl = md.get("leds") or 2
+            nl = leds_of(r["mod"])
             ml, mw = sz[0] * s, sz[1] * s
             seq = _wire_order(x["pts"])
             c.setStrokeColor(HexColor("#555555")); c.setLineWidth(0.3)
@@ -386,7 +398,7 @@ def sheet(spec, res, out):
             c.setFillColor(RED); c.drawString(xa, yi - 14, "RED LED Modules"); c.setFillColor(black)
         else:
             c.drawString(xa, yi - 14, "White LED Modules, 6500K")
-        c.drawString(xa + 200, yi - 14, f"PSU BaltLED {r['psu'][0]}  ({r['psu'][1]} W, 12 V, IP67)")
+        c.drawString(xa + 200, yi - 14, f"PSU {r['psu'][0]}  ({r['psu'][1]} W, {MODDB[r['mod']]['V']} V, IP67)")
         yi -= 34
     # apačia
     c.setFillColor(black); c.rect(10 * mm, 22 * mm, 34 * mm, 14 * mm, stroke=0, fill=1)

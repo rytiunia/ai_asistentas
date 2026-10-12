@@ -51,3 +51,4 @@ Pirmas bandymas: Joker 226001 (`scripts/projektai/joker_reinslettveien/`, „Pat
 - v119: LED dėliojimas - `led_km.py` (KM-P2 / KM-P2-R, žingsnis pagal gylį), NE `led_sim.py`.
 
 - v120: `led_km.py` moduliai iš LED lentelės (raidėms P120 24V), lape LED imitacija.
+- v127: LED moduliai / PSU / žingsnis - Kaisen (`assets/kaisen_led.json`, ryškumo lentelės, lx >= 2200), ne BaltLED / Lens.
