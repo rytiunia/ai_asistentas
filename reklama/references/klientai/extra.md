@@ -98,7 +98,8 @@ Perimetras: X 7 m, EXTRA + 7-23 25 m.
   Simetriška X ašiai.
 - **Ø11 laidui - viena**, apatinėje dešinėje šakoje, ŠALIA profilio (~60 mm nuo ašies), apskritime toje pačioje vietoje.
 - **Apskritimas Ø1800 (3 mm Alu)** - tos pačios 8 x Ø3.2 + Ø11, X pozicija apskritime (X glass kairys viršus ~82 / 286 mm nuo
-  apskritimo bbox). ETALONE apskritimo skylės - TOJE PAČIOJE orientacijoje kaip X (vaizdas iš priekio, ne veidrodis).
+  apskritimo bbox). Apskritimas - VAIZDAS IŠ PRIEKIO (skylės toje pačioje orientacijoje kaip X), nes pažymėtas 60x60 X
+  rėmas iškart rodo pusę (v118, Rytis); `p6_dxf.py --plate-front`, C žymos nereikia. Be rėmo žymėjimo - veidrodis + C žyma.
 - EXTRA / 7-23 1:1 - stiklas + dugnas -3, tvirtinimas kaip įprasta (U30 bėgeliai, D3.2, D11 - `p6_dxf.py`).
 
 **Skirtumas nuo vieno rėmo (FAS700 / FAS1000):** ten X tvirtinamas per bendro rėmo U bėgelių horizontalią ašį (v115);

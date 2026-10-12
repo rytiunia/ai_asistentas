@@ -2,6 +2,13 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v118 (2026-10-12)
+
+v118, Rytis 2026-10-12 („kadangi h1800 pažymėti kur dedasi X tvirtinimo rėmai - tada vaizdas iš priekio ... kai nėra rėmo
+žymėjimo, galinėje pusėje daroma C tipo žymėjimas"): `p6_dxf.py --plate-front` (plokštė iš priekio, be C), numatyta -
+veidrodis + C žyma (ARC R6 45-315°, `--c-mark-r`, sluoksnis `5_C_ZYMA`, plokštės centre >= 15 mm nuo skylių).
+EXTRA 225978 FAS700 / FAS1000 DXF perdaryti.
+
 ## v117 (2026-10-12)
 
 v117, Rytis 2026-10-12 („skill: extra h1800 gamybos principas", failas extra_H1800.pdf - Extra Order 225818, ALT8852):

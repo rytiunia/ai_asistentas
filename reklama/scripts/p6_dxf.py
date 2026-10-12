@@ -84,6 +84,8 @@ ap.add_argument("--fill", default=None, help="v97: raidžių spalva r,g,b (kaip 
 ap.add_argument("--plate-fill", default=None, help="v112: PLOKŠTĖS spalva r,g,b (pvz. EXTRA geltonas apskritimas po X) - plokštė + jos raidė(s) atskirai")
 ap.add_argument("--spacer-d", type=float, default=4, help="v112: raidės ant plokštės distancerių / varžtų skylės Ø (EXTRA X - Ø4)")
 ap.add_argument("--spacer-edge", type=float, default=15, help="v112: distancerio skylės centras nuo dugno krašto, mm")
+ap.add_argument("--plate-front", action="store_true", help="v118: plokštėje pažymėti X tvirtinimo rėmai (H1800 60x60) - plokštė VAIZDAS IŠ PRIEKIO, be C žymos")
+ap.add_argument("--c-mark-r", type=float, default=6, help="v118: C žymos (galinė pusė) spindulys mm")
 ap.add_argument("--plate-gap", type=float, default=100, help="v112: raidė ant plokštės DXF'e perkeliama kairiau plokštės, tarpas mm")
 ap.add_argument("--separate", action="store_true", help="v90: atskiros raidės be rėmo - bėgeliai tik skylių ašys, 3_REMAS nėra, D11 vienoje horizontalioje linijoje")
 ap.add_argument("--rails-json", default=None, help="v85: rėmas iš braizyti_begeliai.py (RAILS_JSON) - bėgeliai kaip lape, galai nekeičiami")
@@ -1075,15 +1077,37 @@ if PLATES:
                 if o["d11p"] is None:
                     print("  ! raidė ant plokštės: Ø11 laido skylei vietos nerasta - dėti ranka")
             o["drain"] = drain_points(o["back"], r=A.drain_d / 2) if not A.interior else []
-            # plokštėje - tos pačios skylės veidrodiškai (plokštė iš galo)
-            mir_ = lambda q: (pb_[0] + pb_[2] - q[0], q[1])
+            # v118 (Rytis 2026-10-12): plokštėje pažymėti X tvirtinimo rėmai (H1800) -> vaizdas IŠ PRIEKIO (rėmo žymėjimas
+            # iškart rodo pusę); rėmo žymėjimo nėra -> plokštė VEIDRODIŠKAI (iš galo) + C žyma galinėje pusėje
+            mir_ = (lambda q: q) if A.plate_front else (lambda q: (pb_[0] + pb_[2] - q[0], q[1]))
             pl_["holes"] += [mir_(q) for q in hs_]
             if o["d11p"]:
                 pl_["d11"] = mir_(o["d11p"])
             o["shift"] = pb_[0] - A.plate_gap - x1_                       # X - kairiau apskritimo
-        pl_["mirror"] = lambda q, b=pb_: (b[0] + b[2] - q[0], q[1])
+        pl_["mirror"] = (lambda q: q) if A.plate_front else (lambda q, b=pb_: (b[0] + b[2] - q[0], q[1]))
+        pl_["cmark"] = None
+        if not A.plate_front:                                   # C žyma - plokštės centre, toliau nuo skylių
+            cx_, cy_ = (pb_[0] + pb_[2]) / 2, (pb_[1] + pb_[3]) / 2
+            hs_all = pl_["holes"] + ([pl_["d11"]] if pl_["d11"] else [])
+            inner_ = pl_["geom"].buffer(-(A.c_mark_r + 20))
+            best_ = None
+            for dx_ in range(-200, 201, 10):
+                for dy_ in range(-200, 201, 10):
+                    q_ = (cx_ + dx_, cy_ + dy_)
+                    if not inner_.contains(Point(q_)):
+                        continue
+                    dmin = min([math.dist(q_, h_) for h_ in hs_all] or [1e9])
+                    if dmin < A.c_mark_r + 15:
+                        continue
+                    k_ = math.hypot(dx_, dy_)
+                    if best_ is None or k_ < best_[0]:
+                        best_ = (k_, q_)
+            pl_["cmark"] = best_[1] if best_ else None
+            if not best_:
+                print("  ! plokštė: C žymai vietos nerasta - dėti ranka")
         print(f"  plokštė {pb_[2] - pb_[0]:.0f} x {pb_[3] - pb_[1]:.0f}: Ø{A.spacer_d:g} x {len(pl_['holes'])}" +
-              (f", Ø{A.d11:g} laidui" if pl_["d11"] else "") + " (veidrodiškai - plokštė iš galo)")
+              (f", Ø{A.d11:g} laidui" if pl_["d11"] else "") +
+              (" (vaizdas iš priekio - rėmų žymėjimas)" if A.plate_front else " (veidrodiškai - plokštė iš galo, C žyma galinėje pusėje)"))
     GX0 = min([GX0] + [o["bb"][0] + o["shift"] for pl_ in PLATES for o in pl_["let"]] + [pl_["geom"].bounds[0] for pl_ in PLATES])
     GY1 = max([GY1] + [pl_["geom"].bounds[3] for pl_ in PLATES])
 
@@ -1110,12 +1134,14 @@ def put_plates(msp, var):
             msp.add_circle(Tp(q), A.spacer_d / 2, dxfattribs={"layer": "4_PLOKSTE"})
         if var and pl_["d11"]:
             msp.add_circle(Tp(pl_["d11"]), A.d11 / 2, dxfattribs={"layer": "4_PLOKSTE"})
+        if pl_.get("cmark"):                                    # v118: C - galinė pusė (skaitoma iš galo)
+            msp.add_arc(Tp(pl_["cmark"]), A.c_mark_r, 45, 315, dxfattribs={"layer": "5_C_ZYMA"})
 
 
 # ------------------------------------------------------------------ DXF
 os.makedirs(A.out_dir, exist_ok=True)
 prefix = A.prefix or os.path.splitext(os.path.basename(A.pdf))[0]
-LAY = (("1_PRIEKIS", 7), ("2_GALAS", 2), ("3_REMAS", 1)) + ((("4_PLOKSTE", 5),) if PLATES else ())   # rėmas RAUDONAS (Rytis 2026-10-09); v112 plokštė
+LAY = (("1_PRIEKIS", 7), ("2_GALAS", 2), ("3_REMAS", 1)) + ((("4_PLOKSTE", 5), ("5_C_ZYMA", 5)) if PLATES else ())   # rėmas RAUDONAS (Rytis 2026-10-09); v112 plokštė
 
 
 # ------------------------------------------------------------------ v113: kreivės - LANKAIS, ne tūkstančiais taškų
