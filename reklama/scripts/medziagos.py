@@ -12,11 +12,18 @@ Funkcijos:
                                             rėmas užima vienu strypu mažiau; None - nėra ką trumpinti / neverta
   sheet_fit(w, h, material, thk)          - ar detalė telpa į tiekėjo lakštą (su parašte), kokie formatai tinka
 
-CLI: python3 medziagos.py bars 3025 3025 600 600 [--stock 6000 --kerf 3]
+  profile_check(text, kind)               - v114: ar profilis yra LT tiekėjų sandėlyje (Heliopolis, Lankava, Proplastik)
+                                            + artimiausi variantai; profile_warn() - perspėjimas konsolei
+  sheet_check(material, thk, ral)         - v114: ar lakštas / AKP spalva yra pas tiekėjus
+
+CLI: python3 medziagos.py profilis "U 30x30x2" "Alu vamzdis 25x25x2" "Z 30x30x30x2"
+     python3 medziagos.py lakstas akp 3 9005
+     python3 medziagos.py bars 3025 3025 600 600 [--stock 6000 --kerf 3]
      python3 medziagos.py sheet 2400 1200 alu [2]
 """
 import json
 import math
+import re
 import os
 import sys
 
@@ -238,9 +245,139 @@ def sheet_text(res):
     return "! " + res.get("split", "netelpa")
 
 
+# ------------------------------------------------------------------ v114: profilių katalogas (LT tiekėjai)
+_TIPAS = [("U", r"\bu\b|u[- ]?prof|lovin|channel|hanger"), ("Z", r"\bz\b|z[- ]?prof"), ("T", r"\bt\b|t[- ]?prof"),
+          ("R", r"apval|round|\bd\s*\d|ø|⌀|\bfi\b"), ("FB", r"juost|flat|\bfb\b|strip"),
+          ("L", r"\bl\b|l[- ]?prof|kamp|angle"), ("O", r"\bo\b|o[- ]?prof|vamzd|tube|box|\bsq|kvadrat|stačiakamp|rect|\brhs\b|\bshs\b")]
+
+
+def _nums(text):
+    return [float(v.replace(",", ".")) for v in re.findall(r"\d+(?:[.,]\d+)?", str(text))]
+
+
+def parse_profile(text, kind=None):
+    """'U 30x30x2', 'Alu vamzdis 25x25x2', 'kampuotis 30x30x3', '30x30x30x2' (U), 'D25x2' -> (tipas, matmenys katalogo forma).
+    kind - priverstinis tipas (L/U/O/R/T/FB/Z), kai tekste jo nėra (pvz. spec rail.size -> U arba O)."""
+    t = str(text).lower().replace("×", "x")
+    tp = kind
+    if not tp:
+        for k, rx in _TIPAS:
+            if re.search(rx, t):
+                tp = k
+                break
+    dims = re.findall(r"\d+(?:[.,]\d+)?(?:\s*x\s*\d+(?:[.,]\d+)?)+", t)
+    n = _nums(dims[0]) if dims else _nums(t)
+    if not n:
+        return tp, None
+    if tp == "U":
+        if len(n) >= 4:
+            a, b, c, th = n[:4]
+            if abs(a - c) < 0.01:                       # Lankava H x B x H x t
+                return tp, [b, a, th]
+            if abs(a - (b - 2 * th)) < 0.6:             # Heliopolis vidus x B x H x t
+                return tp, [b, c, th]
+            return tp, [b, a, th]
+        if len(n) == 3:
+            return tp, [n[0], n[1], n[2]]
+        return tp, [n[0], None, n[-1]]
+    if tp == "Z":
+        return tp, n[:4]
+    if tp in ("L", "O", "T") or (tp is None and len(n) == 3):
+        if len(n) == 2:                                  # '25x2' - lygiakraštis
+            n = [n[0], n[0], n[1]]
+        a, b, th = n[:3]
+        return tp, ([max(a, b), min(a, b), th] if tp != "T" else [a, b, th])
+    if tp == "R":
+        if len(n) >= 3:                                  # Heliopolis D x d x t
+            return tp, [n[0], n[2]]
+        return tp, n[:2]
+    if tp == "FB":
+        return tp, [max(n[:2]), min(n[:2])] if len(n) >= 2 else n
+    return tp, n
+
+
+def _eq(a, b):
+    return a is None or b is None or abs(a - b) < 0.051
+
+
+def profile_check(text, kind=None):
+    """Ar profilis yra LT tiekėjų sandėlyje (assets/medziagos.json -> profiliu_katalogas).
+    Grąžina {"ok", "tipas", "m", "found": [katalogo įrašai], "near": [artimiausi], "msg"}.
+    ok=False - lape / BOM tokio profilio NERAŠYTI be Ryčio patvirtinimo; pasiūlyti `near`."""
+    k = data().get("profiliu_katalogas", {})
+    rows = k.get("sarasas", [])
+    if re.search(r"plien|steel|nerūd|inox|\bst\b|s235|s355", str(text).lower()):
+        return {"ok": None, "tipas": None, "m": None, "found": [], "near": [],
+                "msg": f"{text}: plienas - katalogas tik Alu, tiekėją tikrinti atskirai"}
+    tp, m = parse_profile(text, kind)
+    if not m:
+        return {"ok": None, "tipas": tp, "m": None, "found": [], "near": [], "msg": f"{text}: matmenų neatpažinau"}
+    types = [tp] if tp else sorted({r["tipas"] for r in rows})
+    cand = [r for r in rows if r["tipas"] in types and len(r["m"]) == len(m)]
+    found = [r for r in cand if all(_eq(x, y) for x, y in zip(r["m"], m))]
+    if tp == "U" and not found:                           # U: galbūt B ir H sukeisti užraše
+        found = [r for r in cand if len(m) == 3 and None not in r["m"] and None not in m and _eq(r["m"][0], m[1]) and _eq(r["m"][1], m[0]) and _eq(r["m"][2], m[2])]
+    def dist(r):
+        return sum(abs((x if x is not None else y) - y) * (3 if i == len(m) - 1 else 1) for i, (x, y) in enumerate(zip(r["m"], m)) if y is not None)
+    near = sorted([r for r in cand if r not in found], key=dist)[:3]
+    name = f"{tp or '?'} " + "x".join("?" if v is None else f"{v:g}" for v in m)
+    if found:
+        sup = sorted({s["t"] for r in found for s in r["tiekejai"]})
+        an = any(s.get("anoduotas") for r in found for s in r["tiekejai"])
+        unk = any(None in r["m"] for r in found)
+        if not tp:
+            name = "/".join(sorted({r["tipas"] for r in found})) + " " + "x".join(f"{v:g}" for v in m) + " (tipas nenurodytas)"
+        msg = f"{name}: YRA - {', '.join(sup)}" + (" (yra ir anoduotas)" if an else "") + \
+              (" ! tiekėjas aukščio nenurodo - patikslinti" if unk else "")
+        return {"ok": True, "tipas": tp, "m": m, "found": found, "near": near, "msg": msg}
+    alt = "; ".join(f"{r['tipas']} " + "x".join("?" if v is None else f"{v:g}" for v in r["m"]) + " (" + ", ".join(sorted({s['t'] for s in r['tiekejai']})) + ")" for r in near)
+    nr = [x for x in k.get("nerasta", []) if parse_profile(x["profilis"])[1] == m]
+    msg = f"! {name}: LT tiekėjų sandėlyje NĖRA (Heliopolis, Lankava, Proplastik)" + (f" - {nr[0]['pastaba']}" if nr else "") + \
+          (f". Artimiausi: {alt}" if alt else "") + ". Lape nerašyti be Ryčio patvirtinimo."
+    return {"ok": False, "tipas": tp, "m": m, "found": [], "near": near, "msg": msg}
+
+
+def profile_warn(text, kind=None):
+    """trumpas perspėjimas konsolei; '' jei profilis yra"""
+    r = profile_check(text, kind)
+    return "" if r["ok"] or r["ok"] is None and "plienas" in r["msg"] else "  " + r["msg"]
+
+
+def sheet_check(material, thk, ral=None, w=None, h=None):
+    """Ar lakštas (medžiaga + storis [+ RAL]) yra pas tiekėjus. Grąžina tekstą."""
+    fm = sheet_formats(material, thk)
+    if not fm:
+        alls = sorted({r["storis_mm"] for r in data()["lakstai"].get(_mat(material)[0], [])})
+        return f"! {material} {thk:g} mm: tiekėjų formatų NĖRA (yra storiai: {', '.join(f'{v:g}' for v in alls) or '-'}) - lape nerašyti be patvirtinimo"
+    rows = data()["lakstai"].get(_mat(material)[0], [])
+    if ral:
+        rr = str(ral).upper().replace("RAL", "").strip()
+        hit = [r for r in rows if abs(float(r["storis_mm"]) - float(thk)) < 0.051 and rr in r.get("ral", [])]
+        if not hit:
+            return f"! {material} {thk:g} mm RAL {rr}: standartinės spalvos tiekėjai neturi - dažyti / klijuoti plėvelę arba užsakyti (Proplastik nestandartinė RAL - nuo 500 m²)"
+        fm = [f for f in fm if any(f["preke"] == r["preke"] for r in hit)]
+    txt = "; ".join(sorted({f"{f['formatas_mm'][0]:.0f}x{f['formatas_mm'][1]:.0f} ({f['tiekejas']})" for f in fm}))
+    out = f"{material} {thk:g} mm{(' RAL ' + str(ral)) if ral else ''}: YRA - {txt}"
+    if w and h:
+        out += " | " + sheet_text(sheet_fit(w, h, material, thk))
+    return out
+
+
 # ------------------------------------------------------------------ CLI
 if __name__ == "__main__":
     args = sys.argv[1:]
+    if args and args[0] in ("profilis", "profile", "p"):
+        for t_ in args[1:]:
+            r_ = profile_check(t_)
+            print(r_["msg"])
+            for f_ in r_["found"]:
+                print("   ", ", ".join(s_["t"] + (" " + s_["kodas"] if s_.get("kodas") else "") + (" anod." if s_.get("anoduotas") else "") for s_ in f_["tiekejai"]))
+        sys.exit(0)
+    if args and args[0] in ("lakstas", "lakštas", "sheetcheck"):
+        mat_, thk_ = args[1], float(args[2])
+        ral_ = args[3] if len(args) > 3 else None
+        print(sheet_check(mat_, thk_, ral_))
+        sys.exit(0)
     if not args or args[0] not in ("bars", "sheet"):
         print(__doc__); sys.exit(0)
     if args[0] == "bars":

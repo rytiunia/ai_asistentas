@@ -5,6 +5,49 @@ Duomenys - `assets/medziagos.json` (tiekėjų formatai; keisti TIK ten), kodas -
 `sheet 2400 1200 alu 2`). Šaltiniai 2026-10-10: Heliopolis e-parduotuvė ir produktų puslapis
 („Profilių ilgis - 6 metrai"), Plastena (PMMA). Kainos nerašomos. `?` = Rytis dar nepatvirtino tiekėjo / formato.
 
+## 0. Medžiagų biblioteka - LT tiekėjų sandėlis (v114, Rytis 2026-10-12)
+
+Tikslas: lape niekada neparašyti profilio / lakšto, kurio negalima nusipirkti (pvz. „Alu 25x25x2“ be tipo ar tiekėjo).
+Duomenys - `assets/medziagos.json` -> `profiliu_katalogas` (Alu profiliai) ir `lakstai` (Alu, AKP, PMMA, PVC, PC, PS).
+Surinkta iš e-parduotuvių 2026-10-12; kainos nerašomos. **Nėra kataloge != neegzistuoja** - gali būti užsakomas, bet tik su
+Ryčio patvirtinimu.
+
+| Tiekėjas | Kas | Vieta | Šaltinis |
+|---|---|---|---|
+| Heliopolis | VISAS Alu profilių katalogas (99 prekės: L, U, O, apvalūs, T, J, juostos, dibond E/H/U), Alu lakštai 1,5 / 2 mm, AKP Lightbond / Albond | Vilnius / Kaunas | e-heliopolis.lt |
+| Lankava | Alu U, kampuočiai, kv./stač. vamzdžiai, apvalūs, juostos (6 m, pjaustymas), lakštai 0,5-3 mm 2000x1000 | **Alytus** + Druskininkai, Marijampolė, Simnas, Daugai | lankava.lt |
+| Proplastik | standartiniai profiliai T6063/T6 6000 mm (L, U, O, stač., apvalūs), AKP ACP Bond / Dibond | Kaunas | proplastik.lt |
+| Plastena | AKP ACM 3 / ACM Light 3 (Al 0,21) | Kauno r. | e-plastena.lt |
+
+Matmenų užrašas kataloge: L [didesnė, mažesnė, t]; **U [B išorinis plotis, H lentyna, t]** - „U 30x30x2“; Lankava rašo
+H x B x H x t („30x30x30x2“), Heliopolis vidus x B x H x t („26x30x30x2“) - `parse_profile` abu suveda į U 30x30x2;
+O [didesnė, mažesnė, t]; R apvalus [D, t] (Heliopolis D x d x t); T [a, b, t]; FB juosta [plotis, storis].
+
+Dažniausi skill'o profiliai:
+
+| Profilis | Yra | Pastaba |
+|---|---|---|
+| U 30x30x2 (bėgelis) | Heliopolis A-9497, Lankava, Proplastik | |
+| U 40x40x2 | tik Lankava | Heliopolis / Proplastik neturi |
+| L 30x30x2 (folded, ausėlės) | Heliopolis A-8012 (+anod.), Lankava, Proplastik | |
+| L 40x40x2 | Heliopolis A-8028 (+anod.), Lankava | Proplastik - 40x40x4 |
+| O 20x20x2 (EXTRA X) | Lankava, Proplastik | Heliopolis tik 20x20x1,5 A-6105 |
+| O 25x25x2 | visi 3 (Heliopolis A-8354 anod.) | |
+| O 30x30x3 (FAS 700) | **NĖRA** | artimiausi O 30x30x2, O 25x25x3 / 40x40x3 (Lankava) |
+| Z 30x30x30x2 (EXTRA X) | **NĖRA** | Z nė vienas neturi - lenkti iš lakšto / spec. užsakymas |
+
+Patikra:
+- `python3 scripts/medziagos.py profilis "U 30x30x2" "kampuotis 40x40x2" "vamzdis 25x25x2" "D25x2"` - yra / nėra + tiekėjai,
+  kodai, anoduotas; nėra -> 3 artimiausi. Be tipo („25x25x2“) - tikrina L / O / U ir parodo, kurie yra.
+- `python3 scripts/medziagos.py lakstas akp 3 9005` / `lakstas alu 3` - storis, formatai, AKP RAL (standartinės spalvos
+  nėra -> dažyti / plėvelė / užsakyti).
+- Kode: `MEDZ.profile_check(text, kind)`, `MEDZ.profile_warn(text, kind)` (tuščias, jei yra), `MEDZ.sheet_check(mat, thk, ral)`.
+  `braizyti_begeliai.py` tikrina `rail.size` (U arba O pagal `rail.type`), `plate.rail`, `zframe.z` / `tube`;
+  `braizyti_lapa.py` - folded L.
+- Plienas - katalogas tik Alu (perspėjimas „tiekėją tikrinti atskirai“).
+
+Atnaujinti: naujas tiekėjas / profilis - TIK `medziagos.json` (`profiliu_katalogas.sarasas`, `tiekejai`), su šaltiniu ir data.
+
 ## 1. Profiliai - strypas 6000 mm
 
 | Profilis | Tiekėjas / kodas | Ilgis | Naudojimas |
@@ -14,7 +57,8 @@ Duomenys - `assets/medziagos.json` (tiekėjų formatai; keisti TIK ten), kodas -
 | O 20x20x1.5, O 25x15x1.5, L 20x15x2, L 15x15x1.5, U 6x9x1.5 | Heliopolis | 6 m | pagalbiniai |
 | Alu juosta 30x2 / 40x2 (J4002) / 50x2 | Heliopolis | 6 m | plokščios juostos |
 | Alu juosta ritinyje 1x30 / 1x50 (1050A H24) | Heliopolis | ritinys | raidžių šonai |
-| **U 30x30x2, U 40x40x2** (bėgeliai), **Z 30x30x30x2**, **20x20x2** ir **30x30x3** vamzdžiai | **?** (Heliopolis e-parduotuvėje nėra) | 6 m (standartas) | bėgeliai, EXTRA X rėmas, FAS 700 |
+| U 30x30x2 / U 40x40x2 (bėgeliai), O 20x20x2 | v114: žr. §0 (Heliopolis A-9497, Lankava, Proplastik) | 6 m | bėgeliai, EXTRA X rėmas |
+| Z 30x30x30x2, O 30x30x3 | v114: LT sandėliuose NĖRA (§0) | - | EXTRA X, FAS 700 |
 
 Parametrai (`medziagos.json` -> `profiliai`): `strypas_mm` 6000, `prapjova_mm` 3 (pjūklo prapjova vienam pjūviui - Rytis patvirtino 2026-10-10), `galo_atsarga_mm` 0, `trim_max_mm` 100 (didžiausias vieno horizontalaus bėgelio patrumpinimas, abu galai
 kartu), `trim_step_mm` 5. Spec perrašymas: `"stock": {"enabled": true, "bar_mm": 6000, "kerf_mm": 3, "end_mm": 0, "trim_max_mm": 100}`.

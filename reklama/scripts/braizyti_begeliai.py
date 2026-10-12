@@ -51,6 +51,13 @@ if ZF:
     ZF["zf"], ZF["zw"], ZF["zt"] = (_zp[0], _zp[1], _zp[3]) if len(_zp) == 4 else (_zp[0], _zp[1], _zp[2])
     ZF["tb"], _, ZF["tt"] = (float(v) for v in ZF["tube"].lower().split("x"))
     PZ0 = ZF["zw"]                    # plokštės nugara nuo sienos = Z sienelės gylis
+# v114 (Rytis 2026-10-12): profiliai tikrinami pagal LT tiekėjų katalogą (assets/medziagos.json -> profiliu_katalogas):
+#  nėra sandėlyje -> perspėjimas su artimiausiais variantais; lape / BOM tokio profilio nerašyti be Ryčio patvirtinimo
+for _pt, _pk in ([(RAIL["size"], "O" if RAIL_SQ else "U")] + ([(PRAIL["size"], "U")] if PRAIL and PRAIL.get("size") else [])
+                 + ([(ZF["z"], "Z"), (ZF["tube"], "O")] if ZF else [])):
+    _w = MEDZ.profile_warn(_pt, _pk)
+    if _w:
+        print(_w)
 
 # v44 (Rytis 2026-10-09, EXTRA 225978 „one frame"): VIENTISAS RĖMAS - plokštės grupės (X apskritimas) neturi savo
 # kabinimo; rails grupės (EXTRA) horizontalūs bėgeliai tęsiami už plokštės iki 10 mm nuo jos krašto, plokštė

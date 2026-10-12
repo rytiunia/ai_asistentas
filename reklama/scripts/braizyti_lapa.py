@@ -710,6 +710,9 @@ f_p = (f"{S_PITCH:.0f}" if abs(S_PITCH - round(S_PITCH)) < 0.05 else f"{S_PITCH:
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import medziagos as MEDZ
 _STK = MEDZ.cfg(spec.get("stock"))
+_w = MEDZ.profile_warn(LP["size"], "L")          # v114: L profilis LT tiekėjų kataloge?
+if _w:
+    print(_w)
 _L_ALL = [l_[3] for l_ in L_SEGS] if JOINTS else list(L_LENS.values())
 _LB = MEDZ.nest_bars(_L_ALL, _STK["stock"], _STK["kerf"], _STK["end"])
 L_BARS = len(_LB)

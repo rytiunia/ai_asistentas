@@ -2,6 +2,14 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v114 (2026-10-12)
+
+Rytis: „įtrauk į skill medžiagų matmenų biblioteką - Alu, ACM, profiliai, patikrink Lietuvos tiekėjus ... kad nebūtų, kad
+parašai 25x25x2mm Alu, o atsakymas, kad tokio nėra". `assets/medziagos.json` -> `profiliu_katalogas` (132 pozicijos: Heliopolis
+visas katalogas, Lankava, Proplastik), Alu lakštai (Lankava 0,5-3 mm), AKP (Heliopolis visi, Proplastik ACP Bond / Dibond,
+Plastena ACM) su RAL; `medziagos.py` - `parse_profile`, `profile_check`, `profile_warn`, `sheet_check`, CLI `profilis` / `lakstas`;
+`braizyti_begeliai.py`, `braizyti_lapa.py` - automatinis perspėjimas. `references/medziagos.md` §0.
+
 ## v113 (2026-10-12)
 
 v113, Rytis 2026-10-12 („labai daug nodes ant lenktų linijų, reikia kiekvieną kartą paspausti reduce nodes"): `p6_dxf.py` -
