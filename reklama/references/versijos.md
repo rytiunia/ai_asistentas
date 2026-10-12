@@ -2,6 +2,11 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v138 (2026-10-12)
+
+v138, Rytis 2026-10-12: įstrižos išvadinės (ISO 128-22); šviesdėžė - varžtai visose projekcijose + TOP VIEW, 3D padai su
+skylėmis ir vamzdžio anga.
+
 ## v137 (2026-10-12)
 
 v137, Rytis 2026-10-12: CAD žymėjimų taisyklės (`references/stilius.md` „CAD žymėjimai") + `lapas_core.cut_plane`,

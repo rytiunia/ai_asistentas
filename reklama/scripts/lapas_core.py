@@ -1088,41 +1088,59 @@ def cut_plane_h(y, x0, x1, letter, look="down", size=10):
         T(xe, y + sg * 9 + (size if sg > 0 else -3), letter, size, font="FB", align="c")
 
 
-def _column_ys(ty, ymin=None, ymax=None, gap=16):
-    """balionų y stulpelyje: kuo arčiau taikinio, bet ne arčiau nei gap (tvarka išlaikoma)"""
+def _column_ys(ty, want, ymin=None, ymax=None, gap=16):
+    """balionų y stulpelyje: kuo arčiau norimo (want), ne arčiau nei gap; tvarka - pagal taikinio y (nesikerta)"""
     order = sorted(range(len(ty)), key=lambda i: ty[i])
-    ys = [ty[i] for i in order]
+    ys = [want[i] for i in order]
     for k in range(1, len(ys)):
         ys[k] = max(ys[k], ys[k - 1] + gap)
-    if ymax is not None and ys and ys[-1] > ymax:              # stumti aukštyn
+    if ymax is not None and ys and ys[-1] > ymax:
         ys[-1] = ymax
         for k in range(len(ys) - 2, -1, -1):
             ys[k] = min(ys[k], ys[k + 1] - gap)
     if ymin is not None and ys and ys[0] < ymin:
         d = ymin - ys[0]; ys = [v + d for v in ys]
+    if ymin is not None and ymax is not None and ys and ys[-1] > ymax:       # netelpa - tolygiai intervale
+        n = len(ys)
+        ys = [ymin + (ymax - ymin) * (k / (n - 1) if n > 1 else 0.5) for k in range(n)]
     out = [0] * len(ty)
     for k, i in enumerate(order):
         out[i] = ys[k]
     return out
 
 
-def balloon_column(items, x_col, r=6.5, ymin=None, ymax=None, gap=None):
-    """items: [(tx, ty, label)] - balionai stulpelyje x_col (už vaizdo), išvadinės nesikerta"""
+# v138 (Rytis 2026-10-12: „nuorodinės skaičių linijos ... dabar labai maišosi su matmenų linijomis"): išvadinės - ĮSTRIŽOS
+# (ISO 128-22: ne lygiagrečios matmenų linijoms), nuolydis ~30-40° nuo horizontalės; balionas - stulpelyje už vaizdo.
+LEADER_SLOPE = 0.65
+LEADER_DY_MAX = 42.0
+
+
+def _want(items, x_col, up, slope):
+    w = []
+    for tx, ty, _ in items:
+        dy = min(LEADER_DY_MAX, max(14.0, slope * abs(x_col - tx)))
+        w.append(ty - dy if up else ty + dy)
+    return w
+
+
+def balloon_column(items, x_col, r=6.5, ymin=None, ymax=None, gap=None, up=True, slope=None):
+    """items: [(tx, ty, label)] - balionai stulpelyje x_col (už vaizdo), įstrižos išvadinės, nesikerta"""
     if not items:
         return
     gap = gap or 2 * r + 3
-    ys = _column_ys([it[1] for it in items], ymin, ymax, gap)
+    ys = _column_ys([it[1] for it in items], _want(items, x_col, up, slope or LEADER_SLOPE), ymin, ymax, gap)
     for (tx, ty, lab), yb in zip(items, ys):
-        sgn = 1 if x_col > tx else -1
+        if abs(yb - ty) < 10:                                       # niekada horizontali
+            yb = ty - 10 if yb <= ty else ty + 10
         leader(tx, ty, x_col, yb, lab, r)
 
 
-def tag_column(items, x_col, size=8, ymin=None, ymax=None, gap=None, align=None):
-    """items: [(tx, ty, text)] - žymos su tekstu stulpelyje x_col (už vaizdo); align pagal pusę"""
+def tag_column(items, x_col, size=8, ymin=None, ymax=None, gap=None, align=None, up=True, slope=None):
+    """items: [(tx, ty, text)] - žymos su tekstu stulpelyje x_col (už vaizdo), įstrižos išvadinės"""
     if not items:
         return
     gap = gap or size + 5
-    ys = _column_ys([it[1] for it in items], ymin, ymax, gap)
+    ys = _column_ys([it[1] for it in items], _want(items, x_col, up, slope or LEADER_SLOPE), ymin, ymax, gap)
     for (tx, ty, txt), yb in zip(items, ys):
         al = align or ("l" if x_col > tx else "r")
         tag(tx, ty, x_col, yb, txt, size=size, align=al)

@@ -179,3 +179,8 @@ antraštė, P6 tipiniai pjūviai `p6_typical(variant=rail|folded|plate)`, 3D `Vi
   (pvz. „SIDE A", pastabų apie stiklą / korpusą) NEDĖTI - tai vaizdo pavadinime, pjūvyje ar MAIN DATA.
 - Konstrukcinė informacija (stiklas > korpusas, užlaidos) - tik pjūvyje / DETAIL su matmenimis, ne pastaba priekio vaizde.
 - Komponentų numeriai vaizduose = BOM POS (1.1, 1.2, 1A ...), ne laisvas tekstas.
+- **v138 (Rytis 2026-10-12): išvadinės (balionų / žymų linijos) - ĮSTRIŽOS**, ne horizontalios ir ne vertikalios (ISO 128-22),
+  kad nesimaišytų su matmenų linijomis: `balloon_column` / `tag_column` - nuolydis ~33° (iki 42 pt pakilimo), tvarka
+  parenkama, kad linijos nesikirstų (taikiniai tuo pačiu kraštu - tvarka pagal y).
+- **Tvirtinimo elementai (varžtai) matomi projekcijose:** galvutės vaizduose, kur matoma jų plokštuma (vaizdas iš sienos,
+  TOP VIEW), pjūviuose - galvutė + kotas, 3D - galvutės. Montavimo plokštės 3D - su skylėmis ir vamzdžio anga (ne vientisos).
