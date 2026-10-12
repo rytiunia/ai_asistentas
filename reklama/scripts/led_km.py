@@ -91,15 +91,55 @@ def psu_for(watts, V=12):
     return f"{n} x {nm}", w * n
 
 
+def _split_bends(pa, pitch, ang_min=45.0):
+    """v126: aštrus lenkimas (7, L, Z kampas) - šaka dalijama per kampą, kampe - modulis (Ryčio taisyklė 3)"""
+    P, cum = pa["P"], pa["cum"]
+    if pa["kind"] == "loop" or len(P) < 30:
+        return [pa], []
+    k = 12
+    cuts = []
+    for i in range(k, len(P) - k):
+        a = P[i] - P[i - k]; b = P[i + k] - P[i]
+        na, nb = math.hypot(*a), math.hypot(*b)
+        if na < 1e-6 or nb < 1e-6:
+            continue
+        t = math.degrees(math.acos(max(-1, min(1, float(a @ b) / (na * nb)))))
+        if t >= ang_min and cum[i] > 0.4 * pitch and cum[-1] - cum[i] > 0.4 * pitch:
+            if cuts and cum[i] - cum[cuts[-1][0]] < 0.5 * pitch:
+                if t > cuts[-1][1]:
+                    cuts[-1] = (i, t)
+                continue
+            cuts.append((i, t))
+    if not cuts:
+        return [pa], []
+    out, corners, i0 = [], [], 0
+    e0, e1 = pa["ends"]
+    idx = [c for c, _ in cuts]
+    for n_, i1 in enumerate(idx + [len(P) - 1]):
+        sub = P[i0:i1 + 1]
+        cs = np.concatenate([[0.0], np.cumsum(np.hypot(*np.diff(sub, axis=0).T))])
+        ends = [e0 if n_ == 0 else "c", e1 if i1 == len(P) - 1 else "c"]
+        out.append({"P": sub, "cum": cs, "kind": "open", "ends": ends})
+        i0 = i1
+    corners = [(float(P[c][0]), float(P[c][1])) for c in idx]
+    return out, corners
+
+
 def chain(g, pitch):
-    """viena eilė per ašį: galai - p/2 nuo krašto, dalių skaičius round(L / p) (Ryčio lapai)"""
-    paths = LS.skeleton_paths(g)
-    pos, junc = [], []
+    """v126 viena eilė per ašį (Ryčio lapai): status galas - modulis p/2 nuo krašto; sankirtoje ir aštriame kampe -
+    po modulį; šaka tarp jų - lygiais tarpais <= ~p; galiniai moduliai NEŠALINAMI dėl sankirtos (A kojos)"""
+    paths0 = LS.skeleton_paths(g)
+    pos, nodes = [], []
+    paths = []
+    for pa in paths0:
+        sp, cn = _split_bends(pa, pitch)
+        paths += sp
+        nodes += [(x, y, "c") for x, y in cn]
     for pa in paths:
         L = pa["cum"][-1]
         if pa["kind"] == "loop":
             n = max(2, round(L / pitch)); n += n % 2
-            x0, y0, x1, y1 = g.bounds; cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+            x0, y0, x1, y1 = g.bounds; cx = (x0 + x1) / 2
             best = None
             for ph in np.linspace(0, L / n, 24, endpoint=False):
                 A_ = np.array([LS._at(pa, (ph + i * L / n) % L)[:2] for i in range(n)])
@@ -113,28 +153,42 @@ def chain(g, pitch):
         for e_, et in ((0, e0), (1, e1)):
             if et == "j":
                 P = pa["P"] if e_ == 0 else pa["P"][::-1]
-                k_ = min(len(P) - 1, 25)
-                junc.append((float(P[0][0]), float(P[0][1]), math.atan2(P[k_][1] - P[0][1], P[k_][0] - P[0][0])))
-        off = lambda et: pitch / 2 if et == "edge" else 0.0
-        a_, b_ = off(e0), L - off(e1)
-        if e0 != "j" and e1 != "j" and b_ - a_ < 0.5 * pitch:
-            pos.append(LS._at(pa, L / 2)); continue
-        k_ = max(1, round((b_ - a_) / pitch))
-        us = [a_ + i * (b_ - a_) / k_ for i in range(k_ + 1)]
-        if e0 == "j":
-            us = us[1:]
-        if e1 == "j":
-            us = us[:-1]
+                nodes.append((float(P[0][0]), float(P[0][1]), "j"))
+        node = lambda et: et in ("j", "c")
+        a_ = pitch / 2 if e0 == "edge" else 0.0
+        b_ = L - (pitch / 2 if e1 == "edge" else 0.0)
+        if not node(e0) and not node(e1):                 # du galai
+            if b_ - a_ < 0.5 * pitch:
+                pos.append(LS._at(pa, L / 2)); continue
+            k_ = max(1, round((b_ - a_) / pitch))
+            us = [a_ + i * (b_ - a_) / k_ for i in range(k_ + 1)]
+        elif node(e0) and node(e1):                       # tarp dviejų mazgų - tik vidiniai
+            k_ = max(1, round(L / pitch))
+            us = [L * i / k_ for i in range(1, k_)]
+        else:                                             # galas -> mazgas: nuo galo p/2, lygiai iki mazgo
+            fw = not node(e0)
+            free_off = a_ if fw else L - b_
+            span = L - free_off
+            k_ = max(1, round(span / pitch))
+            st = span / k_
+            us = [free_off + i * st for i in range(k_)]
+            if not fw:
+                us = [L - u for u in us]
         pos += [LS._at(pa, u) for u in us]
-    jp = []
-    for q in junc:
-        if all(math.dist(q[:2], r[:2]) > 12 for r in jp):
-            jp.append(q)
-    out = []
-    for q in jp + pos:                                      # artimi (< 0,6 p) - vienas
-        if all(math.dist(q[:2], r[:2]) >= 0.6 * pitch for r in out):
-            out.append(tuple(float(v) for v in q[:3]))
-    return out
+    # mazgai (sankirtos / kampai): artimi - vienas; mazgo modulis nededamas, jei šalia (< 0,45 p) yra šakos modulis
+    nd = []
+    for q in nodes:
+        if all(math.dist(q[:2], r[:2]) > 15 for r in nd):
+            nd.append(q)
+    out = [tuple(float(v) for v in q[:3]) for q in pos]
+    pruned = []
+    for q in out:
+        if all(math.dist(q[:2], r[:2]) >= 0.45 * pitch for r in pruned):
+            pruned.append(q)
+    for x, y, _ in nd:
+        if all(math.dist((x, y), r[:2]) >= 0.55 * pitch for r in pruned):
+            pruned.append((x, y, 0.0))
+    return pruned
 
 
 def grid(g, pitch):
@@ -194,6 +248,11 @@ def run(spec):
         L = [affinity.translate(g, dx, dy) for g in L]
         m = mod_for(depth, gr.get("module") or spec.get("module"))
         p = gr.get("pitch") or spec.get("pitch") or pitch_for(depth, m, gr.get("led", "white"))
+        if not (gr.get("pitch") or spec.get("pitch")) and L:
+            # v126: plonos linijos (mažos raidės) - žingsnis <= 1,6 x linijos plotis (Ryčio lapai: Åpn496 w 90 -> 140;
+            # be to FAS700 7-23 w 62 su 140 likdavo tuščios kojos / kampai)
+            w_med = float(np.median([LS.stroke_max(g) for g in L]))
+            p = int(min(p, max(60, round(1.6 * w_med / 10.0) * 10)))
         per = []
         for g in L:
             pts, mode = place(g, p)
@@ -205,6 +264,28 @@ def run(spec):
               ", ".join(str(len(x['pts'])) for x in per) + f" = {n} vnt., {watts:.1f} W, {psu_for(watts, MODDB[m]['V'])[0]}" +
               ("" if all(x["mode"] == "chain" for x in per) else "  (plati linija - tinklelis)"))
     return res
+
+
+def _wire_order(pts):
+    """v126: grandinės eiga raidėje - artimiausias kaimynas nuo apatinio kairio + 2-opt (laidas be šuolių)"""
+    if len(pts) < 3:
+        return list(pts)
+    rest = list(pts)
+    cur = min(rest, key=lambda q: q[0] - q[1] * 0.5)
+    seq = [cur]; rest.remove(cur)
+    while rest:
+        cur = min(rest, key=lambda q: math.dist(q[:2], seq[-1][:2]))
+        seq.append(cur); rest.remove(cur)
+    improved = True
+    while improved:
+        improved = False
+        for i in range(1, len(seq) - 2):
+            for j in range(i + 1, len(seq) - 1):
+                d0 = math.dist(seq[i - 1][:2], seq[i][:2]) + math.dist(seq[j][:2], seq[j + 1][:2])
+                d1 = math.dist(seq[i - 1][:2], seq[j][:2]) + math.dist(seq[i][:2], seq[j + 1][:2])
+                if d1 < d0 - 1e-6:
+                    seq[i:j + 1] = seq[i:j + 1][::-1]; improved = True
+    return seq
 
 
 def sheet(spec, res, out):
@@ -263,7 +344,7 @@ def sheet(spec, res, out):
             sz = md.get("size_mm") or [0.32 * r["pitch"], 0.12 * r["pitch"]]   # BaltLED matmenų nenurodo - simbolinis
             nl = md.get("leds") or 2
             ml, mw = sz[0] * s, sz[1] * s
-            seq = x["pts"]
+            seq = _wire_order(x["pts"])
             c.setStrokeColor(HexColor("#555555")); c.setLineWidth(0.3)
             for a_, b_ in zip(seq, seq[1:]):
                 if math.dist(a_[:2], b_[:2]) <= 1.6 * r["pitch"]:

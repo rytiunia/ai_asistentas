@@ -2,6 +2,13 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v126 (2026-10-12)
+
+v126, Rytis 2026-10-12 („kodėl čia taip keistai nepridėti led?" - FAS700 A be modulių kojose, 7 be modulio kampe):
+`led_km.py chain()` perrašyta - šakos galas -> sankirta: nuo galo p/2, lygiai iki sankirtos (galinis modulis nešalinamas),
+aštrūs lenkimai - mazgai su moduliu, plonoms linijoms žingsnis <= 1,6 w; `_wire_order()` - laidas be šuolių.
+Patikra: Åpn496 20 = 20, Åpn894 35 / 36, FAS700 X + EXTRA 39, 7-23 19 (p 100).
+
 ## v125 (2026-10-12)
 
 v125, Rytis 2026-10-12 („p120 klaida. naudojami led moduliai ir transformatoriai iš https://baltled.com"): `assets/baltled_led.json`
