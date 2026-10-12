@@ -2,6 +2,12 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v137 (2026-10-12)
+
+v137, Rytis 2026-10-12: CAD žymėjimų taisyklės (`references/stilius.md` „CAD žymėjimai") + `lapas_core.cut_plane`,
+`balloon_column`, `tag_column`; šviesdėžė: juosta virinama prie rėmo (be centrinių skylių, 32 x D3.2), balionai / žymos už
+vaizdų, pjūvio žymos A-A / C-C pagal ISO, be tekstų ant projekcijų.
+
 ## v136 (2026-10-12)
 
 v136, Rytis 2026-10-12 (šviesdėžė): be stiklo pastabos priekyje; SIDE A + SIDE B vaizdai ir 3D iš abiejų pusių; GA 1:8;

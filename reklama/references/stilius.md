@@ -168,3 +168,14 @@ antraštė, P6 tipiniai pjūviai `p6_typical(variant=rail|folded|plate)`, 3D `Vi
 
 
 ## (iš SKILL.md v85) Lapas (v9) -> `references/stilius.md` („Lapas (v9)": paraštės 5 / 4 mm, ORDER NO. 14 pt bold, pjūvio spalvos = DETAIL A)
+
+
+## CAD žymėjimai (v137, Rytis 2026-10-12: „žymėjimai lipa ant projekcijų, pjūvio linijos ir žymėjimai sugrūsti ant projekcijos, nuorodos linijos kertasi")
+- **Pjūvio plokštuma (ISO 128-40/44):** per vaizdą NEBRAIŽOMA. Tik storos trumpos atkarpos UŽ vaizdo ribų (abiejuose galuose),
+  rodyklės žiūrėjimo kryptimi, raidės prie rodyklių - už vaizdo. `lapas_core.cut_plane(x, y0, y1, "A")` / `cut_plane_h`.
+  Atkarpos nesikerta su matmenimis - matmenų grandinės atitraukiamos (>= 32 pt nuo kontūro, kai yra pjūvio žyma).
+- **Balionai / žymos su tekstu - STULPELYJE UŽ vaizdo ir už matmenų** (`balloon_column`, `tag_column`): surikiuoti pagal taikinio
+  y, tarpas >= 2r + 3 -> išvadinės NESIKERTA tarpusavyje; ant projekcijos - tik išvadinės taškas. Ant projekcijos tekstų
+  (pvz. „SIDE A", pastabų apie stiklą / korpusą) NEDĖTI - tai vaizdo pavadinime, pjūvyje ar MAIN DATA.
+- Konstrukcinė informacija (stiklas > korpusas, užlaidos) - tik pjūvyje / DETAIL su matmenimis, ne pastaba priekio vaizde.
+- Komponentų numeriai vaizduose = BOM POS (1.1, 1.2, 1A ...), ne laisvas tekstas.

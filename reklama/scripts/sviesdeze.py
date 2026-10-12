@@ -81,7 +81,7 @@ def geom(S):
     g["kg"] = (2 * W_ * H_ * S["face_thk"] * rho["pmma"] + per_b * D * tb * rho["al"] + g["prof_len"] * tube_a * rho["al"]
                + 2 * FLw * FLh * FLt * rho["al"] + 2 * g["pvc_len"] * S["pvc_edge"][0] * S["pvc_edge"][1] * rho["pvc"]) / 1e6
     # D3.2 varžtų skylės korpuso juostoje: kiekvienoje kraštinėje 2 eilės (z = +-(D/2 - PVC/2), į PVC juostą) kas <= step
-    # + 2 skylės ašyje (z = 0, į rėmą). Kraštinės: top, wall, bottom, front (išklotinės tvarka nuo viršutinio kairio kampo)
+    # (v137: per juostos centrą skylių NĖRA - juosta virinama prie rėmo). Kraštinės: top, wall, bottom, front (išklotinės tvarka nuo viršutinio kairio kampo)
     pd_ = S["pvc_edge"][1]
     zs = D / 2 - pd_ / 2
     faces = [("top", g["BW"]), ("wall", g["BH"]), ("bottom", g["BW"]), ("front", g["BH"])]
@@ -91,8 +91,6 @@ def geom(S):
         for i in range(n):
             for z in (-zs, zs):
                 holes.append((fn, L * (i + 0.5) / n, z, "pvc"))
-        for u in (0.25, 0.75):
-            holes.append((fn, L * u, 0.0, "frame"))
     g["scr_holes"] = holes
     g["scr_n_face"] = math.ceil(g["BW"] / S["screw_step"])
     g["scr_wall"] = [(ov + u, z, k) for fn, u, z, k in holes if fn == "wall"]
@@ -107,15 +105,15 @@ def bom_rows(g):
     return [[1, f"Frame + legs □{fa}x{fb}x{ft:g} (sheet 2)", "Alu EN AW-6060", g["frame_finish"],
              f"2 x {g['L_h']:g} + 2 x {g['L_v']:g} = {g['prof_len']:g} mm"],
             ["1A", f"Flange {FLw:g}x{FLh:g}x{FLt:g}, 4 x Ø{g['hole_d']:g}", "Alu, welded to leg", g["frame_finish"], "2 pcs."],
-            [2, f"Body band {g['band_thk']:g} mm x {g['depth']:g}", "Alu sheet, folded", g["body_finish"],
-             f"{g['BW']:g} x {g['BH']:g}: {g['per_b']:g} mm, 2 leg holes"],
+            [2, f"Body band {g['band_thk']:g} mm x {g['depth']:g}", "Alu, folded, welded to frame", g["body_finish"],
+             f"{g['BW']:g} x {g['BH']:g}: {g['per_b']:g} mm"],
             [3, "Face A (glass)", g["face"], "-", f"{g['w']:g} x {g['h']:g} = {g['w'] * g['h'] / 1e6:.2f} m²"],
             [4, f"PVC edge {pw:g} x {pd:g} (face A)", "PVC, glued to face", "white", f"{g['pvc_len']:g} mm"],
             [5, "Face B (glass, mirror)", g["face"], "-", f"{g['w']:g} x {g['h']:g} = {g['w'] * g['h'] / 1e6:.2f} m²"],
             [6, f"PVC edge {pw:g} x {pd:g} (face B)", "PVC, glued to face", "white", f"{g['pvc_len']:g} mm"],
             [7, f"LED Kaisen {g['led_name']} + PSU", f"PSU {g['psu'][0].replace('-5Y', '')}", "6500 K",
              f"{g['led_n']} pcs. ({g['led_W']:.1f} W) + 1 PSU"],
-            [8, "Tapping screw, D3.2 holes", "A2", "-", f"{g['n_scr']} pcs. (D3.2 holes, sheet 2)"]]
+            [8, "Tapping screw, D3.2 holes", "A2", "-", f"{g['n_scr']} pcs. (into PVC edge)"]]
 
 
 def band(g, sheet, title_extra, md, bom, detail_fn):
@@ -215,12 +213,11 @@ def sheet1(g, out):
             a_, b_ = sorted((X(g["xf"]), X(g["PROJ"])))
             rect(a_, Yv(yc - FLh / 2), FLt * s, FLh * s, fill=COL_FL, lw=0.1)
             K.centerline(X(Wd - 20), Yv(yc), X(g["PROJ"] + 8), Yv(yc))
-        face_label((xl + xr_) / 2, Yv(Hd / 2), side, 14)
-        hdim(xl, xr_, Yv(0) - 22, f"{Wd:g}", e1=Yv(0), e2=Yv(0), size=K.F_DIM_MAIN)
+        hdim(xl, xr_, Yv(0) - 32, f"{Wd:g}", e1=Yv(0), e2=Yv(0), size=K.F_DIM_MAIN)
         xs_ = sorted([X(0), X(g["xb"]), X(g["xf"]), X(g["PROJ"])])
         labs = [f"{g['xb']:g}", f"{LL:g}", f"{FLt:g}"]
-        hchain(Yv(Hd) + 22, xs_, [Yv(Hd)] * 4, labs[::-1] if mirror else labs, size=K.F_DIM_FRAME)
-        hdim(xs_[0], xs_[-1], Yv(Hd) + 40, f"{g['PROJ']:g}", e1=Yv(Hd), e2=Yv(Hd), size=K.F_DIM_MAIN)
+        hchain(Yv(Hd) + 32, xs_, [Yv(Hd)] * 4, labs[::-1] if mirror else labs, size=K.F_DIM_FRAME)
+        hdim(xs_[0], xs_[-1], Yv(Hd) + 52, f"{g['PROJ']:g}", e1=Yv(Hd), e2=Yv(Hd), size=K.F_DIM_MAIN)
         xo = xl - 22 if not mirror else xr_ + 22
         vchain(xo, [Yv(0), Yv(Hd)], [xl if not mirror else xr_] * 2, [f"{Hd:g}"], size=K.F_DIM_MAIN)
         return X
@@ -228,13 +225,13 @@ def sheet1(g, out):
     # ---------------------------------------------------------------- SIDE A | VIEW FROM WALL | SIDE B
     fxA = K.IX0 + 70
     XA = front(fxA, False, "SIDE A")
-    leader(XA(Wd * 0.15), Yv(Hd * 0.2), XA(Wd * 0.15) - 22, Yv(Hd * 0.2) - 30, 3)
-    leader(XA(g["xb"] + LL * 0.5), Yv(ax), XA(g["xb"] + LL * 0.5) + 4, Yv(ax) - 30, 1)
+    K.balloon_column([(XA(Wd * 0.12), Yv(Hd * 0.15), 3)], XA(0) - 52)
+    K.balloon_column([(XA(g["xb"] + LL * 0.5), Yv(ax), 1), (XA(g["xf"] + FLt / 2), Yv(Hd - ax + FLh / 2 - 6), "1A")],
+                     XA(g["PROJ"]) + 56)
     vchain(XA(g["PROJ"]) + 16, [Yv(0), Yv(ax), Yv(Hd - ax), Yv(Hd)], [XA(Wd)] + [XA(g["PROJ"])] * 2 + [XA(Wd)],
            [f"{ax:g}", f"{Hd - 2 * ax:g}", f"{ax:g}"], size=K.F_DIM_FRAME)
     xcut = Wd * 0.3
-    line(XA(xcut), Yv(-10), XA(xcut), Yv(Hd + 10), 0.4)
-    T(XA(xcut) + 3, Yv(-10) - 2, "A", 10, font="FB"); T(XA(xcut) - 10, Yv(Hd + 10) + 4, "A", 10, font="FB")
+    K.cut_plane(XA(xcut), Yv(0), Yv(Hd), "A", look="right")
     view_title(XA(g["PROJ"] / 2), top - 84, "FRONT VIEW - SIDE A", sl)
     # vaizdas iš sienos (gręžimo schema)
     sxc = XA(g["PROJ"]) + 128
@@ -251,7 +248,7 @@ def sheet1(g, out):
                 circle(Xs(dz), Yv(yc + dy), g["hole_d"] / 2 * s, fill=white, lw=0.1)
         ci = fa - 2 * ft
         rect(Xs(-ci / 2), Yv(yc - ci / 2), ci * s, ci * s, fill=white, lw=0.1)
-    face_label(Xs(-TOT / 2) - 5, Yv(Hd * 0.4), "A", 8); face_label(Xs(TOT / 2) + 5, Yv(Hd * 0.4), "B", 8)
+    face_label(Xs(-TOT / 2) + 2, Yv(ax - FLh / 2) - 50, "A", 9); face_label(Xs(TOT / 2) - 2, Yv(ax - FLh / 2) - 50, "B", 9)
     K.centerline(Xs(0), Yv(-FLh / 2 + ax - 8), Xs(0), Yv(Hd - ax + FLh / 2 + 8))
     hchain(Yv(ax - FLh / 2) - 14, [Xs(-hp), Xs(hp)], [Yv(hy[0])] * 2, [f"{2 * hp:g}"], size=K.F_DIM_FRAME)
     hdim(Xs(-TOT / 2), Xs(TOT / 2), Yv(ax - FLh / 2) - 30, f"{TOT:g}", e1=Yv(0), e2=Yv(0), size=K.F_DIM_MAIN)
@@ -262,15 +259,15 @@ def sheet1(g, out):
     vchain(Xs(FLw / 2) + 36, [Yv(hy[0]), Yv(hy[3])], [Xs(hp)] * 2, [f"{hy[3] - hy[0]:g}"], size=K.F_DIM_MAIN)
     vchain(Xs(-FLw / 2) - 24, [Yv(hy[0]), Yv(0), Yv(Hd), Yv(hy[3])], [Xs(-hp), Xs(-TOT / 2), Xs(-TOT / 2), Xs(-hp)],
            [f"{-hy[0]:g}", f"{Hd:g}", f"{hy[3] - Hd:g}"], size=K.F_DIM_FRAME)
-    K.tag(Xs(hp) + 1, Yv(hy[1]) + 1, Xs(FLw / 2) + 6, Yv(ax + 40), f"8 x Ø{g['hole_d']:g}", size=8)
     yw = g["scr_wall"][len(g["scr_wall"]) // 2]
-    K.tag(Xs(yw[1]), Yv(yw[0]), Xs(-FLw / 2) - 34, Yv(Hd * 0.62), "D3.2 (sheet 2)", size=7, align="r")
+    K.tag_column([(Xs(hp), Yv(hy[1]), f"8 x Ø{g['hole_d']:g}"), (Xs(0), Yv(Hd - ax), f"cable □{fa - 2 * ft:g}"),
+                  (Xs(yw[1]), Yv(yw[0]), "D3.2 (sheet 2)")], Xs(FLw / 2) + 56, size=8)
     T(Xs(0), Yv(Hd) + 38, "= WALL DRILLING", 8, align="c", color=K.GREY)
     view_title(Xs(0), top - 84, "VIEW FROM WALL", sl)
     # SIDE B (veidrodinis - kojos kairėje)
     fxB = Xs(TOT / 2) + 128
     XB = front(fxB, True, "SIDE B")
-    leader(XB(Wd * 0.25), Yv(Hd * 0.2), XB(Wd * 0.25) + 28, Yv(Hd * 0.2) - 30, 5)
+    K.balloon_column([(XB(Wd * 0.12), Yv(Hd * 0.15), 5)], XB(0) + 52)
     view_title((XB(0) + XB(g["PROJ"])) / 2, top - 84, "FRONT VIEW - SIDE B", sl + "  (mirrored)")
     # ---------------------------------------------------------------- SECTION A-A 1:5
     s5 = MM / 5
@@ -295,17 +292,16 @@ def sheet1(g, out):
     for dz in (-1, 1):
         line(Xa(0), ya(yl - 8), Xa(dz * D / 2), ya(yl - 8 - D / 2 / math.tan(math.radians(32.5))), 0.2,
              HexColor("#C9A000"), dash=(2, 1.5))
-    face_label(Xa(-TOT / 2) - 9, ya(Hd * 0.5), "A", 9); face_label(Xa(TOT / 2) + 9, ya(Hd * 0.5), "B", 9)
+    face_label(Xa(-TOT / 2) + 2, ya(0) - 10, "A", 9); face_label(Xa(TOT / 2) - 2, ya(0) - 10, "B", 9)
     vchain(Xa(-TOT / 2) - 24, [ya(0), ya(Hd)], [Xa(-TOT / 2)] * 2, [f"{Hd:g}"], size=K.F_DIM_FRAME)
     hchain(ya(Hd) + 22, [Xa(-TOT / 2), Xa(-D / 2), Xa(-fb / 2), Xa(fb / 2), Xa(D / 2), Xa(TOT / 2)], [ya(Hd)] * 6,
            [f"{tf:g}", f"{(D - fb) / 2:g}", f"{fb:g}", f"{(D - fb) / 2:g}", f"{tf:g}"], size=K.F_DIM_FRAME)
-    leader(Xa(0), ya(ov + tb + fa / 2), Xa(TOT / 2) + 30, ya(30), 1)
-    leader(Xa(6), ya(yl - 4), Xa(TOT / 2) + 30, ya(Hd - 80), 7)
-    leader(Xa(D / 2 - pd / 2), ya(Hd - ov - tb - pw / 2), Xa(TOT / 2) + 30, ya(Hd - 40), 6)
-    leader(Xa(-D / 2 + pd / 2), ya(Hd - ov - tb - pw / 2), Xa(-TOT / 2) - 34, ya(Hd - 70), 4)
-    leader(Xa(-20), ya(Hd - ov - tb / 2), Xa(-TOT / 2) - 34, ya(Hd - 30), 2)
-    circle(Xa(TOT / 2 - 10), ya(Hd - 12), 16, lw=0.3)
-    T(Xa(TOT / 2) + 4, ya(Hd - 12) + 20, "B", 10, font="FB")
+    K.balloon_column([(Xa(fb / 2 - 4), ya(ov + tb + fa / 2), 1), (Xa(TOT / 2 - tf / 2), ya(Hd * 0.3), 5),
+                      (Xa(4), ya(yl - 4), 7), (Xa(D / 2 - pd / 2), ya(Hd - ov - tb - pw / 2), 6)], Xa(TOT / 2) + 34)
+    K.balloon_column([(Xa(-TOT / 2 + tf / 2), ya(Hd * 0.3), 3), (Xa(-D / 2 + pd / 2), ya(Hd - ov - tb - pw / 2), 4),
+                      (Xa(-D / 2 + 20), ya(Hd - ov - tb / 2), 2)], Xa(-TOT / 2) - 52, ymax=ya(Hd) + 2)
+    circle(Xa(TOT / 2 - 10), ya(Hd - 12), 16, lw=0.3, dash=(3, 1.5))
+    T(Xa(TOT / 2) + 10, ya(Hd + 12) + 4, "B", 10, font="FB")
     view_title(Xa(0), top - 84, "SECTION A-A", "1:5")
     # ---------------------------------------------------------------- 3D: A ir B pusės
     y3 = Yv(Hd) + 80
@@ -341,12 +337,10 @@ def sheet1(g, out):
                [f"{tf:g}", f"{pd / 2:g}", f"{pd / 2:g}"], size=K.F_DIM_FRAME)
         vchain(Zx(TOT / 2) - 10, [Yb(0), Yb(ov), Yb(ov + tb), Yb(ov + tb + pw)], [Zx(TOT / 2)] + [Zx(D / 2)] * 3,
                [f"{ov:g}", f"{tb:g}", f"{pw:g}"], size=K.F_DIM_FRAME)
-        leader(Zx(TOT / 2 - tf / 2), Yb(ymax * 0.62), Zx(D / 2 - 30), Yb(ymax * 0.64), 3)
-        leader(Zx(D / 2 - pd * 0.8), Yb(ov + tb + pw / 2), Zx(D / 2 - 26), Yb(ov + tb + pw + 14), 4)
-        leader(Zx(D / 2 - pd - 8), Yb(ov + tb / 2), Zx(D / 2 - pd - 22), Yb(ov + tb + 10), 2)
-        leader(Zx(fb / 2 - 10), Yb(ov + tb + fa * 0.6), X_P6 + W_P6 - 14, Yb(ov + tb + fa * 0.9), 1)
-        leader(Zx(zs) + 1.1 * s3, Yb(ov + tb + pw + 2), Zx(zs) + 10, Yb(ov + tb + 26), 8)
-        T(Zx(zs) + 4, Yb(ov) - 4, "D3.2", 7)
+        K.balloon_column([(Zx(zs) + 2.4 * s3, Yb(ov - 0.8), 8), (Zx(D / 2 - pd - 4), Yb(ov + tb / 2), 2),
+                          (Zx(D / 2 - pd + 3), Yb(ov + tb + pw / 2), 4), (Zx(fb / 2 - ft - 2), Yb(ov + tb + fa * 0.5), 1),
+                          (Zx(TOT / 2 - tf / 2), Yb(ymax * 0.75), 3)], X_P6 + W_P6 - 12, ymin=BY0 + 22, ymax=BY0 + BH - 22)
+        K.tag(Zx(zs) + 1.1 * s3, Yb(ov + tb + pw + 3), Zx(zs) + 16, Yb(ov + tb + pw + 14), "D3.2", size=7, align="l")
         T(X_P6 + W_P6 - 4, BY0 + BH - 6, "side A shown; side B mirror (5 / 6)", 7, align="r", color=K.GREY)
 
     md = [["Product", "double-sided lightbox, projecting"],
@@ -400,29 +394,23 @@ def sheet2(g, out):
     hdim(X(x0), X(g["xf"]), Yv(x0) - 66, f"{g['L_h']:g}  (□{fa}x{fb}x{ft:g}, 2 pcs.)", e1=Yv(x0), e2=Yv(x0),
          size=K.F_DIM_FRAME)
     ylb = x0 + FH
-    hchain(Yv(ylb) + 24, [X(x0), X(x0 + fa)] + [X(v) for v in led_x] + [X(xr - fa), X(xr)], [Yv(ylb)] * (len(led_x) + 4),
+    hchain(Yv(ylb) + 34, [X(x0), X(x0 + fa)] + [X(v) for v in led_x] + [X(xr - fa), X(xr)], [Yv(ylb)] * (len(led_x) + 4),
            [f"{fa:g}", f"{led_x[0] - x0 - fa:.1f}"] + [f"{g['led_step']:.1f}"] * (len(led_x) - 1) +
            [f"{xr - fa - led_x[-1]:.1f}", f"{fa:g}"], size=K.F_DIM_FRAME)
-    hdim(X(x0 + fa), X(xr - fa), Yv(ylb) + 44, f"{g['led_span']:g}  ({g['led_n_row']} x {g['led_step']:.1f})",
+    hdim(X(x0 + fa), X(xr - fa), Yv(ylb) + 54, f"{g['led_span']:g}  ({g['led_n_row']} x {g['led_step']:.1f})",
          e1=Yv(ylb), e2=Yv(ylb), size=K.F_DIM_FRAME)
     vchain(X(x0) - 26, [Yv(x0), Yv(x0 + fa), Yv(x0 + FH - fa), Yv(x0 + FH)], [X(x0)] * 4,
            [f"{fa:g}", f"{g['L_v']:g}", f"{fa:g}"], size=K.F_DIM_FRAME)
     vchain(X(x0) - 48, [Yv(x0), Yv(x0 + FH)], [X(x0)] * 2, [f"{FH:g}"], size=K.F_DIM_MAIN)
     vchain(X(g["xf"] + FLt) + 24, [Yv(x0 + fa / 2), Yv(x0 + FH - fa / 2)], [X(g["xf"])] * 2, [f"{FH - fa:g}"],
            size=K.F_DIM_FRAME)
-    K.tag(X(xr - fa / 2), Yv(x0 + FH * 0.4), X(xr) + 30, Yv(x0 + FH * 0.4) - 16, f"{g['L_v']:g} vert. (2 pcs.)", size=8)
-    K.tag(X(g["xb"]), Yv(x0 + fa) + 2, X(g["xb"]) + 24, Yv(x0 + FH * 0.22), "body face (2)", size=7)
-    K.tag(X(led_x[1]), Yv(yrow[0] - 6), X(led_x[1]) + 16, Yv(x0 + FH * 0.62),
-          f"7: {g['led_n_row']} x {g['led_name']}" + (" (bottom + top)" if g["led_rows"] > 1 else " on bottom member"), size=8)
-    K.tag(X(g["xf"] + FLt / 2), Yv(x0 + FH - fa / 2), X(g["xf"]) - 40, Yv(x0 + FH) + 62, "cable out: bottom leg + flange", size=7, align="r")
-    leader(X(x0 + 150), Yv(x0 + fa / 2), X(x0 + 150) + 20, Yv(x0 + 60), 1)
-    leader(X(g["xf"] + FLt / 2), Yv(x0 + fa / 2 + 30), X(g["xf"]) + 40, Yv(x0) + 40, "1A")
-    T(X(x0 + FW / 2), Yv(x0 + FH / 2) - 4, "welded frame, all joints", 8, align="c", color=K.GREY)
-    T(X(x0 + FW / 2), Yv(x0 + FH / 2) + 8, "view from side A (glass removed)", 8, align="c", color=K.GREY)
+    K.balloon_column([(X(xr - 60), Yv(x0 + fa / 2), "1.1"), (X(g["xf"] + FLt / 2), Yv(x0 + fa / 2 + FLh / 2 - 6), "1A"),
+                      (X(xr - fa / 2), Yv(x0 + FH * 0.45), "1.3"), (X(led_x[-1]) + 3 * s, Yv(yrow[0] - 4), 7),
+                      (X(xr - 60), Yv(x0 + FH - fa / 2), "1.2")], X(g["xf"] + FLt) + 58, r=7)
+
     xc_ = led_x[len(led_x) // 2]
-    line(X(xc_), Yv(x0 + FH - fa - 45), X(xc_), Yv(x0 + FH - fa - 12), 0.4)
-    T(X(xc_) + 3, Yv(x0 + FH - fa - 45) + 2, "C-C", 10, font="FB")
-    view_title(X(x0 + g["L_h"] / 2), top - 96, "FRAME (1) + LED (7)", "1:5")
+    K.cut_plane(X(xc_), Yv(x0 + FH - fa) - 10, Yv(x0 + FH), "C", look="right")
+    view_title(X(x0 + g["L_h"] / 2), top - 96, "FRAME (1) + LED (7)", "1:5  (from side A, welded)")
     # ---------------------------------------------------------------- SECTION C-C 1:2
     s2 = MM / 2
     cx0, cy0 = X(g["xf"] + FLt) + 170, top + 40
@@ -440,11 +428,9 @@ def sheet2(g, out):
     T(Zc(0), Yc(-up_) + 10, "65°", 8, align="c", color=HexColor("#8A6D00"))
     hchain(Yc(fa + tb + ov) + 22, [Zc(-D / 2 - tf), Zc(-D / 2), Zc(-fb / 2), Zc(fb / 2), Zc(D / 2), Zc(D / 2 + tf)],
            [Yc(fa + tb)] * 6, [f"{tf:g}", f"{(D - fb) / 2:g}", f"{fb:g}", f"{(D - fb) / 2:g}", f"{tf:g}"], size=K.F_DIM_FRAME)
-    leader(Zc(4), Yc(-4), Zc(D / 2 + tf) + 30, Yc(-40), 7)
-    leader(Zc(-fb / 2 + 3), Yc(fa / 2), Zc(-D / 2 - tf) - 30, Yc(fa / 2), 1)
-    leader(Zc(D / 2 - 10), Yc(fa + tb / 2), Zc(D / 2 + tf) + 30, Yc(fa + 12), 2)
-    leader(Zc(-D / 2 - tf / 2), Yc(-up_ * 0.6), Zc(-D / 2 - tf) - 30, Yc(-up_ * 0.6), 3)
-    leader(Zc(D / 2 + tf / 2), Yc(-up_ * 0.75), Zc(D / 2 + tf) + 30, Yc(-up_ * 0.8), 5)
+    K.balloon_column([(Zc(D / 2 + tf / 2), Yc(-up_ * 0.75), 5), (Zc(8), Yc(-4), 7), (Zc(D / 2 - 10), Yc(fa + tb / 2), 2)],
+                     Zc(D / 2 + tf) + 32)
+    K.balloon_column([(Zc(-D / 2 - tf / 2), Yc(-up_ * 0.6), 3), (Zc(-fb / 2 + 3), Yc(fa / 2), 1)], Zc(-D / 2 - tf) - 32)
     T(Zc(0), Yc(fa + tb) + 52, "LED on member centre - light to both faces", 8, align="c", color=K.GREY)
     view_title(Zc(0), top - 96, "SECTION C-C (LED)", "1:2")
     # ---------------------------------------------------------------- FLANGE 1:2
@@ -483,13 +469,13 @@ def sheet2(g, out):
     hu = [st_ * (i + 0.5) for i in range(n_)]
     hchain(BY(D) + 14, [BX(0)] + [BX(u) for u in hu] + [BX(g["BW"])], [BY(D / 2 + zs)] * (n_ + 2),
            [f"{hu[0]:.1f}"] + [f"{st_:.1f}"] * (n_ - 1) + [f"{g['BW'] - hu[-1]:.1f}"], size=K.F_DIM_FRAME)
-    T(BX(0), BY(D) + 62, f"holes: same on each side ({n_} + {n_} per side, rows {D / 2 - zs:g} from edges) + 2 x D3.2 on centre line (frame) at 1/4, 3/4", 7, color=K.GREY)
+    T(BX(0), BY(D) + 62, f"holes: same on each side ({n_} + {n_} per side, rows {D / 2 - zs:g} from edges) ; band welded to frame (no holes on centre line)", 7, color=K.GREY)
     uu = g["ax"] - ov
     hchain(BY(D) + 32, [BX(starts["wall"]), BX(starts["wall"] + uu), BX(starts["wall"] + g["BH"] - uu), BX(starts["wall"] + g["BH"])],
            [BY(D / 2)] * 4, [f"{uu:g}", f"{g['BH'] - 2 * uu:g}", f"{uu:g}"], size=K.F_DIM_FRAME)
     K.tag(BX(starts["wall"] + uu), BY(D / 2 + cl / 2), BX(starts["wall"] + uu) + 30, BY(D) + 48, f"□{cl:g} leg hole (2)", size=7)
     K.tag(BX(starts["top"] + hu[0]), BY(D / 2 - zs), BX(starts["top"] + hu[0]) + 10, BY(0) - 44,
-          f"D3.2 - {g['n_scr']} holes (screws 8)", size=7)
+          f"D3.2 - {g['n_scr']} holes (screws 8, into PVC 4 / 6)", size=7)
     T(BX(0) - 4, BY(0) + 6, "A", 8, font="FB", align="r", color=K.GREY)
     T(BX(0) - 4, BY(D) + 2, "B", 8, font="FB", align="r", color=K.GREY)
     view_title(BX(Ltot / 2), by0 - 66, "BODY BAND (2) - FLAT PATTERN", "1:10")
@@ -517,13 +503,13 @@ def sheet2(g, out):
                  [7, f"LED Kaisen {g['led_name']}", f"{g['du']['W']:g} W, 12 V", "6500 K", f"{g['led_n']} pcs."],
                  ["7A", "PSU", g["psu"][0], "IP67", "1 pc."],
                  ["7B", "Cable 2 x 0.75 (LED -> PSU)", "", "", "length:"],
-                 [8, "Tapping screw (band -> frame)", "A2", "-", "8 pcs."]]
+                 ["", "", "", "", ""]]
     md = [["Frame outer", f"{FW:g} x {FH:g} mm"],
           ["Profile", f"□{fa}x{fb}x{ft:g} Alu, centre of depth"],
           ["Legs", f"top + bottom members, +{g['xf'] - g['xb']:g} out of body"],
           ["Leg axes", f"{FH - fa:g} mm (from glass edge {g['ax']:g})"],
           ["Joints", "welded (TIG), ground"],
-          ["Body fit", f"band {g['BW']:g} x {g['BH']:g} over frame"],
+          ["Body", f"band {g['BW']:g} x {g['BH']:g}, welded to frame"],
           ["Cable", "bottom leg tube -> flange □ hole"],
           ["Finish", g["frame_finish"]],
           ["Qty", f"{g['qty']} set"]]

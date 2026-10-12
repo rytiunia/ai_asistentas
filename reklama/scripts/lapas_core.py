@@ -1060,6 +1060,74 @@ class View3D:
         return self.rot(cp.x, cp.y, z)[2]
 
 
+# ------------------------------------------------------------------ v137 (Rytis 2026-10-12): CAD žymėjimai
+# „žymėjimai lipa ant projekcijų, pjūvio linijos ir žymėjimai sugrūsti ant projekcijos, nuorodos linijos kertasi":
+#  - pjūvio plokštuma (ISO 128-40 / 128-44): per vaizdą NEBRAIŽOMA; tik storos trumpos atkarpos UŽ vaizdo ribų,
+#    rodyklės žiūrėjimo kryptimi ir raidės prie rodyklių (už vaizdo);
+#  - balionai / žymos - STULPELYJE UŽ vaizdo (ir už matmenų), surikiuoti pagal taikinio y (išvadinės nesikerta),
+#    tarpas >= 2 r + 3; ant projekcijos - tik išvadinės taškas.
+def cut_plane(x, y0, y1, letter, look="right", size=10):
+    """vertikali pjūvio plokštuma x per vaizdą y0..y1 (y žemyn): atkarpos virš / po vaizdu, rodyklės `look` kryptimi"""
+    sg = 1 if look == "right" else -1
+    for ya, yb in ((y0 - 16, y0 - 5), (y1 + 5, y1 + 16)):
+        line(x, ya, x, yb, 0.8)
+        ye = ya if ya < y0 else yb
+        line(x, ye, x + sg * 9, ye, 0.3)
+        arrowhead(x + sg * 9, ye, 0 if sg > 0 else 180)
+        T(x + sg * 13, ye + size * 0.35, letter, size, font="FB", align="l" if sg > 0 else "r")
+
+
+def cut_plane_h(y, x0, x1, letter, look="down", size=10):
+    """horizontali pjūvio plokštuma y per vaizdą x0..x1"""
+    sg = 1 if look == "down" else -1
+    for xa, xb in ((x0 - 16, x0 - 5), (x1 + 5, x1 + 16)):
+        line(xa, y, xb, y, 0.8)
+        xe = xa if xa < x0 else xb
+        line(xe, y, xe, y + sg * 9, 0.3)
+        arrowhead(xe, y + sg * 9, -90 if sg > 0 else 90)
+        T(xe, y + sg * 9 + (size if sg > 0 else -3), letter, size, font="FB", align="c")
+
+
+def _column_ys(ty, ymin=None, ymax=None, gap=16):
+    """balionų y stulpelyje: kuo arčiau taikinio, bet ne arčiau nei gap (tvarka išlaikoma)"""
+    order = sorted(range(len(ty)), key=lambda i: ty[i])
+    ys = [ty[i] for i in order]
+    for k in range(1, len(ys)):
+        ys[k] = max(ys[k], ys[k - 1] + gap)
+    if ymax is not None and ys and ys[-1] > ymax:              # stumti aukštyn
+        ys[-1] = ymax
+        for k in range(len(ys) - 2, -1, -1):
+            ys[k] = min(ys[k], ys[k + 1] - gap)
+    if ymin is not None and ys and ys[0] < ymin:
+        d = ymin - ys[0]; ys = [v + d for v in ys]
+    out = [0] * len(ty)
+    for k, i in enumerate(order):
+        out[i] = ys[k]
+    return out
+
+
+def balloon_column(items, x_col, r=6.5, ymin=None, ymax=None, gap=None):
+    """items: [(tx, ty, label)] - balionai stulpelyje x_col (už vaizdo), išvadinės nesikerta"""
+    if not items:
+        return
+    gap = gap or 2 * r + 3
+    ys = _column_ys([it[1] for it in items], ymin, ymax, gap)
+    for (tx, ty, lab), yb in zip(items, ys):
+        sgn = 1 if x_col > tx else -1
+        leader(tx, ty, x_col, yb, lab, r)
+
+
+def tag_column(items, x_col, size=8, ymin=None, ymax=None, gap=None, align=None):
+    """items: [(tx, ty, text)] - žymos su tekstu stulpelyje x_col (už vaizdo); align pagal pusę"""
+    if not items:
+        return
+    gap = gap or size + 5
+    ys = _column_ys([it[1] for it in items], ymin, ymax, gap)
+    for (tx, ty, txt), yb in zip(items, ys):
+        al = align or ("l" if x_col > tx else "r")
+        tag(tx, ty, x_col, yb, txt, size=size, align=al)
+
+
 # ------------------------------------------------------------------ v20: PDF -> CorelDRAW (tekstas lieka tekstu)
 def pdf_fix_fonts(path_in, path_out=None):
     """Rytis 2026-10-08 (patikrinta CorelDRAW 2026): atidarant PDF su CorelDRAW tekstas turi likti TEKSTU ir
