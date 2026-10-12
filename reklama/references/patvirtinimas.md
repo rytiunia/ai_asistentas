@@ -38,6 +38,13 @@ Pirmas bandymas: Joker 226001 (`scripts/projektai/joker_reinslettveien/`, „Pat
   (kojos „stem") rail spalvos - automatiškai ne raidės (v109).
 - `one_frame` lapai su spec `verticals` - `"client_vert_rails": false` (statmenys generuojami iš spec, ne iš lapo).
 - `client_frame: true` - rėmas kaip patvirtintame (be auto perdarymo); 6 m strypų taisyklė vis tiek taikoma - PRANEŠTI.
-- `p6_dxf.py` NEPALAIKO plokštės (6+3 X ant apskritimo), kelių spalvų grupių vieno rėmo lape ir P1 - tokiems lapams DXF
-  nedaromas automatiškai, klausti Ryčio.
+- v112: vieno rėmo lapai su plokšte (EXTRA X ant apskritimo) - `p6_dxf.py --plate-fill <apskritimo spalva> --fill
+  "<raudona>;<geltona>"`, crop be šoninio vaizdo; P1 NON-LIT - `--cable none`, failas `<ALT>_<lapas>_P1_1-1.dxf`.
+  DXF reikia VISIEMS gaminiams (Rytis: „nėra extra dxf failų, tik darbo laiko").
 - LED kelioms spalvoms - `fill_rgb` sąrašas + `groups` / `feed_at` po grupę; P1 NON-LIT - LED lapo nėra.
+- v111: kiekvienai šviečiančiai grupei spec `"led"` (galiniame vaizde užrašas, kokie LED) - be jo lapas negamybinis
+  (braizyti_begeliai rašo perspėjimą).
+- v112 EXTRA 225978: FAS700 `--page 2 --scale 20 --crop 125,100,715,225 --fill "0.784,0.063,0.18;1,0.761,0.055"
+  --plate-fill 0.969,0.71,0 --names "EXTRA723-"`; FAS1000 P1 `--page 3 --scale 25 --crop 95,115,822,250 --fill
+  "0.757,0.071,0.11" --plate-fill 0.969,0.71,0 --cable none`.
+- v113: DXF kontūrai tiesėmis + lankais (mažai mazgų) - nieko papildomai daryti nereikia.

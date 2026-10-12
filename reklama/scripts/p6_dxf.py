@@ -79,10 +79,15 @@ ap.add_argument("--rail-edge", type=float, default=10, help="bėgelio galas raid
 ap.add_argument("--interior", action="store_true", help="v98: vidaus iškaba - be drenažo išpjovų (numatyta - exterior, su drenažu)")
 ap.add_argument("--drain-d", type=float, default=8, help="v98: drenažo išpjovos skersmuo, mm")
 ap.add_argument("--crop", default=None, help="v97: sritis pt x0,y0,x1,y1 (kaip spec crop_pt) - visas lapas su keliais vaizdais")
-ap.add_argument("--fill", default=None, help="v97: raidžių spalva r,g,b (kaip spec client_fill), kitos spalvos ignoruojamos")
+ap.add_argument("--fill", default=None, help="v97: raidžių spalva r,g,b (kaip spec client_fill), kitos spalvos ignoruojamos; v112: kelios - 'r,g,b;r,g,b'")
+ap.add_argument("--plate-fill", default=None, help="v112: PLOKŠTĖS spalva r,g,b (pvz. EXTRA geltonas apskritimas po X) - plokštė + jos raidė(s) atskirai")
+ap.add_argument("--spacer-d", type=float, default=4, help="v112: raidės ant plokštės distancerių / varžtų skylės Ø (EXTRA X - Ø4)")
+ap.add_argument("--spacer-edge", type=float, default=15, help="v112: distancerio skylės centras nuo dugno krašto, mm")
+ap.add_argument("--plate-gap", type=float, default=100, help="v112: raidė ant plokštės DXF'e perkeliama kairiau plokštės, tarpas mm")
 ap.add_argument("--separate", action="store_true", help="v90: atskiros raidės be rėmo - bėgeliai tik skylių ašys, 3_REMAS nėra, D11 vienoje horizontalioje linijoje")
 ap.add_argument("--rails-json", default=None, help="v85: rėmas iš braizyti_begeliai.py (RAILS_JSON) - bėgeliai kaip lape, galai nekeičiami")
 ap.add_argument("--tol", type=float, default=0.01, help="kreivių išlyginimo tikslumas mm")
+ap.add_argument("--fit-tol", type=float, default=0.02, help="v113: kontūrai DXF'e - tiesės + lankai, nuokrypis mm (mažai mazgų)")
 ap.add_argument("--no-letters", action="store_true", help="tik bendras failas, be failų po raidę")
 ap.add_argument("--cable", default="both", choices=["top", "bottom", "both", "none"],
                 help="D11 laido išvestis: viršutiniame bėgelyje / apatiniame / abu variantai (atskiri failai) / be")
@@ -112,7 +117,9 @@ def is_grey(fill):
 
 raw_letters, raw_rails = [], []
 _CROP = fitz.Rect(*[float(v) for v in A.crop.split(",")]) if A.crop else None
-_FILL = [float(v) for v in A.fill.split(",")] if A.fill else None
+_FILLS = [[float(v) for v in f_.split(",")] for f_ in A.fill.split(";")] if A.fill else None
+_PFILL = [float(v) for v in A.plate_fill.split(",")] if A.plate_fill else None
+raw_plates = []
 for d in page.get_drawings():
     if d.get("fill") is None:
         continue
@@ -121,9 +128,12 @@ for d in page.get_drawings():
     r = true_rect(d)
     if max(r.width, r.height) < 1:
         continue
+    if _PFILL and max(abs(a_ - b_) for a_, b_ in zip(d["fill"][:3], _PFILL)) <= 0.03:
+        raw_plates.append(d)                                        # v112: plokštė (ne raidė)
+        continue
     if is_grey(d["fill"]) and max(r.width, r.height) / max(min(r.width, r.height), 0.1) > 6:
         raw_rails.append(r)
-    elif _FILL is None or max(abs(a_ - b_) for a_, b_ in zip(d["fill"][:3], _FILL)) <= 0.06:
+    elif _FILLS is None or any(max(abs(a_ - b_) for a_, b_ in zip(d["fill"][:3], f_)) <= 0.06 for f_ in _FILLS):
         raw_letters.append(d)
 if not raw_letters:
     sys.exit("raidžių (užpildytų ne pilkų kontūrų) nerasta")
@@ -190,6 +200,26 @@ for o in letters:
         continue
     uniq.append(o)
 letters = sorted(uniq, key=lambda o: (o["geom"].bounds[0], o["geom"].bounds[1]))
+# v112 (Rytis 2026-10-12, EXTRA darbiniai): PLOKŠTĖ (apskritimas) ir raidė ant jos (X) - atskiros detalės, ne ant bėgelių
+PLATES = []
+for d in raw_plates:
+    for L_ in K.split_letters(K.drawing_to_subpaths(d, tomm)):
+        rings = [r_ for r_ in (flat_fine(sp, A.tol) for sp in L_["sub"]) if len(r_) >= 3]
+        polys = sorted([Polygon(r_).buffer(0) for r_ in rings], key=lambda p: -p.area)
+        geom = polys[0]
+        for p in polys[1:]:
+            geom = geom.symmetric_difference(p)
+        PLATES.append({"geom": geom.buffer(0), "rings": rings, "fill": tuple(d["fill"][:3])})
+for pl_ in PLATES:
+    pl_["let"] = [o for o in letters if pl_["geom"].buffer(1).contains(o["geom"].representative_point())]
+# plokštės spalvos forma BE raidės viduje - paprasta raidė (pvz. FAS1000: 7-23 tos pačios geltonos kaip apskritimas)
+letters += [{"geom": pl_["geom"], "rings": pl_["rings"], "fill": pl_["fill"]} for pl_ in PLATES if not pl_["let"]]
+PLATES = [pl_ for pl_ in PLATES if pl_["let"]]
+letters = sorted(letters, key=lambda o: (o["geom"].bounds[0], o["geom"].bounds[1]))
+_on_pl = {id(o) for pl_ in PLATES for o in pl_["let"]}
+letters = [o for o in letters if id(o) not in _on_pl]
+if PLATES:
+    print(f"  plokštės: {len(PLATES)}, raidžių ant jų: {len(_on_pl)} (atskirai, ne ant bėgelių)")
 # v85: kelios eilutės - tvarka eilutėmis (viršutinė pirma), eilutėje iš kairės; akcentai (Ė, Ū) - prie savo raidės
 _hm = sorted(o["geom"].bounds[3] - o["geom"].bounds[1] for o in letters)[len(letters) // 2]
 _rows = []
@@ -964,10 +994,217 @@ if DRAIN:
         if o["drain"]:
             print(f"    {o['id']}: " + ", ".join(f"({x - GX0:.0f}; {PH - y:.0f})" for x, y in o["drain"]))
 
+# ------------------------------------------------------------------ v112: plokštė + raidė ant jos (EXTRA X ant apskritimo)
+# Etalonas - Ryčio „extra_darbiniai" (Corel): X atskirai KAIRIAU apskritimo (stiklas + dugnas -3 + Ø4 distancerių skylės
+# + Ø11 laidui), apskritimas su TOMIS PAČIOMIS skylėmis VEIDRODIŠKAI (plokštė žiūrint iš galo). Distancerių skylės:
+# centre (didžiausio įbrėžto apskritimo vieta) + po vieną kiekviename kampiniame bbox ketvirtyje (X - 4 galai).
+# Laido Ø11 - apatiniame ketvirtyje pagrindinių raidžių pusėje, 25 mm virš distancerio (kaip etalone).
+try:
+    from shapely.ops import polylabel as _polylabel
+except ImportError:
+    from shapely.algorithms.polylabel import polylabel as _polylabel
+
+
+def _pole(g):
+    g = max(getattr(g, "geoms", [g]), key=lambda q: q.area)
+    p_ = _polylabel(g, tolerance=0.5)
+    return (p_.x, p_.y)
+
+
+if PLATES:
+    _main_cx = (min(o["bb"][0] for o in letters) + max(o["bb"][2] for o in letters)) / 2 if letters else 0
+    for pl_ in PLATES:
+        pb_ = pl_["geom"].bounds
+        pl_["holes"], pl_["d11"] = [], None
+        for o in pl_["let"]:
+            o["bb"] = o["geom"].bounds
+            o["back"] = K.dugnas_inset(o["geom"], A.inset, A.blunt_len)
+            safe_ = o["back"].buffer(-A.spacer_edge, join_style=2, mitre_limit=10)
+            x0_, y0_, x1_, y1_ = o["bb"]; w_, h_ = x1_ - x0_, y1_ - y0_
+            hs_ = []
+            if not safe_.is_empty:
+                hs_.append(_pole(safe_))
+                for qx0, qx1 in ((x0_, x0_ + 0.4 * w_), (x1_ - 0.4 * w_, x1_)):
+                    for qy0, qy1 in ((y0_, y0_ + 0.3 * h_), (y1_ - 0.3 * h_, y1_)):
+                        q_ = safe_.intersection(sbox(qx0, qy0, qx1, qy1))
+                        if not q_.is_empty and q_.area > 1:
+                            hs_.append(_pole(q_))
+            if len(hs_) < 5:
+                print(f"  ! raidė ant plokštės: tik {len(hs_)} Ø{A.spacer_d:g} skylės (< 5) - tikrinti / dėti ranka")
+            o["sp_holes"] = hs_
+            o["d11p"] = None
+            if A.cable != "none" and hs_:
+                right_ = _main_cx >= (x0_ + x1_) / 2
+                bot_ = [q for q in hs_[1:] if q[1] > (y0_ + y1_) / 2] or hs_[1:]
+                if bot_:
+                    bq = max(bot_, key=lambda q: q[0]) if right_ else min(bot_, key=lambda q: q[0])
+                    for dy_ in (25, 35, 20, 45):
+                        c_ = (bq[0], bq[1] - dy_)
+                        if o["back"].buffer(-(A.d11 / 2 + 8)).contains(Point(c_)):
+                            o["d11p"] = c_; break
+                if o["d11p"] is None:
+                    print("  ! raidė ant plokštės: Ø11 laido skylei vietos nerasta - dėti ranka")
+            o["drain"] = drain_points(o["back"], r=A.drain_d / 2) if not A.interior else []
+            # plokštėje - tos pačios skylės veidrodiškai (plokštė iš galo)
+            mir_ = lambda q: (pb_[0] + pb_[2] - q[0], q[1])
+            pl_["holes"] += [mir_(q) for q in hs_]
+            if o["d11p"]:
+                pl_["d11"] = mir_(o["d11p"])
+            o["shift"] = pb_[0] - A.plate_gap - x1_                       # X - kairiau apskritimo
+        pl_["mirror"] = lambda q, b=pb_: (b[0] + b[2] - q[0], q[1])
+        print(f"  plokštė {pb_[2] - pb_[0]:.0f} x {pb_[3] - pb_[1]:.0f}: Ø{A.spacer_d:g} x {len(pl_['holes'])}" +
+              (f", Ø{A.d11:g} laidui" if pl_["d11"] else "") + " (veidrodiškai - plokštė iš galo)")
+    GX0 = min([GX0] + [o["bb"][0] + o["shift"] for pl_ in PLATES for o in pl_["let"]] + [pl_["geom"].bounds[0] for pl_ in PLATES])
+    GY1 = max([GY1] + [pl_["geom"].bounds[3] for pl_ in PLATES])
+
+
+def put_plates(msp, var):
+    """v112: plokštė (4_PLOKSTE, veidrodiškai) + raidė ant jos (perkelta kairiau, 1_PRIEKIS / 2_GALAS)"""
+    for pl_ in PLATES:
+        for o in pl_["let"]:
+            T = lambda q, o=o: (q[0] + o["shift"] - GX0, GY1 - q[1])
+            for ring in o["rings"]:
+                add_ring(msp, [T(q) for q in ring], "1_PRIEKIS")
+            for ring in rings_of(o["back"]):
+                add_ring(msp, [T(q) for q in ring], "2_GALAS")
+            for q in o["sp_holes"]:
+                msp.add_circle(T(q), A.spacer_d / 2, dxfattribs={"layer": "2_GALAS"})
+            for q in o.get("drain", []):
+                msp.add_circle(T(q), A.drain_d / 2, dxfattribs={"layer": "2_GALAS"})
+            if var and o.get("d11p"):
+                msp.add_circle(T(o["d11p"]), A.d11 / 2, dxfattribs={"layer": "2_GALAS"})
+        Tp = lambda q: (q[0] - GX0, GY1 - q[1])
+        for ring in pl_["rings"]:
+            add_ring(msp, [Tp(pl_["mirror"](q)) for q in ring], "4_PLOKSTE")
+        for q in pl_["holes"]:
+            msp.add_circle(Tp(q), A.spacer_d / 2, dxfattribs={"layer": "4_PLOKSTE"})
+        if var and pl_["d11"]:
+            msp.add_circle(Tp(pl_["d11"]), A.d11 / 2, dxfattribs={"layer": "4_PLOKSTE"})
+
+
 # ------------------------------------------------------------------ DXF
 os.makedirs(A.out_dir, exist_ok=True)
 prefix = A.prefix or os.path.splitext(os.path.basename(A.pdf))[0]
-LAY = (("1_PRIEKIS", 7), ("2_GALAS", 2), ("3_REMAS", 1))   # rėmas RAUDONAS (Rytis 2026-10-09)
+LAY = (("1_PRIEKIS", 7), ("2_GALAS", 2), ("3_REMAS", 1)) + ((("4_PLOKSTE", 5),) if PLATES else ())   # rėmas RAUDONAS (Rytis 2026-10-09); v112 plokštė
+
+
+# ------------------------------------------------------------------ v113: kreivės - LANKAIS, ne tūkstančiais taškų
+# Rytis 2026-10-12: „labai daug nodes ant lenktų linijų, reikia kiekvieną kartą paspausti reduce nodes". Kontūras
+# (stiklas, dugnas, plokštė) prieš rašymą aproksimuojamas tiesėmis + lankais (LWPOLYLINE bulge), nuokrypis <= --fit-tol
+# (0,02 mm). Corel / CNC - mazgai tik atkarpų galuose (kaip po „Reduce nodes").
+def _circ3(a, b, c):
+    ax, ay = a; bx, by = b; cx, cy = c
+    d = 2 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by))
+    if abs(d) < 1e-12:
+        return None
+    a2, b2, c2 = ax * ax + ay * ay, bx * bx + by * by, cx * cx + cy * cy
+    ux = (a2 * (by - cy) + b2 * (cy - ay) + c2 * (ay - by)) / d
+    uy = (a2 * (cx - bx) + b2 * (ax - cx) + c2 * (bx - ax)) / d
+    return ux, uy, math.hypot(ax - ux, ay - uy)
+
+
+def _line_ok(P, i, j, tol):
+    (x0, y0), (x1, y1) = P[i], P[j]
+    L = math.hypot(x1 - x0, y1 - y0)
+    if L < 1e-9:
+        return all(math.hypot(P[k][0] - x0, P[k][1] - y0) <= tol for k in range(i, j + 1))
+    for k in range(i + 1, j):
+        if abs((x1 - x0) * (y0 - P[k][1]) - (x0 - P[k][0]) * (y1 - y0)) / L > tol:
+            return False
+    return True
+
+
+def _arc_ok(P, i, j, tol):
+    if j - i < 2:
+        return None
+    m = (i + j) // 2
+    c = _circ3(P[i], P[m], P[j])
+    if c is None or c[2] > 1e5:
+        return None
+    ux, uy, r = c
+    a0 = math.atan2(P[i][1] - uy, P[i][0] - ux)
+    prev, tot, sgn = a0, 0.0, 0
+    for k in range(i + 1, j + 1):
+        if abs(math.hypot(P[k][0] - ux, P[k][1] - uy) - r) > tol:
+            return None
+        a = math.atan2(P[k][1] - uy, P[k][0] - ux)
+        da = (a - prev + math.pi) % (2 * math.pi) - math.pi
+        s_ = 1 if da > 0 else -1 if da < 0 else 0
+        if s_ and sgn and s_ != sgn:
+            return None
+        sgn = sgn or s_
+        tot += da; prev = a
+        # tarpinė chorda neturi nukrypti nuo lanko daugiau nei tol (retai išdėstyti taškai)
+        ch = math.hypot(P[k][0] - P[k - 1][0], P[k][1] - P[k - 1][1])
+        if r - math.sqrt(max(r * r - ch * ch / 4, 0)) > tol:
+            return None
+    if abs(tot) >= math.pi * 1.98:
+        return None
+    return math.tan(tot / 4)
+
+
+def fit_ring(pts, tol=None):
+    """uždaras žiedas -> [(x, y, bulge)]; tiesės + lankai, nuokrypis <= tol"""
+    tol = A.fit_tol if tol is None else tol
+    P = [tuple(q) for q in pts]
+    if len(P) > 1 and math.dist(P[0], P[-1]) < 1e-9:
+        P = P[:-1]
+    n = len(P)
+    if n < 4:
+        return [(x, y, 0.0) for x, y in P]
+    # pradžia - aštriausiame kampe (kad pirmas segmentas neperkirstų lanko vidurio)
+    def turn(k):
+        a, b, c = P[k - 1], P[k], P[(k + 1) % n]
+        v1 = (b[0] - a[0], b[1] - a[1]); v2 = (c[0] - b[0], c[1] - b[1])
+        l1, l2 = math.hypot(*v1), math.hypot(*v2)
+        if l1 < 1e-9 or l2 < 1e-9:
+            return 0
+        return abs(math.atan2(v1[0] * v2[1] - v1[1] * v2[0], v1[0] * v2[0] + v1[1] * v2[1]))
+    k0 = max(range(n), key=turn)
+    P = P[k0:] + P[:k0] + [P[k0]]
+    N = len(P) - 1
+    out, i = [], 0
+    while i < N:
+        # ilgiausia tiesė
+        lo, hi = i + 1, i + 1
+        step = 1
+        while hi + step <= N and _line_ok(P, i, hi + step, tol):
+            hi += step; step *= 2
+        step //= 2
+        while step >= 1:
+            if hi + step <= N and _line_ok(P, i, hi + step, tol):
+                hi += step
+            step //= 2
+        jl = hi
+        # ilgiausias lankas
+        ja, ba = None, 0.0
+        j = i + 2
+        step = 1
+        best = None
+        while j <= N:
+            b_ = _arc_ok(P, i, j, tol)
+            if b_ is None:
+                break
+            best = (j, b_); j += step; step *= 2
+        if best:
+            lo_, hi_ = best[0], min(j, N + 1)
+            while hi_ - lo_ > 1:
+                md = (lo_ + hi_) // 2
+                b_ = _arc_ok(P, i, md, tol)
+                if b_ is not None:
+                    best = (md, b_); lo_ = md
+                else:
+                    hi_ = md
+            ja, ba = best
+        if ja and ja > jl:
+            out.append((P[i][0], P[i][1], ba)); i = ja
+        else:
+            out.append((P[i][0], P[i][1], 0.0)); i = jl
+    return out
+
+
+def add_ring(msp, pts, layer):
+    msp.add_lwpolyline(fit_ring(pts), format="xyb", close=True, dxfattribs={"layer": layer})
 
 
 def new_doc():
@@ -1010,9 +1247,9 @@ def put(msp, o, rails_, ox, oy, clip=None, var=None):
     """o - raidė, (ox, oy) - nulis (mm, y žemyn), išvestis y aukštyn"""
     T = lambda q: (q[0] - ox, oy - q[1])
     for ring in o["rings"]:                                     # 1 stiklas - originalus kontūras
-        msp.add_lwpolyline([T(q) for q in ring], close=True, dxfattribs={"layer": "1_PRIEKIS"})
+        add_ring(msp, [T(q) for q in ring], "1_PRIEKIS")
     for ring in rings_of(o["back"]):                            # 2 dugnas
-        msp.add_lwpolyline([T(q) for q in ring], close=True, dxfattribs={"layer": "2_GALAS"})
+        add_ring(msp, [T(q) for q in ring], "2_GALAS")
     for (x, y) in (o.get("holes_var", {}).get(var) if var else None) or o["holes"]:
         msp.add_circle(T((x, y)), A.hole_d / 2, dxfattribs={"layer": "2_GALAS"})
     for (x, y) in o.get("drain", []):                           # v98/v99: drenažo skylutė Ø8 dugne (exterior)
@@ -1035,6 +1272,7 @@ for var, suf in VARS:
     doc = new_doc(); msp = doc.modelspace()
     for o in letters:
         put(msp, o, [], GX0, GY1, var=var)
+    put_plates(msp, var)                                      # v112
     for r_ in ([] if SEPARATE else rails + VRAILS):          # v90: atskiros raidės - rėmo nėra
         pts = r_.get("poly") or [(r_["x0"], r_["y0"]), (r_["x1"], r_["y0"]), (r_["x1"], r_["y1"]), (r_["x0"], r_["y1"])]
         msp.add_lwpolyline([(q[0] - GX0, GY1 - q[1]) for q in pts], close=True, dxfattribs={"layer": "3_REMAS"})

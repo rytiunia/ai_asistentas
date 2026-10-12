@@ -2,6 +2,28 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v113 (2026-10-12)
+
+v113, Rytis 2026-10-12 („labai daug nodes ant lenktų linijų, reikia kiekvieną kartą paspausti reduce nodes"): `p6_dxf.py` -
+`fit_ring()` / `add_ring()` - kontūrai tiesėmis + lankais (bulge), `--fit-tol 0.02`. Patikra: VH400 PRIEKIS 8097 -> 397 mazgai,
+FAS700 2371 -> 228; Hausdorff <= 0,03 mm.
+
+## v112 (2026-10-12)
+
+v112, Rytis 2026-10-12 („nėra extra dxf failų, tik darbo laiko dxf"; pavyzdys extra_darbiniai.pdf): `p6_dxf.py` - `--plate-fill`,
+kelių spalvų `--fill`, `--spacer-d` / `--spacer-edge` / `--plate-gap`, sluoksnis `4_PLOKSTE`; X atskirai, apskritimas veidrodiškai
+su Ø4 + Ø11. EXTRA 225978 FAS700 / FAS1000 P1 DXF.
+
+## v111 (2026-10-12)
+
+v111, Rytis 2026-10-12 („pataisymai extra: turi būti pažymėta kur kokie led dedasi“, pavyzdys EXTRA 223315 lapas 1):
+`braizyti_begeliai.py` - galiniame vaizde virš grupės spec `"led"` užrašas (virš matmenų eilučių, balionas 5 jo nekerta);
+SKILL.md LED skyriuje taisyklė; etalonas `assets/etalonai/led_zymejimas_galiniame_EXTRA_223315.pdf`.
+
+## v110 (2026-10-12)
+
+v110, Rytis 2026-10-12: šaltinis - GitHub repo `rytiunia/ai_asistentas` (iCloud zip'ai archyvuoti).
+
 ## v109 (2026-10-12)
 
 EXTRA 225978 patvirtinimas (ALT8873_10.12_RS): `braizyti_begeliai.py` - rail_fills spalvos ne-bėgelio formos praleidžiamos

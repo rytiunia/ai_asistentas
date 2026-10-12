@@ -2305,11 +2305,35 @@ else:
 for xj_, lj_ in JOINTS:
     _joint(RV(xj_, 0)[0], RVY - 8, RVY + rh + 8, lj_)
 _callouts("rear", RV)
+# v111 (Rytis 2026-10-12, etalonas EXTRA 223315 lapas 1): GALINIAME VAIZDE virš kiekvienos šviečiančios grupės - kokie LED
+#  dedami (spalva / temperatūra; plokštei X - vidus ir galas). spec grupės "led": "White LED modules, 6500K" arba eilučių
+#  sąrašas; nenurodyta šviečiančiai grupei - perspėjimas (neišgalvoti).
+LED_GAP = spec.get("led_label_gap_pt", 26)
+LED_BUSY = []                                      # balionas 5 ir laidai - ne per LED užrašus
+for g in groups:
+    if FRONT == "P1" or g["spec"].get("lit") is False or not g["letters"]:
+        continue
+    led_ = g["spec"].get("led")
+    if not led_:
+        print(f"  ! {g['name']}: LED tipas nenurodytas (spec grupės \"led\") - galiniame vaizde nepažymėta")
+        continue
+    lines_ = [led_] if isinstance(led_, str) else list(led_)
+    bbs_ = [o["bb"] for o in g["letters"]] + ([g["plate"]["bb"]] if g["plate"] else [])
+    gx0_, gx1_, gy0_ = min(b_[0] for b_ in bbs_), max(b_[2] for b_ in bbs_), min(b_[1] for b_ in bbs_)
+    xc_ = (RV(gx0_, gy0_)[0] + RV(gx1_, gy0_)[0]) / 2
+    sz_ = K.F_INFO + 2
+    # virš visų galinio vaizdo matmenų eilučių (bėgelių ilgiai), kad nekirstų matmenų linijų
+    y_ = min(_vt - ROW[0] - 20 * max(UPR[0], 1) + 2, RV(0, gy0_)[1] - LED_GAP) - (len(lines_) - 1) * (sz_ + 2.5)
+    w_ = max(K.pdfmetrics.stringWidth(str(ln_), "F", sz_) for ln_ in lines_)
+    LED_BUSY.append((xc_ - w_ / 2 - 4, xc_ + w_ / 2 + 4))
+    for i_, ln_ in enumerate(lines_):
+        TL(xc_, y_ + i_ * (sz_ + 2.5), ln_, sz_, align="c")
 if r_first:
     _hs1 = sorted([r_ for r_ in groups[0]["rails"] if r_["kind"] == "h"] or [r_first], key=lambda r_: r_["y0"])
     _top_r = min((r_ for g2 in groups if not g2["plate"] for r_ in g2["rails"] if r_["kind"] == "h"),
                  key=lambda r_: r_["y0"], default=r_first)
     _busy = []                                     # laidų atkarpų x intervalai (galinis vaizdas)
+    _busy += LED_BUSY                              # v111
     for _cb, _ce in CEX:
         _pts = (_pre.get(id(_cb)) if TB_ON and CEX else None) or []
         _xs = [q[0] for q in _pts] + ([_drops[id(_cb)]] if TB_ON and CEX and id(_cb) in _drops else [])
