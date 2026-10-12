@@ -1,0 +1,279 @@
+{
+ "client_pdf": "/mnt/user-data/uploads/FAS_1800H80__7-23__10318x1800mm.pdf",
+ "scale": 10,
+ "crop_pt": [
+  600,
+  300,
+  3700,
+  900
+ ],
+ "ignore_fills": [
+  [
+   0.14,
+   0.12,
+   0.13
+  ],
+  [
+   0.91,
+   0.45,
+   0.0
+  ]
+ ],
+ "qty": "?",
+ "client": "EXTRA - FAS 1800H80 (7-23)",
+ "title": "Illuminated letters P6 on rails + P6+3 on alu sheet",
+ "order_no": "?",
+ "file_code": "FAS_1800H80__7-23__10318x1800mm",
+ "rev": "A",
+ "date": "2026-10-05",
+ "company": "BrandFactory",
+ "depth_mm": 100,
+ "rail": {
+  "size": "40x40x2",
+  "depth": 40,
+  "ral": "7035"
+ },
+ "plate": {
+  "thk": 3,
+  "gap_mm": 30,
+  "recess_mm": 25,
+  "ral": "1023"
+ },
+ "groups": [
+  {
+   "name": "X",
+   "profile": "6+3",
+   "on_plate": true,
+   "return_ral": "3020",
+   "face_hex": "#C8102E",
+   "client_fill": [
+    0.81,
+    0.06,
+    0.18
+   ]
+  },
+  {
+   "name": "EXTRA",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "3020",
+   "face_hex": "#C8102E",
+   "client_fill": [
+    0.81,
+    0.06,
+    0.18
+   ],
+   "frame": "verticals",
+   "verticals": [
+    {
+     "at": "start"
+    },
+    {
+     "under": 2,
+     "mode": "stem"
+    },
+    {
+     "under": 4,
+     "mode": "leg",
+     "side": "right"
+    }
+   ]
+  },
+  {
+   "name": "7-23",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "1023",
+   "face_hex": "#FFC20E",
+   "client_fill": [
+    1.0,
+    0.81,
+    0.0
+   ],
+   "frame": "horizontal"
+  }
+ ],
+ "bom": [
+  [
+   1,
+   "Letter face P6 (EXTRA, 7-23)",
+   "Plexi 3 mm white",
+   "",
+   "{PER_6} m / {A_6} m²"
+  ],
+  [
+   1,
+   "Letter face P6+3 (X)",
+   "Plexi 3 mm white",
+   "",
+   "{PER_63} m / {A_63} m²"
+  ],
+  [
+   "",
+   "Front vinyl EXTRA + X",
+   "3M translucent",
+   "3M 3630-33",
+   "{A_EXTRA} + {A_X} m²"
+  ],
+  [
+   "",
+   "Front vinyl 7-23",
+   "3M translucent",
+   "3M 3630-125",
+   "{A_7-23} m²"
+  ],
+  [
+   "A",
+   "Fitting PVC edge",
+   "PVC 3 mm",
+   "-",
+   "{PER_ALL} m"
+  ],
+  [
+   "B",
+   "Bolt, return to PVC edge",
+   "?",
+   "-",
+   "?"
+  ],
+  [
+   2,
+   "Letter return EXTRA",
+   "Alu 1 mm",
+   "RAL 3020",
+   "{PER_EXTRA} m / {RET_EXTRA} m²"
+  ],
+  [
+   2,
+   "Letter return 7-23",
+   "Alu 1 mm",
+   "RAL 1023",
+   "{PER_7-23} m / {RET_7-23} m²"
+  ],
+  [
+   2,
+   "Letter return X",
+   "Alu 1 mm",
+   "RAL 3020",
+   "{PER_X} m / {RET_X} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "Alu 1.5 mm",
+   "-",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   4,
+   "LED red (EXTRA, X front)",
+   "",
+   "RED",
+   "?"
+  ],
+  [
+   4,
+   "LED white 6500K (7-23, X back)",
+   "",
+   "6500K",
+   "?"
+  ],
+  [
+   5,
+   "Rail U {RAIL_SIZE} with ears (frame)",
+   "Aluminium",
+   "RAL 7035 matt",
+   "{RAIL_TOTAL_M} m"
+  ],
+  [
+   6,
+   "Mounting ear {RAIL_SIZE}, Ø{EAR_HOLE} hole",
+   "Aluminium",
+   "RAL 7035 matt",
+   "{PLATES_N} pcs. ({PLATES_EXT} extended)"
+  ],
+  [
+   7,
+   "Spacers 30 + 25 mm (X)",
+   "?",
+   "-",
+   "?"
+  ],
+  [
+   8,
+   "Alu sheet Ø{PLATE} (X)",
+   "Alu 3 mm",
+   "RAL 1023",
+   "{PLATE_PER} m / {PLATE_AREA} m²"
+  ],
+  [
+   9,
+   "Trafo box, PWM + potentiometer",
+   "",
+   "",
+   "?"
+  ],
+  [
+   10,
+   "Wall fixing",
+   "?",
+   "-",
+   "?"
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "?"
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profiles",
+   "P6 (EXTRA, 7-23) / P6+3 (X)"
+  ],
+  [
+   "Letter depth",
+   "100"
+  ],
+  [
+   "Face",
+   "White plexi + 3M translucent"
+  ],
+  [
+   "Returns",
+   "RAL 3020 / RAL 1023 (7-23)"
+  ],
+  [
+   "Alu sheet",
+   "3 mm, RAL 1023"
+  ],
+  [
+   "Rails",
+   "U 40x40x2 + ears, RAL 7035 matt"
+  ],
+  [
+   "Illumination",
+   "LED red / white 6500K, dimmable"
+  ],
+  [
+   "Environment",
+   "Exterior"
+  ],
+  [
+   "Perim. P6",
+   "{PER_6} m"
+  ],
+  [
+   "Perim. P6+3",
+   "{PER_63} m"
+  ]
+ ],
+ "ears": {
+  "inset": 50,
+  "pitch": 1000,
+  "min_edge": 15
+ }
+}

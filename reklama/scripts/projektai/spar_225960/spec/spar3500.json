@@ -1,0 +1,251 @@
+{
+ "scale": 100,
+ "qty": "1 pcs.",
+ "order_no": "ALT0000_00.00_RS",
+ "rev": "A",
+ "date": "2026-10-08",
+ "client": "BrandFactory",
+ "title": "SPAR order 225960 - SPAR letters + logo, P6 on rails",
+ "drawing_no": "SPAR order 225960",
+ "file_code": "SPAR_225960_04_spar3500",
+ "sheet": "4 / 18",
+ "client_pdf": "/home/claude/w/sk/spar3500_client.pdf",
+ "crop_pt": [
+  145,
+  316,
+  258,
+  343
+ ],
+ "depth_mm": 80,
+ "front": "8mm",
+ "rail": {
+  "size": "30x30x2",
+  "depth": 30,
+  "ral": "7021"
+ },
+ "cable_exits": [
+  {
+   "pt": [
+    150,
+    322
+   ],
+   "voltage": "12V",
+   "label": "3 m"
+  }
+ ],
+ "groups": [
+  {
+   "name": "SPAR",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "9016",
+   "face_hex": "#FFFFFF",
+   "client_fill": [
+    1,
+    1,
+    1
+   ],
+   "frame": "horizontal",
+   "rails": [
+    {
+     "kind": "h",
+     "poly": [
+      [
+       70.03873751729589,
+       35.890123155380934
+      ],
+      [
+       3420.7474219512987,
+       35.890123155380934
+      ],
+      [
+       3420.7474219512987,
+       65.89012315538093
+      ],
+      [
+       70.03873751729589,
+       65.89012315538093
+      ]
+     ]
+    },
+    {
+     "kind": "h",
+     "poly": [
+      [
+       55.812965273825284,
+       377.89012315538093
+      ],
+      [
+       3416.4228235828014,
+       377.89012315538093
+      ],
+      [
+       3416.4228235828014,
+       407.89012315538093
+      ],
+      [
+       55.812965273825284,
+       407.89012315538093
+      ]
+     ]
+    }
+   ],
+   "cable": {
+    "rail": "top",
+    "end": "first",
+    "out": "left"
+   },
+   "ears_pt": [
+    166.0,
+    204.8,
+    245.9
+   ]
+  },
+  {
+   "name": "LOGO",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "6029",
+   "face_hex": "#00A859",
+   "client_fill": [
+    0,
+    0.66,
+    0.35
+   ],
+   "frame": "verticals",
+   "no_rails": true,
+   "lit": false
+  }
+ ],
+ "bom": [
+  [
+   1,
+   "Face letters SPAR",
+   "Plexi 8 mm white (opal)",
+   "white",
+   "{PER_SPAR} m / {A_SPAR} m²"
+  ],
+  [
+   1,
+   "Face logo circle",
+   "Plexi 8 mm white + foil",
+   "ORACAL 8500 614",
+   "{PER_LOGO} m / {A_LOGO} m²"
+  ],
+  [
+   2,
+   "Return letters",
+   "Alu 1 mm",
+   "RAL 9016",
+   "{PER_SPAR} m / {RET_SPAR} m²"
+  ],
+  [
+   2,
+   "Return logo",
+   "Alu 1 mm",
+   "RAL 6029",
+   "{PER_LOGO} m / {RET_LOGO} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "Alu 1.5 mm",
+   "-",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   4,
+   "LED modules",
+   "",
+   "white",
+   "?"
+  ],
+  [
+   5,
+   "Rail U {RAIL_SIZE}",
+   "Aluminium",
+   "RAL 7021",
+   "{RAIL_TOTAL_M} m"
+  ],
+  [
+   6,
+   "Mounting ear {RAIL_SIZE}, Ø{EAR_HOLE} hole",
+   "Aluminium",
+   "RAL 7021",
+   "{PLATES_N} pcs. ({PLATES_EXT} extended)"
+  ],
+  [
+   7,
+   "Trafo box (PSU 12V)",
+   "",
+   "",
+   "1 pcs."
+  ],
+  [
+   8,
+   "Wall fixing",
+   "?",
+   "-",
+   "?"
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "1 pcs."
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profile",
+   "P6 on rails"
+  ],
+  [
+   "Letter depth",
+   "80"
+  ],
+  [
+   "Face",
+   "Opal 8 mm; logo foil 8500 614"
+  ],
+  [
+   "Returns",
+   "RAL 9016 / logo RAL 6029"
+  ],
+  [
+   "Frame",
+   "U 30x30x2 + ears, RAL 7021"
+  ],
+  [
+   "Illumination",
+   "LED white"
+  ],
+  [
+   "Power",
+   "12V -> trafo box"
+  ],
+  [
+   "Wind qp",
+   "{WIND_QP} kN/m²"
+  ],
+  [
+   "Wall",
+   "?"
+  ],
+  [
+   "Perimeter",
+   "{PER_ALL} m"
+  ]
+ ],
+ "export_1to1": false,
+ "trafo_box": {
+  "voltage": "12V",
+  "mains": "220V",
+  "cable_len_m": 3.0
+ },
+ "ears": {
+  "smax": 1500
+ }
+}

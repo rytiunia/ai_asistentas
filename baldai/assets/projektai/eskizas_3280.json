@@ -1,0 +1,110 @@
+{
+  "_pastaba": "Iš kliento ranka piešto eskizo (2026-10-10). Aukščių grandinė dešinėje: 860 (stalviršis) + 560 (HPL) + 954 (viršutiniai) = 2374 = išmatuotas lubų aukštis (H2374; kitur H2380) – viršutiniai iki lubų. Niša kairėje: iki lubų 2374, šaldytuvo anga ~2000? (eskize su klaustuku), viršutinė spintelė virš jos – likutis 374 (eskize prie jos užrašas neaiškus, gal 324). Standarto perrašymai: viršutiniai 954 aukščio, apačia 1420 (860 + 560), cokolis 102 (stalviršio viršus 860).",
+  "pavadinimas": "Virtuvė 3280",
+  "siena": {
+    "ilgis": 3280,
+    "aukstis": 2380
+  },
+  "standartas": {
+    "apatinis": {
+      "cokolis": 102
+    },
+    "virsutinis": {
+      "korpuso_aukstis": 954,
+      "apacia_nuo_grindu": 1420
+    },
+    "stalvirsis": {
+      "dekoras": "?",
+      "pavadinimas": "pilkas marmuras (kodas nepatvirtintas)"
+    },
+    "hpl": {
+      "dekoras": "?",
+      "pavadinimas": "pilkas marmuras, kaip stalviršis"
+    }
+  },
+  "dekorai": {
+    "apatiniai": "U708 ST9",
+    "virsutiniai": "H1180 ST37"
+  },
+  "aplinka": {
+    "sienos": "#F2F0EB",
+    "grindys": "#C9A777",
+    "stalvirsis": "#B5B3AE"
+  },
+  "hpl": {
+    "storis": 10
+  },
+  "led": true,
+  "korpusai": [
+    {
+      "id": "A1",
+      "tipas": "aukstas_nisa",
+      "plotis": 660,
+      "aukstis": 2374,
+      "virsutines_aukstis": 374,
+      "sonai": "desine",
+      "durys": 2,
+      "_pastaba": "660 pločio niša – laisvai stovintis šaldytuvas (eskize turinys nenurodytas); anga ~2000? – patikrinti pagal šaldytuvo aukštį; viršutinė spintelė 374 (ar 324 – eskize neaišku)"
+    },
+    {
+      "id": "K1",
+      "tipas": "apatinis_plautuve",
+      "plotis": 600,
+      "durys": 2
+    },
+    {
+      "id": "K2",
+      "tipas": "apatinis_indaplove",
+      "plotis": 450
+    },
+    {
+      "id": "K3",
+      "tipas": "apatinis_stalciai",
+      "plotis": 600,
+      "stalciai": 3
+    },
+    {
+      "id": "K4",
+      "tipas": "apatinis_orkaite",
+      "plotis": 600
+    },
+    {
+      "id": "K5",
+      "tipas": "apatinis_durys",
+      "plotis": 370,
+      "durys": 1,
+      "_pastaba": "eskize '- -' – galbūt ištraukiama (cargo); čia durys"
+    },
+    {
+      "id": "V1",
+      "tipas": "virsutinis",
+      "plotis": 524,
+      "durys": 1
+    },
+    {
+      "id": "V2",
+      "tipas": "virsutinis",
+      "plotis": 524,
+      "durys": 1
+    },
+    {
+      "id": "V3",
+      "tipas": "virsutinis",
+      "plotis": 524,
+      "durys": 1
+    },
+    {
+      "id": "V4",
+      "tipas": "virsutinis",
+      "plotis": 524,
+      "durys": 1,
+      "_pastaba": "virš kaitlentės – gartraukis eskize nenurodytas"
+    },
+    {
+      "id": "V5",
+      "tipas": "virsutinis",
+      "plotis": 524,
+      "durys": 1
+    }
+  ]
+}

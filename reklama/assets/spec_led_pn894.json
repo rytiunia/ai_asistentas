@@ -1,0 +1,51 @@
+{
+ "_info": "LED simuliacija - scripts/led_sim.py (references/led_sim.md). pdf - kliento / mūsų lapo PDF šalia spec.",
+ "pdf": "PN894_7-23_2070x894mm.pdf",
+ "fill_rgb": [
+  1.0,
+  0.808,
+  0.0
+ ],
+ "crop_pt": [
+  300,
+  0,
+  1722,
+  1100
+ ],
+ "ref_width_mm": 2071,
+ "depth": 100,
+ "plexi": null,
+ "module": null,
+ "letter_names": [
+  "7",
+  "-",
+  "2",
+  "3"
+ ],
+ "feed_mm": [
+  -48,
+  813
+ ],
+ "feed_label": "12V, PWM (dimmable) -> TRAFO BOX",
+ "main_data": [
+  [
+   "Product",
+   "Opening hours \"7-23\", Profile 6 on rails"
+  ],
+  [
+   "Front",
+   "P6_3mm+foil: plexi 3 mm white (truLED 1H70)"
+  ],
+  [
+   "Foil",
+   "3M 3630-125 (Pantone 116 C)"
+  ]
+ ],
+ "psu": "?",
+ "client": "?",
+ "title": "OPENING HOURS 7-23 - LED LAYOUT",
+ "drawing_no": "Åpn894",
+ "order_no": "?",
+ "date": "2026-10-08",
+ "rev": "A"
+}

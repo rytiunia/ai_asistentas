@@ -1,0 +1,191 @@
+{
+ "client_pdf": "t/frisk670_client.pdf",
+ "ref_mm": 3600,
+ "qty": 1,
+ "client": "BrandFactory",
+ "title": "SPAR TYPE 670 FRISK & SUNN - P6 + P1 circle on box lid 33, 2 parts",
+ "order_no": "ALT0000_00.00_RS",
+ "file_code": "SPAR_TYPE_670_frisk_sunn",
+ "rev": "A",
+ "date": "2026-10-08",
+ "drawn": "",
+ "checked": "",
+ "company": "BrandFactory",
+ "product": "P6 letters + P1 circle on folded panel",
+ "profile_no": "6",
+ "depth_mm": 70,
+ "bend_mm": 33,
+ "face": "Opal 8; P1 Alu 2, RAL 6039",
+ "face_hex": "#FFFFFF",
+ "return_ral": "9003",
+ "background_ral": "9005",
+ "environment": "Indoor",
+ "led": "LED 6500K",
+ "mounting": "L{L_SIZE}, top+bottom / part",
+ "power": "12V, D11 under F -> Ø11 hole in left folded edge (top left), 3 m -> PSU without box",
+ "panel_joints": [
+  1500
+ ],
+ "main_data_extra": [
+  [
+   "Panel parts",
+   "{N_PARTS} pcs.: {PARTS}"
+  ]
+ ],
+ "bom": [
+  [
+   1,
+   "Letter face P6 (FRISK SUNN &)",
+   "Plexi 8 mm white (opal)",
+   "white",
+   "{PER_L} m / {A_FACE} m²"
+  ],
+  [
+   2,
+   "Letter return P6",
+   "Alu 1 mm",
+   "RAL 9003",
+   "{PER_L} m / {A_RET} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "Alu 1.5 mm",
+   "-",
+   "{PER_L} m / {A_FACE} m²"
+  ],
+  [
+   4,
+   "LED modules",
+   "",
+   "6500K",
+   "?"
+  ],
+  [
+   5,
+   "Background, box lid 33, 2 parts",
+   "Alu 2 mm folded",
+   "RAL 9005",
+   "2 pcs. ({PARTS})"
+  ],
+  [
+   6,
+   "L profile {L_SIZE}",
+   "Aluminium",
+   "-",
+   "{L_LIST_M} = {L_TOTAL_M} m"
+  ],
+  [
+   7,
+   "Wall fixing",
+   "?",
+   "-",
+   "?"
+  ],
+  [
+   8,
+   "Letter / P1 fixing to background",
+   "?",
+   "-",
+   "?"
+  ],
+  [
+   9,
+   "Screw lid -> L, {S_SPEC}",
+   "{S_MAT}",
+   "-",
+   "{S_QTY} pcs. ({S_PER}/L)"
+  ],
+  [
+   10,
+   "P1 circle Ø600 - face (non-lit)",
+   "Alu 2 mm",
+   "RAL 6039",
+   "1.88 m / 0.28 m²"
+  ],
+  [
+   11,
+   "P1 circle - return, depth 70",
+   "Alu 1 mm",
+   "RAL 6039",
+   "1.88 m / 0.13 m²"
+  ],
+  [
+   12,
+   "P1 circle - back, fixed to box lid",
+   "PVC 10 mm",
+   "-",
+   "0.28 m²"
+  ],
+  [
+   13,
+   "PSU 12V (without box)",
+   "?",
+   "-",
+   "?"
+  ]
+ ],
+ "l_profile": {
+  "size": "30x30x2",
+  "leg": 30,
+  "thk": 2,
+  "offset_mm": 25,
+  "positions": [
+   "top",
+   "bottom"
+  ]
+ },
+ "screw": {
+  "spec": "DIN 7504 N 4.2x16 T20",
+  "material": "Steel, hard.",
+  "edge_mm": 50,
+  "pitch_mm": 300
+ },
+ "element_colors": true,
+ "element_return": {
+  "0.7,0.8,0.3": "6039",
+  "1.0,1.0,1.0": "9003"
+ },
+ "sheet": "1 / 1",
+ "drawing_no": "SPAR TYPE 670",
+ "front": "8mm",
+ "export_1to1": true,
+ "callouts": {
+  "front": [
+   [
+    1640,
+    560,
+    10,
+    -34,
+    34
+   ]
+  ],
+  "side": [
+   [
+    35,
+    90,
+    11,
+    -40,
+    24
+   ],
+   [
+    3,
+    600,
+    12,
+    -40,
+    14
+   ]
+  ]
+ },
+ "cable": {
+  "d11_mm": [
+   600,
+   160
+  ],
+  "letter": "letter F",
+  "edge": "left",
+  "edge_mm": 29,
+  "run_x_mm": 12,
+  "label": "12V, 3 m -> PSU (220V)"
+ }
+}

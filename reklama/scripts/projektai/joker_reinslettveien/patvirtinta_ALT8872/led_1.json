@@ -1,0 +1,54 @@
+{
+ "pdf": "client.pdf",
+ "fill_rgb": [
+  1.0,
+  1.0,
+  1.0
+ ],
+ "scale_mm_per_pt": 3.5278,
+ "depth": 60,
+ "plexi": null,
+ "module": null,
+ "psu": "?",
+ "client": "BrandFactory",
+ "order_no": "ALT8872_10.12_RS",
+ "drawing_no": "Joker order 226001",
+ "date": "2026-10-09",
+ "rev": "A",
+ "page": 0,
+ "crop_pt": [
+  270,
+  125,
+  860,
+  215
+ ],
+ "letter_names": [
+  "M",
+  "A",
+  "N",
+  "-",
+  "F",
+  "R",
+  "E",
+  "0",
+  "8",
+  "-",
+  "2",
+  "4"
+ ],
+ "feed_at": [
+  "letter:5-top"
+ ],
+ "feed_label": "12V 1.5 m from letter R (top) -> TRAFO BOX",
+ "title": "Joker MAN-FRE 08-24 - LED LAYOUT",
+ "main_data": [
+  [
+   "Product",
+   "MAN-FRE 08-24, P6_8mm on rails 1947 x 208"
+  ],
+  [
+   "Front",
+   "Opal plexi 8 mm, returns RAL 9010"
+  ]
+ ]
+}

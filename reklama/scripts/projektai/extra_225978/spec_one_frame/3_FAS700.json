@@ -1,0 +1,321 @@
+{
+ "client_pdf": "/tmp/claude-0/-home-claude/454aabe4-a26e-51a4-90bd-3f68e4f6d938/scratchpad/ex4/fas700_be_koju.pdf",
+ "scale": 10,
+ "crop_pt": [
+  450,
+  255,
+  1610,
+  470
+ ],
+ "ignore_fills": [
+  [
+   0.14,
+   0.12,
+   0.13
+  ],
+  [
+   0.91,
+   0.45,
+   0.0
+  ]
+ ],
+ "qty": "1",
+ "client": "BrandFactory",
+ "title": "EXTRA order 225978 - FAS 700H80 (7-23) 4012x700, ROOF SIGN, ONE FRAME",
+ "order_no": "ALT0000_00.00_RS",
+ "file_code": "EXTRA_order_225978_3_FAS700H80_one_frame",
+ "rev": "B",
+ "date": "2026-10-09",
+ "company": "BrandFactory",
+ "depth_mm": 100,
+ "rail": {
+  "size": "30x30x3",
+  "depth": 30,
+  "ral": "7035",
+  "type": "square"
+ },
+ "plate": {
+  "thk": 3,
+  "gap_mm": 30,
+  "recess_mm": 25,
+  "ral": "1023"
+ },
+ "groups": [
+  {
+   "name": "X",
+   "profile": "6+3",
+   "on_plate": true,
+   "return_ral": "3020",
+   "face_hex": "#C8102E",
+   "client_fill": [
+    0.81,
+    0.06,
+    0.18
+   ],
+   "cable": false,
+   "ears": false
+  },
+  {
+   "name": "EXTRA",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "3020",
+   "face_hex": "#C8102E",
+   "client_fill": [
+    0.81,
+    0.06,
+    0.18
+   ],
+   "frame": "verticals",
+   "verticals": [
+    {
+     "at": "start"
+    },
+    {
+     "under": 2,
+     "mode": "stem"
+    },
+    {
+     "under": 4,
+     "mode": "leg",
+     "side": "right"
+    }
+   ],
+   "cable": {
+    "rail": "bottom",
+    "end": "last"
+   },
+   "ears": false
+  },
+  {
+   "name": "7-23",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "1023",
+   "face_hex": "#FFC20E",
+   "client_fill": [
+    1.0,
+    0.81,
+    0.0
+   ],
+   "frame": "verticals",
+   "verticals": [
+    {
+     "under": 0,
+     "mode": "leg",
+     "side": "right",
+     "single": true
+    }
+   ],
+   "cable": {
+    "rail": "bottom",
+    "end": "first"
+   },
+   "ears": false
+  }
+ ],
+ "bom": [
+  [
+   1,
+   "Letter face P6 (EXTRA, 7-23)",
+   "Plexi 3 mm white",
+   "",
+   "{PER_6} m / {A_6} m²"
+  ],
+  [
+   1,
+   "Letter face P6+3 (X)",
+   "Plexi 3 mm white",
+   "",
+   "{PER_63} m / {A_63} m²"
+  ],
+  [
+   "",
+   "Front vinyl EXTRA + X",
+   "Vinyl foil, cast",
+   "3M 3630-33",
+   "{A_EXTRA} + {A_X} m²"
+  ],
+  [
+   "",
+   "Front vinyl 7-23",
+   "Vinyl foil, cast",
+   "3M 3630-125",
+   "{A_7-23} m²"
+  ],
+  [
+   "A",
+   "Fitting PVC edge",
+   "PVC 3 mm",
+   "-",
+   "{PER_ALL} m"
+  ],
+  [
+   "B",
+   "Bolt, return to PVC edge",
+   "?",
+   "-",
+   "?"
+  ],
+  [
+   2,
+   "Letter return EXTRA",
+   "Alu 1 mm",
+   "RAL 3020",
+   "{PER_EXTRA} m / {RET_EXTRA} m²"
+  ],
+  [
+   2,
+   "Letter return 7-23",
+   "Alu 1 mm",
+   "RAL 1023",
+   "{PER_7-23} m / {RET_7-23} m²"
+  ],
+  [
+   2,
+   "Letter return X",
+   "Alu 1 mm",
+   "RAL 3020",
+   "{PER_X} m / {RET_X} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "Alu 1.5 mm",
+   "-",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   4,
+   "LED red / white 6500K",
+   "",
+   "RED / 6500K",
+   "?"
+  ],
+  [
+   5,
+   "Rail □ {RAIL_SIZE}, one frame (no ears)",
+   "Aluminium",
+   "RAL 7035 matt",
+   "{RAIL_TOTAL_M} m"
+  ],
+  [
+   7,
+   "Spacers 30 + 25 mm (X)",
+   "?",
+   "-",
+   "?"
+  ],
+  [
+   8,
+   "Alu sheet Ø{PLATE} (X)",
+   "Alu 3 mm",
+   "RAL 1023",
+   "{PLATE_PER} m / {PLATE_AREA} m²"
+  ],
+  [
+   "",
+   "Screws X sheet -> rails",
+   "?",
+   "-",
+   "?"
+  ],
+  [
+   9,
+   "Trafo box, PWM + potentiometer",
+   "",
+   "",
+   "?"
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "1 pcs."
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profiles",
+   "P6 (EXTRA, 7-23) / P6+3 (X)"
+  ],
+  [
+   "Letter depth",
+   "100"
+  ],
+  [
+   "Face",
+   "White plexi + 3M translucent"
+  ],
+  [
+   "Returns",
+   "RAL 3020 / RAL 1023 (7-23)"
+  ],
+  [
+   "Alu sheet",
+   "3 mm, RAL 1023"
+  ],
+  [
+   "X sheet mount",
+   "one frame with EXTRA"
+  ],
+  [
+   "Rails",
+   "□ 30x30x3, no ears, RAL 7035"
+  ],
+  [
+   "Illumination",
+   "LED red / white 6500K, dimmable"
+  ],
+  [
+   "Power",
+   "2 exits: bottom rails at A / 7"
+  ],
+  [
+   "Environment",
+   "Exterior"
+  ],
+  [
+   "Mounting",
+   "roof - legs + back support ?"
+  ]
+ ],
+ "ears": {
+  "inset": 50,
+  "pitch": 1000,
+  "min_edge": 15
+ },
+ "front": "3mm+foil",
+ "project": "EXTRA order 225978",
+ "drawing_no": "EXTRA order 225978",
+ "sheet": "3 / 4",
+ "trafo_box": {
+  "voltage": "12V",
+  "cable_len_m": 3,
+  "mains": "220V"
+ },
+ "cable_exits": [
+  {
+   "pt": [
+    1357.5,
+    416.0
+   ],
+   "voltage": "12V",
+   "label": "3 m"
+  },
+  {
+   "pt": [
+    1357.5,
+    416.0
+   ],
+   "voltage": "12V",
+   "label": "3 m"
+  }
+ ],
+ "one_frame": {
+  "plate": "X",
+  "rails": "EXTRA"
+ }
+}

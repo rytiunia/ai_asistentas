@@ -1,0 +1,31 @@
+{
+ "_info": "Smax (mm) - PRAKTINĖ viršutinė riba tarp gretimų ausėlių (montavimas, sienos nelygumai, bėgelio standumas). Fizinį tarpą (vėjas, inkaras, bėgelio stiprumas/įlinkis) skaičiuoja auseles.py pagal tvirtinimas.json; galioja mažesnis. null script -> paprastas x 0.65.",
+ "table": {
+  "U30": {
+   "H<=500": 1000,
+   "500<H<=800": 1000,
+   "H>800": 1000
+  },
+  "U30 script": {
+   "H<=500": 650,
+   "500<H<=800": 650,
+   "H>800": 650
+  },
+  "U40": {
+   "H<=500": 1200,
+   "500<H<=800": 1200,
+   "H>800": 1200
+  },
+  "U40 script": {
+   "H<=500": null,
+   "500<H<=800": null,
+   "H>800": null
+  }
+ },
+ "sources": {
+  "U30": "EXTRA 1400 / FAS 1800U80 (Rytio pataisymai, ~1000)",
+  "U30 script": "Matkroken",
+  "U40": "EXTRA FAS 1800 (~1200)",
+  "U40 script": "nėra -> U40 x 0.65"
+ }
+}

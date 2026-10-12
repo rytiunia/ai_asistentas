@@ -1,0 +1,37 @@
+{
+ "_info": "LED simuliacija - scripts/led_sim.py (references/led_sim.md). pdf - kliento / mūsų lapo PDF šalia spec.",
+ "pdf": "Drawing_SPAR_Order_225971.pdf",
+ "fill_rgb": [
+  0.996,
+  0.996,
+  0.996
+ ],
+ "crop_pt": [
+  200,
+  150,
+  665,
+  240
+ ],
+ "scale_mm_per_pt": 5.8795,
+ "depth": 60,
+ "plexi": null,
+ "module": null,
+ "feed_label": "12V -> PSU (cable 5 m, left top of folded plate)",
+ "main_data": [
+  [
+   "Product",
+   "VARMT & GODT, P6 on folded plate 3600 x 670"
+  ],
+  [
+   "Front",
+   "P6: plexi 8 mm white, returns RAL 9003"
+  ]
+ ],
+ "psu": "?",
+ "client": "BrandFactory",
+ "title": "VARMT & GODT - LED LAYOUT",
+ "drawing_no": "SPAR Order 225971",
+ "order_no": "?",
+ "date": "2026-10-08",
+ "rev": "A"
+}

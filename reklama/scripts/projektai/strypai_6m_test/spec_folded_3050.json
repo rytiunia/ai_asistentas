@@ -1,0 +1,121 @@
+{
+ "client_pdf": "folded_3050.pdf",
+ "ref_mm": 3050,
+ "qty": 1,
+ "client": "TEST folded 6 m",
+ "title": "Illuminated letters P6 on folded aluminium background",
+ "order_no": "?",
+ "file_code": "folded_3050",
+ "rev": "A",
+ "date": "2026-10-05",
+ "drawn": "",
+ "checked": "",
+ "company": "BrandFactory",
+ "product": "P6 letters on folded panel",
+ "profile_no": "6",
+ "depth_mm": 40,
+ "bend_mm": 60,
+ "face": "White",
+ "face_hex": "#FFFFFF",
+ "return_ral": "9010",
+ "background_ral": "9005",
+ "environment": "?",
+ "led": "?",
+ "mounting": "L{L_SIZE}, top+bottom",
+ "power": "?",
+ "bom": [
+  [
+   1,
+   "Letter face",
+   "Plexiglas",
+   "White",
+   "{PER_L} m / {A_FACE} m²"
+  ],
+  [
+   "A",
+   "Fitting PVC edge",
+   "PVC",
+   "-",
+   "{PER_L} m"
+  ],
+  [
+   "B",
+   "Bolt, return to PVC edge",
+   "?",
+   "-",
+   "?"
+  ],
+  [
+   2,
+   "Letter return",
+   "Aluminium",
+   "RAL 9010",
+   "{PER_L} m / {A_RET} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "Aluminium",
+   "-",
+   "{PER_L} m / {A_FACE} m²"
+  ],
+  [
+   4,
+   "LED modules",
+   "?",
+   "?",
+   "?"
+  ],
+  [
+   5,
+   "Background, folded 60 mm",
+   "Aluminium",
+   "RAL 9005",
+   "1 pcs."
+  ],
+  [
+   6,
+   "L profile {L_SIZE}",
+   "Aluminium",
+   "-",
+   "{L_QTY} x {L_LEN_M} = {L_TOTAL_M} m"
+  ],
+  [
+   7,
+   "Wall fixing",
+   "?",
+   "-",
+   "?"
+  ],
+  [
+   8,
+   "Letter fixing to background",
+   "?",
+   "-",
+   "?"
+  ],
+  [
+   9,
+   "Screw {S_SPEC}",
+   "{S_MAT}",
+   "-",
+   "{S_QTY} pcs. ({S_PER}/L)"
+  ]
+ ],
+ "l_profile": {
+  "size": "30x30x2",
+  "leg": 30,
+  "thk": 2,
+  "offset_mm": 25,
+  "positions": [
+   "top",
+   "bottom"
+  ]
+ },
+ "screw": {
+  "spec": "DIN 7504 N 4.2x16 T20",
+  "material": "Steel, hard.",
+  "edge_mm": 50,
+  "pitch_mm": 300
+ }
+}

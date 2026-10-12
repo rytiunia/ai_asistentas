@@ -1,0 +1,85 @@
+{
+  "_pastaba": "Konstrukcinis standartas. Prototipo reikšmės – tipinis nedidelis cechas. Gamintojas keičia TIK šitą failą; variklis jį vykdo. Visi matmenys mm.",
+  "korpuso_ploksta": {
+    "storis": 18,
+    "dekoras": "W980 ST2",
+    "pavadinimas": "Platinum White"
+  },
+  "fasadas": {
+    "storis": 18,
+    "dekoras": "H1180 ST37",
+    "pavadinimas": "Natural Halifax Oak"
+  },
+  "nugarele": {
+    "storis": 3,
+    "dekoras": "HDF W980",
+    "tipas": "užleista, prisukama"
+  },
+  "stalvirsis": {
+    "storis": 38,
+    "gylis": 600,
+    "dekoras": "F186 ST9",
+    "pavadinimas": "Grey Chicago Concrete"
+  },
+  "apatinis": {
+    "korpuso_aukstis": 720,
+    "gylis": 560,
+    "cokolis": 100,
+    "cokolio_atitraukimas": 50
+  },
+  "virsutinis": {
+    "korpuso_aukstis": 720,
+    "gylis": 320,
+    "apacia_nuo_grindu": 1400
+  },
+  "fasadai": {
+    "tarpas_krastuose": 2,
+    "tarpas_tarp": 4,
+    "lentynos_atitraukimas": 40
+  },
+  "stalcius": {
+    "begeliai": "Blum Tandem 500 mm",
+    "tarpas_sone": 13,
+    "dezes_storis": 16,
+    "dezes_aukstis": 150,
+    "dezes_ilgis": 500
+  },
+  "kantas": {
+    "matomas": 2.0,
+    "dezes": 0.8
+  },
+  "furnitura": {
+    "lankstas": "Blum CLIP top 110°",
+    "kojele": "reguliuojama 100 mm",
+    "pakaba": "reguliuojama su bėgeliu"
+  },
+  "rankena": {
+    "ilgis": 160,
+    "atitraukimas_nuo_krasto": 40,
+    "atitraukimas_nuo_virsaus": 60
+  },
+  "lapas": {
+    "plotis": 2800,
+    "aukstis": 2070,
+    "iseiga": 0.72,
+    "kanto_atsarga": 0.05
+  },
+  "orkaite": {
+    "nisa_aukstis": 595,
+    "nisa_plotis_min": 560,
+    "stalciaus_dezes_aukstis": 70,
+    "_pastaba": "Įmontuojama orkaitė 60 cm: niša 595 aukščio tarp orkaitės lentynos ir korpuso viršaus; po ja stalčius. Kaitlentė stalviršyje virš šio korpuso."
+  },
+  "nisa": {
+    "aukstis": 2000,
+    "gylis": 600,
+    "virsutines_aukstis": 400,
+    "_pastaba": "Niša laisvai stovinčiam šaldytuvui: šoninė plokštė per visą aukštį (18 mm, gylis 600) + viršutinė spintelė nišos gylio. Projektas perrašo aukštį ir viršutinės aukštį."
+  },
+  "hpl": {
+    "storis": 10,
+    "dekoras": "?",
+    "pavadinimas": "nenurodyta",
+    "_pastaba": "HPL / kompaktinė plokštė tarp stalviršio ir viršutinių; atskiras tiekėjas, lapų neskaičiuoja."
+  }
+}

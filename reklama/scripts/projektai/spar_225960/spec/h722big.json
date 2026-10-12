@@ -1,0 +1,225 @@
+{
+ "scale": 100,
+ "qty": "1 pcs.",
+ "order_no": "ALT0000_00.00_RS",
+ "rev": "A",
+ "date": "2026-10-08",
+ "client": "BrandFactory",
+ "title": "SPAR order 225960 - 7-22 (8-21), P6 on rails, 2 signs",
+ "drawing_no": "SPAR order 225960",
+ "file_code": "SPAR_225960_02_h722big",
+ "sheet": "2 / 18",
+ "client_pdf": "/home/claude/w/sk/h722big_client.pdf",
+ "crop_pt": [
+  128,
+  214,
+  296,
+  253
+ ],
+ "depth_mm": 80,
+ "front": "8mm",
+ "rail": {
+  "size": "30x30x2",
+  "depth": 30,
+  "ral": "7021"
+ },
+ "cable_exits": [
+  {
+   "pt": [
+    137,
+    241
+   ],
+   "voltage": "12V",
+   "label": "3 m"
+  },
+  {
+   "pt": [
+    282,
+    241
+   ],
+   "voltage": "12V",
+   "label": "3 m"
+  }
+ ],
+ "groups": [
+  {
+   "name": "7-22",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "9005",
+   "face_hex": "#FFFFFF",
+   "client_fill": [
+    1,
+    1,
+    1
+   ],
+   "frame": "horizontal",
+   "cable": {
+    "rail": "top",
+    "end": "first",
+    "out": "up"
+   },
+   "ears_pt": {
+    "top": [
+     152.3,
+     180.1
+    ],
+    "bottom": [
+     146.9,
+     180.1
+    ]
+   }
+  },
+  {
+   "name": "(8-21)",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "9005",
+   "face_hex": "#FFFFFF",
+   "client_fill": [
+    0.85,
+    0.85,
+    0.85
+   ],
+   "frame": "horizontal",
+   "cable": {
+    "rail": "top",
+    "end": "first",
+    "out": "up"
+   },
+   "ears_pt": [
+    214.6,
+    243.6,
+    276.8
+   ]
+  }
+ ],
+ "bom": [
+  [
+   1,
+   "Face 7-22",
+   "Plexi 8 mm white (opal)",
+   "white",
+   "{PER_7-22} m / {A_7-22} m²"
+  ],
+  [
+   1,
+   "Face (8-21)",
+   "Plexi 8 mm white (opal)",
+   "white",
+   "{PER_(8-21)} m / {A_(8-21)} m²"
+  ],
+  [
+   2,
+   "Return 7-22",
+   "Alu 1 mm",
+   "RAL 9005",
+   "{PER_7-22} m / {RET_7-22} m²"
+  ],
+  [
+   2,
+   "Return (8-21)",
+   "Alu 1 mm",
+   "RAL 9005",
+   "{PER_(8-21)} m / {RET_(8-21)} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "Alu 1.5 mm",
+   "-",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   4,
+   "LED modules",
+   "",
+   "white",
+   "?"
+  ],
+  [
+   5,
+   "Rail U {RAIL_SIZE}",
+   "Aluminium",
+   "RAL 7021",
+   "{RAIL_TOTAL_M} m"
+  ],
+  [
+   6,
+   "Mounting ear {RAIL_SIZE}, Ø{EAR_HOLE} hole",
+   "Aluminium",
+   "RAL 7021",
+   "{PLATES_N} pcs. ({PLATES_EXT} extended)"
+  ],
+  [
+   7,
+   "Trafo box (PSU 12V)",
+   "",
+   "",
+   "1 pcs."
+  ],
+  [
+   8,
+   "Wall fixing",
+   "?",
+   "-",
+   "?"
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "1 pcs."
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profile",
+   "P6 on rails"
+  ],
+  [
+   "Letter depth",
+   "80"
+  ],
+  [
+   "Face",
+   "Opal 8 mm"
+  ],
+  [
+   "Returns",
+   "RAL 9005"
+  ],
+  [
+   "Frame",
+   "U 30x30x2 + ears, RAL 7021"
+  ],
+  [
+   "Illumination",
+   "LED white"
+  ],
+  [
+   "Power",
+   "2 cables 12V -> 1 trafo box"
+  ],
+  [
+   "Wind qp",
+   "{WIND_QP} kN/m²"
+  ],
+  [
+   "Wall",
+   "?"
+  ],
+  [
+   "Perimeter",
+   "{PER_ALL} m"
+  ]
+ ],
+ "export_1to1": false,
+ "trafo_box": {
+  "voltage": "12V",
+  "mains": "220V",
+  "cable_len_m": 3.0
+ }
+}

@@ -1,0 +1,61 @@
+{
+ "pdf": "Order_225955_ALT_Reklama_KIWI_560_PP_senteret.pdf",
+ "fill_rgb": [
+  0.137,
+  0.122,
+  0.125
+ ],
+ "crop_pt": [
+  250,
+  140,
+  440,
+  215
+ ],
+ "ref_width_mm": 2180,
+ "depth": 100,
+ "module": null,
+ "groups": null,
+ "main_data": [
+  [
+   "Product",
+   "KIWI minipris, Profile 5s, LED Type 70"
+  ],
+  [
+   "Front",
+   "frosted acrylic, black matt"
+  ],
+  [
+   "Film",
+   "Mactac 9849-55 green, 9859-00 red"
+  ]
+ ],
+ "psu": "?",
+ "client": "BrandFactory",
+ "title": "KIWI MINIPRIS - LED LAYOUT",
+ "drawing_no": "Order 225955 KIWI 560 PP senteret",
+ "order_no": "?",
+ "date": "2026-10-09",
+ "rev": "B",
+ "letter_names": [
+  "KIWI",
+  "m",
+  "p",
+  "r",
+  "i",
+  "i.",
+  "i",
+  "i.",
+  "n",
+  "s",
+  "i",
+  "i."
+ ],
+ "revisions": [
+  [
+   "B",
+   "Layout per production samples",
+   "2026-10-09",
+   ""
+  ]
+ ]
+}

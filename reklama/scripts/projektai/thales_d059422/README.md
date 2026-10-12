@@ -1,0 +1,16 @@
+# CEOS Groupe D059422 - Thales Campus Velizy (2026-10-11, rev B)
+
+Taisyklės: `references/moduliai_pilonai.md`.
+
+Paleidimas:
+```
+THALES_SRC=<kliento PDF> THALES_OUT=<aplankas> python3 thales_pylons.py [E|B|P|all]
+```
+- `E` - įėjimo pilonas 1050 x 2530, dvipusis (flanšai 300x300x20, kairė koja +60) - lapai 1-2
+- `B` - pastatų pilonai 600 x 2130, vienpusiai x4 (balkis 80x40x4, 4 x M16, mėlyna 2 x 43) - lapai 3-4
+- `P` - stalinis PMMA planas 297 x 210, 10° pasvirimas - lapas 5
+Sujungimas: pymupdf `insert_pdf` eilės tvarka + `lapas_core.pdf_fix_fonts`.
+
+Parametrai - `Pyl(key, W, H, sides, legs "ext"|"int", qty, title)`; `TB` (mėlynos lovelės gylis) nustatomas globaliai
+prieš kiekvieno tipo generavimą (40 / 43). Kliento grafikos `clip` (pt) - pagal kliento PDF puslapį.
+Išklotinių funkcijos (`flat_blue`, `flat_white`) paliktos gamybai, į kliento dokumentą nededamos.

@@ -1,0 +1,89 @@
+{
+ "pdf": "ALT8869_10.09_coop_prix_order_225921.pdf",
+ "fill_rgb": [
+  [
+   0.969,
+   0.71,
+   0.0
+  ],
+  [
+   1.0,
+   1.0,
+   1.0
+  ]
+ ],
+ "crop_pt": [
+  120,
+  90,
+  1000,
+  270
+ ],
+ "scale_mm_per_pt": 7.0546,
+ "depth": 70,
+ "plexi": null,
+ "module": null,
+ "letter_names": [
+  "c",
+  "o",
+  "o",
+  "p",
+  "p",
+  "r",
+  "i-dot",
+  "i",
+  "x",
+  "6",
+  "-",
+  "2",
+  "4"
+ ],
+ "feed_label": "12V -> BALTLED smart",
+ "main_data": [
+  [
+   "Product",
+   "COOP PRIX + 6-24, P6 on wallframe"
+  ],
+  [
+   "Face",
+   "8 mm + 3M 3630-125; 6-24 white"
+  ],
+  [
+   "Power out",
+   "2 outlets 12V, 1.5 m cable"
+  ]
+ ],
+ "psu": "BALTLED smart (dimmer + PSU)",
+ "client": "BrandFactory",
+ "title": "COOP PRIX - LED LAYOUT",
+ "drawing_no": "coop prix order 225921",
+ "order_no": "ALT8869_10.09_RS",
+ "date": "2026-10-09",
+ "rev": "A",
+ "group_names": [
+  "coop prix",
+  "6-24"
+ ],
+ "groups": [
+  [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8
+  ],
+  [
+   9,
+   10,
+   11,
+   12
+  ]
+ ],
+ "feed_at": [
+  "right-bottom",
+  "left-bottom"
+ ]
+}

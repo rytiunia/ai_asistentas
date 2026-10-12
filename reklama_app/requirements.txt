@@ -1,0 +1,12 @@
+streamlit>=1.40
+claude-agent-sdk>=0.2
+pymupdf
+shapely
+reportlab
+ezdxf
+matplotlib
+numpy
+scipy
+scikit-image
+networkx
+pillow

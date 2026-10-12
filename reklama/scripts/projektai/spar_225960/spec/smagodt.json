@@ -1,0 +1,179 @@
+{
+ "scale": 10,
+ "qty": "1 pcs.",
+ "order_no": "ALT0000_00.00_RS",
+ "rev": "A",
+ "date": "2026-10-08",
+ "client": "BrandFactory",
+ "title": "SPAR order 225960 - SMÅGODT, P6 on rails (indoor)",
+ "drawing_no": "SPAR order 225960",
+ "file_code": "SPAR_225960_16_smagodt",
+ "sheet": "16 / 18",
+ "client_pdf": "/home/claude/w/sk/smagodt_client.pdf",
+ "crop_pt": [
+  448,
+  305,
+  745,
+  415
+ ],
+ "depth_mm": 50,
+ "front": "8mm",
+ "rail": {
+  "size": "20x20x2",
+  "depth": 20,
+  "ral": "4010"
+ },
+ "cable_exits": [
+  {
+   "pt": [
+    725,
+    404
+   ],
+   "voltage": "12V",
+   "label": "3 m"
+  }
+ ],
+ "groups": [
+  {
+   "name": "SMAGODT",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "9003",
+   "face_hex": "#FFFFFF",
+   "client_fill": [
+    0.9,
+    0.9,
+    0.9
+   ],
+   "frame": "horizontal",
+   "cable": {
+    "rail": "bottom",
+    "end": "last",
+    "out": "right"
+   },
+   "ears": false
+  }
+ ],
+ "bom": [
+  [
+   1,
+   "Face letters",
+   "Plexi 8 mm white (opal)",
+   "white",
+   "{PER_SMAGODT} m / {A_SMAGODT} m²"
+  ],
+  [
+   2,
+   "Return letters",
+   "Alu 1 mm",
+   "RAL 9003",
+   "{PER_SMAGODT} m / {RET_SMAGODT} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "Alu 1.5 mm",
+   "-",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   4,
+   "LED modules",
+   "",
+   "white",
+   "?"
+  ],
+  [
+   5,
+   "Rail U {RAIL_SIZE}",
+   "Aluminium",
+   "RAL 4010",
+   "{RAIL_TOTAL_M} m"
+  ],
+  [
+   6,
+   "No ears - top rail screwed directly to wall",
+   "",
+   "",
+   "-"
+  ],
+  [
+   7,
+   "Trafo box (PSU 12V)",
+   "",
+   "",
+   "1 pcs."
+  ],
+  [
+   8,
+   "Wall fixing",
+   "?",
+   "-",
+   "?"
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "1 pcs."
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profile",
+   "P6 on rails, indoor"
+  ],
+  [
+   "Letter depth",
+   "50"
+  ],
+  [
+   "Face",
+   "Opal 8 mm"
+  ],
+  [
+   "Returns",
+   "RAL 9003"
+  ],
+  [
+   "Frame",
+   "U 20x20x2, RAL 4010 matt"
+  ],
+  [
+   "Illumination",
+   "LED white"
+  ],
+  [
+   "Power",
+   "cables at the bottom only"
+  ],
+  [
+   "Wind qp",
+   "{WIND_QP} kN/m²"
+  ],
+  [
+   "Wall",
+   "?"
+  ],
+  [
+   "Perimeter",
+   "{PER_ALL} m"
+  ],
+  [
+   "Mounting",
+   "top rail direct to wall, no ears"
+  ]
+ ],
+ "export_1to1": false,
+ "trafo_box": {
+  "voltage": "12V",
+  "mains": "220V",
+  "cable_len_m": 3.0,
+  "x": 450
+ },
+ "ears": {
+  "smax": 2000
+ }
+}

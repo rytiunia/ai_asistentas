@@ -1,0 +1,485 @@
+<title>Virtuvės siena A</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column like a technical sheet — 3D viewport first, elevation drawing, then the cut list the engine produced. */
+:root {
+  --bg: #F2F3F0;
+  --surface: #FFFFFF;
+  --fg: #1A1E1C;
+  --muted: #5F6864;
+  --line: #CDD2CD;
+  --line-strong: #8F9893;
+  --accent: #1F58A6;
+  --accent-ink: #FFFFFF;
+  --floor: #D6D3CC;
+  --wall: #E7E8E3;
+  --edge: rgba(30, 36, 33, 0.38);
+  --front-fill: #F7F7F4;
+  --band-fill: #DDE1DD;
+  --font-display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #151819; --surface: #1E2224; --fg: #E8EAE6; --muted: #98A29C; --line: #353B3E; --line-strong: #5C656A;
+    --accent: #7FAEF0; --accent-ink: #0F1A2A; --floor: #2B2E30; --wall: #23272A; --edge: rgba(220, 226, 222, 0.38);
+    --front-fill: #262B2E; --band-fill: #30363A; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #151819; --surface: #1E2224; --fg: #E8EAE6; --muted: #98A29C; --line: #353B3E; --line-strong: #5C656A;
+  --accent: #7FAEF0; --accent-ink: #0F1A2A; --floor: #2B2E30; --wall: #23272A; --edge: rgba(220, 226, 222, 0.38);
+  --front-fill: #262B2E; --band-fill: #30363A; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.45; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 28px; }
+.eyebrow { font-family: var(--font-display); font-weight: 600; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(34px, 7vw, 52px); line-height: 1; margin: 6px 0 8px; text-wrap: balance; letter-spacing: -0.01em; }
+h2 { font-family: var(--font-display); font-weight: 600; font-size: 22px; margin: 0 0 4px; letter-spacing: 0.01em; }
+.sub { color: var(--muted); font-size: 14px; }
+.sub b { color: var(--fg); font-weight: 600; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+section { display: grid; gap: 12px; min-width: 0; }
+.sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+.sec-head p { margin: 0; color: var(--muted); font-size: 14px; max-width: 62ch; }
+
+/* 3D viewport */
+.viewport { position: relative; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
+.viewport canvas { display: block; width: 100%; height: min(62vh, 560px); min-height: 320px; touch-action: none; cursor: grab; }
+.viewport canvas:active { cursor: grabbing; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; padding: 10px; border-top: 1px solid var(--line); }
+.bar .chip-label { flex-basis: 100%; margin-top: 2px; }
+.bar #reset { margin-top: 8px; }
+.hint { font-size: 12px; color: var(--muted); margin-left: auto; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px 6px 6px; background: var(--surface); border: 1px solid var(--line); color: var(--fg); font: 500 13px var(--font-body); cursor: pointer; }
+.chip .sw { width: 22px; height: 22px; border: 1px solid var(--edge); }
+.chip[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.chip:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn { padding: 6px 10px; background: var(--surface); border: 1px solid var(--line); color: var(--fg); font: 500 13px var(--font-body); cursor: pointer; }
+.chip-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--font-display); font-weight: 600; }
+
+/* elevation */
+.drawing { background: var(--surface); border: 1px solid var(--line); padding: 8px; overflow-x: auto; }
+.drawing svg { display: block; width: 100%; height: auto; max-width: 100%; font-family: var(--font-mono); }
+.drawing .ln { stroke: var(--fg); fill: none; vector-effect: non-scaling-stroke; stroke-width: 1.2px; }
+.drawing .ln-thin { stroke: var(--line-strong); fill: none; vector-effect: non-scaling-stroke; stroke-width: 0.8px; }
+.drawing .dash { stroke: var(--muted); fill: none; vector-effect: non-scaling-stroke; stroke-width: 0.8px; stroke-dasharray: 6 4; }
+.drawing .dim { stroke: var(--accent); fill: none; vector-effect: non-scaling-stroke; stroke-width: 0.9px; }
+.drawing .dim-t { fill: var(--accent); font-size: 78px; }
+.drawing .id { fill: var(--fg); font-family: var(--font-display); font-weight: 600; font-size: 96px; }
+.drawing .wall-fill { fill: var(--wall); }
+.drawing .front { fill: var(--front-fill); }
+.drawing .band { fill: var(--band-fill); }
+.drawing .carcass { fill: var(--surface); }
+.drawing .hw { fill: var(--fg); }
+.drawing .appl { fill: var(--band-fill); stroke: var(--muted); vector-effect: non-scaling-stroke; stroke-width: 0.8px; }
+.drawing .appl-t { fill: var(--muted); font-family: var(--font-display); font-weight: 600; font-size: 60px; letter-spacing: 0.08em; }
+.drawing .hpl { fill: var(--band-fill); opacity: 0.55; }
+
+/* tables */
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--line); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { padding: 7px 9px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; vertical-align: middle; }
+th { font-family: var(--font-display); font-weight: 600; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+td.n, th.n { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+td.c, th.c { text-align: center; }
+tr.grp td { background: var(--bg); font-family: var(--font-display); font-weight: 600; font-size: 15px; padding-block: 9px; white-space: normal; }
+tr.grp td span { font-family: var(--font-mono); font-weight: 400; font-size: 12.5px; color: var(--muted); margin-left: 10px; }
+tr.sum td { font-weight: 600; }
+.cut-table { min-width: 720px; }
+.sum-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.sum-grid .tbl-wrap { min-width: 0; }
+details { border: 1px solid var(--line); background: var(--surface); }
+summary { padding: 10px 12px; cursor: pointer; font-family: var(--font-display); font-weight: 600; font-size: 16px; }
+details .inner { padding: 4px 12px 12px; display: grid; gap: 8px; }
+dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; font-size: 13.5px; }
+dt { color: var(--muted); }
+dd { margin: 0; font-family: var(--font-mono); font-size: 13px; }
+.note { font-size: 13px; color: var(--muted); max-width: 70ch; margin: 0; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Pasiūlymas · vienas duomenų modelis → vaizdas, projekcija, pjovimo lapas</div>
+    <h1>Virtuvės siena A</h1>
+    <div class="sub" id="sub"></div>
+  </header>
+
+  <section>
+    <div class="sec-head">
+      <h2>3D peržiūra klientui</h2>
+      <p>Kiekviena dėžė čia yra viena eilutė pjovimo lape – modelis sudėtas iš tų pačių detalių, kurios keliauja į pjaustymo centrą. Buitiniai prietaisai – tik gabaritai.</p>
+    </div>
+    <div class="viewport">
+      <canvas id="gl" aria-label="Virtuvės 3D vaizdas"></canvas>
+      <div class="bar">
+        <span class="chip-label">Apatinių fasadai</span>
+        <div class="chips" id="chips-apatiniai"></div>
+        <span class="chip-label">Viršutinių fasadai</span>
+        <div class="chips" id="chips-virsutiniai"></div>
+        <button class="btn" id="reset" type="button">Atstatyti vaizdą</button>
+        <span class="hint">Vilkite – sukti, du pirštai / ratukas – artinti</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Priekinė projekcija</h2>
+      <p>Matmenys mm. Viršutinė grandinė – viršutinių korpusų pločiai, apatinė – apatinių. Punktyras rodo lankstų pusę.</p>
+    </div>
+    <div class="drawing" id="elev"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Medžiagų suvestinė</h2>
+      <p>Lapų skaičius – įvertis pagal 2800 × 2070 mm lapą ir 72 % išeigą; tikslų skaičių duoda nestingas.</p>
+    </div>
+    <div class="sum-grid" id="summary"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Pjovimo lapas</h2>
+      <p>Matmenys galutiniai, su kantu. L – išilgai rašto. Kantai L1/L2 ir W1/W2 – ABS storis mm, tuščia = be kanto. Vienodos detalės sujungtos, žymėjimas rodo korpusus.</p>
+    </div>
+    <div class="tbl-wrap"><table class="cut-table" id="cut"></table></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Furnitūra</h2>
+      <p>Suskaičiuota iš fasadų, stalčių ir lentynų kiekio pagal standartą.</p>
+    </div>
+    <div class="tbl-wrap"><table id="hw"></table></div>
+  </section>
+
+  <details>
+    <summary>Konstrukcinis standartas</summary>
+    <div class="inner">
+      <p class="note">Standartą pildo gamintojas, variklis jį vykdo – pakeitus vieną reikšmę persiskaičiuoja visos detalės, brėžinys ir furnitūra. Projektas gali perrašyti atskiras reikšmes.</p>
+      <dl id="std"></dl>
+    </div>
+  </details>
+
+  <p class="note">Tas pats modelis eksportuotas į Excel pjaustymo centrui (detales.xlsx): atskiri lapai pagal medžiagą, furnitūra, suvestinė su formulėmis.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const M = __MODEL_JSON__;
+
+const fmt = (n, d = 1) => Number(n).toLocaleString('lt-LT', { minimumFractionDigits: d, maximumFractionDigits: d });
+const root = document.documentElement;
+const tok = n => getComputedStyle(root).getPropertyValue(n).trim();
+
+/* ---------------- header */
+const nBase = M.korpusai.filter(k => k.tipas.startsWith('apatinis')).length;
+const nWall = M.korpusai.filter(k => k.tipas === 'virsutinis').length;
+const nTall = M.korpusai.length - nBase - nWall;
+const nParts = M.detales.filter(p => p.grupe !== 'prietaisas').length;
+const nLines = M.pjovimas.reduce((s, g) => s + g.eilutes.length, 0);
+document.getElementById('sub').innerHTML =
+  `Siena <b>${M.projektas.siena.ilgis} × ${M.projektas.siena.aukstis} mm</b> · ${nBase} apatiniai, ${nWall} viršutiniai${nTall ? `, ${nTall} aukšt.` : ''} · ` +
+  `<b>${nParts} detalės</b>, ${nLines} pjovimo eilutės · stalviršis ${M.standartas.stalvirsis.storis} mm`;
+
+/* ---------------- 3D (skipped gracefully if the library did not load) */
+let dirty = true, has3D = false;
+function init3D() {
+/* ---------------- 3D */
+const canvas = document.getElementById('gl');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputEncoding = THREE.sRGBEncoding;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(36, 1, 0.05, 60);
+const S = 1 / 1000;
+const wallLen = M.projektas.siena.ilgis * S, wallH = M.projektas.siena.aukstis * S;
+const target = new THREE.Vector3(wallLen / 2, 1.18, 0.3);
+const view = { theta: 0.42, phi: 1.22, r: 4.9 };
+const viewDefault = { ...view }; let framed = false;
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.32));
+const hemi = new THREE.HemisphereLight(0xffffff, 0x8f9499, 0.55); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffffff, 0.95);
+sun.position.set(3.4, 4.6, 3.6); sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+const sh = wallLen / 2 + 3; Object.assign(sun.shadow.camera, { left: -sh, right: sh, top: sh, bottom: -sh, near: 0.5, far: 16 });
+sun.shadow.bias = -0.0006;
+sun.target.position.copy(target); scene.add(sun.target);
+scene.add(sun);
+
+const APL = M.projektas.aplinka || {};
+const floorMat = new THREE.MeshStandardMaterial({ roughness: 0.95 });
+const wallMat = new THREE.MeshStandardMaterial({ roughness: 0.95 });
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(wallLen + 12, 14), floorMat);
+floor.rotation.x = -Math.PI / 2; floor.position.set(wallLen / 2, 0, 6.5); floor.receiveShadow = true; scene.add(floor);
+const wall = new THREE.Mesh(new THREE.PlaneGeometry(wallLen + 12, wallH + 6), wallMat);
+wall.position.set(wallLen / 2, (wallH + 6) / 2, -0.004); wall.receiveShadow = true; scene.add(wall);
+
+/* grain texture generated once; vertical and horizontal copies */
+function grainTexture(hex, rotate) {
+  const c = document.createElement('canvas'); c.width = c.height = 512;
+  const g = c.getContext('2d');
+  g.fillStyle = hex; g.fillRect(0, 0, 512, 512);
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 160; i++) {
+    const x = rnd() * 512, w = 1 + rnd() * 6, a = 0.04 + rnd() * 0.1, dark = rnd() > 0.45;
+    g.fillStyle = dark ? `rgba(40,25,10,${a})` : `rgba(255,240,215,${a})`;
+    g.fillRect(x, 0, w, 512);
+  }
+  for (let i = 0; i < 40; i++) {
+    const x = rnd() * 512, y = rnd() * 512, h = 20 + rnd() * 90;
+    g.fillStyle = `rgba(30,18,8,${0.03 + rnd() * 0.05})`; g.fillRect(x, y, 2 + rnd() * 3, h);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.encoding = THREE.sRGBEncoding; t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  if (rotate) { t.center.set(0.5, 0.5); t.rotation = Math.PI / 2; }
+  return t;
+}
+
+const mats = {
+  korpusas: new THREE.MeshStandardMaterial({ color: new THREE.Color(0xe9e9e5).convertSRGBToLinear(), roughness: 0.72 }),
+  nugarele: new THREE.MeshStandardMaterial({ color: new THREE.Color(0xe9e9e5).convertSRGBToLinear(), roughness: 0.8 }),
+  stalcius: new THREE.MeshStandardMaterial({ color: new THREE.Color(0xe9e9e5).convertSRGBToLinear(), roughness: 0.72 }),
+  stalvirsis: new THREE.MeshStandardMaterial({ color: new THREE.Color(APL.stalvirsis || '#8e9091').convertSRGBToLinear(), roughness: 0.92 }),
+  hpl: new THREE.MeshStandardMaterial({ color: new THREE.Color(APL.stalvirsis || '#8e9091').convertSRGBToLinear(), roughness: 0.55 }),
+  prietaisas: new THREE.MeshStandardMaterial({ color: new THREE.Color(0x4a4d50).convertSRGBToLinear(), metalness: 0.55, roughness: 0.4 }),
+  steel: new THREE.MeshStandardMaterial({ color: new THREE.Color(0xd6d9db).convertSRGBToLinear(), metalness: 0.25, roughness: 0.35 }),  // no env map: high metalness renders black
+  glass: new THREE.MeshStandardMaterial({ color: new THREE.Color(0x15171a).convertSRGBToLinear(), metalness: 0.2, roughness: 0.15 }),
+  front: { apatiniai: { V: new THREE.MeshStandardMaterial({ roughness: 0.62 }), H: new THREE.MeshStandardMaterial({ roughness: 0.62 }) },
+           virsutiniai: { V: new THREE.MeshStandardMaterial({ roughness: 0.62 }), H: new THREE.MeshStandardMaterial({ roughness: 0.62 }) } },
+  handle: new THREE.MeshStandardMaterial({ color: new THREE.Color(0xb9bdc0).convertSRGBToLinear(), metalness: 0.75, roughness: 0.35 }),
+};
+const edgeMat = new THREE.LineBasicMaterial({ transparent: true, opacity: 1 });
+
+const grains = {};
+window.setFrontDecor3D = function (v, eile) {
+  if (!grains[v.kodas] && v.rastas) grains[v.kodas] = [grainTexture(v.spalva, false), grainTexture(v.spalva, true)];
+  for (const [m, i] of [[mats.front[eile].V, 0], [mats.front[eile].H, 1]]) {
+    m.color.set(v.rastas ? '#ffffff' : v.spalva).convertSRGBToLinear();
+    m.map = v.rastas ? grains[v.kodas][i] : null;
+    m.needsUpdate = true;
+  }
+  dirty = true;
+};
+
+const parts = new THREE.Group(); scene.add(parts);
+for (const p of M.detales) {
+  const geo = new THREE.BoxGeometry(p.size[0] * S, p.size[1] * S, p.size[2] * S);
+  const applMat = { 'Plautuvė': mats.steel, 'Kaitlentė': mats.glass }[p.detale] || mats.prietaisas;
+  const mat = p.grupe === 'fasadas' ? mats.front[p.eile || 'apatiniai'][p.rastas === 'H' ? 'H' : 'V'] : (p.grupe === 'prietaisas' ? applMat : (mats[p.grupe] || mats.korpusas));
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set((p.pos[0] + p.size[0] / 2) * S, (p.pos[1] + p.size[1] / 2) * S, (p.pos[2] + p.size[2] / 2) * S);
+  mesh.castShadow = mesh.receiveShadow = true;
+  mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), edgeMat));
+  parts.add(mesh);
+}
+for (const k of M.korpusai) for (const f of k.frontai) {
+  const r = f.rankena; const h = new THREE.Mesh(new THREE.BoxGeometry(r.w * S, r.h * S, 0.012), mats.handle);
+  const faceZ = (k.gylis + M.standartas.korpuso_ploksta.storis) * S;
+  h.position.set((r.x + r.w / 2) * S, (r.y + r.h / 2) * S, faceZ + 0.026); h.castShadow = true; parts.add(h);
+}
+
+function applyTheme() {
+  floorMat.color.set(APL.grindys || tok('--floor')).convertSRGBToLinear(); wallMat.color.set(APL.sienos || tok('--wall')).convertSRGBToLinear();
+  const e = tok('--edge').match(/[\d.]+/g) || [0, 0, 0, 0.4];
+  edgeMat.color.setRGB(e[0] / 255, e[1] / 255, e[2] / 255); edgeMat.opacity = parseFloat(e[3]);
+  dirty = true;
+}
+function updateCamera() {
+  const { theta, phi, r } = view;
+  camera.position.set(target.x + r * Math.sin(phi) * Math.sin(theta), target.y + r * Math.cos(phi), target.z + r * Math.sin(phi) * Math.cos(theta));
+  camera.lookAt(target); dirty = true;
+}
+function resize() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  if (canvas.width !== Math.round(w * renderer.getPixelRatio()) || canvas.height !== Math.round(h * renderer.getPixelRatio())) {
+    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+    if (!framed) { framed = true; viewDefault.r = view.r = 4.6 * Math.max(1, 1.35 / camera.aspect); updateCamera(); }
+    dirty = true;
+  }
+}
+new ResizeObserver(resize).observe(canvas);
+(function loop() { resize(); if (dirty) { dirty = false; renderer.render(scene, camera); } requestAnimationFrame(loop); })();
+
+/* orbit: one pointer rotates, two pointers pinch, wheel zooms */
+const ptrs = new Map(); let lastDist = 0;
+canvas.addEventListener('pointerdown', e => { canvas.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (ptrs.size === 2) lastDist = pinchDist(); });
+canvas.addEventListener('pointermove', e => {
+  const p = ptrs.get(e.pointerId); if (!p) return;
+  const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+  if (ptrs.size === 1) { view.theta -= dx * 0.006; view.phi = Math.min(1.5, Math.max(0.2, view.phi - dy * 0.006)); updateCamera(); }
+  else if (ptrs.size === 2) { const d = pinchDist(); if (lastDist) view.r = Math.min(10, Math.max(2.2, view.r * lastDist / d)); lastDist = d; updateCamera(); }
+});
+const endPtr = e => { ptrs.delete(e.pointerId); lastDist = 0; };
+canvas.addEventListener('pointerup', endPtr); canvas.addEventListener('pointercancel', endPtr);
+canvas.addEventListener('wheel', e => { e.preventDefault(); view.r = Math.min(10, Math.max(2.2, view.r * (1 + e.deltaY * 0.0012))); updateCamera(); }, { passive: false });
+function pinchDist() { const [a, b] = [...ptrs.values()]; return Math.hypot(a.x - b.x, a.y - b.y) || 1; }
+document.getElementById('reset').addEventListener('click', () => { Object.assign(view, viewDefault); updateCamera(); });
+applyTheme(); updateCamera();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+new MutationObserver(applyTheme).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+
+has3D = true;
+}
+function setFrontDecor(v, eile) {
+  if (has3D) setFrontDecor3D(v, eile);
+  document.querySelectorAll(`#chips-${eile} .chip`).forEach(b => b.setAttribute('aria-pressed', b.dataset.kodas === v.kodas));
+  const fg = M.pjovimas.find(g => g.grupe === `fasadas:${eile}`);
+  if (fg) { fg.dekoras = v.kodas; fg.dekoro_pavadinimas = v.pavadinimas; }
+  M.dekorai[eile] = v.kodas;
+  renderTables();
+}
+/* decor chips - one row per cabinet row */
+for (const eile of ['apatiniai', 'virsutiniai']) {
+  const chips = document.getElementById(`chips-${eile}`);
+  for (const v of M.fasado_variantai) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.dataset.kodas = v.kodas;
+    b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = `<span class="sw" style="background:${v.spalva}"></span><span>${v.kodas}<br><small style="color:var(--muted)">${v.pavadinimas}</small></span>`;
+    b.addEventListener('click', () => setFrontDecor(v, eile));
+    chips.appendChild(b);
+  }
+}
+
+/* ---------------- elevation (SVG in mm, y flipped) */
+function elevation() {
+  const L = M.projektas.siena.ilgis, H = M.projektas.siena.aukstis;
+  const Y = y => H - y;
+  const s = [];
+  const rect = (x, y, w, h, cls) => s.push(`<rect class="${cls}" x="${x}" y="${Y(y + h)}" width="${w}" height="${h}"/>`);
+  const line = (x1, y1, x2, y2, cls) => s.push(`<line class="${cls}" x1="${x1}" y1="${Y(y1)}" x2="${x2}" y2="${Y(y2)}"/>`);
+  const text = (x, y, t, cls, anchor = 'middle', extra = '') => s.push(`<text class="${cls}" x="${x}" y="${Y(y)}" text-anchor="${anchor}" ${extra}>${t}</text>`);
+  // wall
+  rect(0, 0, L, H, 'wall-fill ln-thin');
+  line(-60, 0, L + 60, 0, 'ln');
+  // horizontal chain: ticks as 45° slashes
+  const hchain = (xs, y, labelsAbove) => {
+    line(xs[0], y, xs[xs.length - 1], y, 'dim');
+    for (const x of xs) s.push(`<line class="dim" x1="${x - 25}" y1="${Y(y) + 25}" x2="${x + 25}" y2="${Y(y) - 25}"/>`);
+    for (let i = 0; i < xs.length - 1; i++) text((xs[i] + xs[i + 1]) / 2, y + (labelsAbove ? 30 : -95), xs[i + 1] - xs[i], 'dim-t');
+  };
+  const vchain = (ys, x) => {
+    line(x, ys[0], x, ys[ys.length - 1], 'dim');
+    for (const y of ys) s.push(`<line class="dim" x1="${x - 25}" y1="${Y(y) + 25}" x2="${x + 25}" y2="${Y(y) - 25}"/>`);
+    for (let i = 0; i < ys.length - 1; i++) text(x + 45, (ys[i] + ys[i + 1]) / 2 - 28, ys[i + 1] - ys[i], 'dim-t', 'start');
+  };
+  const st = M.standartas;
+  const isTall = k => k.tipas.startsWith('aukstas');
+  const base = M.korpusai.filter(k => k.tipas.startsWith('apatinis') || isTall(k));
+  const top = M.korpusai.filter(k => k.tipas === 'virsutinis' || isTall(k));
+  const yWt = st.apatinis.cokolis + st.apatinis.korpuso_aukstis;
+  // bands: plinth, worktop, HPL - only along the base run (from the model's line parts)
+  for (const p of M.detales.filter(p => p.korpusas === '—')) {
+    if (p.detale === 'Cokolis') rect(p.pos[0], 0, p.size[0], p.size[1], 'band ln-thin');
+    if (p.detale === 'Stalviršis') rect(p.pos[0], p.pos[1], p.size[0], p.size[1], 'band ln');
+    if (p.detale === 'HPL siena') { rect(p.pos[0], p.pos[1], p.size[0], p.size[1], 'hpl'); text(p.pos[0] + p.size[0] / 2, p.pos[1] + p.size[1] / 2 - 25, 'HPL', 'appl-t'); }
+  }
+  for (const k of M.korpusai) {
+    rect(k.x, k.y, k.plotis, k.aukstis, 'carcass ln');
+    if (k.virsutine) rect(k.virsutine.x, k.virsutine.y, k.virsutine.plotis, k.virsutine.aukstis, 'carcass ln');
+    for (const a of (k.prietaisai || [])) {
+      rect(a.x, a.y, a.w, a.h, 'appl');
+      if (a.h > 60) text(a.x + a.w / 2, a.y + a.h / 2 - 25, a.pavadinimas, 'appl-t');
+      else text(a.x + a.w / 2, a.y + a.h + 30, a.pavadinimas, 'appl-t');
+    }
+    for (const f of k.frontai) {
+      rect(f.x, f.y, f.w, f.h, 'front ln-thin');
+      const r = f.rankena; rect(r.x, r.y, r.w, r.h, 'hw');
+      if (f.tipas === 'durys') {
+        const hingeRight = r.x < f.x + f.w / 2;          // handle on the left means hinges on the right
+        const hx = hingeRight ? f.x + f.w : f.x, ox = hingeRight ? f.x : f.x + f.w;
+        line(hx, f.y, ox, f.y + f.h / 2, 'dash'); line(hx, f.y + f.h, ox, f.y + f.h / 2, 'dash');
+      }
+    }
+    // IDs: uppers inside the top of the box, base cabinets in the plinth band, tall units at the floor
+    const idY = k.tipas === 'virsutinis' ? k.y + k.aukstis - 120 : (k.tipas.startsWith('apatinis') ? 14 : 40);
+    text(k.x + k.plotis / 2, idY, k.id, 'id', 'middle', k.tipas.startsWith('apatinis') ? 'font-size="78"' : '');
+  }
+  // chains
+  const xsB = base.length ? [base[0].x, ...base.map(k => k.x + k.plotis)] : [0, L];
+  const xsT = top.length ? [top[0].x, ...top.map(k => k.x + k.plotis)] : [0, L];
+  const topY = Math.max(st.virsutinis.apacia_nuo_grindu + st.virsutinis.korpuso_aukstis, ...M.korpusai.map(k => k.y + k.aukstis));
+  for (const x of xsT) line(x, topY + 20, x, topY + 200, 'ln-thin');
+  hchain(xsT, topY + 170, true);
+  for (const x of xsB) line(x, -20, x, -420, 'ln-thin');
+  hchain(xsB, -170, false);
+  hchain([0, L], -390, false);
+  const ysSet = new Set([0, st.apatinis.cokolis, yWt, yWt + st.stalvirsis.storis, st.virsutinis.apacia_nuo_grindu, st.virsutinis.apacia_nuo_grindu + st.virsutinis.korpuso_aukstis, H]);
+  const ys = [...ysSet].sort((a, b) => a - b);
+  // tall units: their own chain on the left (floor | niche | top cabinet)
+  const tall = M.korpusai.filter(isTall);
+  if (tall.length) {
+    const k = tall[0];
+    const yt = [0, ...(k.virsutine ? [k.virsutine.y] : []), k.y + k.aukstis].filter((v, i, a) => a.indexOf(v) === i);
+    for (const y of yt) line(-20, y, -200, y, 'ln-thin');
+    const vchainL = (ys, x) => { line(x, ys[0], x, ys[ys.length - 1], 'dim');
+      for (const y of ys) s.push(`<line class="dim" x1="${x - 25}" y1="${Y(y) + 25}" x2="${x + 25}" y2="${Y(y) - 25}"/>`);
+      for (let i = 0; i < ys.length - 1; i++) text(x - 45, (ys[i] + ys[i + 1]) / 2 - 28, ys[i + 1] - ys[i], 'dim-t', 'end'); };
+    vchainL(yt, -170);
+  }
+  for (const y of ys) line(L + 20, y, L + 200, y, 'ln-thin');
+  vchain(ys, L + 170);
+  text(L + 60, H + 70, `h = ${H}`, 'dim-t', 'end');
+  const topMargin = Math.max(140, topY + 260 - H);   // chains above cabinets that reach the ceiling
+  return `<svg viewBox="-${M.korpusai.some(isTall) ? 480 : 110} -${topMargin} ${L + 760 + (M.korpusai.some(isTall) ? 370 : 0)} ${H + topMargin + 540}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Priekinė projekcija su matmenimis">${s.join('')}</svg>`;
+}
+document.getElementById('elev').innerHTML = elevation();
+
+/* ---------------- tables */
+const kant = k => k ? (k === 2 ? '2' : String(k).replace('.', ',')) : '';
+function renderTables() {
+  const cut = document.getElementById('cut');
+  let h = `<thead><tr><th>Nr.</th><th>Detalė</th><th>Žymėjimas</th><th class="n">L</th><th class="n">W</th><th class="n">Vnt.</th><th class="c">L1</th><th class="c">L2</th><th class="c">W1</th><th class="c">W2</th><th class="c">Raštas</th></tr></thead><tbody>`;
+  for (const g of M.pjovimas) {
+    h += `<tr class="grp"><td colspan="11">${g.pavadinimas}<span>${g.dekoras} · ${g.dekoro_pavadinimas} · ${g.storis} mm</span></td></tr>`;
+    let vnt = 0;
+    for (const e of g.eilutes) {
+      vnt += e.vnt;
+      h += `<tr><td class="n">${e.nr}</td><td>${e.detale}</td><td class="mono" style="font-size:12.5px;color:var(--muted)">${e.zymejimas}</td><td class="n">${e.L}</td><td class="n">${e.W}</td><td class="n">${e.vnt}</td>` +
+        `<td class="c mono">${kant(e.kantai[0])}</td><td class="c mono">${kant(e.kantai[1])}</td><td class="c mono">${kant(e.kantai[2])}</td><td class="c mono">${kant(e.kantai[3])}</td><td class="c">${e.rastas}</td></tr>`;
+    }
+    h += `<tr class="sum"><td></td><td colspan="4">Iš viso</td><td class="n">${vnt}</td><td colspan="5"></td></tr>`;
+  }
+  cut.innerHTML = h + '</tbody>';
+
+  const sv = M.suvestine;
+  let a = `<div class="tbl-wrap"><table><thead><tr><th>Medžiaga</th><th>Dekoras</th><th class="n">m²</th><th class="n">Lapų</th></tr></thead><tbody>`;
+  for (const p of sv.plokstes) {
+    const grp = M.pjovimas.find(g => g.grupe === p.grupes_id);
+    const dek = grp ? grp.dekoras : p.dekoras;
+    a += `<tr><td style="white-space:normal">${p.grupe}</td><td class="mono" style="font-size:12.5px">${dek}</td><td class="n">${fmt(p.m2, 2)}</td><td class="n">${p.lapai == null ? '—' : p.lapai}</td></tr>`;
+  }
+  a += `</tbody></table></div>`;
+  a += `<div class="tbl-wrap"><table><thead><tr><th>Kantas ABS</th><th class="n">Metrų (+5 %)</th></tr></thead><tbody>`;
+  for (const k of sv.kantai) a += `<tr><td>${kant(k.storis)} mm</td><td class="n">${fmt(k.m, 1)}</td></tr>`;
+  a += `</tbody></table></div>`;
+  document.getElementById('summary').innerHTML = a;
+
+  let f = `<thead><tr><th>Pavadinimas</th><th class="n">Kiekis</th><th>Vnt.</th><th>Pastaba</th></tr></thead><tbody>`;
+  for (const x of sv.furnitura) f += `<tr><td>${x.pavadinimas}</td><td class="n">${x.kiekis}</td><td>${x.vnt}</td><td style="white-space:normal;color:var(--muted)">${x.pastaba}</td></tr>`;
+  document.getElementById('hw').innerHTML = f + '</tbody>';
+}
+
+const std = document.getElementById('std');
+for (const [g, params] of Object.entries(M.standartas)) for (const [k, v] of Object.entries(params))
+  std.insertAdjacentHTML('beforeend', `<dt>${g} · ${k.replace(/_/g, ' ')}</dt><dd>${v}</dd>`);
+
+/* ---------------- boot */
+if (typeof THREE !== 'undefined') { try { init3D(); } catch (e) { console.error(e); } }
+if (!has3D) {
+  const c = document.getElementById('gl');
+  c.insertAdjacentHTML('afterend', '<p class="note" style="padding:14px">3D biblioteka nepasikrovė – projekcija ir pjovimo lapas žemiau veikia be jos. Atnaujinkite puslapį.</p>');
+  c.style.height = '0'; c.style.minHeight = '0';
+}
+for (const eile of ['apatiniai', 'virsutiniai'])
+  setFrontDecor(M.fasado_variantai.find(v => v.kodas === M.dekorai[eile]) || M.fasado_variantai[0], eile);
+</script>

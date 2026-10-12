@@ -1,0 +1,174 @@
+{
+ "client_pdf": "/home/claude/joker/client.pdf",
+ "scale": 10,
+ "crop_pt": [
+  270,
+  125,
+  860,
+  215
+ ],
+ "ignore_fills": [
+  [
+   0,
+   0,
+   0
+  ]
+ ],
+ "rail_fills": [
+  [
+   0.29,
+   0.208,
+   0.149
+  ]
+ ],
+ "qty": "1",
+ "client": "BrandFactory",
+ "company": "BrandFactory",
+ "title": "Joker Reinslettveien - opening hours MAN-FRE 08-24 1947x208",
+ "order_no": "ALT8872_10.12_RS",
+ "file_code": "Joker_Reinslettveien_MAN_FRE",
+ "project": "Joker order 226001",
+ "drawing_no": "Joker order 226001",
+ "sheet": "1 / 2",
+ "rev": "A",
+ "date": "2026-10-09",
+ "depth_mm": 60,
+ "front": "8mm+foil",
+ "rail": {
+  "size": "20x20x2",
+  "depth": 20,
+  "ral": "8014"
+ },
+ "ears": {
+  "inset": 50,
+  "pitch": 1000,
+  "min_edge": 15
+ },
+ "groups": [
+  {
+   "name": "MAN-FRE",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "9010",
+   "face_hex": "#FFFFFF",
+   "client_fill": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "frame": "horizontal",
+   "cable": {
+    "from": "letter",
+    "x_pt": 432.5,
+    "out": "up"
+   }
+  }
+ ],
+ "trafo_box": {
+  "voltage": "12V",
+  "cable_len_m": 1.5,
+  "mains": "230V",
+  "label": "RAL 8014"
+ },
+ "bom": [
+  [
+   1,
+   "Letter face P6_8mm",
+   "Plexi 8 mm opal",
+   "",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   2,
+   "Letter return",
+   "Alu 1 mm",
+   "RAL 9010",
+   "{PER_ALL} m / {RET_MAN-FRE} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "Alu 1.5 mm",
+   "-",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   4,
+   "LED white 6500K",
+   "",
+   "6500K",
+   "?"
+  ],
+  [
+   5,
+   "Rail U {RAIL_SIZE} with ears (frame)",
+   "Aluminium",
+   "RAL 8014",
+   "{RAIL_TOTAL_M} m"
+  ],
+  [
+   6,
+   "Mounting ear {RAIL_SIZE}, Ø{EAR_HOLE} hole",
+   "Aluminium",
+   "RAL 8014",
+   "{PLATES_N} pcs. ({PLATES_EXT} extended)"
+  ],
+  [
+   7,
+   "Trafo box - model after LED calc.",
+   "",
+   "RAL 8014",
+   "1 pcs. (12V, 1.5 m)"
+  ],
+  [
+   8,
+   "Wall fixing",
+   "?",
+   "-",
+   "?"
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "1 pcs."
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profile",
+   "P6_8mm on rails"
+  ],
+  [
+   "Letter depth",
+   "60"
+  ],
+  [
+   "Face",
+   "Opal plexi 8 mm"
+  ],
+  [
+   "Returns",
+   "RAL 9010"
+  ],
+  [
+   "Rails",
+   "U 20x20x2 + ears, RAL 8014"
+  ],
+  [
+   "Illumination",
+   "LED 6500K"
+  ],
+  [
+   "Power",
+   "12V, 1.5 m from letter"
+  ],
+  [
+   "Environment",
+   "?"
+  ]
+ ],
+ "page": 0
+}

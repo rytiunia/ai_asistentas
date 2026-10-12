@@ -1,0 +1,334 @@
+{
+ "scale": 100,
+ "qty": "1 pcs.",
+ "order_no": "ALT0000_00.00_RS",
+ "rev": "A",
+ "date": "2026-10-08",
+ "client": "BrandFactory",
+ "title": "SPAR order 225960 - SPAR + logo, P6 on □ frame, 2 parts",
+ "drawing_no": "SPAR order 225960",
+ "file_code": "SPAR_225960_01_spar8000",
+ "sheet": "1 / 18",
+ "client_pdf": "/home/claude/w/sk/spar8000_client.pdf",
+ "crop_pt": [
+  100,
+  110,
+  345,
+  166
+ ],
+ "depth_mm": 80,
+ "front": "8mm",
+ "rail": {
+  "size": "40x40x2",
+  "depth": 40,
+  "ral": "7021",
+  "type": "square"
+ },
+ "cable_exits": [
+  {
+   "pt": [
+    232,
+    127
+   ],
+   "voltage": "12V",
+   "label": "3 m"
+  },
+  {
+   "pt": [
+    331,
+    127
+   ],
+   "voltage": "12V",
+   "label": "3 m"
+  }
+ ],
+ "groups": [
+  {
+   "name": "SPA",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "9016",
+   "face_hex": "#FFFFFF",
+   "client_fill": [
+    1,
+    1,
+    1
+   ],
+   "frame": "verticals",
+   "rails": [
+    {
+     "kind": "h",
+     "poly": [
+      [
+       123.86767680659295,
+       80.0
+      ],
+      [
+       4420.484433783426,
+       80.0
+      ],
+      [
+       4420.484433783426,
+       120.0
+      ],
+      [
+       123.86767680659295,
+       120.0
+      ]
+     ]
+    },
+    {
+     "kind": "h",
+     "poly": [
+      [
+       123.86767680659295,
+       877.820231119792
+      ],
+      [
+       4420.484433783426,
+       877.820231119792
+      ],
+      [
+       4420.484433783426,
+       917.820231119792
+      ],
+      [
+       123.86767680659295,
+       917.820231119792
+      ]
+     ]
+    }
+   ],
+   "cable": false,
+   "ears_pt": [
+    150.3,
+    188.6,
+    231.1
+   ]
+  },
+  {
+   "name": "R",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "9016",
+   "face_hex": "#FFFFFF",
+   "client_fill": [
+    0.85,
+    0.85,
+    0.85
+   ],
+   "frame": "verticals",
+   "rails": [
+    {
+     "kind": "h",
+     "poly": [
+      [
+       -145.45110872719124,
+       80.0
+      ],
+      [
+       3286.3168669117676,
+       80.0
+      ],
+      [
+       3286.3168669117676,
+       120.0
+      ],
+      [
+       -145.45110872719124,
+       120.0
+      ]
+     ]
+    },
+    {
+     "kind": "h",
+     "poly": [
+      [
+       -145.45110872719124,
+       877.820231119792
+      ],
+      [
+       3286.318127673014,
+       877.820231119792
+      ],
+      [
+       3286.318127673014,
+       917.820231119792
+      ],
+      [
+       -145.45110872719124,
+       917.820231119792
+      ]
+     ]
+    }
+   ],
+   "cable": {
+    "rail": "top",
+    "end": "last",
+    "out": "up"
+   },
+   "ears_pt": [
+    235.4,
+    277.9,
+    299.1,
+    324.7
+   ]
+  },
+  {
+   "name": "LOGO",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "6029",
+   "face_hex": "#00A859",
+   "client_fill": [
+    0,
+    0.66,
+    0.35
+   ],
+   "frame": "verticals",
+   "no_rails": true,
+   "lit": false
+  }
+ ],
+ "bom": [
+  [
+   1,
+   "Face letters SPAR",
+   "Plexi 8 mm white (opal)",
+   "white",
+   "{PER_SPA} + {PER_R} m"
+  ],
+  [
+   1,
+   "Face logo circle",
+   "Plexi 8 mm white + foil",
+   "ORACAL 8500 614",
+   "{PER_LOGO} m / {A_LOGO} m²"
+  ],
+  [
+   2,
+   "Return letters",
+   "Alu 1 mm",
+   "RAL 9016",
+   "{PER_SPA} + {PER_R} m"
+  ],
+  [
+   2,
+   "Return logo",
+   "Alu 1 mm",
+   "RAL 6029",
+   "{PER_LOGO} m / {RET_LOGO} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "Alu 1.5 mm",
+   "-",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   4,
+   "LED modules",
+   "",
+   "white",
+   "?"
+  ],
+  [
+   5,
+   "Frame, rectangular tube 40x40x2",
+   "Aluminium",
+   "RAL 7021",
+   "{RAIL_TOTAL_M} m"
+  ],
+  [
+   6,
+   "Mounting ear, welded, Ø{EAR_HOLE} hole",
+   "Alu 3 mm",
+   "RAL 7021",
+   "{PLATES_N} pcs. ({PLATES_EXT} extended)"
+  ],
+  [
+   7,
+   "Trafo box (PSU 12V)",
+   "",
+   "",
+   "1 pcs."
+  ],
+  [
+   8,
+   "Wall fixing",
+   "?",
+   "-",
+   "?"
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "1 pcs."
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH} (parts 4350 + 3650)"
+  ],
+  [
+   "Profile",
+   "P6 on rectangular frame"
+  ],
+  [
+   "Letter depth",
+   "80"
+  ],
+  [
+   "Face",
+   "Opal 8 mm; logo foil 8500 614"
+  ],
+  [
+   "Returns",
+   "RAL 9016 / logo RAL 6029"
+  ],
+  [
+   "Frame",
+   "□ 40x40x2 + ears, RAL 7021"
+  ],
+  [
+   "Illumination",
+   "LED white"
+  ],
+  [
+   "Power",
+   "12V at logo -> trafo box"
+  ],
+  [
+   "Wind qp",
+   "{WIND_QP} kN/m²"
+  ],
+  [
+   "Wall",
+   "?"
+  ],
+  [
+   "Perimeter",
+   "{PER_ALL} m"
+  ],
+  [
+   "Parts",
+   "2: SPA (4350) | R + logo (3650)"
+  ]
+ ],
+ "export_1to1": false,
+ "trafo_box": {
+  "voltage": "12V",
+  "mains": "220V",
+  "cable_len_m": 3.0
+ },
+ "ears": {
+  "hole_d": 8
+ },
+ "joints": [
+  {
+   "x_pt": 234.38778841495514,
+   "label": "FRAME JOINT"
+  }
+ ]
+}

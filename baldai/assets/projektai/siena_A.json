@@ -1,0 +1,52 @@
+{
+  "_pastaba": "Projekto pavyzdys. Korpusai eina iš kairės į dešinę; apatinių ir viršutinių pločių sumos turi sutapti su sienos ilgiu (variklis tikrina).",
+  "pavadinimas": "Virtuvė, siena A",
+  "siena": {
+    "ilgis": 2450,
+    "aukstis": 2600
+  },
+  "korpusai": [
+    {
+      "id": "K1",
+      "tipas": "apatinis_durys",
+      "plotis": 450,
+      "durys": 1
+    },
+    {
+      "id": "K2",
+      "tipas": "apatinis_stalciai",
+      "plotis": 600,
+      "stalciai": 3
+    },
+    {
+      "id": "K3",
+      "tipas": "apatinis_plautuve",
+      "plotis": 800,
+      "durys": 2
+    },
+    {
+      "id": "K4",
+      "tipas": "apatinis_durys",
+      "plotis": 600,
+      "durys": 1
+    },
+    {
+      "id": "V1",
+      "tipas": "virsutinis",
+      "plotis": 1050,
+      "durys": 2
+    },
+    {
+      "id": "V2",
+      "tipas": "virsutinis",
+      "plotis": 800,
+      "durys": 2
+    },
+    {
+      "id": "V3",
+      "tipas": "virsutinis",
+      "plotis": 600,
+      "durys": 1
+    }
+  ]
+}

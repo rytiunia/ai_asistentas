@@ -1,0 +1,43 @@
+# Patvirtinimas -> gamybos paketas (v104, Rytis 2026-10-11)
+
+Ryčio komanda: įkeliamas (kliento patvirtintas) dokumentas + žinutė **„Patvirtinta, ALT5432_10.12_RS"**.
+Tada BE papildomų klausimų sukuriama:
+1. **Gamybinis dokumentas** - tas pats lapas(-ai), ORDER NO. = ALT numeris (`spec "order_no"`), visi lapai į vieną PDF
+   `<ALT>_<užsakymas>.pdf`;
+2. **DXF 1:1** (`p6_dxf.py --no-letters`, su `--rails-json` - rėmas, ausėlės / hangers, D3.2, D11, drenažas) -
+   TIK VIENTISI failai `<ALT>_<lapas>_P6_1-1_*.dxf` po vieną lapui (be failų po raidę, be ZIP, be patikros PNG);
+3. **LED dėliojimo lapas** (`led_sim.py`) - visi lapai į `<ALT>_..._LED.pdf`.
+
+## ALT numerio normalizavimas
+- Formatas `ALT<nr>_<MM.DD>_<inicialai>` (lapo šablonas `ALT0000_00.00_RS`).
+- „ALT 8872_10.12" -> `ALT8872_10.12_RS` (tarpas šalinamas; be inicialų - `_RS`, Rytis). Failų prefiksas - tas pats.
+
+## Eiga
+1. Rasti projektą `scripts/projektai/<...>/` (README, spec). Spec kopija -> `order_no` = ALT.
+2. **Kliento originalo nėra** (senas sesijos kelias) - šaltinis = PATVIRTINTAS mūsų lapas:
+   `client_pdf` = įkeltas PDF, `"page"` = lapo nr. (nuo 0), `crop_pt` = FRONT VIEW sritis, `scale` = vaizdo mastelis,
+   raidės `client_fill` [1,1,1] (balta), `rail_fills` = mūsų bėgelių spalva tame lape (pvz. RAL 8014 -> [0.29, 0.208, 0.149]),
+   `ignore_fills` = [[0,0,0]]. DĖMESIO: ausėlių spalva (tamsesnė) +-0.05 ribose nuo bėgelių - į `ignore_fills` NEDĖTI
+   (ignoruotų bėgelius); ausėlės ir taip < 30 mm - praleidžiamos.
+3. `RAILS_JSON=rails_N.json braizyti_begeliai.py spec_N.json N.pdf` kiekvienam lapui. Palyginti su patvirtintu:
+   perimetras / plotas, bėgelių ilgiai, ausėlių kiekis. Skirtumai dėl naujesnių taisyklių (5 mm apvalinimas, Letter back RAL)
+   - leidžiami, PRANEŠTI Ryčiui sąraše.
+4. `p6_dxf.py patvirtintas.pdf dxf --page N --scale S --crop ... --fill 1,1,1 --names ... --prefix <ALT>_<lapas>
+   --rail <profilis> --cable top --rails-json rails_N.json` (ausėlių Ø baltos skylės < 20 mm praleidžiamos, v104).
+5. `led_sim.py` spec: `pdf` = patvirtintas, `"page"`, `crop_pt`, `scale_mm_per_pt` = mastelis x 0.35278, `fill_rgb` [1,1,1],
+   `order_no` = ALT; laidas iš raidės - `"feed_at": ["letter:<indeksas>-top"]` (v104).
+6. Sujungti PDF, perkelti į outputs. **Siųsti TIK 3 rūšis (Rytis v105):** PDF su maketu, PDF su LED dėliojimu,
+   vientisus DXF. `reklama.zip` NESIŲSTI - tik atnaujinti iCloud, jei skill'as keitėsi. Ataskaitoje: kas pakeista nuo patvirtinto, DXF perspėjimai
+   (rankiniai taisymai), LED modulis / kiekis / W (LED į gamybinį lapą - tik Ryčiui patvirtinus modulį), PSU / trafo modelis.
+
+Pirmas bandymas: Joker 226001 (`scripts/projektai/joker_reinslettveien/`, „Patvirtinta, ALT 8872_10.12").
+
+## v109 (EXTRA 225978, ALT8873_10.12_RS, 2026-10-12)
+- Mūsų lape bėgeliai / statmenys / ausėlės - `rail_fills` [0.796, 0.816, 0.8] (RAL 7035), ausėlės [0.677, 0.693, 0.68] ir
+  jų skylės [1,1,1] - į `ignore_fills` (ausėlės nuo bėgelių > 0.05 - bėgelių neužkliudo). Platūs statmenų blokai
+  (kojos „stem") rail spalvos - automatiškai ne raidės (v109).
+- `one_frame` lapai su spec `verticals` - `"client_vert_rails": false` (statmenys generuojami iš spec, ne iš lapo).
+- `client_frame: true` - rėmas kaip patvirtintame (be auto perdarymo); 6 m strypų taisyklė vis tiek taikoma - PRANEŠTI.
+- `p6_dxf.py` NEPALAIKO plokštės (6+3 X ant apskritimo), kelių spalvų grupių vieno rėmo lape ir P1 - tokiems lapams DXF
+  nedaromas automatiškai, klausti Ryčio.
+- LED kelioms spalvoms - `fill_rgb` sąrašas + `groups` / `feed_at` po grupę; P1 NON-LIT - LED lapo nėra.

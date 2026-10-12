@@ -1,0 +1,165 @@
+{
+ "client_pdf": "/home/claude/power/client.pdf",
+ "scale": 12.502,
+ "crop_pt": [
+  95,
+  110,
+  835,
+  210
+ ],
+ "qty": 2,
+ "client": "POWER",
+ "title": "Illuminated letters P6 on rails",
+ "order_no": "Brotorvet 3a",
+ "file_code": "POWER_Brotorvet_3a",
+ "rev": "A",
+ "date": "2026-10-11",
+ "company": "Imagon",
+ "depth_mm": 60,
+ "front": "8mm+foil",
+ "rail": {
+  "size": "30x30x2",
+  "depth": 30,
+  "ral": "7024"
+ },
+ "wall": "concrete",
+ "trafo_box": false,
+ "cable_exits": [
+  {
+   "pt": [
+    795,
+    130.5
+   ],
+   "voltage": "220V",
+   "label": "1.5 m"
+  }
+ ],
+ "groups": [
+  {
+   "name": "POWER",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "9005",
+   "face_hex": "#EB690F",
+   "client_fill": [
+    0.92,
+    0.41,
+    0.06
+   ],
+   "frame": "verticals"
+  }
+ ],
+ "bom": [
+  [
+   1,
+   "Letter face",
+   "Acrylic 8 mm white + foil",
+   "ORACAL 8500-034",
+   "{PER_6} m / {A_6} m²"
+  ],
+  [
+   2,
+   "Letter return",
+   "Alu 1 mm",
+   "RAL 9005",
+   "{PER_6} m / {RET_6} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "Alu 1.5 mm",
+   "-",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   4,
+   "LED modules",
+   "",
+   "",
+   "?"
+  ],
+  [
+   5,
+   "Rail U {RAIL_SIZE} with ears",
+   "Aluminium",
+   "RAL 7024 matt",
+   "{RAIL_TOTAL_M} m ({RAIL_BARS} x {BAR_M} m bars / 2 pcs)"
+  ],
+  [
+   6,
+   "Mounting ear {RAIL_SIZE}, Ø{EAR_HOLE} hole",
+   "Aluminium",
+   "RAL 7024 matt",
+   "{PLATES_N} pcs. ({PLATES_EXT} extended)"
+  ],
+  [
+   7,
+   "Cable exit from rail end, 220V",
+   "cable 1.5 m",
+   "-",
+   "1 pcs."
+  ],
+  [
+   8,
+   "PSU",
+   "?",
+   "",
+   "?"
+  ],
+  [
+   9,
+   "Wall fixing (facade)",
+   "?",
+   "-",
+   "?"
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "2 pcs."
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profile",
+   "P6 on rails"
+  ],
+  [
+   "Letter depth",
+   "60"
+  ],
+  [
+   "Face",
+   "P6_8mm+foil: ORACAL 8500-034"
+  ],
+  [
+   "Returns",
+   "RAL 9005"
+  ],
+  [
+   "Rails",
+   "U 30x30x2 + ears, RAL 7024"
+  ],
+  [
+   "Illumination",
+   "LED, ?"
+  ],
+  [
+   "Power",
+   "220V, cable 1.5 m"
+  ],
+  [
+   "Wind qp",
+   "{WIND_QP} kN/m²"
+  ],
+  [
+   "Perimeter",
+   "{PER_6} m"
+  ]
+ ],
+ "drawing_no": "POWER_3a",
+ "mounting": "brackets"
+}

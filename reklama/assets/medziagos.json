@@ -1,0 +1,103 @@
+{
+  "_versija": "2026-10-10 v73",
+  "_pastaba": "Tiekėjų standartiniai formatai (Rytis 2026-10-10). Šaltiniai - tiekėjų e-parduotuvės 2026-10-10; kainos nerašomos. '?' = Rytis dar nepatvirtino. Keisti TIK čia (ne skriptuose).",
+  "_saltiniai": {
+    "heliopolis": "https://e-heliopolis.lt (standartiniai aliuminio profiliai: https://heliopolis.lt/produktas/standartiniai-aliuminio-profiliai/ - 'Profilių ilgis - 6 metrai'; plastikai: https://e-heliopolis.lt/3315-plastikai-reklamai; aliuminis: https://e-heliopolis.lt/14-aliuminis)",
+    "plastena": "https://e-plastena.lt/1060-plastikai-reklamai (UAB Plastena, Kauno r.)"
+  },
+  "profiliai": {
+    "strypas_mm": 6000,
+    "prapjova_mm": 3,
+    "galo_atsarga_mm": 0,
+    "trim_max_mm": 100,
+    "trim_step_mm": 5,
+    "_prapjova": "pjūklo prapjova vienam pjūviui - 3 mm, Rytis patvirtino 2026-10-10; strype n dalių = n-1 pjūviai",
+    "_galo_atsarga": "nupjaunama nuo strypo galo (0 = galas naudojamas kaip yra)",
+    "_trim_max": "didžiausias vieno horizontalaus bėgelio patrumpinimas (abu galai kartu), kad rėmas tilptų į strypus",
+    "sarasas": [
+      {"profilis": "L 30x30x2", "tiekejas": "Heliopolis", "kodas": "A-8012", "ilgis_mm": 6000, "naudojimas": "folded plokštės tvirtinimas (viršus + apačia), bėgelių L prie sienos, ausėlės"},
+      {"profilis": "L 40x40x2", "tiekejas": "Heliopolis", "kodas": "A-8028 / anoduotas", "ilgis_mm": 6000, "naudojimas": "ausėlės 40 mm profiliui"},
+      {"profilis": "L 20x15x2", "tiekejas": "Heliopolis", "kodas": "A-7465", "ilgis_mm": 6000, "naudojimas": "-"},
+      {"profilis": "L 15x15x1.5", "tiekejas": "Heliopolis", "kodas": "A-7463 anoduotas", "ilgis_mm": 6000, "naudojimas": "-"},
+      {"profilis": "O 20x20x1.5", "tiekejas": "Heliopolis", "kodas": "A-6105", "ilgis_mm": 6000, "naudojimas": "uždaras kvadratinis vamzdis (EXTRA X sieninis rėmas naudoja 20x20x2 - tiekėjas ?)"},
+      {"profilis": "O 25x15x1.5", "tiekejas": "Heliopolis", "kodas": "A-7473", "ilgis_mm": 6000, "naudojimas": "-"},
+      {"profilis": "U 6x9x1.5", "tiekejas": "Heliopolis", "kodas": "A-4352", "ilgis_mm": 6000, "naudojimas": "-"},
+      {"profilis": "U 30x30x2", "tiekejas": "?", "kodas": "?", "ilgis_mm": 6000, "naudojimas": "bėgeliai raidėms (numatytasis rėmo profilis); Heliopolis e-parduotuvėje nerastas - tiekėją nurodo Rytis"},
+      {"profilis": "U 40x40x2", "tiekejas": "?", "kodas": "?", "ilgis_mm": 6000, "naudojimas": "bėgeliai didelėms raidėms / plokštės bėgelis"},
+      {"profilis": "Z 30x30x30x2", "tiekejas": "?", "kodas": "?", "ilgis_mm": 6000, "naudojimas": "EXTRA X apskritimo kabinimas"},
+      {"profilis": "20x20x2 vamzdis", "tiekejas": "?", "kodas": "?", "ilgis_mm": 6000, "naudojimas": "EXTRA X sieninio rėmo stačiakampis vamzdis"},
+      {"profilis": "30x30x3 vamzdis", "tiekejas": "?", "kodas": "?", "ilgis_mm": 6000, "naudojimas": "EXTRA FAS 700 kvadratinis rėmas"},
+      {"profilis": "Alu juosta 30x2 / 40x2 / 50x2", "tiekejas": "Heliopolis", "kodas": "J4002 (40x2)", "ilgis_mm": 6000, "naudojimas": "plokščios juostos"},
+      {"profilis": "Alu juosta ritinyje 1x30 / 1x50", "tiekejas": "Heliopolis", "kodas": "1050A H24", "ilgis_mm": null, "naudojimas": "raidžių šonai (ritinys; kiti pločiai - ?)"}
+    ]
+  },
+  "lakstai": {
+    "parastė_mm": 10,
+    "_parastė": "nuo lakšto krašto iki detalės (pjovimo / lenkimo paraštė); detalė telpa, jei (w + 2p) x (h + 2p) <= formatas (bet kuria kryptimi)",
+    "pmma": [
+      {"tiekejas": "Heliopolis", "preke": "Plexiglas XT 0A000 skaidri (POLYVANTIS)", "storis_mm": 5, "formatas_mm": [3050, 2050]},
+      {"tiekejas": "Heliopolis", "preke": "Plexiglas XT WN770 opal (balta) (POLYVANTIS)", "storis_mm": 8, "formatas_mm": [4050, 2050], "naudojimas": "P6_8mm priekis (balta plexi 8 mm)"},
+      {"tiekejas": "Plastena", "preke": "PLAZCRYL balta R7065 / R7068", "storis_mm": 2, "formatas_mm": [3050, 2050], "kiti_formatai_mm": [[2050, 1500], [1020, 1000]]},
+      {"tiekejas": "Plastena", "preke": "PLAZCRYL balta R7065 / R7068", "storis_mm": 3, "formatas_mm": [3050, 2050], "kiti_formatai_mm": [[4000, 2050], [2050, 1500], [1020, 1000]], "naudojimas": "P6_3mm priekis (balta plexi 3 mm)"},
+      {"tiekejas": "Plastena", "preke": "PLAZCRYL balta R7065 / R7068 / R7063", "storis_mm": 4, "formatas_mm": [3050, 2050], "kiti_formatai_mm": [[2050, 1500], [1020, 1000]]},
+      {"tiekejas": "Plastena", "preke": "PLAZCRYL balta R7063 / R7065", "storis_mm": 10, "formatas_mm": [3050, 2050]},
+      {"tiekejas": "Plastena", "preke": "PLAZCRYL balta R7065", "storis_mm": 15, "formatas_mm": [3050, 2050]},
+      {"tiekejas": "Plastena", "preke": "PLAZCRYL matinė (opal) R7072", "storis_mm": 2, "formatas_mm": [3050, 2050]},
+      {"tiekejas": "Plastena", "preke": "PLAZCRYL matinė (opal) R7072", "storis_mm": 3, "formatas_mm": [3050, 2050]},
+      {"tiekejas": "Plastena", "preke": "PLAZCRYL skaidri", "storis_mm": 1.5, "formatas_mm": [3050, 2050]},
+      {"tiekejas": "Plastena", "preke": "PLAZCRYL XT skaidri", "storis_mm": 2, "formatas_mm": [3050, 2050], "kiti_formatai_mm": [[2050, 2000], [2050, 1000], [1020, 1000]]},
+      {"tiekejas": "Plastena", "preke": "PLAZCRYL XT skaidri", "storis_mm": 3, "formatas_mm": [3050, 2050], "kiti_formatai_mm": [[2050, 2000], [2050, 1000], [1020, 1000]]},
+      {"tiekejas": "Plastena", "preke": "PLAZCRYL XT skaidri", "storis_mm": 4, "formatas_mm": [3050, 2050], "kiti_formatai_mm": [[2050, 2000], [2050, 1000], [1025, 1000]]},
+      {"tiekejas": "Plastena", "preke": "PLAZCRYL skaidri", "storis_mm": 10, "formatas_mm": [3050, 2050]},
+      {"tiekejas": "Plastena", "preke": "PLAZCRYL skaidri", "storis_mm": 12, "formatas_mm": [3050, 2050]},
+      {"tiekejas": "Plastena", "preke": "FABBACK veidrodinis auksas / sidabras", "storis_mm": 3, "formatas_mm": [3050, 2030]},
+      {"tiekejas": "?", "preke": "spalvota plexi (P6_3mm color)", "storis_mm": 3, "formatas_mm": [3050, 2050], "pastaba": "formatas pagal spalvą - tikrinti tiekėją"}
+    ],
+    "pvc_putu": [
+      {"tiekejas": "Heliopolis", "preke": "Simopor Smart (SIMONA)", "storis_mm": 1, "formatas_mm": [3050, 2030]},
+      {"tiekejas": "Heliopolis", "preke": "Simopor Smart Print (SIMONA)", "storis_mm": 2, "formatas_mm": [3050, 2050]},
+      {"tiekejas": "Heliopolis", "preke": "PP Connect balta (Excel)", "storis_mm": 4, "formatas_mm": [3050, 2050]},
+      {"tiekejas": "Heliopolis", "preke": "Simopor E Print TR (SIMONA)", "storis_mm": 5, "formatas_mm": [3050, 2050]},
+      {"tiekejas": "Heliopolis", "preke": "Simopor Color pilka (SIMONA)", "storis_mm": 5, "formatas_mm": [3050, 1530]},
+      {"tiekejas": "Heliopolis", "preke": "Simopor Smart (SIMONA)", "storis_mm": 8, "formatas_mm": [3050, 2030]},
+      {"tiekejas": "?", "preke": "PVC 3 mm (P6 bortelis / P1 dugnas)", "storis_mm": 3, "formatas_mm": [3050, 2050], "pastaba": "3 mm formatas - patvirtinti"}
+    ],
+    "akp": [
+      {"tiekejas": "Heliopolis", "preke": "LIGHTBOND PLUS balta vienpusė matinė ~RAL 9003", "storis_mm": 3, "formatas_mm": [3050, 1500]},
+      {"tiekejas": "Heliopolis", "preke": "LIGHTBOND PLUS balta dvipusė DIGITAL ~RAL 9003", "storis_mm": 3, "formatas_mm": [3050, 1500]},
+      {"tiekejas": "Heliopolis", "preke": "LIGHTBOND PLUS sidabrinė dvipusė ~RAL 9006 / raudona ~RAL 3020", "storis_mm": 3, "formatas_mm": [4050, 1500]},
+      {"tiekejas": "Heliopolis", "preke": "LIGHTBOND PLUS sidabrinė vienpusė", "storis_mm": 2, "formatas_mm": [3100, 1220]},
+      {"tiekejas": "Heliopolis", "preke": "LIGHTBOND PLUS braižyta sidabrinė SX-5555", "storis_mm": 3, "formatas_mm": [3100, 1220]},
+      {"tiekejas": "Heliopolis", "preke": "ALBOND PVDF (balta AL-903, sidabrinė AL-906 ~9006, antracitas ~7016, juoda ~9005, tamsiai pilka AL-950)", "storis_mm": 4, "formatas_mm": [3200, 1500]}
+    ],
+    "alu": [
+      {"tiekejas": "Heliopolis", "preke": "Aliuminio plokštė EN AW 1050A H14/24", "storis_mm": 1.5, "formatas_mm": [3000, 1500], "naudojimas": "raidžių galas (Alu 1.5)"},
+      {"tiekejas": "Heliopolis", "preke": "Aliuminio plokštė EN AW 1050A H14/24", "storis_mm": 2, "formatas_mm": [3000, 1500]},
+      {"tiekejas": "Heliopolis", "preke": "Aliuminio plokštė EN AW 1050A H14/24", "storis_mm": 2, "formatas_mm": [4000, 2000], "naudojimas": "folded plokštė (Al 2 mm, lakštas 2000x4000 - moduliai_folded.md)"},
+      {"tiekejas": "?", "preke": "Aliuminio lakštas 3 mm (P6+3 plokštė, EXTRA X)", "storis_mm": 3, "formatas_mm": [3000, 1500], "pastaba": "formatas - patvirtinti"},
+      {"tiekejas": "?", "preke": "Aliuminio lakštas 1 mm (raidžių šonai iš lakšto)", "storis_mm": 1, "formatas_mm": [3000, 1500], "pastaba": "arba juosta ritinyje 1x30 / 1x50 (Heliopolis)"}
+    ],
+    "pc": [
+      {"tiekejas": "Heliopolis", "preke": "PC EXOLON 2099 skaidri UV / IMPEX UVP", "storis_mm": 3, "formatas_mm": [3050, 2050]},
+      {"tiekejas": "Heliopolis", "preke": "PC IMPEX UVP skaidri", "storis_mm": 2, "formatas_mm": [3050, 2050]},
+      {"tiekejas": "Heliopolis", "preke": "PC IMPEX UVP skaidri", "storis_mm": 4, "formatas_mm": [3050, 2050]},
+      {"tiekejas": "Heliopolis", "preke": "PC IMPEX UVP skaidri", "storis_mm": 6, "formatas_mm": [3050, 2050]},
+      {"tiekejas": "Heliopolis", "preke": "PC IMPEX UVP 866 opal", "storis_mm": 3, "formatas_mm": [3050, 2050]},
+      {"tiekejas": "Heliopolis", "preke": "PC Makrolon GP skaidri (ne UV)", "storis_mm": 0.75, "formatas_mm": [2050, 1250]}
+    ],
+    "ps": [
+      {"tiekejas": "Heliopolis", "preke": "Polistirolas 744 balta mat/mat (IROPLASTIC)", "storis_mm": 1, "formatas_mm": [2000, 1000]},
+      {"tiekejas": "Heliopolis", "preke": "Polistirolas 744 balta mat/mat (IROPLASTIC)", "storis_mm": 1.5, "formatas_mm": [2000, 1000]},
+      {"tiekejas": "Heliopolis", "preke": "Polistirolas 744 balta mat/bliz (IROPLASTIC)", "storis_mm": 2, "formatas_mm": [3050, 2050]},
+      {"tiekejas": "Heliopolis", "preke": "Polistirolas 744 balta mat/bliz (IROPLASTIC)", "storis_mm": 3, "formatas_mm": [3050, 2050]}
+    ]
+  },
+  "zodynas": {
+    "plexi": "pmma", "pmma": "pmma", "acrylic": "pmma", "akrilas": "pmma", "organinis stiklas": "pmma",
+    "pvc": "pvc_putu", "forex": "pvc_putu", "simopor": "pvc_putu",
+    "akp": "akp", "dibond": "akp", "kompozitas": "akp", "lightbond": "akp", "albond": "akp", "composite": "akp",
+    "alu": "alu", "al": "alu", "aliuminis": "alu", "aluminium": "alu",
+    "pc": "pc", "polikarbonatas": "pc", "polycarbonate": "pc",
+    "ps": "ps", "polistirolas": "ps"
+  }
+}

@@ -1,0 +1,6 @@
+{
+ "_info": "Iškabos svorio įvertis MAIN DATA eilutei 'Weight'. Tankiai kg/dm3; storiai - PRIELAIDOS (P6 medžiagų storiai dar nepatvirtinti) - pataisyti čia. Į svorį neįeina maitinimo blokas, LED, laidai, varžtai, inkarai.",
+ "density_kg_dm3": {"pmma": 1.19, "al": 2.70, "pvc": 1.40},
+ "thk_mm": {"return": 1.0, "back": 1.5, "folded_panel": 2.0, "ear": 2.0},
+ "pvc_edge_section_mm2": 30
+}

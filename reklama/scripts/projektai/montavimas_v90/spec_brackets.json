@@ -1,0 +1,181 @@
+{
+ "client_pdf": "../p6_dxf_test/TESTAS.pdf",
+ "scale": 2.8346,
+ "crop_pt": [
+  -10,
+  -10,
+  6610,
+  1345
+ ],
+ "qty": 1,
+ "client": "Testas UAB",
+ "title": "Illuminated letters P6 on rails",
+ "order_no": "TESTAS iškaba",
+ "file_code": "RK-2610-001",
+ "rev": "A",
+ "date": "2026-10-11",
+ "company": "Testas UAB",
+ "depth_mm": 100,
+ "front": "3mm",
+ "rail": {
+  "size": "30x30x2",
+  "depth": 30,
+  "ral": "7035"
+ },
+ "wall": "solid_brick",
+ "cable_exits": [
+  {
+   "pt": [
+    421,
+    1196.5
+   ],
+   "voltage": "12V",
+   "label": "___ m"
+  }
+ ],
+ "groups": [
+  {
+   "name": "TESTAS",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "9005",
+   "face_hex": "#C8102E",
+   "client_fill": [
+    1.0,
+    0.9308,
+    0.0
+   ],
+   "frame": "verticals"
+  }
+ ],
+ "bom": [
+  [
+   1,
+   "Letter face",
+   "Acrylic 3 mm RAL 3020",
+   "RAL 3020",
+   "{PER_6} m / {A_6} m²"
+  ],
+  [
+   "A",
+   "Fitting PVC edge",
+   "PVC 3 mm",
+   "-",
+   "{PER_ALL} m"
+  ],
+  [
+   "B",
+   "Bolt, return to PVC edge",
+   "?",
+   "-",
+   "?"
+  ],
+  [
+   2,
+   "Letter return",
+   "Alu 1 mm",
+   "RAL 9005",
+   "{PER_6} m / {RET_TESTAS} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "Alu 1.5 mm",
+   "-",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   4,
+   "LED modules",
+   "",
+   "",
+   "?"
+  ],
+  [
+   5,
+   "Rail U {RAIL_SIZE} with ears",
+   "Aluminium",
+   "RAL 7035 matt",
+   "{RAIL_LIST_M} = {RAIL_TOTAL_M} m"
+  ],
+  [
+   6,
+   "Mounting ear {RAIL_SIZE}, Ø{EAR_HOLE} hole",
+   "Aluminium",
+   "RAL 7035 matt",
+   "{PLATES_N} pcs. ({PLATES_EXT} extended)"
+  ],
+  [
+   7,
+   "Cable exit from rail end (bottom)",
+   "cable 12V",
+   "-",
+   "1 pcs."
+  ],
+  [
+   8,
+   "Dimmer + PSU",
+   "",
+   "",
+   "?"
+  ],
+  [
+   9,
+   "Wall fixing (brick wall)",
+   "?",
+   "-",
+   "?"
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "1 pcs."
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profile",
+   "P6 on rails"
+  ],
+  [
+   "Letter depth",
+   "100"
+  ],
+  [
+   "Face",
+   "P6_3mm color: RAL 3020"
+  ],
+  [
+   "Returns",
+   "RAL 9005"
+  ],
+  [
+   "Rails",
+   "U 30x30x2 + ears, RAL 7035 matt"
+  ],
+  [
+   "Illumination",
+   "LED, ?"
+  ],
+  [
+   "Power",
+   "12V, cable bottom"
+  ],
+  [
+   "Wind qp",
+   "{WIND_QP} kN/m²"
+  ],
+  [
+   "Wall",
+   "solid brick"
+  ],
+  [
+   "Perimeter",
+   "{PER_6} m"
+  ]
+ ],
+ "mounting": "brackets"
+}

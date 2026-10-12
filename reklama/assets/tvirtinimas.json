@@ -1,0 +1,79 @@
+{
+ "_info": "Auselių tvirtinimo skaičiavimo parametrai. Šaltiniai: EN 1991-1-4 (vėjas, signboard cf 7.4.3), fischer SX 8 rekomenduojamos apkrovos (jau su saugos koeficientu), ETA-07/0121 (daugkartinis tvirtinimas: >=3 taškai). Patikrinti su LST EN 1991-1-4 NA ir tikra siena.",
+ "wind": {
+  "vb0": 24.0,
+  "terrain": "III",
+  "z_m": 8.0,
+  "rho": 1.25,
+  "cf": 1.8
+ },
+ "self_weight_kN_m2": 0.15,
+ "gamma_Q": 1.5,
+ "anchor": {
+  "type": "fischer SX 8 + 5-6 mm screw (ausėlės skylė Ø6)",
+  "wall_default": "concrete",
+  "N_rec_kN": {
+   "concrete": 0.71,
+   "solid_brick": 0.59,
+   "sand_lime": 0.6,
+   "hollow_sand_lime": 0.33,
+   "perforated_brick": 0.17,
+   "aerated_G4": 0.14,
+   "unknown": 0.33
+  }
+ },
+ "alu": {
+  "f0_MPa": 120,
+  "gamma_M1": 1.1,
+  "E_MPa": 70000,
+  "defl_span": 150,
+  "defl_cant": 75
+ },
+ "redundancy": {
+  "min_ears_long_rail": 3,
+  "long_rail_mm": 1500
+ },
+ "brackets": {
+  "_info": "v90 (Rytis 2026-10-11): montavimas BE AUSĖLIŲ - U formos laikikliai per viršutinį ir apatinį rėmo bėgelius. Laikiklis tvirtinamas prie fasado, į jį įstatomas rėmas ir prisukamas viršuje ir apačioje. Vidinis matmuo = rėmo aukštis + 2 mm (Rytis 2026-10-11: rėmas guli ant apatinės plokštumos, laisvumas įstatyti ir prisukti); išorinis = rėmas + 2 + 2 x 3. Plotis 50. Viršutinė ir apatinė plokštuma - pagal rėmą: išorinis matmuo profilis + 3 (30 -> 33, 40 -> 43). Al 3 mm, sunkiai iškabai - plienas 3 mm. Sienos plokštumoje 2-3 skylės D6 (30 profiliui) / D8 (40), viršutinėje ir apatinėje plokštumoje - po vieną D6.",
+  "width_mm": 50,
+  "thk_mm": 3,
+  "flange_add_mm": 3,
+  "n_by_len_mm": [
+   [
+    1500,
+    2
+   ],
+   [
+    3000,
+    3
+   ],
+   [
+    4500,
+    4
+   ],
+   [
+    1000000000.0,
+    5
+   ]
+  ],
+  "_n_info": "PASIŪLYMAS (Rytis: 2-5 vnt pagal ilgį; ribos nepatvirtintos)",
+  "steel_if_area_m2_per_m": 0.5,
+  "_steel_info": "PASIŪLYMAS: plienas, kai raidžių plotas >= 0,5 m² / rėmo m (kaip masyvių raidžių taisyklė v87); kitaip Al",
+  "edge_mm": 250,
+  "search_mm": 400,
+  "clear_mm": 2,
+  "wall_holes_by_frame_h_mm": [
+   [
+    999,
+    2
+   ],
+   [
+    1000000000.0,
+    3
+   ]
+  ],
+  "_holes_info": "Rytis 2026-10-11 (pavyzdžiai, ne fiksuoti skaičiai): 2-3 skylės; principas - žingsnis p, nuo galų p/2. Kiekio riba (rėmas >= 1000 - 3) - PASIŪLYMAS",
+  "large_h_mm": 1000,
+  "_large_info": "v91: raidės H >= 1000 - jei arti nėra stiebo, laikiklis tolygioje vietoje (gali matytis), rekomenduojamas stambesnis rėmas (PASIŪLYMAS)"
+ }
+}

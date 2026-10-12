@@ -1,0 +1,49 @@
+{
+ "pdf": "test_LED.pdf",
+ "fill_rgb": null,
+ "scale_mm_per_pt": 0.352778,
+ "min_area_mm2": 300,
+ "depth": 100,
+ "module": null,
+ "letter_names": [
+  "L",
+  "i",
+  "i.",
+  "e",
+  "t",
+  "u",
+  "v",
+  "a",
+  "t",
+  "e",
+  "e.",
+  "vy",
+  "n",
+  "e",
+  "m",
+  "u",
+  "u-",
+  "s",
+  "u,"
+ ],
+ "main_data": [
+  [
+   "Product",
+   "TEST - Lietuva tevyne musu"
+  ],
+  [
+   "Note",
+   "1:1 PDF, depth 100 assumed"
+  ]
+ ],
+ "psu": "?",
+ "client": "TEST",
+ "title": "LIETUVA TEVYNE MUSU - LED TEST",
+ "drawing_no": "test_LED",
+ "order_no": "TEST",
+ "date": "2026-10-09",
+ "rev": "A",
+ "feed_at": [
+  "left-bottom"
+ ]
+}

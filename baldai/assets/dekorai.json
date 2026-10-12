@@ -1,0 +1,41 @@
+{
+  "_pastaba": "Fasadų dekorų katalogas 3D peržiūrai (klientas renkasi; projektas nurodo kodus apatiniams ir viršutiniams). Kodai – Egger. spalva – vidutinis atspalvis 3D; rastas – ar tekstūra turi kryptį (L visada išilgai rašto). Naujas dekoras – nauja eilutė čia, ne kode.",
+  "fasado_variantai": [
+    {
+      "kodas": "H1180 ST37",
+      "pavadinimas": "Natural Halifax Oak",
+      "spalva": "#B98B5A",
+      "rastas": true
+    },
+    {
+      "kodas": "W1000 ST9",
+      "pavadinimas": "Premium White",
+      "spalva": "#F1F1ED",
+      "rastas": false
+    },
+    {
+      "kodas": "U708 ST9",
+      "pavadinimas": "Light Grey",
+      "spalva": "#9B9D9A",
+      "rastas": false
+    },
+    {
+      "kodas": "U999 ST2",
+      "pavadinimas": "Black",
+      "spalva": "#2A2A2A",
+      "rastas": false
+    },
+    {
+      "kodas": "U732 ST9",
+      "pavadinimas": "Dust Grey",
+      "spalva": "#A9A6A0",
+      "rastas": false
+    },
+    {
+      "kodas": "H3330 ST36",
+      "pavadinimas": "Natural Anthor Oak",
+      "spalva": "#C4A072",
+      "rastas": true
+    }
+  ]
+}

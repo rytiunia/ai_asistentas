@@ -1,0 +1,244 @@
+{
+ "client_pdf": "/tmp/claude-0/-home-claude/454aabe4-a26e-51a4-90bd-3f68e4f6d938/scratchpad/ex4/4de61d18-4_extra_P1_one_frame.pdf",
+ "scale": 10,
+ "crop_pt": [
+  570,
+  420,
+  2230,
+  735
+ ],
+ "ignore_fills": [
+  [
+   0.14,
+   0.12,
+   0.13
+  ]
+ ],
+ "qty": "1",
+ "client": "BrandFactory",
+ "title": "EXTRA order 225978 - FAS 1000H80 (7-23) 5732x1000, P1 NON-LIT, ONE FRAME",
+ "order_no": "ALT0000_00.00_RS",
+ "file_code": "EXTRA_order_225978_4_FAS1000H80_P1_one_frame",
+ "rev": "B",
+ "date": "2026-10-09",
+ "company": "BrandFactory",
+ "depth_mm": 100,
+ "rail": {
+  "size": "30x30x2",
+  "depth": 30,
+  "ral": "7035"
+ },
+ "plate": {
+  "thk": 3,
+  "gap_mm": 0,
+  "recess_mm": 25,
+  "ral": "1023"
+ },
+ "groups": [
+  {
+   "name": "X",
+   "profile": "6+3",
+   "on_plate": true,
+   "return_ral": "3020",
+   "face_hex": "#C1121C",
+   "client_fill": [
+    0.81,
+    0.06,
+    0.18
+   ],
+   "lit": false,
+   "cable": false
+  },
+  {
+   "name": "EXTRA",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "3020",
+   "face_hex": "#C1121C",
+   "client_fill": [
+    0.81,
+    0.06,
+    0.18
+   ],
+   "frame": "verticals",
+   "verticals": [
+    {
+     "at": "start"
+    },
+    {
+     "under": 2,
+     "mode": "stem"
+    },
+    {
+     "under": 4,
+     "mode": "leg",
+     "side": "right"
+    }
+   ],
+   "cable": false,
+   "lit": false
+  },
+  {
+   "name": "7-23",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "1023",
+   "face_hex": "#F7B500",
+   "client_fill": [
+    1.0,
+    0.81,
+    0.0
+   ],
+   "frame": "horizontal",
+   "cable": false,
+   "lit": false
+  }
+ ],
+ "bom": [
+  [
+   1,
+   "Letter face P1 (EXTRA + X)",
+   "Alu 2 mm",
+   "RAL 3020",
+   "{A_EXTRA} + {A_X} m²"
+  ],
+  [
+   1,
+   "Letter face P1 (7-23)",
+   "Alu 2 mm",
+   "RAL 1023",
+   "{A_7-23} m²"
+  ],
+  [
+   2,
+   "Letter return EXTRA",
+   "Alu 1 mm",
+   "RAL 3020",
+   "{PER_EXTRA} m / {RET_EXTRA} m²"
+  ],
+  [
+   2,
+   "Letter return 7-23",
+   "Alu 1 mm",
+   "RAL 1023",
+   "{PER_7-23} m / {RET_7-23} m²"
+  ],
+  [
+   2,
+   "Letter return X",
+   "Alu 1 mm",
+   "RAL 3020",
+   "{PER_X} m / {RET_X} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "PVC 10 mm",
+   "-",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   5,
+   "Rail U {RAIL_SIZE} + ears, one frame",
+   "Aluminium",
+   "RAL 7035 matt",
+   "{RAIL_TOTAL_M} m"
+  ],
+  [
+   6,
+   "Mounting ear {RAIL_SIZE}, Ø{EAR_HOLE} hole",
+   "Aluminium",
+   "RAL 7035 matt",
+   "{PLATES_N} pcs. ({PLATES_EXT} extended)"
+  ],
+  [
+   7,
+   "Screw X sheet -> PVC back (no spacers)",
+   "?",
+   "-",
+   "?"
+  ],
+  [
+   8,
+   "Alu sheet Ø{PLATE} (X)",
+   "Alu 3 mm",
+   "RAL 1023",
+   "{PLATE_PER} m / {PLATE_AREA} m²"
+  ],
+  [
+   "",
+   "Screws X sheet -> rails",
+   "?",
+   "-",
+   "?"
+  ],
+  [
+   10,
+   "Wall fixing",
+   "?",
+   "-",
+   "?"
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "1 pcs."
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profiles",
+   "P1, X on alu sheet"
+  ],
+  [
+   "Letter depth",
+   "100"
+  ],
+  [
+   "Face",
+   "Alu 2 mm, RAL 3020 / 1023"
+  ],
+  [
+   "Returns",
+   "RAL 3020 / RAL 1023 (7-23)"
+  ],
+  [
+   "Alu sheet",
+   "3 mm, RAL 1023"
+  ],
+  [
+   "X sheet mount",
+   "one frame, X on sheet"
+  ],
+  [
+   "Rails",
+   "U 30x30x2 + ears, RAL 7035"
+  ],
+  [
+   "Illumination",
+   "NONE - P1, no LED / plexi"
+  ],
+  [
+   "Environment",
+   "Exterior"
+  ]
+ ],
+ "ears": {
+  "inset": 50,
+  "pitch": 1000,
+  "min_edge": 15
+ },
+ "front": "P1",
+ "project": "EXTRA order 225978",
+ "drawing_no": "EXTRA order 225978",
+ "sheet": "4 / 4",
+ "trafo_box": false,
+ "power_note": "P1 NON-LIT - no LED, plexi, cable or PSU",
+ "one_frame": {
+  "plate": "X",
+  "rails": "EXTRA"
+ }
+}

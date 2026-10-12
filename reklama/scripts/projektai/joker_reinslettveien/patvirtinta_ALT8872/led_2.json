@@ -1,0 +1,54 @@
+{
+ "pdf": "client.pdf",
+ "fill_rgb": [
+  1.0,
+  1.0,
+  1.0
+ ],
+ "scale_mm_per_pt": 3.5278,
+ "depth": 60,
+ "plexi": null,
+ "module": null,
+ "psu": "?",
+ "client": "BrandFactory",
+ "order_no": "ALT8872_10.12_RS",
+ "drawing_no": "Joker order 226001",
+ "date": "2026-10-09",
+ "rev": "A",
+ "page": 1,
+ "crop_pt": [
+  140,
+  115,
+  960,
+  235
+ ],
+ "letter_names": [
+  "L",
+  "Ø",
+  "R",
+  "-",
+  "S",
+  "Ø",
+  "N",
+  "1",
+  "0",
+  "-",
+  "2",
+  "4"
+ ],
+ "feed_at": [
+  "letter:5-top"
+ ],
+ "feed_label": "12V 1.5 m from letter Ø (top) -> TRAFO BOX",
+ "title": "Joker LØR-SØN 10-24 - LED LAYOUT",
+ "main_data": [
+  [
+   "Product",
+   "LØR-SØN 10-24, P6_8mm on rails 2816 x 335"
+  ],
+  [
+   "Front",
+   "Opal plexi 8 mm, returns RAL 9010"
+  ]
+ ]
+}
