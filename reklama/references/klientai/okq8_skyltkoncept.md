@@ -10,3 +10,9 @@ Bendrinės taisyklės: SKILL.md „Folded plate" (kelios dalys, sandūra, DXF) i
 - Sandūra HORIZONTALI virš „Alltid öppet", centruotai grafikos tarpe (Rytis).
 - Sandūroje Ø6 ~500 - varžtų dydis „?" (klausti).
 - Lapai: `okq8.py build()`; išklotinės `flat_dxf()`; vinilo 1:1 PDF.
+
+## OKQ8 height restriction „Biltvätt" (ALT8877_10.13_RS, 2026-10-13)
+- Vienos kojos portalas: dėžė 3000 x 520 x 200 (NCS S 4055-R70B), koja □180x180x5 plienas (NCS S 2500-N), plokštė 900x500x15,
+  6 x Ø32, uždengimas 906x506x150 Alu 1,5; aukščio profilis 120x50x2 RAL 9005 ant 2 pakabų (3 mm Alu), laisvas aukštis 2700.
+- Šviečia rodyklės + „Biltvätt" (plexi 3 mm balta + LED), lipdukai ORACAL 551 101 (Arctic white).
+- Kodas `scripts/projektai/okq8_alt8877/height_restriction.py`.

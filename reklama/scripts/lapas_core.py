@@ -173,8 +173,9 @@ OVERFLOW = []
 def T(x, y, s, size=7.5, font="F", color=black, align="l", rot=0, auto_red=True, fit=None, fit_min=None):
     """Tekstas. Nežinoma reikšmė (?) - tuščia vieta; jei baigiasi ':' - rašymo linija."""
     s = str(s)
-    if any(ch in s for ch in "ÅåÆæø") and os.path.exists(_ISO) and font in ("F", "FB"):
+    if any(ch in s for ch in "ÅåÆæøÄäÖö") and os.path.exists(_ISO) and font in ("F", "FB"):
         # v11: GOST Common neturi Å/Æ/Ø (norvegų pavadinimai) - visa eilutė osifont šriftu
+        # v146: Ä / Ö (švedų, pvz. OKQ8 „Biltvätt", „FRI HÖJD") GOST faile sumaišyti glifai - taip pat osifont
         if "FI" not in pdfmetrics.getRegisteredFontNames():
             pdfmetrics.registerFont(TTFont("FI", _ISO))
         font = "FI"
