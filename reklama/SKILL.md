@@ -30,6 +30,9 @@ Lapo užrašai - angliškai.
    `assets/etalonai/SPAR_225960_komplektas_18_lapu.pdf`, kodas - `scripts/projektai/spar_225960/`.
    Naujame užsakyme pirmiausia žiūrėti, kaip analogiška pozicija padaryta etalone.
    Keičiasi tik produkto turinys, ne lapo stilius.
+   **KIWI (v178, Rytis 2026-10-13): VISI KIWI dokumentai - pagal ETALONĄ KIWI order 226023** (iki atskiro nurodymo):
+   PRIVALOMA `references/etalonas_kiwi_226023.md`, lapai `assets/etalonai/KIWI_226023_komplektas_3_lapai.pdf`,
+   kodas `scripts/projektai/kiwi_226023/`.
 4. **Bendrinės taisyklės + kliento raktažodis** (žr. žemiau). Produkto tipo taisyklės galioja visiems klientams;
    kliento taisyklės - tik kai užklausoje yra to kliento raktažodis.
 
@@ -74,7 +77,8 @@ taisyklė prieštarauja bendrinei - galioja kliento, bet tik tam klientui):
 | Prisma Properties Skejby, ALT8826, Order 2439 (šviečiantys pilonai 8,8 m / 5 m) | `references/etalonas_pilonas_prisma_alt8826.md` + `references/klientai/bn_skilte.md` | - |
 | CEOS Groupe, Thales, D059422 (pilonai, PMMA planas) | `references/klientai/prancuzai.md` + `references/moduliai_pilonai.md` | `scripts/projektai/thales_d059422/` |
 | POWER, Imagon, Brotorvet | tik bendrinės | `scripts/projektai/power_brotorvet_3a/` |
-| COOP, KIWI (lanterne, 226023), MATKROKEN, Alytus ir kt. (be atskiro failo) | `references/klientai/brandfactory.md` + `assets/spec_*.json` pavyzdžiai | `scripts/projektai/kiwi_226023/` |
+| KIWI (visi: raidės, 7-23, Lanterne) - ETALONAS v178 | `references/etalonas_kiwi_226023.md` + `references/klientai/brandfactory.md` | `scripts/projektai/kiwi_226023/` |
+| COOP, MATKROKEN, Alytus ir kt. (be atskiro failo) | `references/klientai/brandfactory.md` + `assets/spec_*.json` pavyzdžiai | `scripts/projektai/kiwi_226023/` |
 | Volvo, Alfa Neon / AlfaNeon, VOLV24- / VOLV25-, BS module, Top sign, Mounting kit 5,5 / 7,5 / 9,3, Bilia, Bilmånsson, Helmia (v161) | `references/klientai/alfaneon_volvo.md` (STANDARTAS - `AlfaNeon/VOLVO/VOLVO_darbiniai failai`) | - |
 | DSV, DSVL25-, 3D Logo DSV indirect, Frontlit, DSV Flexible size (v161) | `references/klientai/alfaneon_dsv.md` | - |
 | BN Skilte, bn-skilte.dk, Indkøbsordre, Normal / Unik mand, Netto, Wash World, M3 / K3, Subway, SJF Bank (v161) | `references/klientai/bn_skilte.md` | - |
