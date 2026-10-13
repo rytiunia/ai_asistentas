@@ -38,7 +38,8 @@ Prieš kuriant naujo tipo lapą - peržiūrėk bent vieną etaloną (pdftoppm ->
   tvirtinimo elementai, jų ilgiai ir žingsniai; nematomi elementai - punktyru. BENDRŲ matmenų (plotis, aukštis)
   galiniame vaizde NEDĖTI - jie priekiniame. Galiniame vaizde TIK bendriniai rėmo matmenys (v8):
   bėgelių (rėmo profilių) ilgiai su profiliu, pvz. „3461 (U40x40x2)"; vertikalių/įstrižų profilių ilgiai žyma
-  („546 vert.", „578 diag."); bėgelių ašių atstumai (viena grandinė grupės šone).
+  („578 diag."; statmenų „vert." žymos NEDEDAMOS nuo v191 - tik rėmo aukščio matmuo, išskyrus originalo perdarymą
+  `"vert_labels": true`); bėgelių ašių atstumai (viena grandinė grupės šone).
   Ausėlių grandinių / atstumų tarp ausėlių NEDĖTI. X apskritimo Z juostoms - tik ilgis (plotis) ir aukštis tarp centrų.
 - Visi pjūviai (DETAIL A ir P6 ON RAILS) - vienoda pilkų spalvų schema (v9, žr. SKILL.md).
 - **Profilio pjūvis / DETAIL VISADA centruojamas savo bloke (v185, Rytis 2026-10-13)** - bloko centre, horizontaliai ir vertikaliai

@@ -197,6 +197,30 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
             else: r["xr"] = x
             r["out_" + side] = ex
             log(f"  auto rėmas: platus galinis elementas {'kairėje' if side == 'l' else 'dešinėje'} - rėmas pratęstas {abs(x - xe):.0f} mm iki raidės galo (x{x:.0f}), ausėlė išsikiša už raidės (kraštas x{ex:.0f})")
+    # v191 (Rytis 2026-10-13: „po kableliu reikia statmenos, nes tvirtinimas ant dviejų taškų neduos stabilumo"): smulkus
+    #  elementas už rėmo galo (kablelis, taškas), kertantis bėgelio juostą - RĖMO GALAS perkeliamas iki elemento: abu bėgeliai
+    #  tęsiami iki jo, galinis statmuo - po elementu (abu bėgelio kampai >= edge elemento viduje, kuo arčiau išorinio krašto);
+    #  rėmas gali dalinai matytis (v185)
+    for r in rows:
+        for o in r["letters"]:
+            if o["bb"][3] - o["bb"][1] >= 0.5 * r["h"]:
+                continue
+            side_ = "r" if o["bb"][0] >= r["xr"] - 1 else ("l" if o["bb"][2] <= r["xl"] + 1 else None)
+            if not side_:
+                continue
+            inner_ = o["geom"].buffer(-edge)
+            if inner_.is_empty:
+                continue
+            xs_ = [x for rr in r["rails"] for x in range(int(o["bb"][0]), int(o["bb"][2]) + 1, 2)
+                   if inner_.covers(Point(x, rr["y0"])) and inner_.covers(Point(x, rr["y1"]))]
+            if not xs_:
+                continue
+            if side_ == "r":
+                r["xr"] = max(r["xr"], max(xs_))
+            else:
+                r["xl"] = min(r["xl"], min(xs_))
+            log(f"  auto rėmas: rėmo galas {'dešinėje' if side_ == 'r' else 'kairėje'} perkeltas iki elemento (x{r['xr'] if side_ == 'r' else r['xl']:.0f}) - "
+                f"abu bėgeliai + galinis statmuo po elementu (stabilus tvirtinimas, rėmas dalinai matysis)")
     for side in ("l", "r"):
         i = 0
         while i < len(rows):
@@ -287,44 +311,12 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
             vs.append({"x0": xc - t_rail / 2, "x1": xc + t_rail / 2, "y0": y0, "y1": y1, "kind": "v", "auto": True, "conn": True,
                        "len": y1 - y0, "poly": [(xc - t_rail / 2, y0), (xc + t_rail / 2, y0), (xc + t_rail / 2, y1), (xc - t_rail / 2, y1)]})
             log(f"  auto rėmas: jungiamasis statmuo prie {'kairio' if side == 'l' else 'dešinio'} galo x{xc:.0f} (per abi eilutes, pjaunamas tarp bėgelių)")
-    # v189 (Rytis 2026-10-13, v185 taisyklė - kraštinis elementas tvirtinamas stabiliai): smulkus elementas už rėmo galo
-    #  (kablelis, taškas), kertantis bėgelio juostą - tas bėgelis TĘSIAMAS už galinio statmens iki elemento (abu kampai
-    #  >= edge elemento viduje, kuo arčiau išorinio krašto); rėmas gali dalinai matytis
+    # v191 (Rytis 2026-10-13: „rėmas niekada nedaromas, kai pirma ir paskutinė statmena dedasi prie rėmo; statmenos visada
+    #  dedasi tarp apatinės ir viršutinės profilio dalių, niekada iš galų"): bėgeliai - per VISĄ rėmo ilgį (iki statmens išorinės
+    #  plokštumos), VISI statmenys (ir galiniai) - įvirinti TARP bėgelių (pjaunami žemiau)
     for r in rows:
-        for o in r["letters"]:
-            if o["bb"][3] - o["bb"][1] >= 0.5 * r["h"]:
-                continue
-            inner_ = o["geom"].buffer(-edge)
-            if inner_.is_empty:
-                continue
-            for rr in r["rails"]:
-                y0_, y1_ = rr["y0"], rr["y1"]
-                xs_ = [x for x in range(int(o["bb"][0]), int(o["bb"][2]) + 1, 2)
-                       if inner_.covers(Point(x, y0_)) and inner_.covers(Point(x, y1_))]
-                if not xs_:
-                    continue
-                side_ = "r" if o["bb"][0] >= r["xr"] - 1 else ("l" if o["bb"][2] <= r["xl"] + 1 else None)
-                if side_:                                 # galinis statmuo baigiasi ant pratęsto bėgelio (bėgis nekertamas, kaip v82)
-                    k_ = r["rails"].index(rr)
-                    for v in vs:
-                        xe_ = v["x1"] if side_ == "r" else v["x0"]
-                        if v.get("end") and abs(xe_ - (r["xr"] if side_ == "r" else r["xl"])) < 2 \
-                                and v["y0"] <= rr["y0"] + 1 and v["y1"] >= rr["y1"] - 1:
-                            if k_ == 1:
-                                v["y1"] = rr["y0"]
-                            else:
-                                v["y0"] = rr["y1"]
-                            v["len"] = v["y1"] - v["y0"]
-                            v["poly"] = [(v["x0"], v["y0"]), (v["x1"], v["y0"]), (v["x1"], v["y1"]), (v["x0"], v["y1"])]
-                if o["bb"][0] >= r["xr"] - 1:
-                    rr["ext_r"] = max(xs_) + t_rail
-                    log(f"  auto rėmas: bėgelis y{(y0_ + y1_) / 2:.0f} tęsiamas iki elemento dešinėje (x{max(xs_):.0f}) - stabilus tvirtinimas, rėmas dalinai matysis")
-                elif o["bb"][2] <= r["xl"] + 1:
-                    rr["ext_l"] = min(xs_) - t_rail
-                    log(f"  auto rėmas: bėgelis y{(y0_ + y1_) / 2:.0f} tęsiamas iki elemento kairėje (x{min(xs_):.0f}) - stabilus tvirtinimas, rėmas dalinai matysis")
-    for r in rows:                                           # bėgeliai - iki statmenų vidinės plokštumos
         for rr in r["rails"]:
-            rr["x0"], rr["x1"] = rr.get("ext_l", r["xl"]) + t_rail, rr.get("ext_r", r["xr"]) - t_rail
+            rr["x0"], rr["x1"] = rr.get("ext_l", r["xl"]), rr.get("ext_r", r["xr"])
     hs = []
     for r in rows:
         for rr in r["rails"]:
@@ -423,7 +415,7 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
     # už bėgelių galų - nepjaunami (vientisi per abi eilutes, kai galai sutampa).
     segs = []
     for v in out:
-        cuts = sorted((h["y0"], h["y1"]) for h in hs if h["y0"] > v["y0"] + 1 and h["y1"] < v["y1"] - 1
+        cuts = sorted((h["y0"], h["y1"]) for h in hs if h["y0"] >= v["y0"] - 1 and h["y1"] <= v["y1"] + 1
                       and h["x0"] - 1 <= (v["x0"] + v["x1"]) / 2 <= h["x1"] + 1)
         ya = v["y0"]
         parts = []

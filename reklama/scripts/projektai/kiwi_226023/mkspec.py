@@ -10,7 +10,7 @@ from frag_gost import TEXT
 base = {"scale": 40, "qty": "3 pcs.", "order_no": "ALT0000_10.13_RS", "rev": "A", "date": "2026-10-13",
         "client": "BrandFactory", "drawing_no": "KIWI order 226023", "client_pdf": __import__("sys").argv[1],
         "depth_mm": 100, "front": "3mm+foil", "export_1to1": False, "trafo_box": False, "client_frame": True,
-        "frame_round_mm": 0, "rail": {"size": "40x20x2", "depth": 20, "ral": "7024", "type": "square"},
+        "frame_round_mm": 0, "vert_labels": True, "rail": {"size": "40x20x2", "depth": 20, "ral": "7024", "type": "square"},
         "ears": {"hole_d": 8, "enabled": False}, "fit_plate_size": 40, "led_label_gap_pt": 61,
         "section_labels": {"1": "6", "2": "7", "3": "5", "4": "9", "5": "3", "A": "14"},
         "bom_cols": [["POS", 20], ["Detail name", 0.22], ["Materials", 0.38], ["Qty", 0.09], ["Mat. qn.", 0.07], ["Notes", None]]}

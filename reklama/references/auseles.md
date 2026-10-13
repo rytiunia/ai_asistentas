@@ -98,3 +98,8 @@ perskaičiuojama; viršijus inkaro rekomenduojamą - perspėjimas `! apkrova aus
   KAMPO (galinio statmens), ne pratęsimo gale; konsolės apkrova ir ilgis tikrinami iki tikro bėgelio galo (`over_ok`).
   Ilgas pratęsimas (pakopinis rėmas, > end_max) - savas galas, kaip anksčiau.
 - Konsolėje spausdinamos kiekvienos ausėlės apkrovos (kN) - matyti, ar kuri nors perkrauta.
+
+## v191 (Rytis 2026-10-13): kraštinės ausėlės - pora tarp raidžių
+- Rėmo gale viršutinė ir apatinė ausėlė - VIENA LINIJA, tarpe tarp paskutinių pilno aukščio raidžių (pvz. „u" ir „s"), ne raidės
+  gabarite (po snapeliu) ir ne ant kablelio / taško; rėmo galas už poros - konsolė (apkrovos patikra). Ausėlė ant galinio statmens
+  nebededama (statmenys tarp bėgelių).

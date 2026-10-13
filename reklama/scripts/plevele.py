@@ -24,7 +24,8 @@ Funkcijos:
   write_dxf(p, path), preview_pdf(p, path)  -> ploterio failas / peržiūra (rulono kraštai, dalys su numeriais)
 
 CLI: python3 plevele.py client.pdf --rect x0,y0,x1,y1 --width-mm 1600 [--fill FFFFFF] [--film "ORACAL 551 white"]
-                         [--allow-1500] [--qty 6] [--dxf out.dxf] [--pdf out.pdf]
+                         [--allow-1500] [--separate] [--qty 6] [--dxf out.dxf] [--pdf out.pdf]
+     --separate - atskiros raidės (P6 / tūrinių raidžių priekiai): kiekviena raidė - atskiras objektas, nesting
 """
 import math
 import re
@@ -229,9 +230,14 @@ def _pack(sizes, W, gap, policy):
     return total, cols
 
 
-def plan(objs, film="", gap_mm=GAP_MM, allow_1500=False, kind=None, roll_mm=None, keep_lines=True):
-    """Pagrindinė funkcija. objs - shapely geometrijos mm (originalo koordinatėmis), vienas = nekarpomas objektas."""
+def plan(objs, film="", gap_mm=GAP_MM, allow_1500=False, kind=None, roll_mm=None, keep_lines=True, separate=False):
+    """Pagrindinė funkcija. objs - shapely geometrijos mm (originalo koordinatėmis), vienas = nekarpomas objektas.
+    separate=True (v191, Rytis 2026-10-13: „kadangi raidės atskiros, plėvelė skaičiuojama nesting principu") - plėvelė
+    klijuojama ant ATSKIRŲ raidžių (P6 / tūrinių raidžių priekiai): kiekviena raidė (ir kablelis / taškas) - atskiras
+    objektas, sudėliojamas ant rulono kompaktiškai (nesting), užrašo eilutė NEsaugoma."""
     objs = [g for g in objs if g is not None and not g.is_empty]
+    if separate:
+        return _plan_separate(objs, film, gap_mm, allow_1500, kind, roll_mm)
     W, note = roll_for(film, allow_1500, kind)
     if roll_mm:
         W = float(roll_mm)
@@ -280,6 +286,36 @@ def plan(objs, film="", gap_mm=GAP_MM, allow_1500=False, kind=None, roll_mm=None
               f"skaidyta į {len(pieces)} dalis bendrais objektais: " + ", ".join(f"{w:.0f}x{h:.0f}" for w, h in sizes)))
     return {"roll": W, "pieces": pieces, "groups": groups, "placements": placements, "length_mm": length, "m2": m2,
             "area_m2": area, "split": split, "notes": notes, "text": txt}
+
+
+def _plan_separate(objs, film, gap_mm, allow_1500, kind, roll_mm):
+    W, note = roll_for(film, allow_1500, kind)
+    if roll_mm:
+        W = float(roll_mm)
+    notes = [note]
+    pieces = [g for g in objs]
+    for k, p in enumerate(pieces):
+        if not _fits(p, W):
+            w, h = _bb(p)
+            notes.append(f"! raidė {k + 1} ({w:.0f} x {h:.0f}) platesnė už {W:.0f} mm rulono darbinį plotį - Rytis sprendžia")
+    sizes = [_bb(p) for p in pieces]
+    best = min((_pack(sizes, W, gap_mm, pol) + (pol,) for pol in ("long", "short")), key=lambda t: t[0])
+    length, cols, _ = best
+    placements, x = [], 0.0
+    for c in cols:
+        for i, rot, y, across, along in c["items"]:
+            g = pieces[i]
+            if rot:
+                g = srotate(g, 90, origin=(0, 0))
+            x0, y0, _, _ = g.bounds
+            placements.append({"piece": i, "rot": rot, "geom": stranslate(g, x - x0, y - y0)})
+        x += c["len"] + gap_mm
+    m2 = W * length / 1e6
+    area = sum(g.area for g in objs) / 1e6
+    txt = (f"plėvelė (atskiros raidės, nesting): rulonas {W:.0f} mm, {len(pieces)} objektai, ilgis {length / 1000:.2f} m -> "
+           f"{m2:.2f} m² (grafikos plotas {area:.2f} m²)")
+    return {"roll": W, "pieces": pieces, "groups": [[i] for i in range(len(pieces))], "placements": placements,
+            "length_mm": length, "m2": m2, "area_m2": area, "split": True, "notes": notes, "text": txt}
 
 
 def bom_text(p, qty=1):
@@ -450,13 +486,13 @@ if __name__ == "__main__":
     pdf = a[0]
     i = 1
     while i < len(a):
-        if a[i] == "--allow-1500":
+        if a[i] in ("--allow-1500", "--separate"):
             flags.add(a[i]); i += 1
         else:
             opt[a[i]] = a[i + 1]; i += 2
     rect = tuple(float(v) for v in opt["--rect"].split(",")) if opt["--rect"] else None
     objs = objects_from_pdf(pdf, int(opt["--page"]), rect, float(opt["--width-mm"]) if opt["--width-mm"] else None, opt["--fill"])
-    p = plan(objs, opt["--film"], float(opt["--gap"]), "--allow-1500" in flags, opt["--kind"])
+    p = plan(objs, opt["--film"], float(opt["--gap"]), "--allow-1500" in flags, opt["--kind"], separate="--separate" in flags)
     print(f"objektų: {len(objs)}")
     print(p["text"])
     for n in p["notes"]:

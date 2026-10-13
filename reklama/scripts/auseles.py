@@ -370,6 +370,41 @@ def place_frame(LET, rails, es, smax, cfg=None, phys=None):
     if any(e is None for e in ends):
         return None, warn + ["nėra laisvos vietos kraštinei ausėlei - spręsti ranka"]
     sT, eT, sB, eB = ends
+    # v191 (Rytis 2026-10-13: „ausėlės tarp u ir s viršuje ir apačioje, nereikia po s snapeliu"): KRAŠTINĖS ausėlės - PORA
+    #  (viršus ir apačia vienoje linijoje) tarp raidžių prie rėmo galo, NE už paskutinės pilno aukščio raidės (ne po raidės
+    #  snapeliu / kableliu); konsolė (rėmo galas už poros) tikrinama apkrova (over_ok)
+    zone = C.get("end_zone")
+    if zone:
+        Tf = {round(x): x for x, _ in T["std"]}
+        pairs = []
+        for xb_, _ in B["std"]:
+            xt_ = next((Tf[k] for k in (round(xb_) + d for d in range(-int(align_max), int(align_max) + 1, 5)) if k in Tf), None)
+            if xt_ is None:
+                continue
+            xm = (xt_ + xb_) / 2
+            boxes = C.get("letter_boxes") or []
+            if zone[0] <= xm <= zone[1] and not any(a_ - es / 2 < xt_ < b_ + es / 2 or a_ - es / 2 < xb_ < b_ + es / 2
+                                                     for a_, b_ in boxes):
+                pairs.append((abs(xt_ - xb_), xt_, xb_))          # TARP raidžių (ne raidės gabarite / po snapeliu)
+        for at_start in (True, False):
+            cand = []
+            for off, xt_, xb_ in pairs:
+                eT_ = T["x0"] if at_start else T["x1"]
+                eB_ = B["x0"] if at_start else B["x1"]
+                if T["over_ok"](eT_, xt_) and B["over_ok"](eB_, xb_):
+                    cand.append((abs(((xt_ + xb_) / 2) - (fx0_ if at_start else fx1_)) + 3 * off, xt_, xb_))
+            if not cand:
+                continue
+            _, xt_, xb_ = min(cand)
+            cur_t, cur_b = (sT, sB) if at_start else (eT, eB)
+            out_zone = not (zone[0] <= cur_t["x"] <= zone[1]) or not (zone[0] <= cur_b["x"] <= zone[1])
+            if out_zone or abs(cur_t["x"] - cur_b["x"]) > align_max:
+                nt = {"x": xt_, "hy": T["hy0"], "h": es, "ext": False}
+                nb = {"x": xb_, "hy": B["hy0"], "h": es, "ext": False}
+                if at_start:
+                    sT, sB = nt, nb
+                else:
+                    eT, eB = nt, nb
     # Smax lentelė - praktinė rekomendacija: leidžiama viršyti iki smax_tol (15 %), jei taip sutaupoma ausėlių pora
     # (Rytis 2026-10-07: MATKROKEN užtenka 8, ne 10); fizikos patikros (apkrova, įlinkis, konsolė) lieka griežtos
     lim = min((smax or math.inf) * (1 + C.get("smax_tol", 0.0)), C.get("gap_cap", math.inf))
