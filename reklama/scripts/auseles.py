@@ -329,9 +329,21 @@ def place_frame(LET, rails, es, smax, cfg=None, phys=None):
         seg_ok, over_ok = _phys_checks(r.get("phys"))
         info.append({"x0": x0, "x1": x1, "hy0": hy0, "std": std, "ext": ext, "seg_ok": seg_ok, "over_ok": over_ok})
 
+    # v190 (Rytis 2026-10-13: „paieškok ausėlių tvirtinimo vietų pagal numatomą apkrovą, nes gale ausėlės blogai sudėtos"):
+    #  bėgelis, pratęstas už rėmo galo (pvz. iki kablelio), - KONSOLĖ; jo kraštinė ausėlė ieškoma prie RĖMO KAMPO (galinio
+    #  statmens, kur susitinka abu bėgeliai ir apkrova perduodama į sieną), ne pratęsimo gale; konsolė (apkrova už ausėlės)
+    #  tikrinama iki tikro bėgelio galo (over_ok)
+    fx0_ = max(I_["x0"] for I_ in info)
+    fx1_ = min(I_["x1"] for I_ in info)
+
     def end_ear(I, at_start):
-        e_ = I["x0"] if at_start else I["x1"]
-        d = (lambda x: x - e_) if at_start else (lambda x: e_ - x)
+        e_real = I["x0"] if at_start else I["x1"]
+        e_ = fx0_ if at_start else fx1_
+        if abs(e_real - e_) > end_max:                 # ilgas pratęsimas (pakopinis rėmas) - ne konsolė, savas galas
+            e_ = e_real
+        d = (lambda x: abs(x - e_)) if at_start else (lambda x: abs(e_ - x))
+        _ov = I["over_ok"]
+        I = dict(I, over_ok=lambda _e, x, _ov=_ov, _r=e_real: _ov(_r, x))
         for x, c in sorted(I["std"], key=lambda q: d(q[0])):          # 1) standartinė, kuo arčiau galo
             if d(x) > end_max:
                 break

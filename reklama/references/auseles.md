@@ -91,3 +91,10 @@ vietoje kuo arčiau galinės reklamos dalies (kraštinė). Tarpas iki kitos aus�
 1,5 Smax) - toks sprendimas logiškesnis nei dvi ausėlės greta. Bėgeliui > 1500 mm lieka >= 3 ausėlės. Apkrova ausėlei
 perskaičiuojama; viršijus inkaro rekomenduojamą - perspėjimas `! apkrova ausėlei ... > inkaro` (Rytis sprendžia).
 
+
+
+## v190 (Rytis 2026-10-13, „Alytus,"): ausėlės pagal apkrovą prie rėmo galų
+- Bėgelis, pratęstas už rėmo kampo (pvz. iki kablelio, pratęsimas <= end_max), - konsolė: kraštinė ausėlė ieškoma prie RĖMO
+  KAMPO (galinio statmens), ne pratęsimo gale; konsolės apkrova ir ilgis tikrinami iki tikro bėgelio galo (`over_ok`).
+  Ilgas pratęsimas (pakopinis rėmas, > end_max) - savas galas, kaip anksčiau.
+- Konsolėje spausdinamos kiekvienos ausėlės apkrovos (kN) - matyti, ar kuri nors perkrauta.

@@ -86,4 +86,9 @@ def rear_view(geom, tf, ret_col, face_col, front="3mm+foil", glass_col=None, can
     from reportlab.lib.colors import black
     edge_col = glass_col or (GLASS_WHITE if white_edge(front) else face_col)
     draw_geom(geom, tf, edge_col, stroke or black, None, canvas)
-    draw_geom(geom.buffer(-BODY_INSET, join_style=2), tf, ret_col, stroke or black, None, canvas)
+    # v190 (Rytis 2026-10-13: „pasikartojančios klaidos: ne hairline projekcijose") - smulkiame mastelyje 1,5 mm kraštas
+    #  < 0,8 pt: dvi hairline linijos susilieja į storą liniją -> vidinis kontūras be linijos (tik užpildas)
+    (ax_, ay_), (bx_, by_) = tf(0.0, 0.0), tf(1.0, 0.0)
+    s_ = ((bx_ - ax_) ** 2 + (by_ - ay_) ** 2) ** 0.5
+    inner_stroke = (stroke or black) if BODY_INSET * s_ >= 0.8 else None
+    draw_geom(geom.buffer(-BODY_INSET, join_style=2), tf, ret_col, inner_stroke, None, canvas)

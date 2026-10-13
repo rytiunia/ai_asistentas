@@ -131,6 +131,23 @@ def check(pdf, band_y=None, skips=(), verbose=True):
             if any(a_.contains(d["rect"]) for a_ in ART):
                 continue                                                           # kliento grafika (v162 - neliečiama)
             vis.append(d)
+        # v190 (Rytis 2026-10-13: „pasikartojančios klaidos: ne hairline projekcijose") - DVIGUBA LINIJA: du hairline
+        #  kontūrai (vienas kito viduje) arčiau nei 0,6 pt per visą perimetrą spaudoje susilieja į storą liniją
+        _hl = [d["rect"] for d in vis if d["type"] in ("s", "fs") and (d.get("width") or 0) <= 0.12
+               and d["rect"].y0 < by - 1 and d["rect"].y1 > top and d["rect"].width > 10 and d["rect"].height > 10
+               and not any(a_.contains(d["rect"]) for a_ in ART)]
+        _hl.sort(key=lambda r: (round(r.x0, 1), round(r.y0, 1)))
+        for i in range(len(_hl)):
+            a = _hl[i]
+            for j in range(i + 1, len(_hl)):
+                b = _hl[j]
+                if b.x0 - a.x0 > 0.6:
+                    break
+                m = [abs(b.x0 - a.x0), abs(b.y0 - a.y0), abs(b.x1 - a.x1), abs(b.y1 - a.y1)]
+                nested = (a.contains(b) or b.contains(a))
+                if nested and 0.03 < max(m) < 0.6 and min(m) > 0.03 and not inskip(a):
+                    errs.append(f"DVIGUBA LINIJA: kontūrai {max(m):.2f} pt vienas nuo kito ties ({a.x0:.0f}, {a.y0:.0f}) - susilieja į storą liniją")
+                    break
         for d in vis:
             r = d["rect"]
             if r.y0 >= by - 1 or r.y1 < top or d["type"] not in ("s", "fs") or r.width > pg.rect.width * 0.8:

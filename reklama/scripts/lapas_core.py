@@ -778,6 +778,13 @@ def bom_table(x, y, w, h, rows_, title="BILL OF MATERIALS",
                 cf_, val = val, ""
             elif n_ == "FINISH":
                 cf_ = code_hex(val)
+                if not cf_ and str(val).strip() not in ("", "-"):
+                    # v190 (Rytis 2026-10-13): plėvelės spalvos blokas - pagal plėvelės kodą eilutėje (PART / MATERIAL),
+                    #  kai FINISH rašoma tik spalvos kodas / pavadinimas („021 Yellow")
+                    for c_ in row[1:3]:
+                        f_ = film_lookup(c_)
+                        if f_:
+                            cf_ = f_[2]["hex"]; break
             elif n_ == "MATERIAL":                     # plėvelė medžiagos stulpelyje (pvz. Avery 777-002CF)
                 cf_ = code_hex(val, ral=False)
             rect(cx_, by, w_, rh, fill=HexColor(cf_) if cf_ else None, lw=0.3)
@@ -1269,7 +1276,9 @@ class View3D:
             for _, qd, n in sorted(quads, key=lambda t: t[0]):
                 col = self.shade(side, n)
                 self.fpoly(qd, col, col, 0.25)
-            c.saveState(); c.setFillColor(face); c.setStrokeColor(face_stroke); c.setLineWidth(HAIR)
+            c.saveState(); c.setFillColor(face); c.setLineWidth(HAIR)
+            if face_stroke is not None:                       # v190: None - priekis be kontūro (dengiamas stiklo, ne dviguba linija)
+                c.setStrokeColor(face_stroke)
             p = c.beginPath()
             for ring in [g.exterior] + list(g.interiors):
                 pts = list(ring.coords)
@@ -1277,7 +1286,7 @@ class View3D:
                 for q in pts[1:]:
                     p.lineTo(*self.S(q[0], q[1], z1))
                 p.close()
-            c.drawPath(p, stroke=1, fill=1, fillMode=0)
+            c.drawPath(p, stroke=1 if face_stroke is not None else 0, fill=1, fillMode=0)
             c.restoreState()
 
     def depth_key(self, geom, z):

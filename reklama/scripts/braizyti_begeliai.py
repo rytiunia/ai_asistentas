@@ -1156,6 +1156,9 @@ for g in groups:
                 lo = rx0 if i_ == 0 else (xs_e[i_ - 1] + x_) / 2
                 hi = rx1 if i_ == len(xs_e) - 1 else (x_ + xs_e[i_ + 1]) / 2
                 g["ear_max"] = max(g["ear_max"], _LD(lo, hi))
+            print(f"  {g['name']} {'viršus' if is_top else 'apačia'} ausėlių apkrovos kN: " + ", ".join(
+                f"{_LD(rx0 if i_ == 0 else (xs_e[i_ - 1] + x_) / 2, rx1 if i_ == len(xs_e) - 1 else (x_ + xs_e[i_ + 1]) / 2):.3f}"
+                for i_, x_ in enumerate(xs_e)))
             for w_ in warn_:
                 print(f"  ! {g['name']} {'viršus' if is_top else 'apačia'}: {w_}")
             g["fp_missing"] += max(0, 2 - len(ears_))
@@ -2649,7 +2652,7 @@ for g in groups:
             _ug = up(o["geom"]); _ub = _ug.buffer(-PV.BODY_INSET, join_style=2)
             _foil = PV.white_edge(spec.get("front", "3mm+foil"))   # v90: balta plexi (su / be plėvelės)
             if not _ub.is_empty:
-                objs.append((_ub, z0, z0 + gd_ - PV.GLASS_EDGE, retcol(g), retcol(g)))
+                objs.append((_ub, z0, z0 + gd_ - PV.GLASS_EDGE, retcol(g), retcol(g), None))   # v190: korpuso priekis po stiklu - be kontūro
             objs.append((_ug, z0 + gd_ - PV.GLASS_EDGE, z0 + gd_, PV.GLASS_WHITE if _foil else facecol(g), facecol(g)))
             continue
         objs.append((up(o["geom"]), z0, z0 + gd_, retcol(g), facecol(g)))
