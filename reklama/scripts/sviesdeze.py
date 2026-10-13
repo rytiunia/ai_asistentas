@@ -212,7 +212,7 @@ def HM(x1, x2, y, label, e1, e2, size=None):
     """v141 PAGRINDINIS (gabaritinis) horizontalus matmuo - ARČIAUSIAI objekto, 12 pt, tekstas su baltu fonu
     (papildomų grandinių išvadinės jo neuždengia); braižomas PO papildomų grandinių"""
     size = size or K.F_DIM_MAIN
-    hdim(x1, x2, y, label, e1=e1, e2=e2, size=size)
+    hdim(x1, x2, y, "", e1=e1, e2=e2, size=size)                 # v198: tekstas vieną kartą (su baltu fonu), ne dvigubas
     K._Tbg((x1 + x2) / 2, y - 2.5, label, size, align="c")
 
 
