@@ -686,7 +686,9 @@ def bom_table(x, y, w, h, rows_, title="BILL OF MATERIALS",
         for (n_, _), w_, val in zip(cols, cw, row):
             # Rytis 2026-10-07: spalva - užpildomas VISAS FINISH langelis, jame - spalvos kodas
             cf_ = None
-            if n_ == "FINISH":
+            if isinstance(val, str) and len(val) == 7 and val.startswith("#"):   # v160: originalo spalvos pavyzdėlis langelyje
+                cf_, val = val, ""
+            elif n_ == "FINISH":
                 cf_ = code_hex(val)
             elif n_ == "MATERIAL":                     # plėvelė medžiagos stulpelyje (pvz. Avery 777-002CF)
                 cf_ = code_hex(val, ral=False)

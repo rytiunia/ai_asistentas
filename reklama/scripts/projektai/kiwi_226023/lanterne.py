@@ -5,7 +5,8 @@ Konstrukcija - kaip ankstesni gaminti KIWI lanterne (Tollnes 225948 ALT8858, HIT
 2 x Alu profilis 100x20x2 (šonai), galinė 1,5 mm Alu, viršaus dangtis 1,5 mm su LED (Edge SM280-12V + KPS 15W),
 apačioje 1 mm nerūdijančio plieno uždengimas h 700 (reguliuojamas), sekcijų jungtys su 3 mm Alu plokštelėmis.
 Kliento duomenys (order 226023): korpusas 6800 x 500 x 100, padalintas, RAL 6018, LED (belysning kraftig led), EL viršuje.
-Sekcijos 800 + 3000 + 3000 (6 m strypai -> 2 x 3000) - ALT pasiūlymas (*), Tollnes 600 + 3000 + 3000.
+v160 (Rytis 2026-10-13): visa informacija ir aprašymai - iš originalaus dokumento (Parts List, užrašai), keičiamas tik stilius.
+Sekcijos 800 + 3000 + 3000 (pirmasis 226023 dokumentas).
 Paleidimas:  python3 lanterne.py out.pdf
 """
 import os
@@ -26,7 +27,7 @@ BACK_T = 1.5
 SS_H = 700               # nerūdijantis uždengimas
 SECT = [800, 3000, 3000]  # nuo viršaus (*)
 N_LED, LED = 5, "Edge SM280-12V"
-PSU = "KPS-12-15W"
+PSU = "KPS 15W"
 RAL = "RAL 6018"
 C_G = HexColor(K.code_hex(RAL))
 C_GD = K.mix(C_G, 0.72)
@@ -72,7 +73,7 @@ def front_view(X0, YG, s):
         line(xb - 3, YG - yj * s, xb + W * s + 3, YG - yj * s, 0.3, dash=([4, 1.5, 1, 1.5], 0))
     # matmenys: kairėje grandinė (dangtis, sekcijos), už jos - bendras
     ys = [yt] + [YG - yj * s for yj in joints_from_bottom()] + [YG]
-    VM(cx0 - D1, ys, cx0, [f"{v}{'*' if i == 0 else ''}" for i, v in enumerate(SECT)])
+    VM(cx0 - D1, ys, cx0, [f"{v}" for v in SECT])
     VM(cx0 - D1 - D2 + 4, [yt, YG], cx0, [f"{H_BODY}"])
     # dešinėje - dangtis ir uždengimas
     xr = cx0 + CAP_W * s
@@ -83,7 +84,7 @@ def front_view(X0, YG, s):
     # EL išvestis viršuje
     ex, ey = xb + W * s * 0.8, yt
     line(ex, ey, ex, ey - 26, 0.9, C_RED)
-    T(ex + 4, ey - 20, "230V, 1.5 m", K.F_INFO, color=C_RED)
+    T(ex + 4, ey - 20, "+1,5m  ~230V  El. Output", K.F_INFO, color=C_RED)
     return dict(x0=cx0, x1=cx0 + CAP_W * s, yt=yt, yb=YG, xb=xb)
 
 
@@ -91,8 +92,9 @@ def side_view(X0, YG, s):
     """SIDE VIEW (RIGHT): profilis 100 + galinė; uždengimas, dangtis"""
     yt = YG - H_BODY * s
     rect(X0, yt, D * s, H_BODY * s, fill=C_G, lw=K.HAIR)
-    rect(X0, yt, CAP_D * s, CAP_H * s, fill=C_G, lw=K.HAIR)
+    rect(X0, yt, CAP_D * s, 75 * s, fill=C_G, lw=K.HAIR)
     rect(X0, YG - SS_H * s, CAP_D * s, SS_H * s, fill=C_SS, lw=K.HAIR)
+    VM(X0 + CAP_D * s + D1, [yt, yt + 75 * s], X0 + CAP_D * s, ["75"])
     for yj in joints_from_bottom():
         y_ = YG - yj * s
         line(X0 - 3, y_, X0 + D * s + 3, y_, 0.3, dash=([4, 1.5, 1, 1.5], 0))
@@ -125,7 +127,7 @@ def section_aa(X0, Y0, s):
         rect(x_ + PR_T * s, Y0 + (BACK_T + PR_T) * s, (PR_W - 2 * PR_T) * s, (D - 2 * PR_T) * s, fill=white, lw=0.35)
     yb = Y0 + (BACK_T + D) * s
     HM(X0, X0 + W * s, yb + D1, f"{W}", yb, yb)
-    VM(X0 + W * s + D1, [Y0, Y0 + BACK_T * s + D * s], X0 + W * s, [f"{D + BACK_T:.1f}".rstrip("0").rstrip(".")])
+    VM(X0 + W * s + D1, [Y0, Y0 + BACK_T * s + D * s], X0 + W * s, [f"{D}"])
     T(X0 + W * s / 2, Y0 - 4, "FACADE SIDE", K.F_INFO, color=K.GREY, align="c")
     return dict(x0=X0, x1=X0 + W * s, yt=Y0, yb=yb)
 
@@ -143,7 +145,6 @@ def detail_top(X0, Y0, s):
     for k in range(2):
         rect(X0 + (20 + k * 40) * s, Y0 + 3 * s, 25 * s, 8 * s, fill=C_LED, lw=0.35)
     rect(X0 + 15 * s, Y0 + 14 * s, 70 * s, 18 * s, fill=HexColor("#CFCFCF"), lw=0.35)
-    T(X0 + 50 * s, Y0 + 26 * s, "PSU", K.F_INFO, align="c")
     for k in range(4):                                                          # šviesos kryptis
         xx = X0 + (25 + k * 18) * s
         line(xx, Y0 + 34 * s, xx - 6 * s, Y0 + 120 * s, 0.25, K.GREY, dash=([2, 2], 0))
@@ -170,8 +171,6 @@ def detail_joint(X0, Y0, s):
     for yy in (Y0, Y0 + hh * s):
         poly([(X0 - 6, yy), (X0 + 30 * s, yy), (X0 + 40 * s, yy - 5), (X0 + 55 * s, yy + 5), (X0 + 65 * s, yy),
               (X0 + D * s + 8, yy)], lw=0.3, close=False)
-    VM(X0 + D * s + D1, [yj - 75 * s, yj - 40 * s, yj + 40 * s, yj + 75 * s], X0 + D * s, ["35", "80", "35"])
-    HM(X0 + 15 * s, X0 + 85 * s, Y0 + hh * s + D1 + 6, "70", Y0 + hh * s, Y0 + hh * s)
     return dict(x0=X0, x1=X0 + D * s, yt=Y0, yb=Y0 + hh * s, plate=(X0 + 50 * s, yj - 60 * s),
                 screw=(X0 + D * s * 0.7, yj + 40 * s))
 
@@ -192,19 +191,10 @@ def view3d(box):
 
 # ---------------------------------------------------------------- juosta
 def bom():
-    L = sum(SECT) - CAP_H                      # profilio ilgis (dangtis ant viršaus)
-    return [
-        [1, "Side profile 100x20x2", "Alu, 3 parts (*)", RAL, f"2 x {L / 1000:.2f} = {2 * L / 1000:.1f} m"],
-        [2, "Backside", "Alu 1.5 mm, 3 parts", RAL, f"{W / 1000 * H_BODY / 1000:.1f} m²"],
-        [3, "Top cover 505x105x150", "Alu 1.5 mm", RAL, "1 pcs."],
-        [4, "Bottom cover h 700, adjustable", "Stainless steel 1 mm", "brushed", "1 pcs."],
-        [5, f"LED {LED}", "in top cover, down", "", f"{N_LED} pcs."],
-        ["5A", f"PSU {PSU}", "in top cover", "", "1 pcs."],
-        [6, "Fitting plate 70x150 (joint)", "Alu 3 mm", "-", "4 pcs."],
-        [7, "Screws (joints)", "A2", "-", "16 pcs."],
-        [8, "Cable 230V, top exit", "", "-", "1.5 m"],
-        [9, "Wall fixing", "", "-", ""],
-    ]
+    """Parts List - kaip originale (Tollnes 225948 Sheet 3)"""
+    return [[1, "100x20x2mm Alu profile"], [2, "Backside, 1.5mm Alu"], [3, "Top cover, 1.5mm Alu"],
+            [4, "1mm stainless steel cover"], [5, "LED's with transformator"], [6, "Ffitting plate, 3mm Alu"],
+            [7, "Screws"]]
 
 
 def weight():
@@ -217,19 +207,17 @@ def weight():
 
 def main_data():
     return [["Quantity", "1 pcs."],
-            ["Body", f"{H_BODY} x {W} x {D} mm"],
-            ["Sections", " + ".join(str(v) for v in SECT) + " (*)"],
-            ["Colour", f"{RAL} (all Alu parts)"],
-            ["Light", f"{N_LED} x {LED}, {PSU}"],
-            ["Power", "230V, 1.5 m, top exit (EL)"],
-            ["Wall fixing", ""],
-            ["Weight (calc.)", f"≈ {weight():.0f} kg / pcs, excl. LED"],
-            ["*", "ALT proposal (6 m bars -> 2 x 3000)"]]
+            ["Body height", f"{H_BODY}"],
+            ["LED modules", f"Edge Modules SM280-12V, {N_LED}pcs."],
+            ["Trafo", PSU],
+            ["El. Output", "+1,5m  ~230V"],
+            ["Colour", RAL],
+            ["Weight (calc.)", f"≈ {weight():.0f} kg / pcs, excl. LED"]]
 
 
 def band_section(x, y, w, h):
     """juostos kairė: tipinis pjūvis A-A 1:5"""
-    K.header(x, y, w, "SECTION A-A  (1:10)")
+    K.header(x, y, w, "SECTION C-C  (1:10)")
     rect(x, y + 12, w, h - 12, lw=0.6)
     s = MM / 10
     X0 = x + (w - W * s) / 2 - 8
@@ -240,7 +228,7 @@ def band_section(x, y, w, h):
 
 def sheet(out):
     md, bm = main_data(), bom()
-    K.set_band(max(len(md), len(bm) + 1))
+    K.set_band(max(len(md), len(bm) + 1, 12))
     K.init(out + ".tmp", "KIWI 226023 Lanterne")
     K.frame()
     s40 = MM / 40
@@ -257,17 +245,17 @@ def sheet(out):
     view_title((rv["x0"] + rv["x1"]) / 2, YG + 24, "REAR VIEW", "SCALE 1:40")
     # pjūvio plokštuma A-A per priekį (už vaizdo ribų)
     ya = YG - 2000 * s40
-    K.cut_plane_h(ya, f["x0"], f["x1"], "A", look="down")
+    K.cut_plane_h(ya, f["x0"], f["x1"], "C", look="down")
     # detalės B / C
     s5 = MM / 2
-    xb = rv["x1"] + 110
+    xb = rv["x1"] + 135
     db = detail_top(xb, yt + 40, s5)
     view_title((db["x0"] + db["x1"]) / 2, db["yb"] + 26, "DETAIL B", "SCALE 1:2")
     xc = db["x1"] + 110
     dc = detail_joint(xc, yt + 40, s5)
-    view_title((dc["x0"] + dc["x1"]) / 2, dc["yb"] + 40, "DETAIL C - JOINT", "SCALE 1:2")
+    view_title((dc["x0"] + dc["x1"]) / 2, dc["yb"] + 40, "DETAIL A - CONNECTION POINT", "SCALE 1:2")
     # žymos B / C ant šoninio vaizdo
-    for (cx_, cy_), lt in (((sv["x0"] + 4, yt + 6), "B"), ((sv["x0"] + 4, YG - joints_from_bottom()[1] * s40), "C")):
+    for (cx_, cy_), lt in (((sv["x0"] + 4, yt + 6), "B"), ((sv["x0"] + 4, YG - joints_from_bottom()[1] * s40), "A")):
         circle(cx_, cy_, 9, lw=0.35)
         T(cx_ + 9, cy_ - 7, lt, 10, font="FB")
     # 3D
@@ -281,19 +269,23 @@ def sheet(out):
     K.leader(rv["x1"] - 3, yt + 4, rv["x1"] + 30, yt + 30, 3)
     K.leader(rv["x1"] - 3, YG - 350 * s40, rv["x1"] + 30, YG - 600 * s40, 4)
     K.leader(*db["led"], db["x0"] - 34, db["yt"] + 6, 5)
-    K.leader(*db["psu"], db["x1"] + 40, db["yt"] - 8, "5A")
     K.leader(*db["back"], db["x0"] - 34, db["back"][1] + 20, 2)
     K.leader(*db["prof"], db["x1"] + 40, db["prof"][1] + 10, 1)
-    K.leader(db["cab"][0], db["cab"][1], db["x1"] + 40, db["cab"][1] - 10, 8)
     K.leader(*dc["plate"], dc["x0"] - 34, dc["plate"][1] - 20, 6)
     K.leader(*dc["screw"], dc["x0"] - 34, dc["screw"][1] + 30, 7)
+    # originalo paaiškinimai (žymos už vaizdų)
+    for yj in joints_from_bottom():
+        K.tag(sv["x1"] - 1, YG - yj * s40, sv["x1"] + 14, YG - yj * s40 + 22, "Connection point", 8)
+    K.tag(rv["x1"] - 1, YG - joints_from_bottom()[1] * s40, rv["x1"] + 12, YG - joints_from_bottom()[1] * s40 + 22,
+          "Backside plate connect point", 8)
+    K.tag(rv["x1"] - 1, YG - 200 * s40, rv["x1"] + 12, YG - 2, "Cover with adjustable position", 8)
+    K.tag(*db["psu"], db["x1"] + 12, db["yt"] - 14, "LED modules with transformator", 8)
     # juosta
     BY0 = K.BAND_Y; BH = K.IY1 - BY0
     W_D, W_MD, W_TB = 214, 230, 272
     X_D = K.IX0; X_TB = K.IX1 - W_TB; X_MD = X_TB - W_MD; X_BOM = X_D + W_D; W_BOM = X_MD - X_BOM
     band_section(X_D, BY0, W_D, BH)
-    K.bom_table(X_BOM, BY0, W_BOM, BH, bm,
-                cols=(("POS", 20), ("PART", 0.36), ("MATERIAL", 0.25), ("FINISH", 0.15), ("QTY", None)))
+    K.bom_table(X_BOM, BY0, W_BOM, BH, bm, title="PARTS LIST", cols=(("POS", 20), ("Part Number", None)))
     K.main_data(X_MD, BY0, W_MD, BH, md, lab_w=64)
     K.title_block(X_TB, W_TB, TB, "1:40 / 1:10 / 1:2")
     K.save(out)

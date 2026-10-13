@@ -74,6 +74,9 @@ def _load(kind, front):
     return front, dr, spans
 
 
+LABEL_MAP = {}     # v160: pjūvio balionų numeriai pagal originalo BOM (spec "section_labels")
+
+
 def draw(cv, H, x, y, w, h, kind, front, depth, *, leader, balloon, T, hdim, hair=0.1, top=26, pad=8,
          line=None, ears=None, ear_hole=0.15, bracket=None):
     """Nubraižo pjūvį į sritį (x, y, w, h - bloko vidus be antraštės; lapo koord., y žemyn)."""
@@ -370,11 +373,12 @@ def draw(cv, H, x, y, w, h, kind, front, depth, *, leader, balloon, T, hdim, hai
     # --- balionai
     for j, tp in leads:
         bj = dr[j]["rect"]
-        leader(X(tp.x), Yp(tp.y), X((bj.x0 + bj.x1) / 2), Yp((bj.y0 + bj.y1) / 2), lab.get(j, ""), 6.5)
+        _l = lab.get(j, "")
+        leader(X(tp.x), Yp(tp.y), X((bj.x0 + bj.x1) / 2), Yp((bj.y0 + bj.y1) / 2), LABEL_MAP.get(_l, _l), 6.5)
     if not F8 and pvc:                                                  # A - PVC juosta (tik 3 mm)
         pr = min((dr[i]["rect"] for i in pvc), key=lambda r: r.y0)
         pl = dr[plex]["rect"]
-        leader(X(pr.x0 + pr.width * 0.3), Yp((pr.y0 + pr.y1) / 2), X(pl.x1) + 20, Yp(pr.y1) + 16, "A", 6.5)
+        leader(X(pr.x0 + pr.width * 0.3), Yp((pr.y0 + pr.y1) / 2), X(pl.x1) + 20, Yp(pr.y1) + 16, LABEL_MAP.get("A", "A"), 6.5)
 
     # --- gylio matmuo: galo išorė -> plexi priekis
     def grey(f_):

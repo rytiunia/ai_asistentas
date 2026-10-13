@@ -300,7 +300,7 @@ for g in groups:
             pts = [(ox_ + x, oy_ + y) for x, y in it["poly"]]
             xs_, ys_ = [q[0] for q in pts], [q[1] for q in pts]
             L_ = max(math.dist(pts[i], pts[(i + 1) % len(pts)]) for i in range(len(pts)))
-            nr.append({"x0": min(xs_), "y0": min(ys_), "x1": max(xs_), "y1": max(ys_), "poly": pts, "len": L_,
+            nr.append({"x0": min(xs_), "y0": min(ys_), "x1": max(xs_), "y1": max(ys_), "poly": pts, "len": it.get("len", L_),   # v160: originalo ilgis
                        "kind": it.get("kind", "h")})
         g["rails"] = nr
         g["fplates"] = [(ox_ + x, oy_ + y) for x, y in g["spec"].get("fit_plates", [])]
@@ -673,7 +673,9 @@ for g in groups:
     if g["plate"] or (not fr and not g["spec"].get("rails")) or g["spec"].get("no_rails"):
         continue
     if EARS.get("enabled", True) is False and g["spec"].get("rails"):   # rėmas be ausėlių (pvz. kvadratinis wallframe)
-        g["fplates"], g["fp_rows"], g["fp_ext"], g["fp_missing"], g["ear_max"] = [], [], 0, 0, 0.0
+        # v160: detalizacijos ausėlės (fit_plates) paliekamos - tik automatinis išdėstymas išjungtas
+        g["fplates"] = g["fplates"] if g["spec"].get("fit_plates") else []
+        g["fp_rows"], g["fp_ext"], g["fp_missing"], g["ear_max"] = [], 0, 0, 0.0
         g["wall"] = spec.get("wall", "concrete")   # v90: fasadas nenurodytas = betonas (Rytis)
         continue
     t_ = g["rsz"]["depth"]
@@ -2356,16 +2358,21 @@ if r_first:
         if _xs:
             _busy.append((min(_xs) - 10, max(_xs) + 10))
     _xa, _xb = sorted((RV(_top_r["x0"], 0)[0], RV(_top_r["x1"], 0)[0]))
-    _cands = [_xa + (_xb - _xa) * f_ for f_ in (0.25, 0.75, 0.2, 0.8, 0.3, 0.7, 0.12, 0.88, 0.5)]   # v50: ne per bėgelio ilgio užrašą (centre)
+    _cands = [_xa + (_xb - _xa) * f_ for f_ in (0.25, 0.75, 0.2, 0.8, 0.3, 0.7, 0.12, 0.88, 0.5, 0.95, 0.05, 0.98)]   # v160: + galai   # v50: ne per bėgelio ilgio užrašą (centre)
     _tcx = FVX + fw / 2                            # v61: balionas ne ant priekio vaizdo pavadinimo / mastelio
     _x5 = next((x_ for x_ in _cands if not any(a_ <= x_ <= b_ for a_, b_ in _busy) and abs(x_ + 22 - _tcx) > 75),
                next((x_ for x_ in _cands if not any(a_ <= x_ <= b_ for a_, b_ in _busy)), _cands[0]))
     _y5 = RV(0, (_top_r["y0"] + _top_r["y1"]) / 2)[1]
     _yb5 = max((_vt - ROW[0] - 20 * max(UPR[0], 1) + 6) - 7 * max(1, len(CEX)) - 14, K.IY0 + 14)
+    if not any(b_[0] - 30 < _x5 < b_[1] + 30 and b_[2] < _vt for b_ in TAG_BOXES):   # v160: virš balionui žymų nėra - arčiau vaizdo
+        _x5, _yb5 = _xb - 8, None                  # balionas dešinėje už galinio vaizdo, bėgelio aukštyje
     _dx5 = 22                                      # v50: išvadinė nekerta laido - pasvyra nuo artimiausio laido
     if any(_x5 < a_ <= _x5 + 60 for a_, b_ in _busy):
         _dx5 = -22
-    leader(_x5, _y5, _x5 + _dx5, _yb5, 5)
+    if _yb5 is None:
+        leader(_x5, _y5, RVX + rw + 26, _y5 - 16, spec.get("section_labels", {}).get("5", 5))
+    else:
+        leader(_x5, _y5, _x5 + _dx5, _yb5, spec.get("section_labels", {}).get("5", 5))
 _rty, _rtx = max(RVY + rh + 56, CH_BOT[0] + 26, _bottom[0] + 24), RVX + rw / 2
 if _rty + 4 + K.F_SCALE * 1.25 > K.VIEW_BOT and TB_ON and CEX:      # v44: netelpa po dėže - šalia trafo dėžės
     _rtw = K.pdfmetrics.stringWidth("REAR VIEW (MIRRORED)", "FB", K.F_VIEW) / 2 + 30
@@ -2557,6 +2564,8 @@ _BOM_ROWS = [([r_[0], r_[1], r_[2] or "Alu box", f"RAL {RAIL['ral']} matt", ((f"
 _BOM_ROWS = [[_hang(c_) for c_ in r_] for r_ in _BOM_ROWS]
 _EAR_POS = next((str(r_[0]) for r_ in _BOM_ROWS if "ear" in str(r_[1]).lower() and not str(r_[1]).lower().startswith("rail")), "")
 _HAS_EARS = any(g.get("fplates") for g in groups)
+import p6_ref as _P6REF
+_P6REF.LABEL_MAP.update({str(k_): str(v_) for k_, v_ in spec.get("section_labels", {}).items()})
 if FRONT == "P1":
     K.p1_typical(X_P6, BY0, W_P6, BH, depth, variant="rail", title="PROFILE P1 ON RAILS - TYPICAL SECTION",
                  numbers={"fit": _EAR_POS or 6}, ears=_HAS_EARS)
@@ -2565,8 +2574,13 @@ else:
                    title=("PROFILE P6 - FIXED TO FACADE (SEPARATE LETTERS)" if MOUNTING == "none" else "PROFILE P6 ON RAILS - TYPICAL SECTION"), ears=(_EAR_POS if _HAS_EARS else None),
                    ear_hole=EAR_HOLE / float(RAIL.get("depth", 30)),
                    bracket=(next((str(r_[0]) for r_ in _BOM_ROWS if re.search(r"bracket|hanger", str(r_[1]), re.I)), "") if BRACKETS else None))
-K.bom_table(X_BOM, BY0, W_BOM, BH, [[subst(x) for x in row] for row in _BOM_ROWS],
-            title=f"BILL OF MATERIALS  (per 1 pcs.)")
+if spec.get("bom_cols"):                                   # v160: originalo lentelės stulpeliai (perkeliama iš org. dokumento)
+    K.bom_table(X_BOM, BY0, W_BOM, BH, [[subst(x) for x in row] for row in spec["bom"]],
+                title=spec.get("bom_title", "BILL OF MATERIALS  (per 1 pcs.)"),
+                cols=tuple((c_[0], c_[1]) for c_ in spec["bom_cols"]))
+else:
+    K.bom_table(X_BOM, BY0, W_BOM, BH, [[subst(x) for x in row] for row in _BOM_ROWS],
+                title=f"BILL OF MATERIALS  (per 1 pcs.)")
 # bendras svoris (Rytis patvirtino - visada MAIN DATA); prielaidos - assets/svoris.json
 _SV = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "svoris.json")))
 _rho, _t = _SV["density_kg_dm3"], dict(_SV["thk_mm"])
