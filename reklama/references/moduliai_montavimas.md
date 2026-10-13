@@ -41,7 +41,8 @@ Rėmas tvirtinamas tiesiai į fasadą per profilį:
 - **Viršutinėje ir apatinėje plokštumoje** - po vieną D6 (prisukti į bėgelį).
 
 Skriptas laikiklius:
-- dalija tolygiai rėmo ilgyje (galai 250) ir kiekvieną perkelia į artimiausią raidės centrą (stiebo vidurį / raidės vidurį);
+- **v187 (Rytis 2026-10-13): POZICIJOS - ta pati formulė kaip laikiklio skylių: žingsnis p = rėmo ilgis / n, nuo rėmo galų p / 2**
+  (2 vnt. - L/4 ir 3L/4); prie raidžių centrų nebetraukiama (senas v91 elgesys atšauktas);
 - galiniame vaizde braižo juos su skylėmis;
 - į BOM automatiškai prideda eilutę (jei spec jos neturi; placeholderiai `{BRK_N} {BRK_DIM} {BRK_MAT} {BRK_H}`)
   ir pašalina ausėlių eilutes, MAIN DATA „+ ears" -> „+ hangers" (lape U laikiklis = HANGER, v102);

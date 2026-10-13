@@ -1271,39 +1271,13 @@ if MOUNTING == "brackets":
         large_ = _Hl >= BRK["large_h_mm"]               # v90: didelės raidės - konstrukcija svarbiau už paslėpimą
         mat_ = ("Steel" if heavy_ else "Alu") + f" {BRK['thk_mm']:g} mm"
         LETU = unary_union([o["geom"] for o in g["letters"]])
-        e_ = min(BRK["edge_mm"], Lf / (2 * n_))
-        tg_ = [fx0 + e_ + i_ * (Lf - 2 * e_) / max(n_ - 1, 1) for i_ in range(n_)] if n_ > 1 else [fx0 + Lf / 2]
-        hw_ = BRK["width_mm"] / 2
+        # v187 (Rytis 2026-10-13): laikiklių POZICIJOS - ta pati formulė kaip laikiklio tvirtinimo skylių: žingsnis p = L / n,
+        #  nuo rėmo galų iki pirmo / paskutinio - p / 2 (pvz. 2 vnt.: L/4, 3L/4). Prie raidžių centrų nebetraukiama.
+        tg_ = [fx0 + Lf * (2 * i_ + 1) / (2 * n_) for i_ in range(n_)]
         if large_:
-            print(f"  {g['name']}: didelės raidės (H {_Hl:.0f} >= {BRK['large_h_mm']:.0f}) - laikikliai tolygiai pagal konstrukciją, "
-                  f"gali dalinai matytis; rekomenduojamas stambesnis rėmas (pvz. 40x40) - Rytis sprendžia")
-        # v91 (Rytis 2026-10-11): laikiklis per RAIDĖS (stiebo) CENTRĄ, ne prie krašto: vietos, kur laikiklis telpa po
-        #  raide, grupuojamos į atkarpas (stiebus), laikiklis - atkarpos viduryje; didelėms raidėms, jei arti nėra stiebo -
-        #  tolygi vieta (gali matytis, konstrukcija svarbiau)
-        _fe = [x_ for x_ in range(int(fx0 + hw_), int(fx1 - hw_) + 1, 5)
-               if LETU.contains(sbox(x_ - hw_, top_["y0"], x_ + hw_, bot_["y1"]))]
-        _runs, _cur = [], []
-        for x_ in _fe:
-            if _cur and x_ - _cur[-1] > 5.5:
-                _runs.append(_cur); _cur = []
-            _cur.append(x_)
-        if _cur:
-            _runs.append(_cur)
-        _mids = [(r_[0] + r_[-1]) / 2 for r_ in _runs]
-        for o_ in g["letters"]:                          # raidė be tiesaus stiebo (S, A ...) - per raidės centrą
-            ob_ = o_["bb"]
-            if ob_[1] <= top_["y0"] + 1 and ob_[3] >= bot_["y1"] - 1 and not any(ob_[0] <= m_ <= ob_[2] for m_ in _mids):
-                _mids.append((ob_[0] + ob_[2]) / 2)
-        _mids = sorted(m_ for m_ in _mids if fx0 + hw_ <= m_ <= fx1 - hw_)
-        _used = []
+            print(f"  {g['name']}: didelės raidės (H {_Hl:.0f} >= {BRK['large_h_mm']:.0f}) - rekomenduojamas stambesnis rėmas (pvz. 40x40) - Rytis sprendžia")
         for t_x in tg_:
-            _c = [m_ for m_ in _mids if abs(m_ - t_x) <= max(BRK["search_mm"], Lf / (2 * n_)) and all(abs(m_ - u_) >= 300 for u_ in _used)]
-            best_ = min(_c, key=lambda m_: abs(m_ - t_x)) if _c else (t_x if large_ else None)
-            if best_ is None:
-                best_ = t_x
-                print(f"  ! {g['name']}: laikiklis x{t_x - g['lx0']:.0f} - po raide vietos nėra (±{BRK['search_mm']:.0f}), matysis tarp raidžių")
-            _used.append(best_)
-            BRACKETS.append({"g": g, "x": best_, "y0": top_["y0"] - BRK["clear_mm"] - BRK["thk_mm"], "y1": bot_["y1"] + BRK["thk_mm"],
+            BRACKETS.append({"g": g, "x": t_x, "y0": top_["y0"] - BRK["clear_mm"] - BRK["thk_mm"], "y1": bot_["y1"] + BRK["thk_mm"],
                              "H": Hb, "Hf": Hf, "fl": fl_, "hd": hd_, "nw": nw_, "mat": mat_, "Lf": Lf, "fx0": fx0})
         print(f"  {g['name']}: U laikikliai {n_} vnt. (rėmas {Lf:.0f} ilgio, {Hf:.0f} aukščio) H {Hb:.0f} x {BRK['width_mm']:.0f}, "
               f"plokštumos {fl_:.0f}, {mat_}, sienoje {nw_} x D{hd_}, plokštumose 2 x D6; x: "
