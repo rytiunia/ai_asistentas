@@ -41,6 +41,8 @@ Prieš kuriant naujo tipo lapą - peržiūrėk bent vieną etaloną (pdftoppm ->
   („546 vert.", „578 diag."); bėgelių ašių atstumai (viena grandinė grupės šone).
   Ausėlių grandinių / atstumų tarp ausėlių NEDĖTI. X apskritimo Z juostoms - tik ilgis (plotis) ir aukštis tarp centrų.
 - Visi pjūviai (DETAIL A ir P6 ON RAILS) - vienoda pilkų spalvų schema (v9, žr. SKILL.md).
+- **Profilio pjūvis / DETAIL VISADA centruojamas savo bloke (v185, Rytis 2026-10-13)** - bloko centre, horizontaliai ir vertikaliai
+  (`K.p1_typical` - centruojama pagal turinį su balionais; P6 etalonas - pagal iškarpą).
 - DETAIL A - SECTION - tikras CAD pjūvis per tvirtinimą (1:2), su lūžio linijomis, siena su
   varžtai su ašinėmis linijomis (be sienos). Detalės žyma (A) pažymima šoniniame vaizde.
   Matmenų, kurie jau yra priekio vaizde, detalėje nekartoti.

@@ -43,11 +43,11 @@ Rėmas tvirtinamas tiesiai į fasadą per profilį:
 Skriptas laikiklius:
 - **v187 (Rytis 2026-10-13): POZICIJOS - ta pati formulė kaip laikiklio skylių: žingsnis p = rėmo ilgis / n, nuo rėmo galų p / 2**
   (2 vnt. - L/4 ir 3L/4); prie raidžių centrų nebetraukiama (senas v91 elgesys atšauktas);
-- galiniame vaizde braižo juos su skylėmis;
+- galiniame vaizde braižo juos TIK PUNKTYRU (kontūras ir skylės, be užpildo; v184, Rytis 2026-10-13);
 - į BOM automatiškai prideda eilutę (jei spec jos neturi; placeholderiai `{BRK_N} {BRK_DIM} {BRK_MAT} {BRK_H}`)
   ir pašalina ausėlių eilutes, MAIN DATA „+ ears" -> „+ hangers" (lape U laikiklis = HANGER, v102);
 - prideda svorį;
-- P6 pjūvyje (PROFILE P6 ON RAILS) braižo laikiklį: sienelė prie fasado, viršutinė / apatinė plokštuma aplink bėgelius,
+- P6 IR P1 pjūvyje (PROFILE P6 / P1 ON RAILS; P1 - v184) braižo laikiklį: sienelė prie fasado, viršutinė / apatinė plokštuma aplink bėgelius,
   ašinės Ø6, balionas su BOM pozicija (v94, Rytis: kur naudojami laikikliai - pjūvyje turi matytis);
 - sudaro **2 lapą - laikiklio gamybinį brėžinį**: vaizdas nuo fasado su skylių grandine, šonas su įstatytu rėmu
   (punktyru, guli ant apatinės plokštumos, vidus = rėmas + 2), vaizdas iš viršaus 1:1, NOTES, BOM, MAIN DATA.

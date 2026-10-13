@@ -16,6 +16,9 @@ pozicija), BOM: `Mounting ear, welded, Ø{EAR_HOLE} hole | Alu 3 mm | RAL rėmo 
 - Sandara (kaip SPAR P1 etalone): priekis Alu 2 mm (RAL), šonai Alu 1 mm (RAL), dugnas PVC 10 mm; raidė prie U -
   varžtas per U sienelę į PVC dugną. X ant plokštės - ant 30 mm distancerių, dugnas lygus su šonais (ne įleistas 25).
 - BOM: be plexi, plėvelių, A (PVC bortelis), B (varžtas), LED, trafo. Svoris: priekis Al 2, dugnas PVC 10.
+- **Dugnas PVC 10 mm NEDAŽYTAS (v184 / v186, Rytis 2026-10-13):** BOM FINISH „-"; REAR VIEW - dugnas šviesiai pilkas
+  (nedažytas plastikas, `PVC_RAW`), ne korpuso RAL. Dažytas - tik nurodžius `back_ral`.
+- **P1 su hangers (v184):** pjūvyje `PROFILE P1 ON RAILS` - laikiklis (plokštumos virš / po bėgeliais, sienelė prie fasado, Ø6).
 
 ### Stogo iškaba - atramos (v29, Rytis 2026-10-08; pirmas atvejis EXTRA FAS 700H80 takskilt)
 - Iškabos lapas - standartinis (bėgeliai, ausėlės, Z rėmas kaip „wall option"); kliento stogo kojas iš kliento PDF
