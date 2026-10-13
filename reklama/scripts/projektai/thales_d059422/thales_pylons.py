@@ -16,6 +16,19 @@ from lapas_core import T, line, rect, poly, hdim, vchain, hchain, leader, view_t
 import r3d
 import pymupdf as fitz
 from reportlab.lib.colors import HexColor, white, black, Color
+
+
+def _obj_lw(lw):
+    """v182 (patikra_lapas, v175): objektų kontūrai projekcijose - hairline; 0,6+ (juostos rėmeliai) lieka"""
+    return K.HAIR if lw is None or lw < 0.55 else lw
+
+
+def rect(x, y, w, h, fill=None, stroke=black, lw=0.5, dash=None):
+    K.rect(x, y, w, h, fill=fill, stroke=stroke, lw=_obj_lw(lw), dash=dash)
+
+
+def poly(pts, fill=None, stroke=black, lw=0.5, close=True, dash=None):
+    K.poly(pts, fill=fill, stroke=stroke, lw=_obj_lw(lw), close=close, dash=dash)
 from reportlab.lib.utils import ImageReader
 
 K.RAL.setdefault("5022", "#222D5A"); K.RAL.setdefault("5012", "#3B83BD")
@@ -173,6 +186,7 @@ def clip_src(pno, clip):
     fn = os.path.join(tempfile.gettempdir(), f"thales_frag_{pno}_{abs(hash(key)) % 10 ** 8}.pdf")
     nd.save(fn, garbage=3, deflate=True)
     K.pdf_explicit_colors(fn)                                # v166: CorelDRAW - spot spalvos su aiškiu atspalviu (žr. lapas_core)
+    K.pdf_drop_unused_fonts(fn)                              # v182: tušti kliento teksto blokai / šriftai (v171 - tik GOST)
     if nd[0].get_text().strip():                             # v162: tik jei fragmente LIKO gyvas tekstas (Thales - nėra,
         K.pdf_text_to_paths(fn)                              # kliento maketų tekstai jau kreivės) - kitaip failas neliečiamas
     _FRAG[key] = fn
@@ -184,7 +198,7 @@ def inset(clip, d=0.6):
     return (c.x0 + d, c.y0 + d, c.x1 - d, c.y1 - d)                                       # be kliento rėmelio linijos
 
 
-def place_img(pno, clip, tl, tr, bl, ol=0.3):
+def place_img(pno, clip, tl, tr, bl, ol=K.HAIR):
     """kliento fragmentas VEKTORIUMI (K.place_pdf) į lygiagretainį (reportlab koord.)"""
     br = (tr[0] + bl[0] - tl[0], tr[1] + bl[1] - tl[1])                                   # po grafika - grynai balta
     K.c.saveState(); K.c.setFillColor(white); pth = K.c.beginPath(); pth.moveTo(*tl); pth.lineTo(*tr); pth.lineTo(*br)
@@ -413,7 +427,7 @@ def ga(p, sheet, graphic, decals=None):
         rect(fx + p.FX0 * s, yc - 40 * s, p.FW * s, 80 * s, lw=0.3, dash=([2, 1.2], 0))
         for hx, hz in p.BH:
             K.circle(fx + (p.FX0 + hx) * s, yc - hz * s, 0.9, fill=white, stroke=black, lw=0.25)
-    vchain(fx + fw + 16, [ty, ty + D * s], [fx + fw] * 2, [f"{D}"], DIM)
+    vchain(fx + fw + 16, [ty, ty + D * s], [fx + fw] * 2, [f"{D}"], DIM, small="side")   # v182: ne ant lapo rėmelio
     view_title(fx - 40, ty + D * s / 2 + 2, "TOP VIEW", f"SCALE 1:{n}")
     # FRONT VIEW
     rect(fx, fy, fw, p.OVH * s, fill=WHITE_, lw=0.3)
@@ -427,7 +441,7 @@ def ga(p, sheet, graphic, decals=None):
             rect(fx + (xf - p.FL / 2) * s, ybase + yb * s, p.FL * s, p.FLT * s, fill=GREYF, lw=0.3)
             K.centerline(fx + xf * s, ybase + yb * s - 8, fx + xf * s, ybase + (yb + p.FLT) * s + 8)
         gl, gr = ybase + (p.LONG + p.FLT) * s, ybase + p.FLT * s
-        line(fx - 30, gl + 0.3, fx + fw + 30, gr + 0.3, 0.4, black, dash=([6, 2], 0))
+        line(fx - 30, gl + 0.3, fx + fw + 30, gr + 0.3, 0.5, black, dash=([6, 2], 0))
         T(fx + fw + 34, gr + 13, "ground (slope)", 8, color=K.GREY, auto_red=False)
         vchain(fx - 52, [ybase, ybase + p.LONG * s, gl], [fx + p.FX0 * s] * 3, [f"{p.LONG}", f"{p.FLT}"], DIM)
         hchain(gl + 20, [fx, fx + p.FAX * s, fx + (W - p.FAX) * s, fx + fw], [ybase + p.FLT * s] * 4, [f"{p.FAX}", "1000 (existing anchors)", f"{p.FAX}"], DIM)
@@ -437,7 +451,7 @@ def ga(p, sheet, graphic, decals=None):
         rect(fx + p.FX0 * s, ybase - 40 * s, p.FW * s, 40 * s, lw=0.3, dash=([2, 1.2], 0))   # balkis 80x40 (paslėptas)
         for hx, hz in p.BH:
             K.centerline(fx + (p.FX0 + hx) * s, ybase - 46 * s, fx + (p.FX0 + hx) * s, ybase + 6)
-        line(fx - 30, ybase, fx + fw + 30, ybase, 0.4, black, dash=([6, 2], 0))
+        line(fx - 30, ybase, fx + fw + 30, ybase, 0.5, black, dash=([6, 2], 0))
         gl = ybase
         xs_h = [fx] + [fx + (p.FX0 + hx) * s for hx, _ in p.BH] + [fx + fw]
         # rev C: ankerių grandinė 1:15 su 12 pt netelpa - matmenys DETAIL H (sheet 4, 1:5)
@@ -489,7 +503,7 @@ def ga(p, sheet, graphic, decals=None):
         rect(X(0) - p.FL / 2 * s, ybase, p.FL * s, p.FLT * s, fill=GREYF, lw=0.3)
     else:
         rect(X(40), ybase - 40 * s, 80 * s, 40 * s, lw=0.3, dash=([2, 1.2], 0))
-        line(X(TB + TW) - 20, ybase, X(-TB) + 20, ybase, 0.4, black, dash=([6, 2], 0))
+        line(X(TB + TW) - 20, ybase, X(-TB) + 20, ybase, 0.5, black, dash=([6, 2], 0))
     labs = ["30", f"{TB}", f"{TB}"] + (["30"] if p.sides == 2 else [])
     xs = [X(TB + TW), X(TB), X(0), X(-TB)] + ([X(-TB - TW)] if p.sides == 2 else [])
     hdim(xs[0], xs[-1], fy - 16, f"{D}", fy, fy, DIM)          # rev C: sluoksniai 30 / TB - pjūvyje A (1:2), čia tik gylis
@@ -623,7 +637,7 @@ def typical_hsec(ox, oy, k, p, L_=150, labels=True):
     vchain(ox - 34, ys, [ox] * len(ys), ["30", f"{TB}", f"{TB}"] + (["30"] if sides == 2 else []), DIM)
     if labels:
         vchain(ox - 56, [yW1, yW2], [ox] * 2, [f"{p.D}"], DIM)
-        hdim(ox, fx, fy + FR * k + 12, "3", None, None, DIM, small_side="l")
+        hdim(ox, fx, fy + FR * k + 22, "3", None, None, DIM, small_side="l")   # v182: ne ant grandinės išvadinės
         hdim(ox, ox + t * k, yW1 - 12, "2", yW1, yW1, DIM, small_side="l")
         hdim(lx, lx + LP * k, yB1 - LP * k - 30, "25 (L 25x25x2)", yB1 - LP * k, yB1 - LP * k, DIM)
         hdim(ox, lx, yB1 + 6 * k, "4", None, None, DIM, small_side="l") if False else None
@@ -736,7 +750,7 @@ def sections(p, sheet):
     K.set_view(False)
     vchain(Xz2(TB + TW) - 16, [Yy2(PL), Yy2(0)], [Xz2(TB + TW)] * 2, [f"{PL}"], DIM)
     if p.rib:
-        line(Xz2(TB + TW) - 30, Yy2(0), Xz2(-TB - (TW if p.sides == 2 else 0)) + 30, Yy2(0), 0.4, black, dash=([6, 2], 0))
+        line(Xz2(TB + TW) - 30, Yy2(0), Xz2(-TB - (TW if p.sides == 2 else 0)) + 30, Yy2(0), 0.5, black, dash=([6, 2], 0))
         hchain(Yy2(0) + 16, [Xz2(TB), Xz2(TB - p.rib)], [Yy2(0)] * 2, [f"{p.rib}"], DIM)
     else:
         line(Xz2(TB + TW) - 30, Yy2(0), Xz2(-TB) + 40, Yy2(0), 0.6, black)
@@ -746,7 +760,7 @@ def sections(p, sheet):
         yb_ = Yy2(-HB_)
         hchain(yb_ + 16, [Xz2(40), Xz2(za), Xz2(-40)], [Yy2(0)] * 3, [f"{40 - za}", f"{40 + za}"], DIM)
         hdim(Xz2(40), Xz2(-40), yb_ + 36, "80", Yy2(0), Yy2(0), DIM)
-        vchain(Xz2(-TB) + 16, [Yy2(40), Yy2(0)], [Xz2(-40)] * 2, ["40"], DIM)
+        vchain(Xz2(40) - 16, [Yy2(40), Yy2(0)], [Xz2(40)] * 2, ["40"], DIM)   # v182: kairėje - išvadinės į dešinę jo nekerta
         vchain(Xz2(TB + TW) - 16, [Yy2(0), Yy2(-HB_)], [Xz2(za)] * 2, ["hef 125"], DIM)
         tag(Xz2(za - 8), Yy2(-35), Xz2(-TB) + 40, Yy2(-50), "M16 A4, chem. anchor", 8)
         tag(Xz2(za - 12), Yy2(50), Xz2(-TB) + 64, Yy2(70), "nut + washer on top wall", 8)
@@ -756,7 +770,7 @@ def sections(p, sheet):
     else:
         vchain(Xz2(-TB) + 36, [Yy2(p.BG), Yy2(0)], [Xz2(-TB)] * 2, [f"{p.BG}"], DIM)
 
-    hdim(Xz2(TB + TW), Xz2(TB + TW - HO_W), Yy2(PL) + 26, f"{HO_W}", Yy2(PL), Yy2(PL), DIM, small_side="l")
+    hdim(Xz2(TB + TW), Xz2(TB + TW - HO_W), Yy2(PL) + 26, f"{HO_W}", Yy2(PL), Yy2(PL), DIM, small_side="r")   # v182: ne ant vertikalaus matmens
     if p.rib:
         T((Xz2(TB + TW) + Xz2(-TB)) / 2, Yy2(0) + 78, "rib 20 between legs;", 8, color=K.GREY, align="c", auto_red=False)
         T((Xz2(TB + TW) + Xz2(-TB)) / 2, Yy2(0) + 88, "notch at legs (no contact)", 8, color=K.GREY, align="c", auto_red=False)
@@ -812,7 +826,7 @@ def flange_plan(p, x0, y0):
     e_ = (F - HP) / 2
     for a in (e_, F - e_):
         for b in (e_, F - e_):
-            K.circle(ox + a * k, oy + b * k, HD / 2 * k, fill=white, stroke=black, lw=0.4)
+            K.circle(ox + a * k, oy + b * k, HD / 2 * k, fill=white, stroke=black, lw=K.HAIR)
             K.centerline(ox + a * k - 5, oy + b * k, ox + a * k + 5, oy + b * k); K.centerline(ox + a * k, oy + b * k - 5, ox + a * k, oy + b * k + 5)
     hchain(oy - 16, [ox, ox + e_ * k, ox + (F - e_) * k, ox + F * k], [oy + e_ * k] * 4, [f"{e_:g}", f"{HP}", f"{e_:g}"], DIM)
     vchain(ox + F * k + 16, [oy, oy + e_ * k, oy + (F - e_) * k, oy + F * k], [ox + (F - e_) * k] * 4, [f"{e_:g}", f"{HP}", f"{e_:g}"], DIM)
@@ -832,7 +846,7 @@ def flange_plan(p, x0, y0):
           "Level difference left / right (long leg +60 assumed)?",
           f"Anchor holes confirmed: 4 x Ø{HD}, {HP} x {HP}."]
     hq = 12 * len(qs) + 10
-    rect(qx - 6, qy - 4, 270, hq, stroke=RED, lw=1.0)
+    rect(qx - 6, qy - 4, 270, hq, stroke=RED, lw=0.5)
     for i, q in enumerate(qs):
         T(qx, qy + 10 + i * 12, q, 8.5 if i == 0 else 8, font="FB" if i == 0 else "F", color=RED if i == 0 else black, auto_red=False, fit=258, fit_min=8)
 
@@ -950,7 +964,7 @@ def flat_blue(p, sheet):
     else:
         hchain(oy_ + CH * c3 + 14, [ox_ - TB * c3, ox_], [oy_ + CH * c3] * 2, [f"{TB}"], DIM)
     vchain(ox_ - TB * c3 - 14, [oy_ + CH * c3 - 100 * c3, oy_ + CH * c3], [ox_ - TB * c3] * 2, ["100"], DIM)
-    hdim(ox_ - TB * c3, ox_ - HO_B * c3, oy_ - 10, f"{TB - HO_B}", oy_, oy_, DIM, small_side="l")
+    hdim(ox_ - TB * c3, ox_ - HO_B * c3, oy_ - 10, f"{TB - HO_B}", oy_, oy_, DIM, small_side="r")   # v182: ne ant vertikalaus matmens
     T(ox_ + 4, oy_ + CH * c3 + p.rib * c3 + 36, ("notch at leg: side return full height, bottom rib only between legs" if p.rib else "bottom edge straight, no fold"), 8, color=K.GREY, auto_red=False)
     view_title(ox_ + (CW - TB) * c3 / 2, oy_ + CH * c3 + p.rib * c3 + 58, "DETAIL F - BOTTOM CORNER (flat)", "SCALE 1:3")
     # pastabos
@@ -1077,7 +1091,7 @@ def pmma_sheet(sheet):
             (top_o[0] + tp * k * nx_, top_o[1] + tp * k * ny_), (sx + tp * k * nx_ + 0, sy - tp * k), (sx + FOOT * k, sy - tp * k)]
     poly(prof, fill=HexColor("#DDE6EE"), lw=0.3)
     K.set_view(False)
-    line(sx - 40, sy, sx + FOOT * k + 40, sy, 0.4, black, dash=([6, 2], 0))
+    line(sx - 40, sy, sx + FOOT * k + 40, sy, 0.5, black, dash=([6, 2], 0))
     T(sx + FOOT * k + 44, sy + 3, "desk", 8, color=K.GREY, auto_red=False)
     # matmenys
     hdim(sx, sx + FOOT * k, sy + 16, f"{FOOT}", sy, sy, DIM)

@@ -100,6 +100,9 @@ v162 (Rytis 2026-10-13, SVARBI TAISYKLĖ): KLIENTO GRAFIKA VISADA ATITINKA ORIGI
   matomas šonas, ten ir mūsų (r3d yaw ženklas). Korpuso / fono spalvos - iš kliento lapo RAL legendos pavyzdžių, ne iš lentelės.
 - (v167) Rytis tikrina lapus CorelDRAW: kliento fragmentui VISADA `K.pdf_explicit_colors(fn)` (spot / ICC spalvos su aiškiu
   `scn` po `cs`) - kitaip Corel sumaišo spalvas (baltas fonas -> mėlynas). Patikra: kiekvienas `cs` / `CS` turinio sraute turi `scn`.
+- (v182) `patikra_lapas.py` kliento grafikos (`place_pdf`) netikrina - sritys `<lapas>.pdf.art.json`; sujungiant lapus į vieną PDF
+  sritis perskaičiuoti pagal puslapių poslinkį (pvz. `projektai/thales_d059422/gen_thales.sh`). Fragmentui: `pdf_explicit_colors`
+  + `pdf_drop_unused_fonts` (tušti teksto blokai, Type0 šriftai). Objektų kontūrai - hairline, ne 0,3 (0,3 - tik matmenims / išvadinėms).
 - Patikra prieš siunčiant: naujas lapas vs paskutinis patvirtintas (poppler + MuPDF) - kliento grafikos vietose skirtumo nėra.
 
 ## Ko nedaryti

@@ -127,13 +127,14 @@ F_DIM_MAIN, F_DIM_FRAME, F_INFO, F_VIEW, F_SCALE = 12, 8, 8, 13, 9
 def init(tmp_pdf, title=""):
     global c, _tmp
     _tmp = tmp_pdf
-    TEXT_BOXES.clear()
+    TEXT_BOXES.clear(); EXT_REG.clear()
     c = canvas.Canvas(tmp_pdf, pagesize=(W, H))
     c.setTitle(title)
     return c
 
 
 _PLACE = []
+ART = []          # v182: įdėtos kliento grafikos sritys (pymupdf koord. + psl.) -> <lapas>.pdf.art.json, patikra_lapas jas praleidžia
 
 
 def place_pdf(src_pdf, pno, clip, tl, tr, bl, outline=0.3, under=False):
@@ -165,8 +166,10 @@ def _apply_place(doc):
         mn = (a0 * a_ + b0 * c_, a0 * b_ + b0 * d_, c0 * a_ + d0 * c_, c0 * b_ + d0 * d_,
               e0 * a_ + f0 * c_ + e_, e0 * b_ + f0 * d_ + f_)
         doc.xref_set_key(xr, "Matrix", "[" + " ".join(f"{v:.6f}" for v in mn) + "]")
+        br = (tr[0] + bl[0] - tl[0], tr[1] + bl[1] - tl[1])
+        xs_ = [q[0] for q in (tl, tr, br, bl)]; ys_ = [Hp - q[1] for q in (tl, tr, br, bl)]
+        ART.append([min(xs_), min(ys_), max(xs_), max(ys_), pi])
         if ol:                                                       # kontūras virš įdėtos grafikos (lapo detalės kraštas)
-            br = (tr[0] + bl[0] - tl[0], tr[1] + bl[1] - tl[1])
             pg.draw_polyline([fitz.Point(q[0], Hp - q[1]) for q in (tl, tr, br, bl)], color=(0, 0, 0), width=ol, closePath=True)
     _PLACE.clear()
 
@@ -179,6 +182,19 @@ def save(out_pdf):
     doc.save(out_pdf, garbage=3, deflate=True)
     doc.close()
     pdf_fix_fonts(out_pdf)                        # v20: CorelDRAW atpažįsta GOST Common - tekstas lieka tekstu
+    art_json(out_pdf)
+
+
+def art_json(out_pdf, pages_offset=0):
+    """v182: kliento grafikos sritys šalia lapo (`<lapas>.pdf.art.json`) - patikra_lapas.py jų netikrina (kliento grafika
+    neliečiama, v162); sąrašas išvalomas."""
+    import json
+    if ART:
+        with open(out_pdf + ".art.json", "w") as fh:
+            json.dump({"art": [a[:4] + [a[4] + pages_offset] for a in ART]}, fh)
+    elif os.path.exists(out_pdf + ".art.json"):
+        os.remove(out_pdf + ".art.json")
+    ART.clear()
 
 
 def set_view(on):
@@ -303,11 +319,44 @@ def arrowhead(x, y, ang):
     c.drawPath(p, stroke=0, fill=1); c.restoreState()
 
 
+EXT_REG = {}                                             # v182: nubrėžtos išvadinės (psl., ašis, koord.) -> [(a, b)]
+
+
+def ext_line(x1, y1, x2, y2):
+    """v182 (patikra_lapas „MATMENYS VIENAS ANT KITO"): išvadinė linija - jei toje pačioje tiesėje jau yra išvadinė
+    (grandinės ir gabarito matmenys iš to paties taško), brėžiama TIK trūkstama dalis, linijos viena ant kitos nekartojamos."""
+    pg = c.getPageNumber()
+    if abs(x1 - x2) < 0.05:
+        key, a, b = (pg, "v", round(x1, 1)), min(y1, y2), max(y1, y2)
+    elif abs(y1 - y2) < 0.05:
+        key, a, b = (pg, "h", round(y1, 1)), min(x1, x2), max(x1, x2)
+    else:
+        line(x1, y1, x2, y2, 0.25, EXT); return
+    segs = [(a, b)]
+    for (p, q) in EXT_REG.get(key, []):
+        nxt = []
+        for (s0, s1) in segs:
+            if q <= s0 or p >= s1:
+                nxt.append((s0, s1)); continue
+            if s0 < p:
+                nxt.append((s0, p))
+            if q < s1:
+                nxt.append((q, s1))
+        segs = nxt
+    for (s0, s1) in segs:
+        if s1 - s0 > 0.3:
+            if key[1] == "v":
+                line(x1, s0, x1, s1, 0.25, EXT)
+            else:
+                line(s0, y1, s1, y1, 0.25, EXT)
+    EXT_REG.setdefault(key, []).append((a, b))
+
+
 def hdim(x1, x2, y, label, e1=None, e2=None, size=8, small_side="r", avoid=None):
     for x, e in ((x1, e1), (x2, e2)):
         if e is not None:
             sgn = 1 if e > y else -1
-            line(x, e - 2 * sgn, x, y - 3 * sgn, 0.25, EXT)
+            ext_line(x, e - 2 * sgn, x, y - 3 * sgn)
     line(x1, y, x2, y, 0.3)
     if x2 - x1 > max(16, pdfmetrics.stringWidth(str(label), "F", size) + 4):
         arrowhead(x1, y, 180); arrowhead(x2, y, 0)
@@ -376,7 +425,7 @@ def hchain(y, xs, ext_from_y, labels, size=8, bg=False, avoid=None):
     TX = _Tbg if bg else T
     for x, ey in zip(xs, ext_from_y):
         sgn = 1 if ey > y else -1
-        line(x, ey - 2 * sgn, x, y - 3 * sgn, 0.25, EXT)
+        ext_line(x, ey - 2 * sgn, x, y - 3 * sgn)
     line(xs[0], y, xs[-1], y, 0.3)
     away = -1 if sum(ey - y for ey in ext_from_y) >= 0 else 1      # kryptis nuo objekto (puslapio y)
     placed = []                                            # (x0, x1, y) užimti tekstų plotai
@@ -423,14 +472,14 @@ def hchain(y, xs, ext_from_y, labels, size=8, bg=False, avoid=None):
             TX(cx, yy, lab, size, align="c"); placed.append((cx - w_ / 2, cx + w_ / 2, yy))
 
 
-def vchain(x, ys, ext_to, labels, size=8, bg=False):
+def vchain(x, ys, ext_to, labels, size=8, bg=False, small=None):
     """vertikali grandinė; ext_to - x, iki kurio eina išvadinė (abi pusės palaikomos).
     v152: mažo tarpo užrašas - kraštinio tarpo IŠORĖJE (virš / po grandinės galu, pasuktas kaip kiti), vidurinių -
     šone TOLIAU nuo objekto (horizontalus tekstas su išvadine), vienas kito neliečia."""
     TX = _Tbg if bg else T
     for y, ex in zip(ys, ext_to):
         sgn = 1 if ex > x else -1
-        line(x - 3 * sgn, y, ex - 2 * sgn, y, 0.25, EXT)
+        ext_line(x - 3 * sgn, y, ex - 2 * sgn, y)
     line(x, ys[0], x, ys[-1], 0.3)
     out = -1 if all(ex > x for ex in ext_to) else 1          # maži užrašai - į pusę nuo išvadinių
     n = len(labels); top, bot = min(ys), max(ys)
@@ -451,6 +500,8 @@ def vchain(x, ys, ext_to, labels, size=8, bg=False):
         # v172 (Rytis: „matmenų linijos sugrūdamos"): kraštinis mažas tarpas - VIRŠ / PO grandinės galu (ne šone, kur
         #  jį kerta išorinio matmens išvadinė); vidurinis - šone, toliau nuo objekto
         end = "top" if i == 0 else ("bot" if i == n - 1 else "side")
+        if small == "side":                                  # v182: lapo krašte (virš / po galu nėra vietos) - šone
+            end = "side"
         if end == "top" and not free(top - 10 - w_, top - 8, x - size, x) and i == n - 1:
             end = "bot"                                      # viršuje užimta (kiti matmenys) - po apačios galu
         if end == "top" and free(top - 10 - w_, top - 8, x - size, x):
@@ -1636,13 +1687,56 @@ def pdf_explicit_colors(fn):
 
     total = 0
     seen = set()
+
+    def forms_of(owner):                                     # v182: ir įdėtinės formos (forma formoje - gradientai, grupės)
+        t, v = doc.xref_get_key(owner, "Resources/XObject")
+        if t != "dict":
+            return []
+        return [int(x) for x in re.findall(r"(\d+)\s+0\s+R", v)]
+
+    def walk(xr):
+        nonlocal total
+        if xr in seen or doc.xref_get_key(xr, "Subtype")[1] != "/Form":
+            return
+        seen.add(xr)
+        total += patch(xr, [xr])
+        for y in forms_of(xr):
+            walk(y)
     for page in doc:
         total += patch(page.xref, page.get_contents())
         for x in page.get_xobjects():
-            xr = x[0]
-            if xr not in seen and doc.xref_get_key(xr, "Subtype")[1] == "/Form":
-                seen.add(xr)
-                total += patch(xr, [xr])
+            walk(x[0])
+        for y in forms_of(page.xref):
+            walk(y)
     if total:
         doc.save(fn, incremental=True, encryption=fitz.PDF_ENCRYPT_KEEP)
     return total
+
+
+def pdf_drop_unused_fonts(fn):
+    """v182 (v171 taisyklė: puslapyje tik GOST Common; Type0 šriftai - CorelDRAW „corrupted file"): kliento fragmente po
+    redakcijos lieka TUŠTI teksto blokai (`BT /F51 9 Tf ... ET` be Tj / TJ) ir įterpti kliento šriftai (Gotham, Arial).
+    Jei turinio srautuose NĖRA nė vieno teksto rodymo operatoriaus - `Tf` operatoriai ir /Font resursai pašalinami
+    (baitų lygiu, kita grafika nepaliečiama). Yra gyvas tekstas - nieko nedaroma, grąžina False."""
+    import re
+    doc = fitz.open(fn)
+    streams = []
+    for page in doc:
+        streams += [(page.xref, x) for x in page.get_contents()]
+        for x in page.get_xobjects():
+            if doc.xref_get_key(x[0], "Subtype")[1] == "/Form":
+                streams.append((x[0], x[0]))
+    show = re.compile(rb"(\)|>|\])\s*(Tj|TJ|'|\")(?=[\s/\[(<]|$)")
+    for _, sx in streams:
+        if show.search(doc.xref_stream(sx)):
+            return False
+    tf = re.compile(rb"/[A-Za-z0-9_.#+-]+\s+-?[\d.]+\s+Tf(?=[\s/\[(<]|$)")
+    for owner, sx in streams:
+        s = doc.xref_stream(sx)
+        s2 = tf.sub(b"", s)
+        if s2 != s:
+            doc.update_stream(sx, s2)
+        if doc.xref_get_key(owner, "Resources/Font")[0] != "null":
+            doc.xref_set_key(owner, "Resources/Font", "null")
+    doc.save(fn, incremental=True, encryption=fitz.PDF_ENCRYPT_KEEP)
+    return True

@@ -2,6 +2,17 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v182 (2026-10-13)
+
+v182, Rytis 2026-10-13 („atnaujink dokumentą pagal paskutinį skill"): Thales ALT8879 perdarytas pagal v168-v181 (privaloma
+`patikra_lapas.py` = 0 klaidų, v171 tik GOST + qpdf). Pradžioje 85 klaidos:
+- kliento grafikos fragmentų linijos (0,34 / 0,57 pt) ir už iškarpos likęs turinys - tikrintuvas dabar žiūri iškarpas (extended
+  `get_drawings`: atkarpa visa už savo clip - nematoma) ir praleidžia kliento grafikos sritis (`*.art.json` iš `place_pdf`);
+- objektų kontūrai 0,3 / 0,5 pt (tikrintuvas laikė matmenimis -> „matmenys vienas ant kito", „išvadinė kerta matmenis") - hairline;
+- grandinės ir gabarito išvadinės iš to papaties taško - `ext_line` registras (brėžiama tik trūkstama dalis);
+- maži užrašai ant matmenų / išvadinių linijų („17", „3", „40") - kita pusė / kita vieta; TOP VIEW „140" ant lapo rėmelio - `small="side"`.
+Kliento grafika (10 sričių) - pikselis į pikselį kaip ALT8879; šriftai - tik GOST Common (+ nenaudojamas Helvetica).
+
 ## v167 (2026-10-13)
 
 v167, Rytis 2026-10-13 (CorelDRAW ekrano nuotrauka: priekis mėlynas, THALES / WELCOME balti, BIENVENUE nesimato):

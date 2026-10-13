@@ -12,6 +12,8 @@ Tikrinama vaizdų zonoje (virš apatinės juostos):
   4. MATMENYS VIENAS ANT KITO - lygiagrečios matmenų linijos toje pačioje eilėje (±1,5 pt) neužeina viena ant kitos.
   5. IŠVADINĖ PER IŠVADINĘ / MATMENĮ - nuorodų (išvadinių) linijos nesikerta su kitomis matmenų / išvadinių linijomis.
 --skip - sritys, kurių 2-5 netikrinti (įdėtas originalo fragmentas: jo turinys - originalo, ne mūsų išdėstymas).
+v182: `<lapas>.pdf.art.json` (rašo lapas_core.save per place_pdf) - KLIENTO GRAFIKA (spausdinama, v162 neliečiama): joje
+netikrinama nieko (ir hairline); atkarpos, visiškai už savo iškarpos (clip), nematomos - netikrinamos.
 """
 import math
 import sys
@@ -71,6 +73,10 @@ def _cross(a, b):
 
 def check(pdf, band_y=None, skips=(), verbose=True):
     doc = fitz.open(pdf)
+    arts = []
+    import json, os
+    if os.path.exists(pdf + ".art.json"):                                          # v182: K.place_pdf kliento grafikos sritys
+        arts = json.load(open(pdf + ".art.json"))["art"]
     total = 0
     for pno, pg in enumerate(doc):
         errs = []
@@ -83,6 +89,8 @@ def check(pdf, band_y=None, skips=(), verbose=True):
         top = 32
         S = [fitz.Rect(s) for s in skips if (len(s) == 4) or s[4] == pno]
         S = [fitz.Rect(s[:4]) for s in skips if len(s) == 4 or s[4] == pno]
+        ART = [fitz.Rect(a[0] - 1, a[1] - 1, a[2] + 1, a[3] + 1) for a in arts if a[4] == pno]
+        S += [fitz.Rect(a) for a in ART]                                           # kliento grafika - ir 2-5 netikrinami
         inskip = lambda r: any(k.intersects(r) for k in S)
         spans = []
         for b in pg.get_text("dict")["blocks"]:
@@ -98,7 +106,32 @@ def check(pdf, band_y=None, skips=(), verbose=True):
                             rr = fitz.Rect(r.x0 + w * 0.18, r.y0 + 0.5, r.x1 - w * 0.22, r.y1 - 0.5)
                         spans.append((rr, s["text"].strip(), l["dir"]))
         lines, leaders = [], []
-        for d in pg.get_drawings():
+        # v182: iškarpos (clip) - atkarpos visiškai už savo iškarpos nematomos (pvz. įdėto fragmento turinys už rėmo) -> netikrinamos
+        vis = []
+        stack = []
+        for d in pg.get_drawings(extended=True):
+            L = d.get("level", 0)
+            while stack and stack[-1][0] >= L:
+                stack.pop()
+            cur = stack[-1][1] if stack else None
+            if d["type"] == "clip":
+                sc = fitz.Rect(d["scissor"])
+                if sc.is_empty or sc.x0 > sc.x1 or sc.y0 > sc.y1:
+                    sc = fitz.Rect(0, 0, 0, 0)
+                stack.append((L, sc if cur is None else (sc & cur)))
+                continue
+            if d["type"] == "group" or "items" not in d:
+                stack.append((L, cur if cur is not None else pg.rect))
+                continue
+            if cur is not None:
+                cr = fitz.Rect(cur.x0 - 0.05, cur.y0 - 0.05, cur.x1 + 0.05, cur.y1 + 0.05)
+                if cur.is_empty or not any(_seg_rect(sg, cr) for sg in _segs(d)):
+                    continue                                                       # visa kelio dalis nematoma
+                d = dict(d); d["_clip"] = cr
+            if any(a_.contains(d["rect"]) for a_ in ART):
+                continue                                                           # kliento grafika (v162 - neliečiama)
+            vis.append(d)
+        for d in vis:
             r = d["rect"]
             if r.y0 >= by - 1 or r.y1 < top or d["type"] not in ("s", "fs") or r.width > pg.rect.width * 0.8:
                 continue
@@ -113,6 +146,8 @@ def check(pdf, band_y=None, skips=(), verbose=True):
             if w >= 0.18 and not inskip(r):
                 dark = max(col) < 0.35
                 for sg in _segs(d):
+                    if "_clip" in d and not _seg_rect(sg, d["_clip"]):
+                        continue
                     lines.append((sg, w if dark or col[0] > 0.6 else -w, d))      # pilkos išvadinės (ext) - neigiamas
         # balionų skaičiai (tekstas apskritime) - išvadinė eina iki centro po baltu užpildu, netikrinami
         circ = [fitz.Rect(d["rect"]) for d in pg.get_drawings() if d["rect"].width < 20 and abs(d["rect"].width - d["rect"].height) < 1
