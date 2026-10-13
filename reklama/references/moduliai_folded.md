@@ -7,6 +7,8 @@ gylis pagal užsakymą (dažniausiai 40), 4 užlenkimai 90° į galą.
 lenkimo linijos = stačiakampis W x H (vienas uždaras kontūras); VISI flanšai nuo lenkimo linijos = gylis - t (40 -> 38);
 viršus / apačia (užsilenkiantys) - per visą plotį W tarp šonų lenkimo linijų; ŠONAI (įsilenkiantys tarp skardų) - iš abiejų
 galų t trumpesni (H - 2t; 1000 -> 996); kampų išpjova stačiakampė; K faktoriaus / BA NĖRA (lenkimo atskaita = t / 90°).
+**PATVIRTINTA (Rytis 2026-10-13, „labai gerai"), testai:** 1000x1000x40 -> 1076 x 1076 (= etalonas); 1350x560x35 -> 1416 x 626
+(šonai 556); 1350x230x20 `--tb-inside` -> 1386 x 266 (viršus / apačia 1346, šonai 230).
 **Variantas „top/bottom edge inside" (v174):** viršus / apačia įsilenkia TARP šonų - jie iš galų t trumpesni (W - 2t), šonai per visą H (`folded_dxf.py --tb-inside`).
 Išklotinė = (W + 2·(gylis - t)) x (H + 2·(gylis - t)) - 1000x1000x40 -> 1076 x 1076. (Senas K 0.44 / R2 / BD 3.476 skaičiavimas
 v37-v172 - NEBENAUDOTI; seni projektų skriptai jo nepakeisti.) max ilgis - lakšto 4000 - 2x10 paraštė (praktiškai dalis <= 3900).
