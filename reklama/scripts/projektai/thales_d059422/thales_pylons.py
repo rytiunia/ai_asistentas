@@ -94,7 +94,7 @@ def band(title, sheet, sec_title, sec, rows, md, scales, mdw=200):
     K.main_data(X_MD, BY0, W_MD, BH, md, lab_w=62)
     K.title_block(X_TB, W_TB, {"title": PROJECT + " - " + title, "sheet": sheet, "client": CLIENT, "drawing_no": DRAWING_NO,
                                "date": DATE, "rev": REV, "order_no": os.environ.get("THALES_ORDER", "ALT0000_00.00_RS"),
-                               "revisions": [["D", "Client colours, texts outlined, 3D top", DATE, ""]]}, scales)
+                               "revisions": [["D", "3D white top full depth", DATE, ""]]}, scales)
 
 
 def save(fn):
@@ -171,7 +171,8 @@ def clip_src(pno, clip):
                         text=fitz.PDF_REDACT_TEXT_REMOVE)
     fn = os.path.join(tempfile.gettempdir(), f"thales_frag_{pno}_{abs(hash(key)) % 10 ** 8}.pdf")
     nd.save(fn, garbage=3, deflate=True)
-    K.pdf_text_to_paths(fn)                                  # v156: kliento tekstai -> kreivės (ne tekstas)
+    if nd[0].get_text().strip():                             # v162: tik jei fragmente LIKO gyvas tekstas (Thales - nėra,
+        K.pdf_text_to_paths(fn)                              # kliento maketų tekstai jau kreivės) - kitaip failas neliečiamas
     _FRAG[key] = fn
     return fn
 
@@ -1133,19 +1134,6 @@ def pmma_sheet(sheet):
     save(f"{OUT}/PMMA_5.pdf")
 
 
-def client_fill(pno, x, y):
-    """v157 (Rytis 2026-10-13: „pasikeitė spalvos ... kliento grafika VISADA turi atitikti"): korpuso spalvos - TIK iš
-    kliento PDF (viršutinis užpildytas plotas taške x, y), ne ranka parinktas hex."""
-    best = None
-    for dr in fitz.open(SRC)[pno].get_drawings():
-        r = dr["rect"]
-        if dr.get("fill") and r.width * r.height > 3000 and r.contains(fitz.Point(x, y)):
-            best = dr["fill"]
-    if best is None:
-        raise RuntimeError(f"client_fill: nėra užpildo p{pno} ({x}, {y})")
-    return Color(*best)
-
-
 if __name__ == "__main__":
     E = Pyl("ENT", 1050, 2530, 2, "ext", 1, "Entrance pylon 1050 x 2530, double-sided")
     TB = 43                                    # Rytis 2026-10-11: balkis 80 + laisvumai -> mėlyna 86 (2 x 43)
@@ -1156,12 +1144,10 @@ if __name__ == "__main__":
     NS = "5"
     if "all" in which or "E" in which:
         TB = 40; EAR = TW + TB                 # dvipusis: baltas viršus iki vidurio (70)
-        BLUE, WHITE_ = client_fill(1, 276, 684), client_fill(1, 276, 450)        # kliento Vue de face: RAL 5022 / 9016
         ga(E, f"1 / {NS}", (1, (177.3, 225.6, 375.7, 665.9)))
         sections(E, f"2 / {NS}")
     if "all" in which or "B" in which:
         TB = 43; EAR = TW + 2 * TB             # rev C (Rytis 2026-10-13): vienpusis - baltas viršus iki pilono galo (116)
-        BLUE, WHITE_ = client_fill(9, 411, 590), client_fill(9, 411, 400)        # kliento ZENITH maketas
         ga(B, f"3 / {NS}", (9, (354.4, 205.1, 467.8, 569.8)), decals=dec)
         sections(B, f"4 / {NS}")
     if "all" in which or "P" in which:

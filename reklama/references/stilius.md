@@ -90,13 +90,13 @@ kampai). NEPERPIEŠTI `get_drawings` kontūrais - praranda tekstą, paveikslėli
 v155: įdedamas fragmentas - ATSKIRAS 1 psl. PDF, iš kurio redakcija pašalinta viskas už iškarpos ir kliento matmenų
 užrašai (Thales `clip_src`) - kitaip Corel / tekstų sąraše matosi kliento antraštės Arial / Gotham šriftais. Lapo tekstas - tik GOST Common;
 po generavimo patikrinti `pdffonts` / span šriftus: kiti šriftai leidžiami TIK matomoje kliento grafikoje.
-v156 / v157 (Rytis 2026-10-13): KLIENTO TEKSTAI VISADA KREIVĖMIS (vektoriai, ne tekstas) - `K.pdf_text_to_paths(fn)`
-(`scripts/pdf_outline.py`: keičia TIK teksto operatorius, spalvos / ICC / overprint / skaidrumas lieka baitas į baitą).
-GHOSTSCRIPT AR KITO PERRAŠYMO (pdfwrite, perrenderinimo) KLIENTO GRAFIKAI NENAUDOTI - v156 pakeitė spalvas.
-KLIENTO GRAFIKA VISADA ATITINKA ORIGINALĄ visose projekcijose, vaizduose ir failuose (Rytis 2026-10-13, svarbi taisyklė):
-- korpuso / fono spalvos (RAL plotai po grafika, 3D kūnai) - imamos iš kliento PDF užpildo (Thales `client_fill`), ne hex iš akies;
-- patikra po generavimo: fragmento atvaizdas = kliento originalo atvaizdas (CMYK, pikselių skirtumas ~0), OP / ICC objektų skaičius
-  nepasikeitęs, `pdffonts` - tik GOST Common (+ nenaudojamas Helvetica), poppler be „Unknown font tag".
+v162 (Rytis 2026-10-13, SVARBI TAISYKLĖ): KLIENTO GRAFIKA VISADA ATITINKA ORIGINALĄ visose projekcijose, vaizduose ir failuose.
+- Įdėjimas - TIK v155 būdas: `clip_src` (redakcija už iškarpos) + `place_pdf`; fragmento PDF po išsaugojimo NELIEČIAMAS.
+- NEPERRAŠYTI kliento grafikos jokiu įrankiu (Ghostscript pdfwrite - v156, pikepdf turinio perrašymas - v157): abu kartus
+  Rytis matė sugadintas spalvas / tekstus / grafiką. Korpuso spalvų iš akies nekeisti be Ryčio nurodymo.
+- Kliento tekstai kreivėmis: dažniausiai kliento maketas JAU kreivės - tikrinti `page.get_text()`; tik jei liko gyvas tekstas,
+  `K.pdf_text_to_paths` (pdf_outline) ir pranešti Ryčiui, kad būtų patikrinta.
+- Patikra prieš siunčiant: naujas lapas vs paskutinis patvirtintas (poppler + MuPDF) - kliento grafikos vietose skirtumo nėra.
 
 ## Ko nedaryti
 - Neišgalvoti matmenų, medžiagų, storių, tvirtinimų - palikti tuščią vietą ir paklausti.

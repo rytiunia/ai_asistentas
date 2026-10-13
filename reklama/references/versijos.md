@@ -2,6 +2,15 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v162 (2026-10-13)
+
+v162, Rytis 2026-10-13 („susigadino viskas - tekstai, grafika, gražink grafikos atpažinimą į pirminį tašką, nes dabar net
+nepanašu į kliento užklausą"): v156 (Ghostscript) ir v157 (pikepdf perrašymas + `client_fill` spalvos) ATŠAUKTI kliento grafikai.
+Grafika vėl kaip v155 / ALT8878: `clip_src` (redakcija už iškarpos) + `place_pdf`, fragmentas po išsaugojimo neliečiamas.
+Patikra: ALT8879 vs ALT8878 - poppler ir MuPDF atvaizdai sutampa visur, išskyrus antraštę ir BLD 3D baltą viršų (prašytas pataisymas).
+Kliento maketų tekstai jau kreivės - kreivinimas reikalingas tik jei fragmente liko gyvas tekstas (`get_text()`).
+pdffonts rodomi Gotham / Arial - tušti kliento teksto blokų likučiai (nieko nespausdina), kaip ALT8878.
+
 ## v157 (2026-10-13)
 
 v157, Rytis 2026-10-13 („kažkas blogai - pasikeitė spalvos didelio pilono, stovelio grafika vėl neatitinka kliento užklausos.
