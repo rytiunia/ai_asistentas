@@ -100,6 +100,14 @@ def prune(G, factor=2.6, rounds=8):
 
 
 prune(G)
+if '--dbgsk' in sys.argv:
+    im_ = cv2.cvtColor((img * 200).astype(np.uint8), cv2.COLOR_GRAY2BGR)
+    for n_ in G.nodes:
+        im_[n_] = (0, 0, 255)
+    for n_ in G.nodes:
+        if G.degree(n_) >= 3: cv2.circle(im_, (n_[1], n_[0]), 6, (255, 0, 0), 2)
+        if G.degree(n_) == 1: cv2.circle(im_, (n_[1], n_[0]), 6, (0, 160, 0), 2)
+    cv2.imwrite('dbgsk.png', im_)
 G.remove_nodes_from([c for comp in list(nx.connected_components(G)) if len(comp) < 15 for c in comp])
 
 # grandinės tarp mazgų (laipsnis != 2)
@@ -124,6 +132,8 @@ for comp in nx.connected_components(G):                 # uždari kontūrai be m
             c = cyc[0]; chains.append(c + [c[0]])
 
 # mazgų klasteriai: trumpos grandinės tarp dviejų šakojimosi mazgų (< 1.5 x plotis) sutraukiamos į vieną tašką
+TWIN = float(next((x.split("=")[1] for x in sys.argv if x.startswith("--twin=")), 0.5))
+JMERGE = float(next((x.split("=")[1] for x in sys.argv if x.startswith("--jmerge=")), 2.6))
 par = {}
 def fnd(a):
     while par.get(a, a) != a:
@@ -134,7 +144,7 @@ for c in chains:
     a_, b_ = c[0], c[-1]
     if a_ != b_ and G.degree(a_) >= 3 and G.degree(b_) >= 3:
         L = sum(np.hypot(p[0] - q[0], p[1] - q[1]) for p, q in zip(c, c[1:]))
-        if L < 1.5 * max(dist[a_], dist[b_]):
+        if L < JMERGE * max(dist[a_], dist[b_]):
             par[fnd(a_)] = fnd(b_); continue
     keep.append(c)
 cl_ = {}
@@ -221,6 +231,20 @@ for ch in CH:
         a3 = np.vstack([a2] + ([np.array(ext)] if ext else []))
         ch["p"] = a3 if side == 1 else a3[::-1]
 
+# v151: jungtys tik raidės viduje ir tik tos pačios raidės ribose (Laba diena: i -> e šuolis)
+_nlab, LAB = cv2.connectedComponents(img.astype(np.uint8), connectivity=8)
+
+
+def lab(q):
+    iy, ix = int(round(q[0])), int(round(q[1]))
+    return LAB[iy, ix] if 0 <= iy < LAB.shape[0] and 0 <= ix < LAB.shape[1] else 0
+
+
+def inside_ok(pts, a, b):
+    la = lab(a)
+    return la != 0 and la == lab(b) and all(D(q) >= 1.5 for q in pts)
+
+
 # 2) mazgai: šakos nukerpamos R = 1.4 x pusplotis nuo mazgo; dvi tiesiausiai tęsiančios - sujungiamos Hermite kreive,
 #    kitos - tiesiai iki sujungtos kreivės (T jungtis)
 def hermite(p0, t0, p1, t1, n=40):
@@ -247,7 +271,7 @@ for J, br in ends.items():
         k = min(max(k, 1), len(a) - 2) if len(a) > 3 else len(a) - 1
         rest = a[k:]
         wl = max(float(np.median([D(q) for q in rest])), 2.0)
-        v = rest[0] - rest[min(len(rest) - 1, max(2, int(1.5 * wl)))]   # kryptis į mazgą
+        v = rest[0] - rest[min(len(rest) - 1, max(6, int(TWIN * wl)))]   # kryptis į mazgą
         v = v / (np.linalg.norm(v) or 1)
         new = rest if side == 0 else rest[::-1]
         CH[i]["p"] = new
@@ -266,6 +290,8 @@ for J, br in ends.items():
             continue
         i1, s1, p1, v1 = info[x]; i2, s2, p2, v2 = info[y]
         br_ = hermite(p1, v1, p2, -v2)
+        if not inside_ok(br_, p1, p2):
+            continue
         links[(i1, s1)] = (i2, s2, br_); links[(i2, s2)] = (i1, s1, br_[::-1])
         used |= {x, y}
     for z, (i, side, p, v) in enumerate(info):
@@ -398,6 +424,8 @@ for (i, side, p, v, J, R) in tees:
         proj = rel @ vv
         perp = np.abs(rel[:, 0] * vv[1] - rel[:, 1] * vv[0])
         ok = (dp > 0.6 * R) & (proj > 0) & (dp < 3.0 * R)
+        iy = np.clip(np.round(A[:, 0]).astype(int), 0, LAB.shape[0] - 1); ix = np.clip(np.round(A[:, 1]).astype(int), 0, LAB.shape[1] - 1)
+        ok &= LAB[iy, ix] == lab(p)
         if st is own:                               # savo linijoje - tik toli nuo šakos (pvz. e skersinis)
             k0 = int(np.argmin(np.hypot(*(A - p).T)))
             s_ = arclen(A); ok &= np.abs(s_ - s_[k0]) > 3 * R
@@ -419,6 +447,8 @@ for (i, side, p, v, J, R) in tees:
     endt = vv * 0.85 + tdir * 0.15
     endt = endt / (np.linalg.norm(endt) or 1)
     brg = hermite(p, vv, tgt, endt, n=24)
+    if not inside_ok(brg, p, tgt):
+        continue
     a = own["s"]
     if np.hypot(*(a[0] - p)) < np.hypot(*(a[-1] - p)):
         own["s"] = np.vstack([brg[::-1], a[1:]])
