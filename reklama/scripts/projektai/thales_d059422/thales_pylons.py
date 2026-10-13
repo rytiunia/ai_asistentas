@@ -93,7 +93,7 @@ def band(title, sheet, sec_title, sec, rows, md, scales, mdw=200):
     K.bom_table(X_BOM, BY0, W_BOM, BH, rows, title="BILL OF MATERIALS  (per 1 pcs.)")
     K.main_data(X_MD, BY0, W_MD, BH, md, lab_w=62)
     K.title_block(X_TB, W_TB, {"title": PROJECT + " - " + title, "sheet": sheet, "client": CLIENT, "drawing_no": DRAWING_NO,
-                               "date": DATE, "rev": REV, "order_no": "ALT0000_00.00_RS",
+                               "date": DATE, "rev": REV, "order_no": os.environ.get("THALES_ORDER", "ALT0000_00.00_RS"),
                                "revisions": [["C", "Flange holes, white top, decals", DATE, ""]]}, scales)
 
 

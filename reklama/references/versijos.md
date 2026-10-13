@@ -2,6 +2,11 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v153 (2026-10-13)
+
+v153, Rytis 2026-10-13 („patvirtinta: ALT8878_10.13_“): Thales D059422 gamybos paketas - `thales_pylons.py` ORDER NO. iš `THALES_ORDER`,
+naujas `thales_dxf.py` (išklotinės Alu 2 R2 K0.44, flanšai 4 x Ø14 / 237, PMMA 297 x 280.8 su lenkimo linija).
+
 ## v152 (2026-10-13)
 
 v152, Rytis 2026-10-13 (Thales rev C: „nenaudojamos skill įrašytos taisyklės dėl žymėjimo ir pastabų ar matmenų: lipama vienas ant
