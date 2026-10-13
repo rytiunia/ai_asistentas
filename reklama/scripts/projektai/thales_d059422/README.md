@@ -1,4 +1,4 @@
-# CEOS Groupe D059422 - Thales Campus Velizy (2026-10-11, rev B)
+# CEOS Groupe D059422 - Thales Campus Velizy (2026-10-13, rev C)
 
 Taisyklės: `references/moduliai_pilonai.md`.
 

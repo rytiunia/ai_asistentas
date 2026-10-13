@@ -21,14 +21,19 @@ README ten. Naujam pilonui - kopijuoti, keisti `Pyl(...)` parametrus, kliento gr
 5. **Balta skarda** 2 mm (RAL 9016): priekis, šonai + apačia 30, VIRŠUS - apverstas U: atlankas 30 + 40 (= 30 + lovelės
    gylis) iki pilono vidurio + GALINĖ PLOKŠTUMA 30 žemyn; šone viršuje AUSĖ (uždaro šoną virš mėlynos). Dvipusiame -
    priekinė ir galinė balta susitinka viduryje galinėmis plokštumomis.
+   **VIENPUSIAME (v150, Rytis 2026-10-13): baltas viršus eina iki pilono GALO / krašto** (30 + 2 x lovelės gylis, pvz.
+   30 + 43 + 43 = 116), galinė plokštuma 30 - pilono gale; L ant mėlyno viršaus prie galo. Viršaus vaizde - visas baltas.
 6. **Tvirtinimai:** balta -> L įleidžiamais (csk) varžtais PAGAL PERIMETRĄ (šonai, apačia, viršaus galinė plokštuma;
    17 nuo lenkimo, ~300); balta + mėlyna surenkamos į SEGMENTĄ, segmentas prie rėmo - csk varžtais TIK per mėlynos ŠONŲ
    atlankus (25 nuo lenkimo, ~400). Per viršų į skersinį - NE.
-7. **Grafika:** spauda ant polimerinės plėvelės + matinis laminatas, apklijuojamas VISAS baltas priekis ir apipjaunama
+7. **Kliento grafikos importas (v150):** balti stačiakampiai kliento PDF - maskavimas, NEBRAIŽOMI, išskyrus esančius
+   spalvoto stačiakampio viduje (ikonos dalis, pvz. baltas kryžius žaliame kvadrate) - jie grafika. Patikrinti ikonas lape.
+8. **Grafika:** spauda ant polimerinės plėvelės + matinis laminatas, apklijuojamas VISAS baltas priekis ir apipjaunama
    pagal skardos kraštus (full-face wrap). RAL spalvos - atkartojamos spaudoje, spalvų bandinys klientui.
 
 ## Pagrindas
 - **Ant esamų inkarų (flanšai):** flanšas Alu 300 x 300 x **20**, privirintas prie kojos; skylės - pagal esamus inkarus
+  (Thales įėjimo pilonas: CEOS patvirtino **4 x Ø14, 237 x 237** - v150)
   -> KLAUSIMAS užsakovui (išdėstymas, Ø, sriegio ilgis); nuolydis - viena koja ilgesnė (kliento brėžinyje).
 - **Paslėptas (mažesni pilonai):** apačioje balkis Alu **80x40x4** (6060-T66, standartinis, 6 m - Lemu, Schiek, ...),
   kojos privirintos ant jo; **4 skylės šachmatine tvarka**, varžtas PER ABI SIENELES, įvirinta **įvorė Ø30/Ø18 L40**

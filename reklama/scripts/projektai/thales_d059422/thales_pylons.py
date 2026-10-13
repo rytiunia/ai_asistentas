@@ -18,7 +18,7 @@ import pymupdf as fitz
 from reportlab.lib.colors import HexColor, white, black, Color
 
 K.RAL.setdefault("5022", "#222D5A"); K.RAL.setdefault("5012", "#3B83BD")
-CLIENT, PROJECT, DRAWING_NO, DATE, REV = "CEOS Groupe", "Thales Campus Velizy", "CEOS D059422", "2026-10-11", "B"
+CLIENT, PROJECT, DRAWING_NO, DATE, REV = "CEOS Groupe", "Thales Campus Velizy", "CEOS D059422", "2026-10-13", "C"
 SRC = os.environ.get("THALES_SRC", "APS_Communication_-_Thales_Campus_v5_phase_2.pdf")   # kliento PDF (CEOS D059422)
 OUT = os.environ.get("THALES_OUT", "out"); os.makedirs(OUT, exist_ok=True)
 BLUE, WHITE_ = HexColor("#222D5A"), HexColor("#F1F0EA")
@@ -92,7 +92,7 @@ def band(title, sheet, sec_title, sec, rows, md, scales, mdw=200):
     K.main_data(X_MD, BY0, W_MD, BH, md, lab_w=62)
     K.title_block(X_TB, W_TB, {"title": PROJECT + " - " + title, "sheet": sheet, "client": CLIENT, "drawing_no": DRAWING_NO,
                                "date": DATE, "rev": REV, "order_no": "ALT0000_00.00_RS",
-                               "revisions": [["A", "First issue", "2026-10-10", ""], ["B", "Bldg base plate, 3D, client set", DATE, ""]]}, scales)
+                               "revisions": [["C", "Flange holes, white top, decals", DATE, ""]]}, scales)
 
 
 def save(fn):
@@ -101,6 +101,9 @@ def save(fn):
 
 def client_paths(pno, clip, skip_big=0.5):
     p = fitz.open(SRC)[pno]; clip = fitz.Rect(clip); out = []
+    # rev C: spalvoti stačiakampiai (ikonų fonai) - baltas stačiakampis JŲ VIDUJE yra grafika (kryžius), kitur - maskavimas
+    _col = [d["rect"] for d in p.get_drawings() if d.get("fill") and min(d["fill"][:3]) < 0.8 and clip.intersects(d["rect"])
+            and d["rect"].width * d["rect"].height < 0.05 * clip.width * clip.height]
     for d in p.get_drawings():
         r = d["rect"]
         if not clip.intersects(r) or r.width * r.height > skip_big * clip.width * clip.height:
@@ -110,7 +113,8 @@ def client_paths(pno, clip, skip_big=0.5):
         f = d.get("fill"); s_ = d.get("color")
         if f is None and s_ is None:
             continue
-        if f and min(f[:3]) > 0.9 and all(it[0] == "re" for it in d["items"]):     # balti maskavimo kvadratai - ne grafika
+        if f and min(f[:3]) > 0.9 and all(it[0] == "re" for it in d["items"]) and not any(c_.contains(r) for c_ in _col):
+            # balti maskavimo kvadratai - ne grafika; rev C: smulkūs balti (kryžius žaliame kvadrate) - grafika, paliekami
             continue
         out.append((K.drawing_to_subpaths(d, lambda q: q), tuple(f[:3]) if f else None, tuple(s_[:3]) if (s_ and f is None) else None, d.get("width") or 0.3))
     return out
@@ -332,10 +336,9 @@ def ga(p, sheet, graphic, decals=None):
     ybase = fy + H * s
     # TOP VIEW
     zfront = ty
-    rect(fx, ty, fw, D * s, fill=WHITE_ if p.sides == 2 else BLUE, lw=0.3)
-    if p.sides == 1:
-        rect(fx, ty, fw, (TW + TB) * s, fill=WHITE_, lw=0.3)
-    line(fx, ty + (TW + TB) * s, fx + fw, ty + (TW + TB) * s, 0.25)
+    rect(fx, ty, fw, D * s, fill=WHITE_, lw=0.3)          # rev C: balta viršus per visą gylį (vienpusiame - iki galo)
+    if p.sides == 2:
+        line(fx, ty + (TW + TB) * s, fx + fw, ty + (TW + TB) * s, 0.25)
     if p.legs == "ext":
         for xf in (p.FAX, W - p.FAX):
             rect(fx + (xf - p.FL / 2) * s, ty + (TW + TB) * s - p.FL / 2 * s, p.FL * s, p.FL * s, lw=0.3, dash=([2, 1.5], 0))
@@ -362,7 +365,7 @@ def ga(p, sheet, graphic, decals=None):
         T(fx + fw + 34, gr + 3, "ground (slope)", 8, color=K.GREY, auto_red=False)
         vchain(fx - 52, [ybase, ybase + p.LONG * s, gl], [fx + p.FX0 * s] * 3, [f"{p.LONG}", f"{p.FLT}"], 8)
         hchain(gl + 20, [fx, fx + p.FAX * s, fx + (W - p.FAX) * s, fx + fw], [ybase + p.FLT * s] * 4, [f"{p.FAX}", "1000 (existing anchors)", f"{p.FAX}"], 8)
-        T(fx + fw / 2, gl + 34, "flange holes / anchors - questions to client, sheet 2", 8, color=RED, align="c", auto_red=False)
+        T(fx + fw / 2, gl + 34, "flanges 300x300x20, 4 x Ø14 holes 237 x 237 (existing anchors), sheet 2", 8, color=K.GREY, align="c", auto_red=False)
         yb_end = gl + 40
     else:
         rect(fx + p.FX0 * s, ybase - 40 * s, p.FW * s, 40 * s, lw=0.3, dash=([2, 1.2], 0))   # balkis 80x40 (paslėptas)
@@ -517,7 +520,7 @@ def bom(p):
             [4, f"White tray {W}x{p.OVH}, top 70, ears", "Alu 2 mm folded", "RAL 9016", f"{sides} pcs. / {sides * A_white:.2f} m²"],
             [5, "Decal full-face wrap, trimmed to edges", "Polymeric film + matt lam.", "print", f"{sides} pcs. / {sides * W * p.OVH / 1e6:.2f} m²"],
             [6, "Csk screw white -> L", "?", "RAL 9016", f"{n_w} pcs."],
-            [7, f"Base flange {p.FL}x{p.FL}x{p.FLT}, welded" if p.legs == "ext" else f"Base beam 80x40x4, L {p.FW}, 4 sleeves", "Alu 6060-T66", "-" if p.legs == "ext" else "RAL 5022",
+            [7, f"Base flange {p.FL}x{p.FL}x{p.FLT}, 4xØ14" if p.legs == "ext" else f"Base beam 80x40x4, L {p.FW}, 4 sleeves", "Alu 6060-T66", "-" if p.legs == "ext" else "RAL 5022",
              "2 pcs. (1 on long leg)" if p.legs == "ext" else "1 pcs."],
             [8, "Anchors - existing base" if p.legs == "ext" else "Chem. anchor M16 A4, hef >= 125", "?" if p.legs == "ext" else "e.g. HIT-HY 200 + HAS-U", "-", "?" if p.legs == "ext" else "4 pcs."],
             [9, "Csk screw blue sides -> frame", "?", "RAL 5022", f"{n_b} pcs."],
@@ -601,34 +604,35 @@ def sections(p, sheet):
     # L ant mėlyno priekio (vertikali); balta: priekis + viršus 70 + galinė plokštuma 30 (apverstas U); L 25 ant mėlyno viršaus
     ZF = 0.5                                                                     # baltų galinių plokštumų tarpas nuo ašies
     SY = p.HB + 14                                                               # varžto aukštis
+    ZR = (lambda sg: sg * ZF) if p.sides == 2 else (lambda sg: -TB)             # rev C: vienpusiame galinė plokštuma - pilono gale
     for sg in ([1, -1] if p.sides == 2 else [1]):
         zf = sg * TB
         cut(min(Xz(zf), Xz(zf + sg * LT)), Yy(p.HB - 5), LT * k, (p.HB - 5 - y_lo) * k, LCOL)
-        zw = sg * (TB + TW)
+        zw = sg * (TB + TW); zr = ZR(sg)
         cut(min(Xz(zw), Xz(zw - sg * t)), Yy(p.H), t * k, (p.H - y_lo) * k, WHITE_)
-        cut(min(Xz(zw), Xz(sg * ZF)), Yy(p.H), (TB + TW - ZF) * k, t * k, WHITE_)                     # viršus 70
-        cut(min(Xz(sg * ZF), Xz(sg * (ZF + t))), Yy(p.H), t * k, (p.H - p.HB) * k, WHITE_)          # galinė plokštuma 30
-        z1 = sg * (ZF + t)
+        cut(min(Xz(zw), Xz(zr)), Yy(p.H), abs(zw - zr) * k, t * k, WHITE_)                          # viršus EAR
+        cut(min(Xz(zr), Xz(zr + sg * t)), Yy(p.H), t * k, (p.H - p.HB) * k, WHITE_)               # galinė plokštuma 30
+        z1 = zr + sg * t
         cut(min(Xz(z1), Xz(z1 + sg * LT)), Yy(p.HB + LP), LT * k, LP * k, LCOL)                      # L stati kojelė
         cut(min(Xz(z1), Xz(z1 + sg * LP)), Yy(p.HB + LT), LP * k, LT * k, LCOL)                      # L gulsčia kojelė
         rivet_v(Xz(z1 + sg * 15), Yy(p.HB + LT) - 1.5 * k, k, 6)
     K.set_view(False)
     for sg in ([1, -1] if p.sides == 2 else [1]):
-        csk_h(Xz(sg * ZF), Yy(SY), k, 10, "r" if sg > 0 else "l")
+        csk_h(Xz(ZR(sg)), Yy(SY), k, 10, "r" if sg > 0 else "l")
     hchain(Yy(p.H) - 14, [Xz(TB + TW), Xz(TB), Xz(0), Xz(-TB)] + ([Xz(-TB - TW)] if p.sides == 2 else []), [Yy(p.H)] * (5 if p.sides == 2 else 4),
            ["30", f"{TB}", f"{TB}"] + (["30"] if p.sides == 2 else []), 8)
-    hchain(Yy(p.H) - 30, [Xz(TB + TW), Xz(0)] + ([Xz(-TB - TW)] if p.sides == 2 else []), [Yy(p.H)] * (3 if p.sides == 2 else 2),
-           ["70"] + (["70"] if p.sides == 2 else []), 8)
+    hchain(Yy(p.H) - 30, [Xz(TB + TW), Xz(ZR(1))] + ([Xz(-TB - TW)] if p.sides == 2 else []), [Yy(p.H)] * (3 if p.sides == 2 else 2),
+           [f"{EAR}"] + ([f"{EAR}"] if p.sides == 2 else []), 8)
     vchain(Xz(TB + TW) - 14, [Yy(p.H), Yy(p.HB)], [Xz(TB + TW)] * 2, ["30"], 8)
     vchain(Xz(-TB - (TW if p.sides == 2 else 0)) - 0 + 14, [Yy(p.HB), Yy(SY)], [Xz(-ZF)] * 2, [f"{SY - p.HB}"], 8) if False else None
     T(Xz(TB + TW) - 58, Yy(p.H) + 3, f"{p.H}", 8, align="r", color=K.GREY, auto_red=False)
     T(Xz(TB + TW) - 58, Yy(p.HB) + 3, f"{p.HB}", 8, align="r", color=K.GREY, auto_red=False)
     xr_ = Xz(-TB - (TW if p.sides == 2 else 0)) + 34
     sgb = -1 if p.sides == 2 else 1
-    leaders([(6, Xz(sgb * ZF) + (3 if sgb < 0 else -3), Yy(SY)), (3, Xz(sgb * (ZF + t + LT / 2)), Yy(p.HB + 20)), (1, Xz(-FR / 2 + 3), Yy(p.FY1 - FR / 2)),
+    leaders([(6, Xz(ZR(sgb)) + (3 if sgb < 0 else -3), Yy(SY)), (3, Xz(ZR(sgb) + sgb * (t + LT / 2)), Yy(p.HB + 20)), (1, Xz(-FR / 2 + 3), Yy(p.FY1 - FR / 2)),
              (2, Xz(-TB + 1), Yy(p.HB - 70))], xr_, "r")
     leaders([(4, Xz(TB + TW - 1), Yy(p.HB - 90)), (3, Xz(TB + 1), Yy(p.HB - 40))], Xz(TB + TW) - 46, "l")
-    for i_, tx_ in enumerate(["White top = inverted U: top 70 + rear plane 30, csk screws (6)",
+    for i_, tx_ in enumerate([f"White top = inverted U: top {EAR} + rear plane 30" + (" (to the back edge)" if p.sides == 1 else "") + ", csk screws (6)",
                               "into L 25x25x2 riveted on blue top. White + blue pre-assembled;",
                               "segment fixed to frame through blue SIDE returns only (A, pos. 9)."]):
         T(ox - 10, Yy(y_lo) + 14 + i_ * 10, tx_, 8, color=K.GREY, auto_red=False)
@@ -740,31 +744,33 @@ def flange_plan(p, x0, y0):
     lx = F / 2 - (p.FAX - p.FX0)                                 # kojos padėtis flanše (ašis 25 nuo korpuso krašto, koja 3..63)
     rect(ox + (F / 2 - (p.FAX - p.FX0)) * k, oy + (F / 2 - FR / 2) * k, FR * k, FR * k, fill=AL, lw=0.3)
     K.set_view(False)
-    for a in (40, F - 40):
-        for b in (40, F - 40):
-            K.circle(ox + a * k, oy + b * k, 7 * k, fill=white, stroke=RED, lw=0.4, dash=([1.5, 1], 0))
-            T(ox + a * k, oy + b * k + 2.8, "?", 8, color=RED, align="c", auto_red=False)
+    HD, HP = 14, 237                                             # rev C (Rytis 2026-10-13): 4 x Ø14, 237 x 237 tarp skylių
+    e_ = (F - HP) / 2
+    for a in (e_, F - e_):
+        for b in (e_, F - e_):
+            K.circle(ox + a * k, oy + b * k, HD / 2 * k, fill=white, stroke=black, lw=0.4)
+            K.centerline(ox + a * k - 5, oy + b * k, ox + a * k + 5, oy + b * k); K.centerline(ox + a * k, oy + b * k - 5, ox + a * k, oy + b * k + 5)
+    hchain(oy - 26, [ox, ox + e_ * k, ox + (F - e_) * k, ox + F * k], [oy + e_ * k] * 4, [f"{e_:g}", f"{HP}", f"{e_:g}"], 8)
+    vchain(ox + F * k + 14, [oy, oy + e_ * k, oy + (F - e_) * k, oy + F * k], [ox + (F - e_) * k] * 4, [f"{e_:g}", f"{HP}", f"{e_:g}"], 8)
+    T(ox + e_ * k + 7, oy + e_ * k + 14, f"4 x Ø{HD}", 8, auto_red=False)
     K.centerline(ox + F / 2 * k, oy - 6, ox + F / 2 * k, oy + F * k + 6); K.centerline(ox - 6, oy + F / 2 * k, ox + F * k + 6, oy + F / 2 * k)
-    hdim(ox, ox + F * k, oy - 12, f"{F}", oy, oy, 8)
+    hdim(ox, ox + F * k, oy - 42, f"{F}", oy, oy, 8)
     vchain(ox - 14, [oy, oy + F * k], [ox] * 2, [f"{F}"], 8)
     hchain(oy + F * k + 14, [ox, ox + (F / 2 - (p.FAX - p.FX0)) * k, ox + F / 2 * k], [oy + F * k] * 3, [f"{F / 2 - (p.FAX - p.FX0):.0f}", f"{p.FAX - p.FX0:.0f}"], 8)
-    T(ox + F * k + 10, oy + F * k / 2 - 10, f"Alu 6082-T6, t = {FT_}", 8, auto_red=False)
-    T(ox + F * k + 10, oy + F * k / 2 + 2, "leg 60x60x3 welded", 8, color=K.GREY, auto_red=False)
-    T(ox + F * k + 10, oy + F * k / 2 + 12, "flange axis = 1000 between", 8, color=K.GREY, auto_red=False)
-    T(ox + F * k + 10, oy + F * k / 2 + 22, "flanges (existing base)", 8, color=K.GREY, auto_red=False)
+    T(ox + F * k + 40, oy + F * k / 2 - 10, f"Alu 6082-T6, t = {FT_}", 8, auto_red=False)
+    T(ox + F * k + 40, oy + F * k / 2 + 2, "leg 60x60x3 welded", 8, color=K.GREY, auto_red=False)
+    T(ox + F * k + 40, oy + F * k / 2 + 12, f"4 holes Ø{HD}, {HP} x {HP} (existing anchors)", 8, color=K.GREY, auto_red=False)
+    T(ox + F * k + 40, oy + F * k / 2 + 22, "flange axis = 1000 between flanges", 8, color=K.GREY, auto_red=False)
     view_title(ox + F * k / 2, oy + F * k + 40, "DETAIL H - BASE FLANGE x2 (plan)", "SCALE 1:5")
     # klausimai užsakovui
     qx, qy = VX0 + 440, y0 + 10
-    qs = ["QUESTIONS TO CLIENT (CEOS) - base flanges:",
-          "Q1  Existing anchors: positions / spacing ('entraxe existante')?",
-          "      Please send a sketch or photo with dimensions.",
-          "Q2  Anchor diameter / thread, and free length above the base?",
-          "Q3  Level difference left / right (long leg +60 assumed).",
-          "Holes in the flange will be made to the confirmed anchor layout."]
+    qs = ["QUESTION TO CLIENT (CEOS) - base flanges:",
+          "Level difference left / right (long leg +60 assumed)?",
+          f"Anchor holes confirmed: 4 x Ø{HD}, {HP} x {HP}."]
     hq = 12 * len(qs) + 10
     rect(qx - 6, qy - 4, 270, hq, stroke=RED, lw=1.0)
     for i, q in enumerate(qs):
-        T(qx, qy + 10 + i * 12, q, 8.5 if i == 0 else 8, font="FB" if i == 0 else "F", color=RED if i in (0, len(qs) - 1) else black, auto_red=False, fit=258, fit_min=8)
+        T(qx, qy + 10 + i * 12, q, 8.5 if i == 0 else 8, font="FB" if i == 0 else "F", color=RED if i == 0 else black, auto_red=False, fit=258, fit_min=8)
 
 
 def beam_plan(p, x0, y0):
@@ -1075,11 +1081,11 @@ if __name__ == "__main__":
     which = sys.argv[1:] or ["all"]
     NS = "5"
     if "all" in which or "E" in which:
-        TB = 40
+        TB = 40; EAR = TW + TB                 # dvipusis: baltas viršus iki vidurio (70)
         ga(E, f"1 / {NS}", (1, (177.3, 225.6, 375.7, 665.9)))
         sections(E, f"2 / {NS}")
     if "all" in which or "B" in which:
-        TB = 43
+        TB = 43; EAR = TW + 2 * TB             # rev C (Rytis 2026-10-13): vienpusis - baltas viršus iki pilono galo (116)
         ga(B, f"3 / {NS}", (9, (354.4, 205.1, 467.8, 569.8)), decals=dec)
         sections(B, f"4 / {NS}")
     if "all" in which or "P" in which:

@@ -2,6 +2,13 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v150 (2026-10-13)
+
+v150, Rytis 2026-10-13 (Thales D059422 rev B pataisymai): didelio pilono flanšo skylės Ø14, 237 tarp skylių (klausimai
+užsakovui išimti, liko lygio skirtumas); 3/4 psl. vienpusio pilono baltas folded viršus iki pilono galo (`EAR` = 30 + 2 x TB);
+3 psl. maketuose kryžiai (balti stačiakampiai žaliame kvadrate) buvo išmetami kaip maskavimas - `client_paths` palieka
+baltus stačiakampius spalvoto stačiakampio viduje. 5 psl. 3D vizualas - laukiama Ryčio pavyzdžio fragmento.
+
 ## v145 (2026-10-12)
 
 v145, Rytis 2026-10-12: matmenų eiliškumas pataisytas (v141 suprastas atvirkščiai) - grandinė arčiausiai objekto, gabaritas už
