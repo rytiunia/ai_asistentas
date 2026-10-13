@@ -1603,6 +1603,17 @@ def retcol(g):
     return HexColor(K.ralhex(g["spec"]["return_ral"]))
 
 
+PVC_RAW = HexColor("#E9E9E6")                     # v186: nedažytas PVC (P1 dugnas)
+
+
+def backcol(g):
+    """v186 (Rytis 2026-10-13): galinis vaizdas - DUGNO spalva. P1 dugnas PVC 10 mm nedažytas (back_ral - tik nurodžius)"""
+    br_ = g["spec"].get("back_ral") or spec.get("back_ral")
+    if br_:
+        return HexColor(K.ralhex(br_))
+    return PVC_RAW if FRONT == "P1" else retcol(g)
+
+
 def P6_REAL(g):
     """v59: realus P6 vaizdavimas (stiklas 3 mm kraštas, korpusas -1,5) - visoms šviečiančioms P6 / P6+3 raidėms"""
     return FRONT != "P1" and not g["spec"].get("behind") and g["spec"].get("lit", True) is not False \
@@ -1896,8 +1907,8 @@ for g in sorted(groups, key=lambda g: bool(g["spec"].get("behind"))):   # v10: i
             K.draw_shape(o["sub"], RVtf, stroke=HexColor("#555555"), dash=(2, 1.2))
         elif P6_REAL(g):    # v62: iš galo matosi stiklo kraštas aplink 1,5 mm mažesnį dugną
             PV.rear_view(o["geom"], RVtf, retcol(g), facecol(g), front=spec.get("front", "3mm+foil"))
-        else:               # tikras vaizdas iš galo: raidžių galai / šonai originalia spalva
-            K.draw_shape(o["sub"], RVtf, fill=retcol(g), stroke=black)
+        else:               # tikras vaizdas iš galo: raidžių dugnas (P1 - nedažytas PVC, v186)
+            K.draw_shape(o["sub"], RVtf, fill=backcol(g), stroke=black)
 for g in groups:
     for r_ in g["rails"]:
         poly([RV(*q) for q in r_["poly"]], fill=RAILC, lw=0.4)
