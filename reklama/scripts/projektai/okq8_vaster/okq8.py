@@ -124,7 +124,7 @@ def flat_dxf(fn, W, H, holes_top, holes_bot, bolts_top, bolts_bot):
     import ezdxf
     BA = math.pi / 2 * (2 + 0.44 * t); OSSB = 2 + t; BD = 2 * OSSB - BA
     a = PD - OSSB + BA / 2; off = a + BA / 2 - OSSB
-    PS = PD - t; aS = PS - OSSB + BA / 2; offX = aS + BA / 2 - OSSB     # v170: šonai (tarp skardų) 2 mm seklesni
+    PS = PD - t; aS = PS - OSSB + BA / 2; offX = aS + BA / 2 - OSSB     # v172: šonai (tarp skardų) 2 mm seklesni
     F, WF = W + 2 * PS - 2 * BD, H + 2 * PD - 2 * BD
     SY0, SY1 = off + t + 0.1, off + H - t - 0.1
     doc = ezdxf.new("R2010", setup=True); doc.units = ezdxf.units.MM; msp = doc.modelspace()

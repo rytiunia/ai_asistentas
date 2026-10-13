@@ -9,7 +9,7 @@ W, H, OUT = float(sys.argv[1]), float(sys.argv[2]), sys.argv[3]
 PD = float(sys.argv[4]) if len(sys.argv) > 4 else 40.0
 t, R, Kf, GAP = 2.0, 2.0, 0.44, 0.1
 BA = math.pi / 2 * (R + Kf * t); OSSB = R + t; BD = 2 * OSSB - BA
-PS = PD - t                            # v170: šoninių (įsilenkiančių) flanšų gylis 38 (40 - 2)
+PS = PD - t                            # v172: šoninių (įsilenkiančių) flanšų gylis 38 (40 - 2)
 a = PD - OSSB + BA / 2                 # viršaus / apačios flanšas iki lenkimo ašies
 aS = PS - OSSB + BA / 2                # šono flanšas iki lenkimo ašies
 off = a + BA / 2 - OSSB                # realios koordinatės -> išklotinė (y)
