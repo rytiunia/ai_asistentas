@@ -1,0 +1,206 @@
+{
+ "scale": 40,
+ "qty": "3 pcs.",
+ "order_no": "ALT0000_10.13_RS",
+ "rev": "A",
+ "date": "2026-10-13",
+ "client": "BrandFactory",
+ "title": "7-23 opening hours 2037",
+ "drawing_no": "Order 226023 KIWI 640 BYGNES",
+ "file_code": "KIWI_226023_02_723",
+ "sheet": "2 / 3",
+ "client_pdf": "client_clean.pdf",
+ "crop_pt": [
+  262,
+  495,
+  430,
+  562
+ ],
+ "depth_mm": 100,
+ "front": "3mm+foil",
+ "export_1to1": false,
+ "rail": {
+  "size": "40x20x2",
+  "depth": 20,
+  "ral": "7024",
+  "type": "square"
+ },
+ "ears": {
+  "hole_d": 8,
+  "smax": 1200
+ },
+ "ignore_fills": [
+  [
+   0.66,
+   0.81,
+   0.27
+  ]
+ ],
+ "decals": [
+  {
+   "client_fill": [
+    0.66,
+    0.81,
+    0.27
+   ],
+   "hex": "#A6CE39",
+   "group": "7-23"
+  }
+ ],
+ "joints": [],
+ "trafo_box": false,
+ "groups": [
+  {
+   "name": "7-23",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "9010",
+   "face_hex": "#231F20",
+   "client_fill": [
+    0.1,
+    0.1,
+    0.85
+   ],
+   "frame": "verticals",
+   "ears_pt": {
+    "top": [
+     315.7,
+     387.6
+    ],
+    "bottom": [
+     298.1,
+     381.6
+    ]
+   },
+   "led": [
+    "LED P130 1W green, 26 pcs.",
+    "PSU KPS-V12-40W inside"
+   ]
+  }
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "3 pcs."
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profile",
+   "P5S, depth 100"
+  ],
+  [
+   "Face",
+   "PMMA 3 + foils 1A / 1B"
+  ],
+  [
+   "Returns",
+   "Alu 1 mm, RAL 9010"
+  ],
+  [
+   "Frame",
+   "O 40x20x2, RAL 7024"
+  ],
+  [
+   "Power",
+   "230V, 3 m, PSU inside"
+  ],
+  [
+   "Weight (calc.)",
+   "{WEIGHT}"
+  ]
+ ],
+ "bom": [
+  [
+   1,
+   "Letter face",
+   "Acrylic WH02SC 3 mm",
+   "white",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   "1A",
+   "Face foil green",
+   "Mactac 9849-55",
+   "Mactac 9849-55",
+   "2.1 b/m"
+  ],
+  [
+   "1B",
+   "Face foil black",
+   "Oracal 641-070",
+   "Oracal 641-070",
+   "2.1 b/m"
+  ],
+  [
+   "A",
+   "Fitting PVC edge",
+   "PVC 3 mm",
+   "-",
+   "{PER_ALL} m"
+  ],
+  [
+   3,
+   "Letter return",
+   "Alu 1 mm, h 100",
+   "RAL 9010",
+   "{PER_ALL} m"
+  ],
+  [
+   4,
+   "Letter back",
+   "Alu 1.5 mm",
+   "RAL 9010",
+   "{A_ALL} m²"
+  ],
+  [
+   5,
+   "LED P130 1W green",
+   "",
+   "",
+   "26 pcs."
+  ],
+  [
+   6,
+   "PSU KPS-V12-40W",
+   "inside letter",
+   "",
+   "1 pcs."
+  ],
+  [
+   7,
+   "Frame O {RAIL_SIZE}",
+   "AW-6060/6063 T6",
+   "RAL 7024",
+   "{RAIL_TOTAL_M} m"
+  ],
+  [
+   8,
+   "Fitting plate 40x75, Ø8",
+   "Alu 3 mm",
+   "RAL 7024",
+   "{PLATES_N} pcs."
+  ],
+  [
+   10,
+   "Cable 230V black",
+   "",
+   "-",
+   "3 m"
+  ]
+ ],
+ "client_frame": true,
+ "cable_exits": [
+  {
+   "pt": [
+    366,
+    506
+   ],
+   "voltage": "230V",
+   "label": "3 m"
+  }
+ ],
+ "led_label_gap_pt": 34
+}

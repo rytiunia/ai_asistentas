@@ -2037,6 +2037,7 @@ CH_BOT = [0]
 #  3 eilė - kiti elementai (vidurinis bėgelis, statmenys, i taško laikiklis) - žyma su išvadine;
 #  bėgelių ašių grandinė - šone už grupės. Skaičiai ant raidžių nededami.
 ROW = [16, 36, 56]
+TAG_BOXES = []                                          # v157: padėtų galinio vaizdo žymų dėžutės (x0, x1, y)
 UPR = [0]                                               # v13: matmenų eilių virš galinio vaizdo skaičius
 _PFX = "□" if str(spec.get("rail", {}).get("type", "u")).lower().startswith(("sq", "box", "kv")) else "U"
 _vt, _vb = RVY, RVY + rh                                # vaizdo viršus / apačia (lapo koord.)
@@ -2101,6 +2102,14 @@ for g in groups:
                 _ed = min(RV(_gg["x0"], 0)[0], RV(_gg["x1"], 0)[0]) if _dx < 0 else max(RV(_gg["x0"], 0)[0], RV(_gg["x1"], 0)[0])
                 _cx += [_ed + _dx * (10 + 9 * rk) for rk in range(3)]
         _left = any(a_[0] - 2 <= x_ <= a_[0] + w_ + 4 for x_ in _cx)
+        # v157: žymos iš skirtingų grupių / krypčių nesidengia - kol kerta jau padėtą žymą, eilė toliau nuo vaizdo
+        for _try in range(8):
+            _bx = (a_[0] - w_ - 2, a_[0] + 2) if _left else (a_[0] - 2, a_[0] + w_ + 2)
+            if not any(_bx[0] < b_[1] and b_[0] < _bx[1] and abs(ty_ - b_[2]) < 11 for b_ in TAG_BOXES):
+                break
+            t_["row"] += 1
+            ty_ = (_vt - base_ - 12 * t_["row"]) if up_ else (_vb + base_ + 12 * t_["row"])
+        TAG_BOXES.append((_bx[0], _bx[1], ty_))
         line(a_[0], a_[1], a_[0], ty_ + 1.5, 0.3)
         line(a_[0], ty_ + 1.5, a_[0] + (-w_ if _left else w_), ty_ + 1.5, 0.3)
         K.c.saveState(); K.c.setFillColor(black); K.c.circle(a_[0], K.Y(a_[1]), 1.0, stroke=0, fill=1); K.c.restoreState()
@@ -2362,6 +2371,9 @@ if _rty + 4 + K.F_SCALE * 1.25 > K.VIEW_BOT and TB_ON and CEX:      # v44: netel
     _rtw = K.pdfmetrics.stringWidth("REAR VIEW (MIRRORED)", "FB", K.F_VIEW) / 2 + 30
     _rtx = bx0 - 24 - _rtw if bx0 - 24 - 2 * _rtw > K.IX0 else bx1 + 24 + _rtw
     _rty = by0 + 12
+if _rty + 4 + K.F_SCALE * 1.25 > K.VIEW_BOT:      # v157: netelpa po vaizdu (laidų / žymų eilės) - į laisvą dešinę pusę virš juostos
+    _rty = K.VIEW_BOT - 4 - K.F_SCALE * 1.25 - 3
+    _rtx = RVX + rw * 0.72
 view_title(_rtx, _rty, "REAR VIEW (MIRRORED)", f"SCALE 1:{SC2}  |  true view from the back")
 
 # ============================================================ DETAIL B - P6+3 ant plokštės (tipinis pjūvis)
