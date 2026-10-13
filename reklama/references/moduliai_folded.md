@@ -1,14 +1,14 @@
 # Folded plate moduliai (perkelta iš SKILL.md v71, taisyklės nepakeistos)
 
 ### Folded plate - bendrinės taisyklės (VISI folded užsakymai, bet koks klientas)
-**Konstrukcija ir lenkimas (STEP `assets/konstrukcijos/lankstinys_1prie1.step`):** Al 2 mm (lakštas 2000x4000 - Heliopolis, kiti formatai ir L profilių 6 m strypai - `references/medziagos.md`, v73),
-gylis pagal užsakymą (dažniausiai 40), 4 užlenkimai 90° į galą, vidinis R2, K 0.44 (PRIELAIDA - Inventor
-numatytasis; lape „assumed"), BA 4.524, BD 3.476 / 90°, flanšas iki lenkimo ašies 38.26 (gylis 40). ŠONINIAI flanšai
-įsilenkia TARP viršutinio ir apatinio (aukštis H - 2t - 2x0.1 = H - 4.2), kampų išpjova pagal STEP.
-**ĮSILENKIANTYS TARP SKARDŲ (šoniniai) flanšai - t (2 mm) SEKLESNI (v172, Rytis 2026-10-13, gamybos lankstymo praktika):**
-gylis 40 -> viršus / apačia (užsilenkiantys) 40, šonai 38 (flanšas iki lenkimo ašies 36.26). STEP rodo visus 40 - gamyboje
-galioja ši taisyklė.
-Išklotinė = (L + 2·(gylis - t) - 2·BD) x (H + 2·gylis - 2·BD) (1000x1000x40 -> 1069.05 x 1073.05); max ilgis - lakšto 4000 - 2x10 paraštė (praktiškai dalis <= 3900).
+**Konstrukcija ir lenkimas (STEP `assets/konstrukcijos/lankstinys_1prie1.step` - 3D forma):** Al 2 mm (lakštas - `references/medziagos.md`, v73),
+gylis pagal užsakymą (dažniausiai 40), 4 užlenkimai 90° į galą.
+**IŠKLOTINĖ - GAMYBOS PRAKTIKA (v173, Rytis 2026-10-13; etalonas `assets/etalonai/folded_1000x1000x40_isklotine_gamyba.dxf`):**
+lenkimo linijos = stačiakampis W x H (vienas uždaras kontūras); VISI flanšai nuo lenkimo linijos = gylis - t (40 -> 38);
+viršus / apačia (užsilenkiantys) - per visą plotį W tarp šonų lenkimo linijų; ŠONAI (įsilenkiantys tarp skardų) - iš abiejų
+galų t trumpesni (H - 2t; 1000 -> 996); kampų išpjova stačiakampė; K faktoriaus / BA NĖRA (lenkimo atskaita = t / 90°).
+Išklotinė = (W + 2·(gylis - t)) x (H + 2·(gylis - t)) - 1000x1000x40 -> 1076 x 1076. (Senas K 0.44 / R2 / BD 3.476 skaičiavimas
+v37-v172 - NEBENAUDOTI; seni projektų skriptai jo nepakeisti.) max ilgis - lakšto 4000 - 2x10 paraštė (praktiškai dalis <= 3900).
 - **L profilis 30x30x2 Alu** (Rytis patvirtino): ilgis = tvirtinamos kraštinės ilgis - 50 mm
   (po 25 mm nuo galų), pagal nutylėjimą 2 vnt. (viršus + apačia). Ilgis VISADA galiniame vaizde
   (`25 | ilgis | 25` + bendras), BOM - bėginiais metrais `2 x 2.25 = 4.50 m` (`{L_QTY} x {L_LEN_M} = {L_TOTAL_M} m`).
@@ -40,8 +40,8 @@ Išklotinė = (L + 2·(gylis - t) - 2·BD) x (H + 2·gylis - 2·BD) (1000x1000x4
   skylių) -> už fono -> pro Ø11 skylę UŽLENKTOJE BRIAUNOJE (viršutinėje / apatinėje / ŠONINĖJE) kliento nurodytoje
   vietoje; matmuo iki skylės lape; ant fono išvesties niekada. Kurią briauną - pagal kliento failą / standartą.
 - **Išklotinės ir DXF:** lape išklotinė su lenkimo ašimis, Ø3.2 skylėmis, grandinėmis; DXF -
-  `scripts/folded_dxf.py PLOTIS AUKŠTIS out.dxf [GYLIS]` (R2, K0.44, 4 x 90°, šonai tarp viršaus ir apačios, Ø3.2 7
-  nuo krašto); dalims su sandūra - `scripts/projektai/okq8_vaster/okq8.py: flat_dxf(fn, W, H, holes_top, holes_bot,
+  `scripts/folded_dxf.py PLOTIS AUKŠTIS out.dxf [GYLIS] [--t 2] [--no-holes]` (gamybos išklotinė v173, Ø3.2 7
+  nuo krašto atskirame sluoksnyje); dalims su sandūra - `scripts/projektai/okq8_vaster/okq8.py: flat_dxf(fn, W, H, holes_top, holes_bot,
   bolts_top, bolts_bot)`. Sluoksniai: CUT / BEND_UP_90_R2 / HOLES_D3.2 / HOLES_D6_JOINT / HOLE_D11_CABLE /
   LETTER_FIX_POINTS / SHEET_2000x4000 / TEXT (ezdxf R2010). Išklotinė braižoma FACE OUT (vaizdas iš priekio).
 - **NESTING - išklotinių išdėstymas lakšte (v37):** pirmiausia užpildomas lapo AUKŠTIS nuo krašto (dalys viena virš kitos), tik tada

@@ -1,47 +1,51 @@
-"""Folded plokštės išklotinė DXF pagal skill'ą (v37+): Al 2 mm, R2, K 0.44, gylis 40 (STEP lankstinys_1prie1),
-šoniniai flanšai TARP viršutinio ir apatinio (0.1 tarpas) ir t (2 mm) SEKLESNI - gylis 40 -> šonai 38 (v172, Rytis
-2026-10-13: gamybos praktika - įsilenkiantys tarp skardų flanšai 2 mm mažesni, užsilenkiantys - pilnas gylis), Ø3.2 tvirtinimo skylės viršutinėje / apatinėje briaunoje
-7 mm nuo krašto, 50 nuo galų, žingsnis ~300. Naudojimas: python3 folded_dxf.py PLOTIS AUKŠTIS out.dxf [GYLIS]"""
-import sys, math
+"""Folded plokštės išklotinė DXF - GAMYBOS PRAKTIKA (v173, Rytis 2026-10-13, etalonas
+`assets/etalonai/folded_1000x1000x40_isklotine_gamyba.dxf`):
+- lenkimo linijos = stačiakampis W x H (vienas uždaras kontūras, sluoksnis BEND_UP_90);
+- visi flanšai nuo lenkimo linijos = gylis - t (40 -> 38; Al 2 mm), t. y. lenkimo atskaita = t / 90°, K faktoriaus nėra;
+- viršutinis / apatinis (užsilenkiantys) flanšai - per visą plotį tarp šonų lenkimo linijų (W);
+- šoniniai (įsilenkiantys tarp skardų) flanšai - iš abiejų galų t (2 mm) trumpesni: H - 2t;
+- kampų išpjova stačiakampė, be spindulių.
+1000x1000x40 -> išklotinė 1076 x 1076. Ø3.2 tvirtinimo skylės (skill v37) - atskirame sluoksnyje HOLES_D3.2,
+7 mm nuo viršaus / apačios flanšo krašto, 50 nuo galų, žingsnis ~300 (`--no-holes` - be jų).
+Naudojimas: python3 folded_dxf.py PLOTIS AUKŠTIS out.dxf [GYLIS] [--t 2] [--no-holes]"""
+import sys, os
 import ezdxf
 
-W, H, OUT = float(sys.argv[1]), float(sys.argv[2]), sys.argv[3]
-PD = float(sys.argv[4]) if len(sys.argv) > 4 else 40.0
-t, R, Kf, GAP = 2.0, 2.0, 0.44, 0.1
-BA = math.pi / 2 * (R + Kf * t); OSSB = R + t; BD = 2 * OSSB - BA
-PS = PD - t                            # v172: šoninių (įsilenkiančių) flanšų gylis 38 (40 - 2)
-a = PD - OSSB + BA / 2                 # viršaus / apačios flanšas iki lenkimo ašies
-aS = PS - OSSB + BA / 2                # šono flanšas iki lenkimo ašies
-off = a + BA / 2 - OSSB                # realios koordinatės -> išklotinė (y)
-offX = aS + BA / 2 - OSSB              # (x)
-F, WF = W + 2 * PS - 2 * BD, H + 2 * PD - 2 * BD
-SY0, SY1 = off + t + GAP, off + H - t - GAP
+argv = sys.argv[1:]
+t = 2.0
+if "--t" in argv:
+    i = argv.index("--t"); t = float(argv[i + 1]); del argv[i:i + 2]
+args = [a for a in argv if not a.startswith("--")]
+W, H, OUT = float(args[0]), float(args[1]), args[2]
+PD = float(args[3]) if len(args) > 3 else 40.0
+HOLES = "--no-holes" not in sys.argv
+FL = PD - t                                  # flanšas nuo lenkimo linijos (40 -> 38)
+F, WF = W + 2 * FL, H + 2 * FL               # išklotinė
 
 doc = ezdxf.new("R2010", setup=True); doc.units = ezdxf.units.MM
 msp = doc.modelspace()
-for name, col, lt in (("CUT", 7, "CONTINUOUS"), ("BEND_UP_90_R2", 1, "DASHDOT"), ("HOLES_D3.2", 3, "CONTINUOUS"), ("TEXT", 2, "CONTINUOUS")):
+for name, col, lt in (("CUT", 7, "CONTINUOUS"), ("BEND_UP_90", 1, "DASHED"), ("HOLES_D3.2", 3, "CONTINUOUS"), ("TEXT", 2, "CONTINUOUS")):
     doc.layers.add(name, color=col, linetype=lt)
-o = offX
-pts = [(o, 0), (F - o, 0), (F - o, SY0), (F, SY0), (F, SY1), (F - o, SY1), (F - o, WF), (o, WF),
-       (o, SY1), (0, SY1), (0, SY0), (o, SY0)]
+x0, x1, y0, y1 = FL, FL + W, FL, FL + H      # lenkimo linijos
+pts = [(x0, 0), (x1, 0), (x1, y0 + t), (F, y0 + t), (F, y1 - t), (x1, y1 - t), (x1, WF), (x0, WF),
+       (x0, y1 - t), (0, y1 - t), (0, y0 + t), (x0, y0 + t)]
 msp.add_lwpolyline(pts, close=True, dxfattribs={"layer": "CUT"})
-for u in (aS, F - aS):
-    msp.add_line((u, SY0), (u, SY1), dxfattribs={"layer": "BEND_UP_90_R2"})
-for v in (a, WF - a):
-    msp.add_line((offX, v), (F - offX, v), dxfattribs={"layer": "BEND_UP_90_R2"})
+msp.add_lwpolyline([(x0, y0), (x1, y0), (x1, y1), (x0, y1)], close=True, dxfattribs={"layer": "BEND_UP_90"})
 span = W - 100; n = max(1, round(span / 300))
-for v in (7, WF - 7):
-    for k in range(n + 1):
-        msp.add_circle((offX + 50 + span * k / n, v), 1.6, dxfattribs={"layer": "HOLES_D3.2"})
-msp.add_text(f"FOLDED PLATE {W:.0f} x {H:.0f} x {PD:.0f} - Al {t:.0f} mm - FLAT {F:.1f} x {WF:.1f} - FACE OUT",
-             height=min(30, H / 20), dxfattribs={"layer": "TEXT"}).set_placement((F / 2, WF / 2), align=ezdxf.enums.TextEntityAlignment.MIDDLE_CENTER)
-msp.add_text(f"R{R:.0f} K{Kf} BD {BD:.2f} | 4 x 90 up | top/bottom {PD:.0f}, sides {PS:.0f} deep | side flanges {H - 2 * t - 2 * GAP:.1f} between top/bottom | "
-             f"D3.2 x 2 x {n + 1}: 50 | {n} x {span / n:.1f} | 50, 7 from edge",
-             height=min(20, H / 30), dxfattribs={"layer": "TEXT"}).set_placement((0, -40))
+if HOLES:
+    for v in (7, WF - 7):
+        for k in range(n + 1):
+            msp.add_circle((x0 + 50 + span * k / n, v), 1.6, dxfattribs={"layer": "HOLES_D3.2"})
+th = min(30, H / 20)
+msp.add_text(f"FOLDED PLATE {W:.0f} x {H:.0f} x {PD:.0f} - Al {t:g} mm - FLAT {F:.0f} x {WF:.0f} - FACE OUT",
+             height=th, dxfattribs={"layer": "TEXT"}).set_placement((F / 2, -2 * th), align=ezdxf.enums.TextEntityAlignment.MIDDLE_CENTER)
+msp.add_text(f"bend lines = {W:.0f} x {H:.0f}, flanges {FL:g} from bend line, side flanges {H - 2 * t:g} (t shorter each end), 4 x 90 up"
+             + (f" | D3.2 x 2 x {n + 1}: 50 | {n} x {span / n:.1f} | 50, 7 from edge" if HOLES else ""),
+             height=th * 0.6, dxfattribs={"layer": "TEXT"}).set_placement((F / 2, -3.6 * th), align=ezdxf.enums.TextEntityAlignment.MIDDLE_CENTER)
 doc.saveas(OUT)
-print(f"flat {F:.2f} x {WF:.2f}, bend line top/bottom {a:.2f} / sides {aS:.2f} from edge, flange depth {PD:.0f} / sides {PS:.0f}, holes 2 x {n + 1} pitch {span / n:.1f}, side flange {H - 2 * t - 2 * GAP:.1f}")
+print(f"flat {F:g} x {WF:g}, bend lines {W:g} x {H:g}, flanges {FL:g} from bend line, side flanges {H - 2 * t:g}"
+      + (f", holes 2 x {n + 1} pitch {span / n:.1f}" if HOLES else ", no holes"))
 # v73: ar išklotinė telpa į tiekėjo Alu lakštą (assets/medziagos.json, paraštė 10 mm)
-import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import medziagos as MEDZ
 print("sheet:", MEDZ.sheet_text(MEDZ.sheet_fit(F, WF, "alu", t)))

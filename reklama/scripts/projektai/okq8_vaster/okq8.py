@@ -122,11 +122,12 @@ def detail_joint_h(cx, cy):
 
 def flat_dxf(fn, W, H, holes_top, holes_bot, bolts_top, bolts_bot):
     import ezdxf
-    BA = math.pi / 2 * (2 + 0.44 * t); OSSB = 2 + t; BD = 2 * OSSB - BA
-    a = PD - OSSB + BA / 2; off = a + BA / 2 - OSSB
-    PS = PD - t; aS = PS - OSSB + BA / 2; offX = aS + BA / 2 - OSSB     # v172: šonai (tarp skardų) 2 mm seklesni
-    F, WF = W + 2 * PS - 2 * BD, H + 2 * PD - 2 * BD
-    SY0, SY1 = off + t + 0.1, off + H - t - 0.1
+    # v173 GAMYBOS PRAKTIKA (etalonas assets/etalonai/folded_1000x1000x40_isklotine_gamyba.dxf): lenkimo linijos = W x H,
+    # flanšai nuo lenkimo linijos PD - t, šonai iš galų t trumpesni; K faktoriaus nėra
+    BD = t
+    FL = PD - t; a = FL; off = FL; offX = FL; aS = FL
+    F, WF = W + 2 * FL, H + 2 * FL
+    SY0, SY1 = FL + t, FL + H - t
     doc = ezdxf.new("R2010", setup=True); doc.units = ezdxf.units.MM; msp = doc.modelspace()
     for nm, col, lt in (("CUT", 7, "CONTINUOUS"), ("BEND_UP_90_R2", 1, "DASHDOT"), ("HOLES_D3.2", 3, "CONTINUOUS"),
                         ("HOLES_D6_JOINT", 4, "CONTINUOUS"), ("TEXT", 2, "CONTINUOUS")):
@@ -134,10 +135,8 @@ def flat_dxf(fn, W, H, holes_top, holes_bot, bolts_top, bolts_bot):
     o = offX
     msp.add_lwpolyline([(o, 0), (F - o, 0), (F - o, SY0), (F, SY0), (F, SY1), (F - o, SY1), (F - o, WF), (o, WF),
                         (o, SY1), (0, SY1), (0, SY0), (o, SY0)], close=True, dxfattribs={"layer": "CUT"})
-    for u in (aS, F - aS):
-        msp.add_line((u, SY0), (u, SY1), dxfattribs={"layer": "BEND_UP_90_R2"})
-    for v in (a, WF - a):
-        msp.add_line((offX, v), (F - offX, v), dxfattribs={"layer": "BEND_UP_90_R2"})
+    msp.add_lwpolyline([(FL, FL), (F - FL, FL), (F - FL, WF - FL), (FL, WF - FL)], close=True,
+                       dxfattribs={"layer": "BEND_UP_90_R2"})
     span = W - 100; n = max(1, round(span / 300))
     xs = [offX + 50 + span * k / n for k in range(n + 1)]
     for flag, v in ((holes_top, WF - 7), (holes_bot, 7)):
@@ -151,7 +150,7 @@ def flat_dxf(fn, W, H, holes_top, holes_bot, bolts_top, bolts_bot):
                 msp.add_circle((x, v), 3.0, dxfattribs={"layer": "HOLES_D6_JOINT"})
     msp.add_text(f"FOLDED PLATE {W:.0f} x {H:.0f} x {PD} - Al 2 mm - FLAT {F:.1f} x {WF:.1f} - FACE OUT", height=30,
                  dxfattribs={"layer": "TEXT"}).set_placement((F / 2, WF / 2), align=ezdxf.enums.TextEntityAlignment.MIDDLE_CENTER)
-    msp.add_text(f"R2 K0.44 BD {BD:.2f} | 4 x 90 up | D3.2 7 from edge, L holes 50 | {n} x {span / n:.1f} | 50; joint D6 20 from edge ~500",
+    msp.add_text(f"bend lines {W:.0f} x {H:.0f}, flanges {FL:g} from bend line | 4 x 90 up | D3.2 7 from edge, L holes 50 | {n} x {span / n:.1f} | 50; joint D6 20 from edge ~500",
                  height=20, dxfattribs={"layer": "TEXT"}).set_placement((0, -40))
     doc.saveas(fn)
     return F, WF
