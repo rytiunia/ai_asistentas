@@ -1082,6 +1082,12 @@ def p1_typical(x, y, w, h, depth, variant="rail", title=None, numbers=None, boxe
         bgx = wall + 18
         Dp = min(80, pw_ * 0.42)
     xf = bgx + Dp
+    # v185 (Rytis 2026-10-13): pjūvis VISADA centruojamas savo bloke (turinys nuo sienos štrichavimo / balionų iki priekio baliono)
+    _cl, _cr = wall - 16, xf + 21
+    _dx = (px0 + (pw_ - (_cr - _cl)) / 2) - _cl
+    wall += _dx; bgx += _dx; xf += _dx
+    if variant == "plate":
+        plx += _dx
     if variant == "plate":
         rect(plx, py0 + 10, 3, ph_ - 14, fill=HexColor("#E2E2E2"), lw=0.45)
     # dugnas PVC 10 mm - štrichuotas

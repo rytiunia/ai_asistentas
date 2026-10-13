@@ -51,8 +51,11 @@ Skriptas laikiklius:
 - sudaro **2 lapą - laikiklio gamybinį brėžinį**: vaizdas nuo fasado su skylių grandine, šonas su įstatytu rėmu
   (punktyru, guli ant apatinės plokštumos, vidus = rėmas + 2), vaizdas iš viršaus 1:1, NOTES, BOM, MAIN DATA.
 
+**Laikiklių kiekis (v185, Rytis 2026-10-13 - PATVIRTINTA):** rėmo ilgis iki 2,5 m - 2 vnt, iki 4 m - 3, iki 7 m - 4, toliau pagal tą pačią
+formulę (ribų prieaugis didėja po 1,5 m: 11,5 m - 5, 17,5 m - 6 ... - tęsinys PATVIRTINTI), `assets/tvirtinimas.json` `n_by_len_mm`.
+
 **PASIŪLYMAI - Rytis dar nepatvirtino** (keičiami `assets/tvirtinimas.json`):
-- laikiklių kiekis pagal ilgį: <= 1500 - 2; <= 3000 - 3; <= 4500 - 4; daugiau - 5;
+
 - plienas, kai raidžių plotas >= 0,5 m² / rėmo m (kaip masyvių raidžių taisyklė v87);
 - „didelės" raidės - H >= 1000; 3 skylių riba (rėmas >= 1000).
 

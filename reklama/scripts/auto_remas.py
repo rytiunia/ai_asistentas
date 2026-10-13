@@ -115,6 +115,15 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
             if not ok:      # v183: galų vietos nerasta - ne apversti rėmo
                 lx, rx = r["x0"] + r["t"] / 2, r["x1"] - r["t"] / 2
                 log(f"  ! auto rėmas: bėgeliui y{cy:.0f} galų raidėje (kampai >= {edge} mm) nerasta - galai ties kraštinių raidžių centru, PATIKRINTI ranka")
+            # v185 (Rytis 2026-10-13): kraštinė raidė be stiebo (e, c, o ...) turi STABILIAI tvirtintis - bėgelis tęsiamas iki
+            #  raidės galo (pvz. „e" uodegytės galo, edge mm nuo krašto), net jei rėmas dalinai matysis
+            lt_ = min(L, key=lambda o: o["bb"][0]); rt_ = max(L, key=lambda o: o["bb"][2])
+            if lx > (lt_["bb"][0] + lt_["bb"][2]) / 2:
+                lx = lt_["bb"][0] + edge
+                log(f"  auto rėmas: bėgelis y{cy:.0f} pratęstas iki kraštinės raidės galo kairėje (x{lx:.0f}) - stabilus tvirtinimas, rėmas dalinai matysis")
+            if rx < (rt_["bb"][0] + rt_["bb"][2]) / 2:
+                rx = rt_["bb"][2] - edge
+                log(f"  auto rėmas: bėgelis y{cy:.0f} pratęstas iki kraštinės raidės galo dešinėje (x{rx:.0f}) - stabilus tvirtinimas, rėmas dalinai matysis")
             rr.update({"x0": lx, "x1": rx, "y0": cy - t_rail / 2, "y1": cy + t_rail / 2})
         lo_, hi_ = r["rails"][0]["cy"], r["rails"][1]["cy"]
         log(f"  auto rėmas: eilutė y{r['xb']:.0f}-{r['xt']:.0f} štrichas ~{r['t']:.0f} mm -> bėgelių ašys y{lo_:.0f} / y{hi_:.0f}, "

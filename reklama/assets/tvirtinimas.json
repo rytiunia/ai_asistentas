@@ -40,23 +40,59 @@
   "flange_add_mm": 3,
   "n_by_len_mm": [
    [
-    1500,
+    2500,
     2
    ],
    [
-    3000,
+    4000,
     3
    ],
    [
-    4500,
+    7000,
     4
    ],
    [
-    1000000000.0,
+    11500,
     5
+   ],
+   [
+    17500,
+    6
+   ],
+   [
+    25000,
+    7
+   ],
+   [
+    34000,
+    8
+   ],
+   [
+    44500,
+    9
+   ],
+   [
+    56500,
+    10
+   ],
+   [
+    70000,
+    11
+   ],
+   [
+    85000,
+    12
+   ],
+   [
+    101500,
+    13
+   ],
+   [
+    1000000000.0,
+    14
    ]
   ],
-  "_n_info": "PASIŪLYMAS (Rytis: 2-5 vnt pagal ilgį; ribos nepatvirtintos)",
+  "_n_info": "v185 Rytis 2026-10-13: hangers kiekis pagal rėmo ilgį - iki 2,5 m 2 vnt, iki 4 m 3, iki 7 m 4 „ir taip toliau pagal tokią formulę“; tęsinys - ribų prieaugis didėja po 1,5 m (2,5 / 4 / 7 / 11,5 / 17,5 m ...) - tęsinį PATVIRTINTI",
   "steel_if_area_m2_per_m": 0.5,
   "_steel_info": "PASIŪLYMAS: plienas, kai raidžių plotas >= 0,5 m² / rėmo m (kaip masyvių raidžių taisyklė v87); kitaip Al",
   "edge_mm": 250,

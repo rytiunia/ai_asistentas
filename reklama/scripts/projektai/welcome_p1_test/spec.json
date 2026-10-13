@@ -64,11 +64,11 @@
        144
       ],
       [
-       2165,
+       2205,
        144
       ],
       [
-       2165,
+       2205,
        174
       ],
       [
@@ -85,11 +85,11 @@
        379
       ],
       [
-       2085,
+       2205,
        379
       ],
       [
-       2085,
+       2205,
        409
       ],
       [
@@ -141,7 +141,7 @@
      ]
     }
    ],
-   "rails_note": "Rytis 2026-10-13: frame over whole text, verticals under first e and m middle leg; bottom rail ends where e tail allows"
+   "rails_note": "Rytis 2026-10-13: frame over whole text to the end of last e tail (stable fixing, may be partly visible); verticals under first e and m middle leg"
   }
  ],
  "bom": [
