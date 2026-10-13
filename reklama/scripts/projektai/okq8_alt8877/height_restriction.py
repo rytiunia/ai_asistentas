@@ -202,6 +202,7 @@ def front_view(G, X0, YG, s):
     K.balloon_auto(X(PR_X + HANG[1]), Yg(Y_BOX0 - PR_GAP * 0.3), "8A")
     K.balloon_auto(X(LEG * 0.5), Yg(1500), 1)
     K.balloon_auto(X(lc + BASE_W * 0.35), Yg(BASE_H * 0.5), 7)
+    K.cut_plane(X(1500), Yg(TOT_H) - D2 - 10, Yg(Y_PR0), "A", look="right")
     view_title(X(BW / 2), K.IY0 + 22, "FRONT VIEW", "1:25")
 
 
@@ -289,104 +290,161 @@ def view3d(G, box):
     view_title(box[0] + box[2] / 2, box[1] - 30, "3D VIEW", "ILLUSTRATIVE - NOT TO SCALE")
 
 
+
+# ---------------------------------------------------------------- vidinė konstrukcija (rev B)
+# Kliento exploded view: 1 koja + 4 viršutinis □80 (suvirinta) + 6 atrama po 4 + 5 rėmas □40 (apatinis bėgis su LED,
+# statmenys), 9 dvi lovelės (priekis / galas), 10 plexi už išpjovų, 7 dvi uždengimo pusės, 3 atramos prie plokštės,
+# 11 jungčių dėžutė ant plokštės. Matmenys, kurių kliento lape nėra, - * ALT PASIŪLYMAS (lape pažymėta, klausimai Q).
+T9 = 2                                  # 9 lovelės skarda 2 mm
+B4, B4T = 80, 3                         # 4 □80x80x3
+R5, R5T = 40, 2                         # 5 □40x40x2
+LX0 = T9                                # koja tilpsta į lovelės galo atlanką (2 mm)
+Y_B4T = TOT_H - T9                      # 3438
+Y_B4B = Y_B4T - B4                      # 3358
+X_END = BW - T9 - 2                     # 2996 (2 mm atlankas + 2 mm laisvumas)
+B4_L = X_END - LX0                      # 2994
+LEG_L = Y_B4B - PL_T                    # 3343
+Y_R5B = Y_BOX0 + T9                     # 2922
+Y_R5T = Y_R5B + R5                      # 2962
+R5_L = X_END - (LX0 + LEG)              # 2814
+VERTS = [720, 2340, X_END - R5 / 2]     # statmenų ašys: 720 / 2340 - pagal kliento exploded (≈), galas
+V5_L = Y_B4B - Y_R5T                    # 396
+G3_L, G3_H, G3_TOP = 600, 130, 260      # 3 atramos (2 vnt.) * pasiūlymas
+S6 = 150                                # 6 atrama po 4 (trikampis) * pasiūlymas
+JB = (-340, -210, 110)                  # 11 dėžutė x0, x1, aukštis (nuo plokštės centro kairėn) *
+CABLE_HX = PL_W / 2 - 177               # kryželiu pažymėta skylė (nuo plokštės centro kairėn) - matuota
+PLEXI_OV = 10                           # 10 plexi užlaida už išpjovos *
+SCREW_P = 400                           # įleidžiamų varžtų žingsnis per atlankus *
+N_LED = 11                              # kliento exploded - 11 modulių (kiekis nepatvirtintas)
+
+C_STEEL = HexColor("#8E99A4")           # plienas (vidinis rėmas) - medžiagos spalva
+C_PLEXI = HexColor("#F4F4F2")
+C_LED = HexColor("#F2C230")
+C_JB = HexColor("#D5D5D5")
+C_HANG = HexColor("#B4B4B4")
+RED = HexColor("#C8102E")
+HATCH_STEEL = HexColor("#4A4A4A")
+
+
+def plexi_geom(G):
+    """10: plexi = švytinčios išpjovos + PLEXI_OV užlaida (y aukštyn, mm)"""
+    from shapely.geometry import Polygon
+    from shapely.ops import unary_union
+    ps = []
+    for r in G["glow"]:
+        p = Polygon([(u, TOT_H - v) for u, v in r]).buffer(0)
+        if p.area > 50:
+            ps.append(p)
+    U = unary_union(ps).buffer(PLEXI_OV, join_style=2)
+    return list(getattr(U, "geoms", [U]))
+
+
 def detail_b(X0, BY0, W0, BH):
-    """DETAIL B - pakaba (8A) 1:5, pjūvis skersai profilio"""
-    K.header(X0, BY0, W0, "DETAIL B - HANGING  1:5")
+    """DETAIL B - pakaba 8A 1:5 (pjūvis skersai): 8 kabinamas ant 2 pakabų, pakaba per 9 atlankus prisukta į 5"""
+    K.header(X0, BY0, W0, "DETAIL B - HANGER 8A  1:5")
     rect(X0, BY0 + 12, W0, BH - 12, lw=0.6)
     K.AUTO["region"] = (X0 + 3, BY0 + 15, X0 + W0 - 3, BY0 + BH - 3)
     s = MM / 5
-    cx = X0 + W0 * 0.42
-    yb = BY0 + BH - 30                                          # profilio apačia
-    Z = lambda z: cx + z * s
-    Yv = lambda y: yb - y * s                                   # y nuo profilio apačios
+    cx = X0 + W0 * 0.40
+    yb = BY0 + BH - 22
+    Z = lambda z: cx - z * s                                    # priekis (z+) kairėje
+    Yv = lambda y: yb - (y - Y_PR0) * s
     K.set_view(True)
-    t9 = 2
-    ytop = PR_H + PR_GAP                                        # dėžės apačia
-    # dėžės dugnas (9) su lūžiais
-    rect(Z(-BD / 2), Yv(ytop + t9), BD * s, t9 * s, fill=C_BLUE, lw=0.1)
-    rect(Z(-BD / 2), Yv(ytop + 40), t9 * s, (40 - t9) * s, fill=C_BLUE, lw=0.1)
-    rect(Z(BD / 2 - t9), Yv(ytop + 40), t9 * s, (40 - t9) * s, fill=C_BLUE, lw=0.1)
-    line(Z(-BD / 2) - 4, Yv(ytop + 40), Z(BD / 2) + 4, Yv(ytop + 40), 0.1, dash=([4, 1, 1, 1], 0))
-    # profilis 120x50x2
-    rect(Z(-PR_D / 2), Yv(PR_H), PR_D * s, PR_H * s, fill=C_BLACK, lw=0.1)
-    rect(Z(-PR_D / 2 + PR_T), Yv(PR_H - PR_T), (PR_D - 2 * PR_T) * s, (PR_H - 2 * PR_T) * s, fill=white, lw=0.1)
-    # pakaba 3 mm: apatinis atlankas ant profilio, statmuo, viršutinis atlankas virš dugno
-    th = 3
-    GREYH = HexColor("#B4B4B4")
-    rect(Z(-PR_D / 2 + 4), Yv(PR_H + th), (PR_D / 2 - 4) * s, th * s, fill=GREYH, lw=0.1)
-    rect(Z(-th / 2), Yv(ytop + t9 + th), th * s, (ytop + t9 + th - PR_H) * s, fill=GREYH, lw=0.1)
-    rect(Z(-th / 2), Yv(ytop + t9 + th), 30 * s, th * s, fill=GREYH, lw=0.1)
-    # varžtai (schema)
-    for zz, y0, y1 in ((-PR_D / 4, PR_H - PR_T - 4, PR_H + th + 2), (15, ytop - 4, ytop + t9 + th + 2)):
-        rect(Z(zz) - 1.5 * s, Yv(y1), 3 * s, (y1 - y0) * s, fill=HexColor("#3A3A3A"), lw=0.1)
+    ytop = Y_BOX0
+    ycut = Y_R5T + 8
+    for zs in (1, -1):                                          # 9 priekis / galas: dugno atlankas + šonas (lūžis)
+        z_out = zs * BD / 2
+        rect(min(Z(z_out), Z(0)), Yv(ytop + T9), abs(Z(z_out) - Z(0)), T9 * s, fill=C_BLUE, lw=0.1)
+        rect(min(Z(z_out), Z(z_out - zs * T9)), Yv(ycut), T9 * s, (ycut - ytop) * s, fill=C_BLUE, lw=0.1)
+    line(Z(BD / 2) - 4, Yv(ycut), Z(-BD / 2) + 4, Yv(ycut), 0.1, dash=([4, 1, 1, 1], 0))
+    rect(Z(R5 / 2), Yv(Y_R5T), R5 * s, R5 * s, fill=C_STEEL, lw=0.1)                       # 5
+    rect(Z(R5 / 2 - R5T), Yv(Y_R5T - R5T), (R5 - 2 * R5T) * s, (R5 - 2 * R5T) * s, fill=white, lw=0.1)
+    rect(Z(PR_D / 2), Yv(Y_PR0 + PR_H), PR_D * s, PR_H * s, fill=C_BLACK, lw=0.1)          # 8
+    rect(Z(PR_D / 2 - PR_T), Yv(Y_PR0 + PR_H - PR_T), (PR_D - 2 * PR_T) * s, (PR_H - 2 * PR_T) * s, fill=white, lw=0.1)
+    th = 3                                                      # 8A: Z forma, 3 mm Alu
+    yp = Y_PR0 + PR_H
+    rect(Z(PR_D / 2 - 4), Yv(yp + th), (PR_D / 2 - 4 + th / 2) * s, th * s, fill=C_HANG, lw=0.1)
+    rect(Z(th / 2), Yv(ytop), th * s, (ytop - yp - th) * s, fill=C_HANG, lw=0.1)
+    rect(Z(th / 2), Yv(ytop), 32 * s, th * s, fill=C_HANG, lw=0.1)                          # viršutinis atlankas
     K.set_view(False)
-    for zz in (-PR_D / 4, 15):
-        K.centerline(Z(zz), Yv(ytop + 14), Z(zz), Yv(PR_H - 12))
-    hchain(Yv(0) + 12, [Z(-PR_D / 2), Z(PR_D / 2)], [Yv(0)] * 2, [f"{PR_D}"], size=K.F_DIM_FRAME, bg=True)
-    vchain(Z(PR_D / 2) + 18, [Yv(ytop), Yv(PR_H), Yv(0)], [Z(-th / 2) + th * s, Z(PR_D / 2), Z(PR_D / 2)],
+    SCRC = HexColor("#3A3A3A")
+    for zz, y0, y1 in ((PR_D / 4, yp - PR_T - 4, yp + th + 2), (-14, ytop - th - 2, ytop + T9 + R5T + 6)):
+        rect(Z(zz) - 1.5 * s, Yv(y1), 3 * s, (y1 - y0) * s, fill=SCRC, lw=0.1)
+        K.centerline(Z(zz), Yv(y1 + 8), Z(zz), Yv(y0 - 8))
+    hchain(Yv(Y_PR0) + 10, [Z(PR_D / 2), Z(-PR_D / 2)], [Yv(Y_PR0)] * 2, [f"{PR_D}"], size=K.F_DIM_FRAME, bg=True)
+    vchain(Z(-BD / 2) - 12, [Yv(ytop), Yv(yp), Yv(Y_PR0)], [Z(-BD / 2), Z(-PR_D / 2), Z(-PR_D / 2)],
            [f"{PR_GAP}", f"{PR_H}"], size=K.F_DIM_FRAME, bg=True)
-    K.balloon_auto(Z(-PR_D / 2), Yv(PR_H * 0.4), 8, region=K.AUTO["region"])
-    K.balloon_auto(Z(-th / 2), Yv(PR_H + PR_GAP * 0.5), "8A", region=K.AUTO["region"])
-    K.balloon_auto(Z(-BD / 2 + 30), Yv(ytop + t9 / 2), 9, region=K.AUTO["region"])
-    T(X0 + 4, BY0 + BH - 6, "hanger 8A: 3 mm Alu, 2 pcs.; screws / width:", 8, color=K.GREY)
+    rg = K.AUTO["region"]
+    K.balloon_auto(Z(PR_D / 2), Yv(Y_PR0 + PR_H * 0.4), 8, region=rg)
+    K.balloon_auto(Z(th / 2), Yv(yp + PR_GAP * 0.45), "8A", region=rg)
+    K.balloon_auto(Z(BD / 2 - 40), Yv(ytop + T9 / 2), 9, region=rg)
+    K.balloon_auto(Z(-R5 / 2), Yv(Y_R5T - R5 / 2), 5, region=rg)
+    K.balloon_auto(Z(-14) - 1.5 * s, Yv(ytop + T9 + 6), "M6*", kind="tag", region=rg, size=8)
+    T(X0 + 4, BY0 + BH - 5, "8A: 3 mm Alu, 2 pcs.; screwed through 9 into 5*", 8, color=K.GREY)
     K.AUTO["region"] = None
 
 
-# ---------------------------------------------------------------- BOM / MAIN DATA
+# ---------------------------------------------------------------- BOM / MAIN DATA (1 lapas)
 def bom():
     return [
-        [1, "Leg □180x180x5 (welded to 4)", "Steel", "NCS S 2500-N", "1 pc., L:"],
-        [2, f"Mounting plate {PL_W}x{PL_D}x{PL_T}, 6 x Ø{PL_HD}", "Steel", "", "1 pc."],
-        [3, "Supports 5 mm (leg - plate)", "Steel", "", "pcs.:"],
-        [4, "Top frame □80x80x3 (welded to 1)", "Steel", "", "L:"],
-        [5, "Frame □40x40x2", "Steel", "", "L:"],
-        [6, "Support 5 mm", "Steel", "", "pcs.:"],
-        [7, f"Bottom cover {BASE_W}x{BASE_D}x{BASE_H}, 2 halves", "Alu 1.5 mm", "NCS S 2500-N", "2 pcs."],
+        [1, "Leg □180x180x5 - plate 2 to beam 4", "Steel, welded", "NCS S 2500-N", f"1 pc., L {LEG_L}*"],
+        [2, f"Mounting plate {PL_W}x{PL_D}x{PL_T}, 6 x Ø{PL_HD}", "Steel, welded to 1", "", "1 pc."],
+        [3, f"Supports 5 mm, leg base (under 7)", "Steel, welded 1 + 2", "", f"2 pcs., {G3_L}x{G3_H}*"],
+        [4, "Top frame □80x80x3 - inside box, top", "Steel, welded on 1", "", f"1 pc., L {B4_L}*"],
+        [5, "Frame □40x40x2 - bottom rail + verticals", "Steel, welded 1 + 4", "", f"{R5_L} + 3 x {V5_L:g}*"],
+        [6, "Support 5 mm - under 4 at leg", "Steel, welded 1 + 4", "", f"1 pc., {S6}x{S6}*"],
+        [7, f"Bottom cover {BASE_W}x{BASE_D}x{BASE_H}, 2 halves", "Alu 1.5 mm, folded", "NCS S 2500-N", "2 pcs."],
         [8, f"Height profile {PR_H}x{PR_D}x{PR_T}", "Alu", "RAL 9005", f"1 pc., {PR_L} mm"],
-        ["8A", "Hanger (DETAIL B)", "Alu 3 mm", "", "2 pcs."],
-        [9, f"Front / backside {BW}x{BOXH}x{BD}", "Alu 2 mm", "NCS S 4055-R70B", "2 pcs."],
-        [10, "Glowing graphics: arrows + Biltvätt", "Plexiglass 3 mm white", "-", "1:1 file"],
-        [11, "Junction box", "", "-", "1 pc."],
-        [12, "LED's", "", "", "pcs.:"],
+        ["8A", "Hanger (DETAIL B)", "Alu 3 mm, folded", "", "2 pcs."],
+        [9, f"Front / backside tray {BW}x{BOXH}x{BD // 2}", "Alu 2 mm, folded", "NCS S 4055-R70B", "2 pcs."],
+        [10, f"Glowing: arrows + Biltvätt (+{PLEXI_OV} mm*)", "Plexiglass 3 mm white", "-", "behind 9, 3 pcs."],
+        [11, "Junction box - on plate 2", "IP65:", "-", "1 pc."],
+        [12, "LED's - on top of rail 5", "", "", "pcs.:"],
         [13, "Decals: car + showers, FRI HÖJD 2,70m.", "Vinyl foil, cast", "ORACAL 551 101", "1 set"],
     ]
 
 
 def weight():
     st, al = 7.85e-6, 2.7e-6
-    leg = (LEG ** 2 - (LEG - 10) ** 2) * (TOT_H - PL_T) * st
+    leg = (LEG ** 2 - (LEG - 10) ** 2) * LEG_L * st
     plate = PL_W * PL_D * PL_T * st
-    top = (80 ** 2 - 74 ** 2) * BW * st
-    faces = 2 * BW * BOXH * 2 * al
+    top = (B4 ** 2 - (B4 - 2 * B4T) ** 2) * B4_L * st
+    frame = (R5 ** 2 - (R5 - 2 * R5T) ** 2) * (R5_L + 3 * V5_L) * st
+    gus = 2 * (G3_L + G3_TOP) / 2 * G3_H * 5 * st + S6 * S6 / 2 * 5 * st
+    faces = 2 * (BW * BOXH + 2 * BW * BD / 2 + 2 * BOXH * BD / 2) * T9 * al
     prof = (PR_H * PR_D - (PR_H - 4) * (PR_D - 4)) * PR_L * al
     cover = (BASE_W * BASE_D + 2 * (BASE_W + BASE_D) * BASE_H) * 1.5 * al
-    return leg + plate + top + faces + prof + cover
+    return leg + plate + top + frame + gus + faces + prof + cover
 
 
 def main_data():
     return [["Product", "height restriction, cantilever, 1 leg"],
             ["Overall", f"{BW} x {TOT_H} x {BASE_D} mm"],
-            ["Sign box", f"{BW} x {BOXH} x {BD} mm"],
+            ["Sign box", f"{BW} x {BOXH} x {BD} mm (2 trays 9)"],
             ["Clear height", f"{CLEAR} mm (FRI HÖJD 2,70m.)"],
-            ["Base", f"plate {PL_W}x{PL_D}x{PL_T}, cover {BASE_W}x{BASE_D}x{BASE_H}"],
+            ["Structure", "steel 1-6 welded (sheet 2)"],
             ["Anchors", f"6 x Ø{PL_HD}:"],
             ["Glowing", "arrows + Biltvätt (10 + 12)"],
             ["Stickers", "car + showers, FRI HÖJD (13)"],
             ["Backside", "graphics:"],
-            ["Welded", "1 + 4 (leg - top frame)"],
             ["Power", "voltage / cable:"],
             ["Qty", "1 pcs."],
-            ["Weight (calc.)", f"≈ {weight():.0f} kg / pcs, excl. 3, 5, 6, LED"]]
+            ["Weight (calc.)", f"≈ {weight():.0f} kg / pcs, excl. LED"],
+            ["*", "ALT proposal - confirm (sheet 2, Q)"]]
 
 
-# ---------------------------------------------------------------- lapas
-def sheet(G, out):
+TB = {"client": "Skyltkoncept Sweden AB (OKQ8)", "title": "OKQ8 HEIGHT RESTRICTION - BILTVÄTT",
+      "order_no": "ALT8877_10.13_RS", "drawing_no": "okq8 height restriction", "rev": "B", "date": "2026-10-13",
+      "revisions": [["A", "First issue", "2026-10-13", "RS"], ["B", "Structure, exploded, sections", "2026-10-13", "RS"]]}
+
+
+def sheet1(G, out):
     md, bm = main_data(), bom()
     K.set_band(max(len(md), len(bm) + 1))
-    K.init(out + ".tmp", "ALT8877 OKQ8 height restriction")
+    K.init(out + ".tmp", "ALT8877 OKQ8 height restriction - GA")
     K.frame()
     s25 = MM / 25
-    YG = K.VIEW_BOT - 62                                        # žemė (vietos apatiniams matmenims)
+    YG = K.VIEW_BOT - 62
     X0 = K.IX0 + 106
     front_view(G, X0, YG, s25)
     xs = X0 + BW * s25 + D1 + 40 + 50 + BASE_D / 2 * s25
@@ -401,26 +459,322 @@ def sheet(G, out):
     X_D = K.IX0; X_TB = K.IX1 - W_TB; X_MD = X_TB - W_MD; X_BOM = X_D + W_D; W_BOM = X_MD - X_BOM
     detail_b(X_D, BY0, W_D, BH)
     K.bom_table(X_BOM, BY0, W_BOM, BH, bm,
-                cols=(("POS", 20), ("PART", 0.37), ("MATERIAL", 0.22), ("FINISH", 0.19), ("QTY", None)))
+                cols=(("POS", 20), ("PART", 0.38), ("MATERIAL", 0.23), ("FINISH", 0.17), ("QTY", None)))
     K.main_data(X_MD, BY0, W_MD, BH, md, lab_w=64)
-    spec = {"client": "Skyltkoncept Sweden AB (OKQ8)", "title": "OKQ8 HEIGHT RESTRICTION - BILTVÄTT",
-            "order_no": "ALT8877_10.13_RS", "drawing_no": "okq8 height restriction", "sheet": "1 / 1", "rev": "A",
-            "date": "2026-10-13"}
-    K.title_block(X_TB, W_TB, spec, "1:25 / 1:10 / 1:5")
+    K.title_block(X_TB, W_TB, dict(TB, sheet="1 / 2", title=TB["title"] + " - GA"), "1:25 / 1:10 / 1:5")
+    K.save(out)
+
+
+# ---------------------------------------------------------------- 2 lapas: konstrukcija
+def exploded(G, box):
+    """EXPLODED VIEW - kaip kliento, mūsų stiliumi; medžiagos spalvomis (MATERIALS KEY)"""
+    import r3d
+    from shapely.geometry import Polygon
+    sc = r3d.Scene(yaw=-26, pitch=18)
+    lc = LX0 + LEG / 2
+    E = {"9F": 1500, "9B": -1000, "10": 800, "8": -650, "7": 700, "7y": -200}
+    # plokštė 2 + atramos 3 + koja 1 + 4 + 6 + 5
+    sc.box((lc - PL_W / 2, 0, -PL_D / 2), (PL_W, 0, 0), (0, PL_T, 0), (0, 0, PL_D), C_STEEL, edge=EDGE)
+    for zs in (1, -1):
+        g3 = Polygon([(lc - G3_L / 2, PL_T), (lc + G3_L / 2, PL_T), (lc + G3_TOP / 2, PL_T + G3_H), (lc - G3_TOP / 2, PL_T + G3_H)])
+        z0 = zs * (LEG / 2) if zs > 0 else -LEG / 2 - 5
+        sc.extrude_xy(g3, z0, z0 + 5, C_STEEL, C_STEEL, edge=EDGE)
+    sc.box((LX0, PL_T, -LEG / 2), (LEG, 0, 0), (0, LEG_L, 0), (0, 0, LEG), C_GREY, edge=EDGE)
+    sc.box((LX0, Y_B4B, -B4 / 2), (B4_L, 0, 0), (0, B4, 0), (0, 0, B4), C_STEEL, edge=EDGE)
+    sc.extrude_xy(Polygon([(LX0 + LEG, Y_B4B), (LX0 + LEG + S6, Y_B4B), (LX0 + LEG, Y_B4B - S6)]), -2.5, 2.5,
+                  C_STEEL, C_STEEL, edge=EDGE)
+    sc.box((LX0 + LEG, Y_R5B, -R5 / 2), (R5_L, 0, 0), (0, R5, 0), (0, 0, R5), C_STEEL, edge=EDGE)
+    for vx in VERTS:
+        sc.box((vx - R5 / 2, Y_R5T, -R5 / 2), (R5, 0, 0), (0, V5_L, 0), (0, 0, R5), C_STEEL, edge=EDGE)
+    gx0, _, gx1, _ = G["bb"]["glow"]
+    led_x = [gx0 + (gx1 - gx0) * (i + 0.5) / N_LED for i in range(N_LED)]
+    for x in led_x:
+        sc.box((x - 30, Y_R5T, -12), (60, 0, 0), (0, 8, 0), (0, 0, 24), C_LED, edge=EDGE)
+    # 11 dėžutė
+    sc.box((lc + JB[0], PL_T, -50), (JB[1] - JB[0], 0, 0), (0, JB[2], 0), (0, 0, 100), C_JB, edge=EDGE)
+    # 10 plexi
+    for p in plexi_geom(G):
+        sc.extrude_xy(p, BD / 2 - T9 - 3 + E["10"], BD / 2 - T9 + E["10"], C_PLEXI, C_PLEXI, edge=EDGE)
+    # 9 lovelės: veidas + atlankai (viršus, apačia su išpjova kojai, galai)
+    for key, zs in (("9F", 1), ("9B", -1)):
+        dz = E[key]
+        zf = zs * BD / 2
+        zi = zf - zs * T9
+        zl, zh = (0, zi) if zs > 0 else (zi, 0)
+        if zs > 0:
+            sc.box((0, Y_BOX0, zi + dz), (BW, 0, 0), (0, BOXH, 0), (0, 0, T9), C_BLUE, edge=EDGE)
+        else:
+            sc.box((0, Y_BOX0, zf + dz), (BW, 0, 0), (0, BOXH, 0), (0, 0, T9), C_BLUE, edge=EDGE)
+        sc.box((0, TOT_H - T9, zl + dz), (BW, 0, 0), (0, T9, 0), (0, 0, zh - zl), C_BLUE, edge=EDGE)
+        sc.box((LX0 + LEG, Y_BOX0, zl + dz), (BW - LX0 - LEG, 0, 0), (0, T9, 0), (0, 0, zh - zl), C_BLUE, edge=EDGE)
+        for x0 in (0, BW - T9):
+            sc.box((x0, Y_BOX0, zl + dz), (T9, 0, 0), (0, BOXH, 0), (0, 0, zh - zl), C_BLUE, edge=EDGE)
+    # 8 + 8A
+    for hx in HANG:
+        sc.box((PR_X + hx - 15, Y_PR0 + PR_H + E["8"], -1.5), (30, 0, 0), (0, PR_GAP, 0), (0, 0, 3), C_HANG, edge=EDGE)
+    sc.box((PR_X, Y_PR0 + E["8"], -PR_D / 2), (PR_L, 0, 0), (0, PR_H, 0), (0, 0, PR_D), C_BLACK, edge=EDGE)
+    # 7 dvi pusės
+    for zs in (1, -1):
+        dz = zs * E["7"]
+        z0 = 0 if zs > 0 else -BASE_D / 2
+        sc.box((lc - BASE_W / 2, E["7y"], z0 + dz), (BASE_W, 0, 0), (0, BASE_H, 0), (0, 0, BASE_D / 2), C_GREY, edge=EDGE)
+    sc.render(box)
+    V = sc.V
+    P = lambda x, y, z: (V.S(x, y, z)[0], K.H - V.S(x, y, z)[1])
+    # grafika ant priekinės lovelės (išpjovos - šviesios) ir ant profilio
+    if V.rot(0, 0, 1)[2] > 0:
+        zf = BD / 2 + E["9F"] + 0.5
+        draw_rings(G["glow"] + G["sticker"], lambda u, v: P(u, TOT_H - v, zf), white)
+        draw_rings(G["fri"], lambda u, v: P(PR_X + u, Y_PR0 + E["8"] + PR_H - v, PR_D / 2 + 0.5), white)
+    # surinkimo kryptys (brūkšnys-taškas)
+    for (a, b) in (((BW * 0.93, Y_BOX0 + BOXH * 0.3, 40), (BW * 0.93, Y_BOX0 + BOXH * 0.3, BD / 2 + E["9F"])),
+                   ((BW * 0.93, Y_BOX0 + BOXH * 0.3, -40), (BW * 0.93, Y_BOX0 + BOXH * 0.3, -BD / 2 + E["9B"])),
+                   ((PR_X + HANG[0], Y_R5B, 0), (PR_X + HANG[0], Y_PR0 + PR_H + PR_GAP + E["8"], 0)),
+                   ((lc + BASE_W * 0.4, BASE_H * 0.5, BASE_D / 2), (lc + BASE_W * 0.4, E["7y"] + BASE_H * 0.5, BASE_D / 2 + E["7"]))):
+        (x1, y1), (x2, y2) = P(*a), P(*b)
+        line(x1, y1, x2, y2, 0.25, K.GREY, dash=([5, 2, 1, 2], 0))
+    tg = [(P(lc, PL_T + 1500, LEG / 2), 1), (P(lc + PL_W * 0.4, PL_T, PL_D * 0.4), 2),
+          (P(lc - G3_L * 0.3, PL_T + G3_H * 0.4, LEG / 2 + 5), 3), (P(BW * 0.55, Y_B4T, 0), 4),
+          (P(VERTS[1], Y_R5T + V5_L * 0.5, R5 / 2), 5), (P(LX0 + LEG + S6 * 0.3, Y_B4B - S6 * 0.3, 2.5), 6),
+          (P(lc - BASE_W * 0.35, E["7y"] + BASE_H, BASE_D / 2 + E["7"]), 7),
+          (P(PR_X + PR_L * 0.85, Y_PR0 + E["8"], PR_D / 2), 8), (P(PR_X + HANG[1], Y_PR0 + PR_H + PR_GAP * 0.6 + E["8"], 1.5), "8A"),
+          (P(BW * 0.5, Y_BOX0 + 4, BD / 2 + E["9F"]), 9), (P(BW * 0.3, TOT_H - T9, -BD / 2 + E["9B"] + 40), 9),
+          (P(led_x[2], Y_R5T + 4, 12), 12), (P(lc + JB[0], PL_T + JB[2] * 0.6, 50), 11)]
+    pl = plexi_geom(G)
+    big = max(pl, key=lambda p: p.area)
+    tg.append((P(big.bounds[0] + 30, big.bounds[1] + 20, BD / 2 - T9 + E["10"]), 10))
+    for (x, y), n in tg:
+        K.balloon_auto(x, y, n, region=(box[0], box[1], box[0] + box[2], box[1] + box[3]))
+    # suvirinimo žymos (kaip kliento „Weldded")
+    for a in ((LX0 + LEG, Y_B4B, LEG / 2), (LX0, Y_B4B, LEG / 2)):
+        x, y = P(*a)
+        circle(x, y, 3.2, stroke=RED, lw=0.6)
+    xw, yw = P(LX0, Y_B4B, LEG / 2)
+    K.balloon_auto(xw, yw, "Welded 1 + 4 + 6", kind="tag", size=8, region=(box[0], box[1], box[0] + box[2], box[1] + box[3]))
+    view_title(box[0] + box[2] / 2, K.IY0 + 22, "EXPLODED VIEW", "ILLUSTRATIVE - NOT TO SCALE")
+
+
+def frame_view(G, X0, YG, s):
+    """STEEL FRAME 1-6 - priekio vaizdas 1:50 (dėžė ir uždengimas - punktyru)"""
+    X = lambda x: X0 + x * s
+    Yg = lambda y: YG - y * s
+    lc = LX0 + LEG / 2
+    K.set_view(True)
+    rect(X(0), Yg(TOT_H), BW * s, BOXH * s, lw=0.1, dash=(3, 2))                      # 9 kontūras
+    rect(X(lc - BASE_W / 2), Yg(BASE_H), BASE_W * s, BASE_H * s, lw=0.1, dash=(3, 2))   # 7 kontūras
+    rect(X(lc - PL_W / 2), Yg(PL_T), PL_W * s, PL_T * s, fill=C_STEEL, lw=0.1)
+    poly([(X(lc - G3_L / 2), Yg(PL_T)), (X(lc + G3_L / 2), Yg(PL_T)), (X(lc + G3_TOP / 2), Yg(PL_T + G3_H)),
+          (X(lc - G3_TOP / 2), Yg(PL_T + G3_H))], fill=C_STEEL, lw=0.1)
+    rect(X(LX0), Yg(Y_B4B), LEG * s, LEG_L * s, fill=C_GREY, lw=0.1)
+    rect(X(LX0), Yg(Y_B4T), B4_L * s, B4 * s, fill=C_STEEL, lw=0.1)
+    poly([(X(LX0 + LEG), Yg(Y_B4B)), (X(LX0 + LEG + S6), Yg(Y_B4B)), (X(LX0 + LEG), Yg(Y_B4B - S6))], fill=C_STEEL, lw=0.1)
+    rect(X(LX0 + LEG), Yg(Y_R5T), R5_L * s, R5 * s, fill=C_STEEL, lw=0.1)
+    for vx in VERTS:
+        rect(X(vx - R5 / 2), Yg(Y_B4B), R5 * s, V5_L * s, fill=C_STEEL, lw=0.1)
+    gx0, _, gx1, _ = G["bb"]["glow"]
+    for i in range(N_LED):
+        x = gx0 + (gx1 - gx0) * (i + 0.5) / N_LED
+        rect(X(x - 30), Yg(Y_R5T + 8), 60 * s, 8 * s, fill=C_LED, lw=0.1)
+    rect(X(lc + JB[0]), Yg(PL_T + JB[2]), (JB[1] - JB[0]) * s, JB[2] * s, fill=C_JB, lw=0.1)
+    K.set_view(False)
+    # matmenys: viršuje 4 ilgis, rėmo statmenų grandinė; kairėje koja, dešinėje statmuo
+    yt = Yg(TOT_H)
+    hchain(yt - D1, [X(LX0 + LEG), X(VERTS[0]), X(VERTS[1]), X(VERTS[2])], [Yg(Y_R5T)] * 4,
+           [f"{VERTS[0] - LX0 - LEG:g}*", f"{VERTS[1] - VERTS[0]:g}*", f"{VERTS[2] - VERTS[1]:g}"], size=K.F_DIM_FRAME, bg=True)
+    HM(X(LX0), X(X_END), yt - D2, f"{B4_L} (4)", Yg(Y_B4T), Yg(Y_B4T))
+    xl = X(lc - BASE_W / 2)
+    vchain(xl - D1, [Yg(Y_B4T), Yg(Y_B4B), Yg(PL_T), Yg(0)], [X(LX0), X(LX0), X(lc - PL_W / 2), X(lc - PL_W / 2)],
+           [f"{B4}", f"{LEG_L} (1)", f"{PL_T}"], size=K.F_DIM_FRAME, bg=True)
+    xr = X(BW) + D1
+    vchain(xr, [Yg(Y_B4B), Yg(Y_R5T), Yg(Y_R5B)], [X(VERTS[2] + R5 / 2), X(X_END), X(X_END)],
+           [f"{V5_L:g}", f"{R5}"], size=K.F_DIM_FRAME, bg=True)
+    yb = Yg(0)
+    hchain(yb + D1, [X(lc - G3_L / 2), X(lc + G3_L / 2)], [Yg(PL_T)] * 2, [f"{G3_L}*"], size=K.F_DIM_FRAME, bg=True)
+    HM(X(LX0 + LEG), X(X_END), Yg(Y_R5B) + 14, f"{R5_L} (5)", Yg(Y_R5B), Yg(Y_R5B))
+    for (x, y, n) in ((X(lc), Yg(1800), 1), (X(lc + PL_W * 0.42), Yg(PL_T / 2), 2), (X(lc + G3_L * 0.35), Yg(PL_T + 40), 3),
+                      (X(BW * 0.45), Yg(Y_B4T - B4 / 2), 4), (X(VERTS[1]), Yg(Y_B4B - V5_L * 0.5), 5),
+                      (X(LX0 + LEG + S6 * 0.3), Yg(Y_B4B - S6 * 0.3), 6), (X(gx0 + 200), Yg(Y_R5T + 4), 12),
+                      (X(lc + (JB[0] + JB[1]) / 2), Yg(PL_T + JB[2] / 2), 11)):
+        K.balloon_auto(x, y, n)
+    view_title(X(BW / 2), K.IY0 + 22, "STEEL FRAME 1-6 (FRONT)", "1:50   9 / 7 - dashed")
+
+
+def section_aa(G, X0, Ytop, s):
+    """SECTION A-A per dėžę ir profilį (x = 1500), priekis (9 su išpjova) - kairėje"""
+    Z = lambda z: X0 - z * s
+    Yv = lambda y: Ytop + (TOT_H - y) * s
+    K.set_view(True)
+    for zs in (1, -1):
+        zf = zs * BD / 2
+        zl, zh = sorted((zf, zf - zs * T9))
+        rect(Z(zh), Yv(TOT_H), T9 * s, BOXH * s, fill=C_BLUE, lw=0.1)                     # veidas
+        za, zb = sorted((0, zf - zs * T9))
+        rect(Z(zb), Yv(TOT_H), (zb - za) * s, T9 * s, fill=C_BLUE, lw=0.1)                # viršaus atlankas
+        rect(Z(zb), Yv(Y_BOX0 + T9), (zb - za) * s, T9 * s, fill=C_BLUE, lw=0.1)          # dugno atlankas
+    rect(Z(B4 / 2), Yv(Y_B4T), B4 * s, B4 * s, fill=C_STEEL, lw=0.1)                      # 4
+    rect(Z(B4 / 2 - B4T), Yv(Y_B4T - B4T), (B4 - 2 * B4T) * s, (B4 - 2 * B4T) * s, fill=white, lw=0.1)
+    rect(Z(R5 / 2), Yv(Y_R5T), R5 * s, R5 * s, fill=C_STEEL, lw=0.1)                      # 5
+    rect(Z(R5 / 2 - R5T), Yv(Y_R5T - R5T), (R5 - 2 * R5T) * s, (R5 - 2 * R5T) * s, fill=white, lw=0.1)
+    rect(Z(R5 / 2), Yv(Y_B4B), R5 * s, V5_L * s, lw=0.1, dash=(2, 1.5))                  # statmuo už pjūvio
+    rect(Z(12), Yv(Y_R5T + 8), 24 * s, 8 * s, fill=C_LED, lw=0.1)                         # 12
+    bb = G["bb"]["glow"]
+    yg0, yg1 = TOT_H - bb[3] - PLEXI_OV, TOT_H - bb[1] + PLEXI_OV
+    zp = BD / 2 - T9
+    rect(Z(zp), Yv(yg1), 3 * s, (yg1 - yg0) * s, fill=C_PLEXI, lw=0.1)                    # 10
+    rect(Z(PR_D / 2), Yv(Y_PR0 + PR_H), PR_D * s, PR_H * s, fill=C_BLACK, lw=0.1)         # 8
+    rect(Z(PR_D / 2 - PR_T), Yv(Y_PR0 + PR_H - PR_T), (PR_D - 2 * PR_T) * s, (PR_H - 2 * PR_T) * s, fill=white, lw=0.1)
+    rect(Z(1.5), Yv(Y_BOX0), 3 * s, PR_GAP * s, lw=0.1, dash=(2, 1.5))                    # 8A už pjūvio
+    K.set_view(False)
+    for zz, yy in ((B4 / 4, TOT_H), (B4 / 4, Y_BOX0)):
+        K.centerline(Z(zz), Yv(yy) - 6, Z(zz), Yv(yy) + 10)
+    # ŠVIESA: LED -> veidas (rodyklė)
+    yt = Yv(TOT_H)
+    HM(Z(BD / 2), Z(-BD / 2), yt - D2, f"{BD}", yt, yt)
+    hchain(yt - D1, [Z(BD / 2), Z(0), Z(-BD / 2)], [yt] * 3, [f"{BD // 2}", f"{BD // 2}"], size=K.F_DIM_FRAME, bg=True)
+    xr = Z(-BD / 2) + D1
+    vchain(xr, [Yv(TOT_H), Yv(Y_BOX0), Yv(Y_PR0 + PR_H), Yv(Y_PR0)], [Z(-BD / 2), Z(-BD / 2), Z(-PR_D / 2), Z(-PR_D / 2)],
+           [f"{BOXH}", f"{PR_GAP}", f"{PR_H}"], size=K.F_DIM_FRAME, bg=True)
+    xl = Z(BD / 2) - D1
+    vchain(xl, [Yv(TOT_H), Yv(Y_B4B), Yv(Y_R5T), Yv(Y_BOX0)], [Z(B4 / 2), Z(B4 / 2), Z(R5 / 2), Z(BD / 2)],
+           [f"{B4 + T9}", f"{V5_L:g}", f"{R5 + T9}"], size=K.F_DIM_FRAME, bg=True)
+    for (x, y, n) in ((Z(BD / 2), Yv(TOT_H - 150), 9), (Z(-B4 / 2), Yv(Y_B4T - 40), 4), (Z(-R5 / 2), Yv(Y_R5T - 20), 5),
+                      (Z(zp - 1.5), Yv((yg0 + yg1) / 2), 10), (Z(-12), Yv(Y_R5T + 4), 12),
+                      (Z(-PR_D / 2), Yv(Y_PR0 + PR_H / 2), 8)):
+        K.balloon_auto(x, y, n)
+    K.balloon_auto(Z(BD / 4), Yv(Y_BOX0), f"csk M6 / {SCREW_P}*", kind="tag", size=8, prefer=[210])
+    detail_mark(Z(0), Yv(Y_BOX0 - PR_GAP / 2), 16, "B")
+    view_title(X0, K.IY0 + 22, "SECTION A-A", "1:5")
+
+
+def section_cc(X0, YG, s):
+    """SECTION C-C per pagrindą (z = 0), žiūrint iš priekio; kabelio kelias - raudonai"""
+    X = lambda x: X0 + x * s                                    # x nuo plokštės centro
+    Yg = lambda y: YG - y * s
+    lc = 0
+    h_show = 330
+    K.set_view(True)
+    rect(X(-PL_W / 2), Yg(PL_T), PL_W * s, PL_T * s, fill=HATCH_STEEL, lw=0.1)             # 2 pjūvis
+    hx = -CABLE_HX
+    rect(X(hx - PL_HD / 2), Yg(PL_T), PL_HD * s, PL_T * s, fill=white, stroke=None)        # Ø kabeliui
+    for xx in (-PL_HX, PL_HX):
+        rect(X(xx - PL_HD / 2), Yg(PL_T), PL_HD * s, PL_T * s, lw=0.1, dash=(1.5, 1), fill=None)
+    poly([(X(-G3_L / 2), Yg(PL_T)), (X(G3_L / 2), Yg(PL_T)), (X(G3_TOP / 2), Yg(PL_T + G3_H)),
+          (X(-G3_TOP / 2), Yg(PL_T + G3_H))], fill=C_STEEL, lw=0.1)                       # 3 už pjūvio
+    for xx in (-LEG / 2, LEG / 2 - 5):
+        rect(X(xx), Yg(h_show), 5 * s, (h_show - PL_T) * s, fill=HATCH_STEEL, lw=0.1)    # 1 sienelės pjūvis
+    line(X(-LEG / 2) - 5, Yg(h_show), X(LEG / 2) + 5, Yg(h_show), 0.1, dash=([4, 1, 1, 1], 0))
+    ct = 1.5
+    for xx in (-BASE_W / 2, BASE_W / 2 - ct):
+        rect(X(xx), Yg(BASE_H), ct * s, BASE_H * s, fill=C_GREY, lw=0.1)                  # 7 šonai
+    for a, b in ((-BASE_W / 2, -LEG / 2 - 3), (LEG / 2 + 3, BASE_W / 2)):
+        rect(X(a), Yg(BASE_H), (b - a) * s, ct * s, fill=C_GREY, lw=0.1)                  # 7 viršus, išpjova kojai
+    rect(X(JB[0]), Yg(PL_T + JB[2]), (JB[1] - JB[0]) * s, JB[2] * s, fill=C_JB, lw=0.1)   # 11
+    K.set_view(False)
+    yc = PL_T + 70                                              # kabelis: koja -> skylė sienelėje -> 11 -> Ø plokštėje
+    K.cable_line([(X(20), Yg(h_show - 20)), (X(20), Yg(yc)), (X(JB[1]), Yg(yc))])
+    K.cable_line([(X(JB[1] - 15), Yg(PL_T + 10)), (X(hx + 6), Yg(PL_T + 10)), (X(hx + 6), Yg(0) + 10)])
+    circle(X(-LEG / 2 + 2.5), Yg(yc), 2, fill=white, lw=0.3)
+    yb = Yg(0)
+    HM(X(-BASE_W / 2), X(BASE_W / 2), yb + D2, f"{BASE_W} (7)", yb, yb)
+    hchain(yb + D1, [X(-PL_W / 2), X(hx), X(0), X(PL_W / 2)], [Yg(0)] * 4,
+           [f"{PL_W / 2 - CABLE_HX:g}", f"{CABLE_HX:g}", f"{PL_W / 2:g}"], size=K.F_DIM_FRAME, bg=True)
+    xr = X(BASE_W / 2) + D1
+    vchain(xr, [Yg(BASE_H), Yg(PL_T + G3_H), Yg(PL_T), Yg(0)], [X(BASE_W / 2), X(G3_TOP / 2), X(PL_W / 2), X(PL_W / 2)],
+           [f"{BASE_H - PL_T - G3_H:g}", f"{G3_H}*", f"{PL_T}"], size=K.F_DIM_FRAME, bg=True)
+    for (x, y, n) in ((X(LEG / 2 - 2), Yg(260), 1), (X(PL_W * 0.38), Yg(PL_T / 2), 2), (X(G3_L * 0.3), Yg(PL_T + 50), 3),
+                      (X(BASE_W / 2 - 1), Yg(BASE_H * 0.6), 7), (X((JB[0] + JB[1]) / 2), Yg(PL_T + JB[2] * 0.7), 11)):
+        K.balloon_auto(x, y, n)
+    K.balloon_auto(X(hx + 6), Yg(0) + 6, "power in: Ø___", kind="tag", size=8)
+    view_title(X(0), Yg(h_show) - 34, "SECTION C-C - BASE", "1:10   cable - red")
+
+
+def materials_key(x, y):
+    rows = [(C_GREY, "Steel 1 / Alu 7 - NCS S 2500-N"), (C_STEEL, "Steel 2-6 (inside), finish:"),
+            (C_BLUE, "Alu 2 mm 9 - NCS S 4055-R70B"), (C_BLACK, "Alu 8 - RAL 9005"), (C_HANG, "Alu 3 mm 8A"),
+            (C_PLEXI, "Plexi 3 mm white 10"), (C_LED, "LED 12"), (C_JB, "Junction box 11"),
+            (HATCH_STEEL, "Steel - in section")]
+    T(x, y, "MATERIALS KEY", 9, font="FB")
+    for i, (col, txt) in enumerate(rows):
+        yy = y + 8 + i * 13
+        rect(x, yy, 16, 9, fill=col, lw=0.3)
+        T(x + 22, yy + 7, txt, 8)
+
+
+STEPS = [
+    "1  Base: leg 1 welded to plate 2 all round; supports 3 (front + back of leg) welded to 1 + 2*.",
+    "2  Top frame 4 welded on top of leg 1, support 6 welded under 4 at the leg (client: \"Weldded\").",
+    "3  Frame 5: bottom rail welded to leg 1, 3 verticals welded rail 5 - beam 4* (client exploded).",
+    "4  Steel 1-6 finish: ___ ; leg 1 visible part NCS S 2500-N.",
+    "5  LED 12 screwed on top of rail 5 (under glowing graphics); cable inside leg 1 -> hole in leg -> junction box 11.",
+    f"6  Plexi 10 = cut-out + {PLEXI_OV} mm*, on inside of front 9, fixed on studs (client exploded).",
+    f"7  Trays 9 (front + back, {BD // 2} deep, joint on box centre line) put on frame; leg 1 through notch in bottom",
+    f"   return; csk screws through top returns into 4 and bottom returns into 5, ~{SCREW_P} mm*.",
+    "8  Height profile 8 on 2 hangers 8A: hanger screwed through bottom returns of 9 into rail 5 (DETAIL B)*.",
+    "9  Bottom cover 7: 2 halves (front / back) around leg 1, notch 180; screwed to each other*.",
+    f"10 On site: plate 2 on 6 anchors Ø{PL_HD}; power in through plate hole into 11 (SECTION C-C).",
+    "*  ALT proposal - not dimensioned in client drawing, confirm (Q).",
+]
+QUEST = [
+    "Q1  Hangers 8A: position on 8 (drawing ≈ 280 / 320 from ends), width, screws?",
+    "Q2  Frame 5 verticals: client exploded ≈ 720 / 2340 - OK, or other pitch?",
+    f"Q3  Supports 3: 2 pcs. {G3_L} x {G3_H} x 5 (under cover 7) - OK? Support 6: {S6} x {S6} x 5?",
+    "Q4  Plate 2: left hole - Ø / purpose (cable in?); centre square - cut-out or leg outline?",
+    "Q5  Steel finish 1-6: hot-dip galvanized / powder coat?",
+    "Q6  LED 12: type, qty, voltage; cable length, junction box 11 type?",
+    "Q7  Backside graphics (client 3D: none)?",
+    "Q8  Anchors: type, length?",
+]
+
+
+def sheet2(G, out):
+    K.set_band(15)
+    K.init(out + ".tmp", "ALT8877 OKQ8 height restriction - structure")
+    K.frame()
+    BY0 = K.BAND_Y; BH = K.IY1 - BY0
+    exploded(G, (K.IX0 + 14, K.IY0 + 60, 560, K.VIEW_BOT - K.IY0 - 70))
+    s50 = MM / 50
+    frame_view(G, K.IX0 + 650, K.IY0 + 112 + TOT_H * s50, s50)
+    s10 = MM / 10
+    section_aa(G, K.IX1 - 92, K.IY0 + 96, MM / 5)
+    section_cc(K.IX0 + 650 + 120, K.VIEW_BOT - 52, s10)
+    materials_key(K.IX0 + 360, K.VIEW_BOT - 120)
+    W_TB, W_Q = 272, 300
+    X_TB = K.IX1 - W_TB; X_Q = X_TB - W_Q; W_S = X_Q - K.IX0
+    K.header(K.IX0, BY0, W_S, "CONSTRUCTION / ASSEMBLY")
+    rect(K.IX0, BY0 + 12, W_S, BH - 12, lw=0.6)
+    lh = (BH - 18) / len(STEPS)
+    for i, s_ in enumerate(STEPS):
+        T(K.IX0 + 5, BY0 + 12 + lh * (i + 0.5) + 3.5, s_, 8, fit=W_S - 10, fit_min=7.5)
+    K.header(X_Q, BY0, W_Q, "QUESTIONS TO CLIENT")
+    rect(X_Q, BY0 + 12, W_Q, BH - 12, lw=0.6)
+    lq = (BH - 18) / len(QUEST)
+    for i, q in enumerate(QUEST):
+        T(X_Q + 5, BY0 + 12 + lq * (i + 0.5) + 3.5, q, 8, color=RED, auto_red=False, fit=W_Q - 10, fit_min=7)
+    K.title_block(X_TB, W_TB, dict(TB, sheet="2 / 2", title=TB["title"] + " - STRUCTURE"), "1:50 / 1:10 / 1:5")
     K.save(out)
 
 
 def main(out):
     K.F_DIM_FRAME = K.F_DIM_MAIN                                # v145: visi matmenys vienodo dydžio
     G = client_graphics()
-    K.auto_begin("collect"); K.AUTO["region"] = None
-    sheet(G, out)
-    pl = K.auto_place(out)
-    K.auto_begin("draw", pl); K.AUTO["region"] = None
-    sheet(G, out)
-    K.auto_begin(None)
-    if os.path.exists(out + ".tmp"):
-        os.remove(out + ".tmp")
+    parts = []
+    for i, fn in enumerate((sheet1, sheet2)):
+        pp = f"{out}.{i + 1}.pdf"
+        K.auto_begin("collect"); K.AUTO["region"] = None
+        fn(G, pp)
+        pl = K.auto_place(pp)
+        K.auto_begin("draw", pl); K.AUTO["region"] = None
+        fn(G, pp)
+        K.auto_begin(None)
+        parts.append(pp)
+    d = fitz.open()
+    for p in parts:
+        d.insert_pdf(fitz.open(p))
+    d.save(out, garbage=3, deflate=True); d.close()
+    K.pdf_fix_fonts(out)
+    for p in parts:
+        for q in (p, p + ".tmp"):
+            os.path.exists(q) and os.remove(q)
     print("OK", out, f"svoris ≈ {weight():.0f} kg", "netelpa:", K.OVERFLOW)
 
 
