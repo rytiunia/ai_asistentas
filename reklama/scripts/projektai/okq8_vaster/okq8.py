@@ -124,26 +124,27 @@ def flat_dxf(fn, W, H, holes_top, holes_bot, bolts_top, bolts_bot):
     import ezdxf
     BA = math.pi / 2 * (2 + 0.44 * t); OSSB = 2 + t; BD = 2 * OSSB - BA
     a = PD - OSSB + BA / 2; off = a + BA / 2 - OSSB
-    F, WF = W + 2 * PD - 2 * BD, H + 2 * PD - 2 * BD
+    PS = PD - t; aS = PS - OSSB + BA / 2; offX = aS + BA / 2 - OSSB     # v170: šonai (tarp skardų) 2 mm seklesni
+    F, WF = W + 2 * PS - 2 * BD, H + 2 * PD - 2 * BD
     SY0, SY1 = off + t + 0.1, off + H - t - 0.1
     doc = ezdxf.new("R2010", setup=True); doc.units = ezdxf.units.MM; msp = doc.modelspace()
     for nm, col, lt in (("CUT", 7, "CONTINUOUS"), ("BEND_UP_90_R2", 1, "DASHDOT"), ("HOLES_D3.2", 3, "CONTINUOUS"),
                         ("HOLES_D6_JOINT", 4, "CONTINUOUS"), ("TEXT", 2, "CONTINUOUS")):
         doc.layers.add(nm, color=col, linetype=lt)
-    o = off
+    o = offX
     msp.add_lwpolyline([(o, 0), (F - o, 0), (F - o, SY0), (F, SY0), (F, SY1), (F - o, SY1), (F - o, WF), (o, WF),
                         (o, SY1), (0, SY1), (0, SY0), (o, SY0)], close=True, dxfattribs={"layer": "CUT"})
-    for u in (a, F - a):
+    for u in (aS, F - aS):
         msp.add_line((u, SY0), (u, SY1), dxfattribs={"layer": "BEND_UP_90_R2"})
     for v in (a, WF - a):
-        msp.add_line((off, v), (F - off, v), dxfattribs={"layer": "BEND_UP_90_R2"})
+        msp.add_line((offX, v), (F - offX, v), dxfattribs={"layer": "BEND_UP_90_R2"})
     span = W - 100; n = max(1, round(span / 300))
-    xs = [off + 50 + span * k / n for k in range(n + 1)]
+    xs = [offX + 50 + span * k / n for k in range(n + 1)]
     for flag, v in ((holes_top, WF - 7), (holes_bot, 7)):
         if flag:
             for x in xs:
                 msp.add_circle((x, v), 1.6, dxfattribs={"layer": "HOLES_D3.2"})
-    nj = max(1, round(span / 500)); xj = [off + 50 + span * k / nj for k in range(nj + 1)]
+    nj = max(1, round(span / 500)); xj = [offX + 50 + span * k / nj for k in range(nj + 1)]
     for flag, v in ((bolts_top, WF - 20), (bolts_bot, 20)):
         if flag:
             for x in xj:

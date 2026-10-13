@@ -5,7 +5,10 @@
 gylis pagal užsakymą (dažniausiai 40), 4 užlenkimai 90° į galą, vidinis R2, K 0.44 (PRIELAIDA - Inventor
 numatytasis; lape „assumed"), BA 4.524, BD 3.476 / 90°, flanšas iki lenkimo ašies 38.26 (gylis 40). ŠONINIAI flanšai
 įsilenkia TARP viršutinio ir apatinio (aukštis H - 2t - 2x0.1 = H - 4.2), kampų išpjova pagal STEP.
-Išklotinė = (L + 2·gylis - 2·BD) x (H + 2·gylis - 2·BD); max ilgis - lakšto 4000 - 2x10 paraštė (praktiškai dalis <= 3900).
+**ĮSILENKIANTYS TARP SKARDŲ (šoniniai) flanšai - t (2 mm) SEKLESNI (v170, Rytis 2026-10-13, gamybos lankstymo praktika):**
+gylis 40 -> viršus / apačia (užsilenkiantys) 40, šonai 38 (flanšas iki lenkimo ašies 36.26). STEP rodo visus 40 - gamyboje
+galioja ši taisyklė.
+Išklotinė = (L + 2·(gylis - t) - 2·BD) x (H + 2·gylis - 2·BD) (1000x1000x40 -> 1069.05 x 1073.05); max ilgis - lakšto 4000 - 2x10 paraštė (praktiškai dalis <= 3900).
 - **L profilis 30x30x2 Alu** (Rytis patvirtino): ilgis = tvirtinamos kraštinės ilgis - 50 mm
   (po 25 mm nuo galų), pagal nutylėjimą 2 vnt. (viršus + apačia). Ilgis VISADA galiniame vaizde
   (`25 | ilgis | 25` + bendras), BOM - bėginiais metrais `2 x 2.25 = 4.50 m` (`{L_QTY} x {L_LEN_M} = {L_TOTAL_M} m`).
