@@ -117,7 +117,7 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
                 log(f"  ! auto rėmas: bėgeliui y{cy:.0f} galų raidėje (kampai >= {edge} mm) nerasta - galai ties kraštinių raidžių centru, PATIKRINTI ranka")
             # v185 (Rytis 2026-10-13): kraštinė raidė be stiebo (e, c, o ...) turi STABILIAI tvirtintis - bėgelis tęsiamas iki
             #  raidės galo (pvz. „e" uodegytės galo, edge mm nuo krašto), net jei rėmas dalinai matysis
-            lt_ = min(L, key=lambda o: o["bb"][0]); rt_ = max(L, key=lambda o: o["bb"][2])
+            lt_ = min(hs_, key=lambda o: o["bb"][0]); rt_ = max(hs_, key=lambda o: o["bb"][2])   # akcentai (kablelis, taškas) - ne kraštinė raidė
             if lx > (lt_["bb"][0] + lt_["bb"][2]) / 2:
                 lx = lt_["bb"][0] + edge
                 log(f"  auto rėmas: bėgelis y{cy:.0f} pratęstas iki kraštinės raidės galo kairėje (x{lx:.0f}) - stabilus tvirtinimas, rėmas dalinai matysis")
@@ -287,6 +287,41 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
             vs.append({"x0": xc - t_rail / 2, "x1": xc + t_rail / 2, "y0": y0, "y1": y1, "kind": "v", "auto": True, "conn": True,
                        "len": y1 - y0, "poly": [(xc - t_rail / 2, y0), (xc + t_rail / 2, y0), (xc + t_rail / 2, y1), (xc - t_rail / 2, y1)]})
             log(f"  auto rėmas: jungiamasis statmuo prie {'kairio' if side == 'l' else 'dešinio'} galo x{xc:.0f} (per abi eilutes, pjaunamas tarp bėgelių)")
+    # v189 (Rytis 2026-10-13, v185 taisyklė - kraštinis elementas tvirtinamas stabiliai): smulkus elementas už rėmo galo
+    #  (kablelis, taškas), kertantis bėgelio juostą - tas bėgelis TĘSIAMAS už galinio statmens iki elemento (abu kampai
+    #  >= edge elemento viduje, kuo arčiau išorinio krašto); rėmas gali dalinai matytis
+    for r in rows:
+        for o in r["letters"]:
+            if o["bb"][3] - o["bb"][1] >= 0.5 * r["h"]:
+                continue
+            inner_ = o["geom"].buffer(-edge)
+            if inner_.is_empty:
+                continue
+            for rr in r["rails"]:
+                y0_, y1_ = rr["y0"], rr["y1"]
+                xs_ = [x for x in range(int(o["bb"][0]), int(o["bb"][2]) + 1, 2)
+                       if inner_.covers(Point(x, y0_)) and inner_.covers(Point(x, y1_))]
+                if not xs_:
+                    continue
+                side_ = "r" if o["bb"][0] >= r["xr"] - 1 else ("l" if o["bb"][2] <= r["xl"] + 1 else None)
+                if side_:                                 # galinis statmuo baigiasi ant pratęsto bėgelio (bėgis nekertamas, kaip v82)
+                    k_ = r["rails"].index(rr)
+                    for v in vs:
+                        xe_ = v["x1"] if side_ == "r" else v["x0"]
+                        if v.get("end") and abs(xe_ - (r["xr"] if side_ == "r" else r["xl"])) < 2 \
+                                and v["y0"] <= rr["y0"] + 1 and v["y1"] >= rr["y1"] - 1:
+                            if k_ == 1:
+                                v["y1"] = rr["y0"]
+                            else:
+                                v["y0"] = rr["y1"]
+                            v["len"] = v["y1"] - v["y0"]
+                            v["poly"] = [(v["x0"], v["y0"]), (v["x1"], v["y0"]), (v["x1"], v["y1"]), (v["x0"], v["y1"])]
+                if o["bb"][0] >= r["xr"] - 1:
+                    rr["ext_r"] = max(xs_) + t_rail
+                    log(f"  auto rėmas: bėgelis y{(y0_ + y1_) / 2:.0f} tęsiamas iki elemento dešinėje (x{max(xs_):.0f}) - stabilus tvirtinimas, rėmas dalinai matysis")
+                elif o["bb"][2] <= r["xl"] + 1:
+                    rr["ext_l"] = min(xs_) - t_rail
+                    log(f"  auto rėmas: bėgelis y{(y0_ + y1_) / 2:.0f} tęsiamas iki elemento kairėje (x{min(xs_):.0f}) - stabilus tvirtinimas, rėmas dalinai matysis")
     for r in rows:                                           # bėgeliai - iki statmenų vidinės plokštumos
         for rr in r["rails"]:
             rr["x0"], rr["x1"] = rr.get("ext_l", r["xl"]) + t_rail, rr.get("ext_r", r["xr"]) - t_rail

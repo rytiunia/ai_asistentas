@@ -7,16 +7,18 @@ from fontTools.pens.recordingPen import RecordingPen
 from fontTools.pens.boundsPen import BoundsPen
 from reportlab.pdfgen import canvas
 
-FONT = "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf"
-text, out, ref_ch, ref_mm = sys.argv[1], sys.argv[2], sys.argv[3], float(sys.argv[4])
+FONT = sys.argv[5] if len(sys.argv) > 5 else "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf"
+text, out, ref_ch, ref_mm = sys.argv[1], sys.argv[2], sys.argv[3], float(sys.argv[4])   # ref_ch "LEN" - bendras ilgis
 MARGIN = 50
 
 tt = TTFont(FONT)
 gs = tt.getGlyphSet()
 cmap = tt.getBestCmap()
-bp = BoundsPen(gs)
-gs[cmap[ord(ref_ch)]].draw(bp)
-k = ref_mm / (bp.bounds[3] - bp.bounds[1])          # font units -> mm
+k = None
+if ref_ch != "LEN":
+    bp = BoundsPen(gs)
+    gs[cmap[ord(ref_ch)]].draw(bp)
+    k = ref_mm / (bp.bounds[3] - bp.bounds[1])      # font units -> mm
 
 blob = hb.Blob.from_file_path(FONT)
 font = hb.Font(hb.Face(blob))
@@ -40,10 +42,14 @@ for ox, rec in glyphs:
         for px, py in pts:
             xs.append(ox + px); ys.append(py)
 x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
+if k is None:
+    k = ref_mm / (x1 - x0)
 W, H = (x1 - x0) * k + 2 * MARGIN, (y1 - y0) * k + 2 * MARGIN
 
 c = canvas.Canvas(out, pagesize=(W, H))
-c.setFillColorRGB(0.1, 0.1, 0.1)
+# spalva (6 argumentas, hex) - ne pilka, kad stačiakampės raidės (l, I) nebūtų atpažintos kaip kliento bėgeliai
+_fh = sys.argv[6] if len(sys.argv) > 6 else "1A1A1A"
+c.setFillColorRGB(*[int(_fh[i:i + 2], 16) / 255 for i in (0, 2, 4)])
 for ox, rec in glyphs:
     p = c.beginPath()
     T = lambda pt: ((ox + pt[0] - x0) * k + MARGIN, (pt[1] - y0) * k + MARGIN)
@@ -74,4 +80,4 @@ for ox, rec in glyphs:
     c.drawPath(p, fill=1, stroke=0, fillMode=0)   # even-odd: e, o akutės
 c.showPage()
 c.save()
-print(f"{text}: {(x1 - x0) * k:.1f} x {(y1 - y0) * k:.1f} mm, {ref_ch} = {ref_mm} mm, puslapis {W:.0f} x {H:.0f} pt")
+print(f"{text}: {(x1 - x0) * k:.1f} x {(y1 - y0) * k:.1f} mm, {ref_ch} = {ref_mm} mm, {FONT.split('/')[-1]}, puslapis {W:.0f} x {H:.0f} pt")
