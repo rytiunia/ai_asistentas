@@ -66,6 +66,7 @@ g_.add_argument("--scale", type=float, default=None, help="brėžinio mastelis (
 g_.add_argument("--ref-mm", type=float, default=None, help="raidžių grupės bendras plotis mm")
 ap.add_argument("--names", default="", help="raidžių vardai iš kairės, pvz. TESTAS (failų pavadinimams)")
 ap.add_argument("--prefix", default=None, help="failų prefiksas (numatyta - PDF vardas)")
+ap.add_argument("--stems", action="store_true", help="v195: senas režimas - skylė traukiama į kojelę (a / d / m); numatyta - tolygiai per zoną")
 ap.add_argument("--rail", type=float, default=30, help="bėgelio profilio plotis mm (U30 / U40)")
 ap.add_argument("--p1", action="store_true", help="v116: P1 NON-LIT - dugnas (inside kontūras) -0,7 mm, be drenažo, be D11 (LED nėra)")
 ap.add_argument("--inset", type=float, default=None, help="dugnas mažesnis už stiklą, mm į vidų (back_inset)")
@@ -418,7 +419,10 @@ def holes_on_rail(back, r_, edge):
                     nxt += [(x0_, x1_) for x0_, x1_ in ((ca, min(cb, ta - A.min_gap / 2)), (max(ca, tb + A.min_gap / 2), cb)) if x1_ - x0_ > 0]
                 cur_ = nxt
             rest += cur_
-        if stems and len(stems) < len(zs) + 1 and rest:  # kojelė + pilvelis vienoje zonoje
+        # v195 (Rytis 2026-10-13: „kodėl toks netolygus tvirtinimo taškų dėliojimas? pagal plotą mažesniame pridėta daugiau nei
+        #  didesniame") - NUMATYTA: skylės TOLYGIAI per visą zoną (n = ceil(L / 2R), žingsnis L / n, nuo galų L / 2n), kojelės
+        #  traukimas (v-2026-10-09, a / d / m) - tik su --stems
+        if A.stems and stems and len(stems) < len(zs) + 1 and rest:  # kojelė + pilvelis vienoje zonoje
             # Rytis 2026-10-09 (m / n): kai kojelė susijungia su lanku, tvirtinimo plotas didesnis - skylė traukiama
             # nuo krašto į jungtį: centruojama per kojelę + gretimą ištisinį dugno ruožą ant ašies (`full`),
             # bet ne toliau kaip kojelės plotis už jos krašto.
@@ -800,7 +804,9 @@ for o in letters:
         cov = unary_union([Point(h).buffer(A.press_r) for h in rh])
         rest = band.difference(cov)
         for part in sorted(getattr(rest, "geoms", [rest]), key=lambda g_: -g_.area):
-            if part.is_empty or part.area < 150:
+            # v195: tik reikšminga neprispausta dalis (>= R / 2 ilgio išilgai bėgelio), ne kampų likučiai - kitaip mažos raidės
+            #  gauna daugiau skylių nei didelės
+            if part.is_empty or part.area < 150 or (part.bounds[2] - part.bounds[0]) < A.press_r / 2:
                 continue
             safe = o["back"].buffer(-7, join_style=2, mitre_limit=10)
             bnd = o["back"].boundary
