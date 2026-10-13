@@ -1773,7 +1773,8 @@ stw = K.pdfmetrics.stringWidth("SIDE VIEW (RIGHT)", "FB", K.F_VIEW)
 view_title((SZx(ZMAX) + SVW) / 2, FVY + fh + 52, "SIDE VIEW (RIGHT)", f"SCALE 1:{SC1}")
 
 CABLES = [{"x": (c_["pt"][0] - OX) * S, "y": (c_["pt"][1] - OY) * S, "label": c_.get("label", ""),
-           "voltage": c_.get("voltage", "?")} for c_ in CABLES_RAW]
+           "voltage": c_.get("voltage", "?"), "point": c_.get("point", False), "up_mm": c_.get("up_mm"), "side": c_.get("side")}
+          for c_ in CABLES_RAW]
 # ============================================================ REAR VIEW (MIRRORED)
 s2 = MM / SC2
 _TOPX = 20 if any(_stack(g)[1] and not _stack(g)[0] and _rail_n(g) > 1 for g in groups) else 0
@@ -2335,7 +2336,25 @@ else:
             key_ = ("side", ce[2])
             _ranks[id(cb)] = _ranks.get(key_, 0)
             _ranks[key_] = _ranks.get(key_, 0) + 1
+    _pt_rank = [0]
     for cb, ce in CEX:
+        if cb.get("point"):
+            # v169 (Rytis 2026-10-13: „laikytis org faile numatytų laido išvesčių"): išvestis TIKSLIAI originalo vietoje
+            #  (taškas raidėje virš rėmo), laidas į viršų; up_mm - iki užrašo (tarp eilučių), kitaip - virš galinio vaizdo
+            px_, py_ = RV(cb["x"], cb["y"])
+            K.c.saveState(); K.c.setFillColor(K.CABLE); K.c.circle(px_, K.Y(py_), 1.6, stroke=0, fill=1); K.c.restoreState()
+            if cb.get("up_mm") is not None:
+                yt_ = py_ - cb["up_mm"] * s2
+            else:
+                yt_ = _vt - ROW[0] - 20 * max(UPR[0], 1) - 8 - 12 * _pt_rank[0]
+                _pt_rank[0] += 1
+            K.cable_line([(px_, py_), (px_, yt_)])
+            td = {"left": -1, "right": 1}.get(cb.get("side")) or (-1 if px_ < RVX + rw / 2 else 1)   # galinio vaizdo kryptimi
+            ex, ey = _wiggle(px_, yt_, td, n=18)
+            _bolt(ex + td * 6, ey)
+            v_ = cb["voltage"] if not K.unk(cb["voltage"]) else "___ V"
+            TL(ex + td * 11, ey + 3, f"{v_}, {cb['label']}", K.F_INFO + 1, align="l" if td > 0 else "r")
+            continue
         if ce:
             x_, y_ = RV(ce[0], ce[1])
             draw_cable(x_, y_, -ce[2], cb, ce[3], _ranks[id(cb)])
@@ -2381,6 +2400,11 @@ if r_first:
                  key=lambda r_: r_["y0"], default=r_first)
     _busy = []                                     # laidų atkarpų x intervalai (galinis vaizdas)
     _busy += LED_BUSY                              # v111
+    for _cb in CABLES:                             # v169: taškinės išvestys ir jų užrašai - ne po balionu
+        if _cb.get("point"):
+            _px = RV(_cb["x"], _cb["y"])[0]
+            _sd = {"left": -1, "right": 1}.get(_cb.get("side")) or (-1 if _px < RVX + rw / 2 else 1)
+            _busy.append((min(_px, _px + _sd * 110) - 12, max(_px, _px + _sd * 110) + 12))
     for _cb, _ce in CEX:
         _pts = (_pre.get(id(_cb)) if TB_ON and CEX else None) or []
         _xs = [q[0] for q in _pts] + ([_drops[id(_cb)]] if TB_ON and CEX and id(_cb) in _drops else [])

@@ -25,8 +25,10 @@ s1 = dict(base, merge_rows=True, led_fragment={"src": ORG, "pno": 0, "clip": [78
           decals=[{"client_fill": [0.66, 0.81, 0.27], "hex": GREEN, "group": "KIWI"},
                   {"client_fill": [0.35, 0.35, 0.05], "hex": BLACK, "group": "minipris"}],
           joints=[{"x_pt": 418.7, "label": "DIVIDED"}],
-          cable_exits=[{"pt": [405, 358], "voltage": "230V", "label": "~3 m"}, {"pt": [432, 358], "voltage": "230V", "label": "~3 m"},
-                       {"pt": [432, 397], "voltage": "230V", "label": "~3 m"}],
+          # v169: laido išvestys - TIKSLIAI kaip originalo LED brėžinyje (ALT8858 p1 taškai, perskaičiuoti į kliento koord.)
+          cable_exits=[{"pt": [411.4, 356.9], "voltage": "230V", "label": "~3 m", "point": True, "side": "right"},
+                       {"pt": [423.8, 360.8], "voltage": "230V", "label": "~3 m", "point": True, "side": "left"},
+                       {"pt": [423.8, 398.4], "voltage": "230V", "label": "~3 m", "point": True, "up_mm": 100, "side": "left"}],
           groups=[
               {"name": "KIWI", "profile": "6", "on_plate": False, "return_ral": "9010", "face_hex": BLACK,
                "client_fill": [0.85, 0.1, 0.1], "frame": "verticals", "fit_plates": fp(earsK, oK),
@@ -65,7 +67,7 @@ json.dump(s1, open("spec1.json", "w"), ensure_ascii=False, indent=1)
 o7 = (274.669, 503.107)
 s2 = dict(base, led_fragment={"src": ORG, "pno": 1, "clip": [66, 428, 664, 768], "note": "as original drawing (ALT8858)"}, section_labels={"1": "6", "2": "7", "3": "5", "4": "9", "5": "3", "A": "12"}, title="7-23  L 2037", file_code="KIWI_226023_02_723", sheet="2 / 3", crop_pt=[262, 495, 430, 562],
           ignore_fills=[[0.66, 0.81, 0.27]], decals=[{"client_fill": [0.66, 0.81, 0.27], "hex": GREEN, "group": "7-23"}],
-          cable_exits=[{"pt": [366, 506], "voltage": "230V", "label": "~3 m"}],
+          cable_exits=[{"pt": [367.5, 506.0], "voltage": "230V", "label": "~3 m", "point": True}],
           groups=[{"name": "7-23", "profile": "6", "on_plate": False, "return_ral": "9010", "face_hex": BLACK,
                    "client_fill": [0.1, 0.1, 0.85], "frame": "verticals",
                    "fit_plates": fp([(314.31, 511.42), (386.22, 511.42), (380.19, 542.6), (296.66, 542.6)], o7),
