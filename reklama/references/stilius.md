@@ -96,6 +96,8 @@ v162 (Rytis 2026-10-13, SVARBI TAISYKLĖ): KLIENTO GRAFIKA VISADA ATITINKA ORIGI
   Rytis matė sugadintas spalvas / tekstus / grafiką. Korpuso spalvų iš akies nekeisti be Ryčio nurodymo.
 - Kliento tekstai kreivėmis: dažniausiai kliento maketas JAU kreivės - tikrinti `page.get_text()`; tik jei liko gyvas tekstas,
   `K.pdf_text_to_paths` (pdf_outline) ir pranešti Ryčiui, kad būtų patikrinta.
+- (v165) 3D / perspektyviniai vaizdai - TAS PATS žiūrėjimo kampas kaip kliento 3D („Principe", vizualizacija): iš kurios pusės
+  matomas šonas, ten ir mūsų (r3d yaw ženklas). Korpuso / fono spalvos - iš kliento lapo RAL legendos pavyzdžių, ne iš lentelės.
 - Patikra prieš siunčiant: naujas lapas vs paskutinis patvirtintas (poppler + MuPDF) - kliento grafikos vietose skirtumo nėra.
 
 ## Ko nedaryti

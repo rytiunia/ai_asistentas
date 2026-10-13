@@ -22,7 +22,8 @@ K.RAL.setdefault("5022", "#222D5A"); K.RAL.setdefault("5012", "#3B83BD")
 CLIENT, PROJECT, DRAWING_NO, DATE, REV = "CEOS Groupe", "Thales Campus Velizy", "CEOS D059422", "2026-10-13", "D"
 SRC = os.environ.get("THALES_SRC", "APS_Communication_-_Thales_Campus_v5_phase_2.pdf")   # kliento PDF (CEOS D059422)
 OUT = os.environ.get("THALES_OUT", "out"); os.makedirs(OUT, exist_ok=True)
-BLUE, WHITE_ = HexColor("#222D5A"), HexColor("#F1F0EA")
+BLUE, WHITE_ = HexColor("#2B2B5C"), HexColor("#F4FBF7")   # v163: kliento lapo RAL 5022 / RAL 9016 pavyzdžių spalvos
+                                                             # (CEOS D059422 p.2 / p.9 legenda; buvo #222D5A / #F1F0EA)
 AL, LCOL, GREYF, DECAL = HexColor("#C9CCCF"), HexColor("#8C8C8C"), HexColor("#9A9A9A"), HexColor("#CFE3F2")
 RED, SCREW = HexColor("#C00000"), HexColor("#E2001A")
 t, FR, FT, CL = 2, 60, 3, 3
@@ -94,7 +95,7 @@ def band(title, sheet, sec_title, sec, rows, md, scales, mdw=200):
     K.main_data(X_MD, BY0, W_MD, BH, md, lab_w=62)
     K.title_block(X_TB, W_TB, {"title": PROJECT + " - " + title, "sheet": sheet, "client": CLIENT, "drawing_no": DRAWING_NO,
                                "date": DATE, "rev": REV, "order_no": os.environ.get("THALES_ORDER", "ALT0000_00.00_RS"),
-                               "revisions": [["D", "3D white top full depth", DATE, ""]]}, scales)
+                               "revisions": [["D", "3D as client, RAL colours", DATE, ""]]}, scales)
 
 
 def save(fn):
@@ -539,7 +540,7 @@ def ga(p, sheet, graphic, decals=None):
         y3 = ddy + ddh + PL * ds + 60
     else:
         y3 = VY0 + 16
-    S = r3d.Scene(yaw=-32, pitch=15)
+    S = r3d.Scene(yaw=32, pitch=15)                       # v163: kaip kliento „Principe" - iš kairės (šonas kairėje)
     ext3d(S, p)
     w3 = VX1 - x3; h3 = VY1 - 26 - y3
     S.render((x3, y3, w3, h3))

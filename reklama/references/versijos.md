@@ -2,6 +2,12 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v165 (2026-10-13)
+
+v165, Rytis 2026-10-13 („didelio pilono sheet 1 vaizdas neatitinka kliento užklausos"): kliento „Principe" 3D - iš kairės
+(šonas kairėje, veidas į dešinę), mūsų buvo veidrodinis (iš dešinės) -> `r3d.Scene(yaw=32)`; korpuso RAL 5022 / 9016 spalvos
+iš kliento legendos (buvo #222D5A / #F1F0EA). Kliento grafikos fragmentai nepakeisti (vs ALT8878 skirtumas 0).
+
 ## v162 (2026-10-13)
 
 v162, Rytis 2026-10-13 („susigadino viskas - tekstai, grafika, gražink grafikos atpažinimą į pirminį tašką, nes dabar net
