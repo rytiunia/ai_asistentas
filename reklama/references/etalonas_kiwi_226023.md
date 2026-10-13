@@ -1,4 +1,4 @@
-# ETALONAS: KIWI order 226023 KIWI 640 BYGNES (BrandFactory, 3 lapai) - Rytis patvirtino 2026-10-13
+# ETALONAS: KIWI order 226023 (BrandFactory, 3 lapai) - Rytis patvirtino 2026-10-13
 
 **Statusas:** VISŲ KIWI dokumentų ETALONAS iki atskiro Ryčio nurodymo. Naujas KIWI užsakymas (raidės / logotipas ant
 rėmo, 7-23, Lanterne / kolona) daromas TIKSLIAI taip: tas pats lapų išdėstymas, lentelės, LED vaizdas, žymėjimas,
@@ -6,9 +6,23 @@ patikra. Keičiasi tik produkto turinys (matmenys, kiekiai, rėmas, LED - iš to
 Bendras stilius - kaip visur (`references/stilius.md`, `etalonas_spar_225960.md`); šis etalonas papildo KIWI specifika.
 
 - Lapai: `assets/etalonai/KIWI_226023_komplektas_3_lapai.pdf`
-  (NAS: `/Volumes/dizainas/RYTIS/DARBAI/uzsienio reklama/Brandfactory/KIWI/KIWI order 226023/Drawing_Order 226023 KIWI 640 BYGNES.pdf`).
+  (NAS: `/Volumes/dizainas/RYTIS/DARBAI/uzsienio reklama/Brandfactory/KIWI/KIWI order 226023/Drawing_KIWI order 226023.pdf`).
 - Kodas: `scripts/projektai/kiwi_226023/` (README.md - eiga), generatorius `scripts/braizyti_begeliai.py` + `lanterne.py`.
 - Originalas, iš kurio perkelta informacija: Tollnes 225948 / ALT8858 (3 psl.: KIWI 3362, 7-23 2037, Lanterne 6800).
+
+## 0. Naujas KIWI užsakymas - kas keičiasi (v181, Rytis 2026-10-13)
+- **Pavadinimas:** tik „KIWI order NNNNNN" - antraštės FILE / DRAWING NO. (`drawing_no`) ir failas
+  `Drawing_KIWI order NNNNNN.pdf` užsakymo aplanke NAS. Gautos užklausos pavadinimas („Order 226023 ALT Reklama KIWI 640
+  BYGNES", parduotuvės vardas ir pan.) NERAŠOMAS niekur lape. TITLE - gaminio pavadinimas („KIWI minipris 3362").
+- **Kliento pastabos iš užsakymo PDF (BF „Skilt KIWI" lapai) - VISOS į dokumentą,** etalono reikšmės pakeičiamos:
+  rėmo spalva („Frame Ral 7024" / „special ordered with different color on frame") -> MAIN DATA Frame + BOM Notes + 3D;
+  laido spalva / tipas / ilgis -> MAIN DATA Wire + LED legenda; vieta („Outside") -> MAIN DATA Placement; „divided" ->
+  Frame / Body height „..., divided" + DIVIDED jungtis; apšvietimas („belysning Kraftig LED") -> MAIN DATA Lighting;
+  kiekis („3 pcs", „1 pc") -> Quantity; kitos spalvos (RAL, Mactac / Oracal) -> BOM ir FINISH langeliai.
+- Ko užsakyme nėra - lieka iš originalo (ankstesnio to paties gaminio ALT); užsakymo pastaba visada viršesnė už originalą.
+  Prieš atiduodant - sutikrinti: kiekviena užsakymo PDF pastaba yra lape (pvz. `page.get_text()` sąrašas -> lapas).
+- 226023 užsakymo pastabos: Frame Ral 7024 (visiems), KIWI logo „divided" (KIWI | minipris), Outside, 3 + 3 + 1 vnt.,
+  Lanterne 6800 / 700 / 100, „Divided", „Kraftig LED", EL.
 
 ## 1. Lapai
 
@@ -52,4 +66,4 @@ Bendras stilius - kaip visur (`references/stilius.md`, `etalonas_spar_225960.md`
 1. GOST Common visur (ir fragmentuose); `lapas_core.pdf_fix_fonts`; `qpdf --object-streams=disable` (CorelDRAW).
 2. `python3 scripts/patikra_lapas.py lapas.pdf` - 0 klaidų; `patikra_sriftai.py`.
 3. Visos objektų linijos hairline; matmenys nesugrūsti, išvadinės nekerta skaičių / fono / kitų išvadinių.
-4. Failas: `Drawing_Order NNNNNN <pavadinimas>.pdf` užsakymo aplanke NAS; ORDER NO. `ALT0000_MM.DD_RS`, kol ALT nežinomas.
+4. Failas: `Drawing_KIWI order NNNNNN.pdf` užsakymo aplanke NAS; ORDER NO. `ALT0000_MM.DD_RS`, kol ALT nežinomas.

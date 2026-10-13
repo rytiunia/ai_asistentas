@@ -83,6 +83,7 @@ Naujiems lapams galioja `stilius.md` / SPAR etalonas; šis šablonas - tik kaip 
 
 ### KIWI (29 imties failai; NO)
 - **ETALONAS (v178, Rytis 2026-10-13): KIWI order 226023 - VISI KIWI dokumentai daromi pagal `references/etalonas_kiwi_226023.md` (iki atskiro nurodymo).**
+- **KIWI pavadinimas tik „KIWI order NNNNNN" (užklausos pavadinimas nerašomas); užsakymo pastabos (rėmo / laido spalva, Outside, divided, apšvietimas ...) - visos į dokumentą (v181).**
 - BF „Standard for storage": Profile 5s, šviesa raidėse (didesniems 150-190 - P4), gylis 100 mm, LED white / green / red,
   Alu 2 mm, frosted akrilas, žalia PMS 361 / raudona Fasson 987, juoda matinė; „barring profile" RAL 7024 (senesni 1013 /
   3012 / 8011), „Sometimes special ordered with different color on frame".

@@ -8,7 +8,7 @@ ORG = __import__("sys").argv[2]
 __import__("sys").path.insert(0, "/home/claude/ai_asistentas/reklama/scripts/projektai/kiwi_226023")
 from frag_gost import TEXT
 base = {"scale": 40, "qty": "3 pcs.", "order_no": "ALT0000_10.13_RS", "rev": "A", "date": "2026-10-13",
-        "client": "BrandFactory", "drawing_no": "Order 226023 KIWI 640 BYGNES", "client_pdf": __import__("sys").argv[1],
+        "client": "BrandFactory", "drawing_no": "KIWI order 226023", "client_pdf": __import__("sys").argv[1],
         "depth_mm": 100, "front": "3mm+foil", "export_1to1": False, "trafo_box": False, "client_frame": True,
         "frame_round_mm": 0, "rail": {"size": "40x20x2", "depth": 20, "ral": "7024", "type": "square"},
         "ears": {"hole_d": 8, "enabled": False}, "fit_plate_size": 40, "led_label_gap_pt": 61,
@@ -44,7 +44,7 @@ s1 = dict(base, merge_rows=True, led_fragment={"rules_py": "/home/claude/ai_asis
                          rail(R(424.8, 401.7, 427.6, 416.7), oM, "v"), rail(R(458.9, 401.7, 461.8, 416.7), oM, "v"),
                          rail(R(455.5, 352.2, 458.3, 361.4), oM, "v"), rail(R(485.3, 352.2, 488.1, 361.4), oM, "v"),
                          rail(R(458.9, 389.7, 461.8, 398.9), oM, "v")]}],
-          main_data=[["Quantity", "3 pcs."], ["Overall size", "3362 x 1095"], ["Frame", "Ral 7024, divided"],
+          main_data=[["Quantity", "3 pcs."], ["Overall size", "3362 x 1095"], ["Frame", "Ral 7024, divided"], ["Placement", "Outside"],
                      ["Sides", "RAL 9010"], ["Front", "3mm stiklas / 8mm stiklas"],
                      ["Vinyl", "Mactac 9849-55, Oracal 641-070"], ["Fitting plates", "14 pcs., 40 x 75, Ø 8mm"],
                      ["Cable", "Laido skylė turi būti virš rėmo"], ["Wire", "230V (black): 9 m"],
@@ -78,7 +78,7 @@ s2 = dict(base, led_fragment={"rules_py": "/home/claude/ai_asistentas/reklama/sc
                              rail([(305.01, 511.42), (308.28, 511.42), (288.64, 545.44), (285.37, 545.44)], o7, "d"),
                              rail([(379.77, 511.42), (383.05, 511.42), (363.41, 545.44), (360.13, 545.44)], o7, "d"),
                              rail(R(406.55, 511.42, 409.39, 545.44), o7, "v")]}],
-          main_data=[["Quantity", "3 pcs."], ["Overall size", "2037 x 709"], ["Frame", "Ral 7024"], ["Sides", "RAL 9010"],
+          main_data=[["Quantity", "3 pcs."], ["Overall size", "2037 x 709"], ["Frame", "Ral 7024"], ["Placement", "Outside"], ["Sides", "RAL 9010"],
                      ["Fitting plates", "4 pcs., 40 x 75, Ø 8mm"], ["Wire", "230V (BLACK): 3m"],
                      ["Perimeter", "9,5 m"], ["Weight (calc.)", "{WEIGHT}"]],
           bom_title="MEDŽIAGŲ ŽINIARAŠTIS VIENAM GAMINIUI",

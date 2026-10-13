@@ -39,7 +39,7 @@ DIM = K.F_DIM_MAIN
 D1, D2 = 16, 36
 
 TB = {"client": "BrandFactory", "title": "Lanterne med lys 6800, RAL 6018",
-      "order_no": "ALT0000_10.13_RS", "drawing_no": "Order 226023 KIWI 640 BYGNES", "rev": "A", "date": "2026-10-13",
+      "order_no": "ALT0000_10.13_RS", "drawing_no": "KIWI order 226023", "rev": "A", "date": "2026-10-13",
       "sheet": "3 / 3", "revisions": [["A", "First issue", "2026-10-13", "RS"]]}
 
 
@@ -211,7 +211,9 @@ def weight():
 
 def main_data():
     return [["Quantity", "1 pcs."],
-            ["Body height", f"{H_BODY}"],
+            ["Body height", f"{H_BODY}, divided"],
+            ["Lighting", "Kraftig LED"],
+            ["Placement", "Outside"],
             ["Weight (calc.)", f"≈ {weight():.0f} kg / pcs, excl. LED"]]
 
 
