@@ -40,7 +40,8 @@ Bendras stilius - kaip visur (`references/stilius.md`, `etalonas_spar_225960.md`
 
 ## 3. Lanterne / kolonos lapas (3)
 - Kairėje FRONT / SIDE / REAR VIEW (1:40) su matmenimis ir užrašais („Connection point", „Backside plate connect point",
-  „Cover with adjustable position"), „+1,5m ~230V El. Output" laidas virš matmenų; pjūvio plokštuma C - REAR VIEW.
+  „Cover with adjustable position"); pjūvio plokštuma C - REAR VIEW. El. išvestis („+1,5m ~230V El. Output") FRONT VIEW
+  NEBRAIŽOMA - ji vaizduojama kitoje projekcijoje (originalo 3D) ir Parts List (v180).
 - Dešinėje - ORIGINALO fragmentas (3D, B (1:10), A (1:10)) `place_pdf(..., under=True)`, Arial užrašai pašalinti ir
   perrašyti GOST (`frag_gost.py`), linijos -> hairline (`gost_frag.hairline`). Savų DETAIL A / B NEDAROMA.
 - Parts List: POS | Part Number | Description | Qty | FINISH - originalo aprašai lentelėje, FINISH = detalės RAL

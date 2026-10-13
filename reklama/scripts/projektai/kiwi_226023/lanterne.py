@@ -82,13 +82,7 @@ def front_view(X0, YG, s):
     VM(xr + D1, [YG - SS_H * s, YG], xr, [f"{SS_H}"])
     HM(cx0, cx0 + CAP_W * s, yt - D2, f"{CAP_W}", yt, yt)
     HM(xb, xb + W * s, yt - D1, f"{W}", yt, yt)
-    # EL išvestis viršuje
-    # v172: laidas virš visų matmenų eilių (D2 + 14), užrašas dešinėje - nekerta matmenų teksto
-    ex, ey = xb + W * s * 0.8, yt
-    ytop = yt - D2 - 18
-    line(ex, ey, ex, ytop, 0.9, C_RED)
-    line(ex, ytop, ex + 14, ytop, 0.9, C_RED)
-    T(ex + 17, ytop + 3, "+1,5m  ~230V  El. Output", K.F_INFO, color=C_RED)
+    # v180 (Rytis 2026-10-13): EL išvesties FRONT VIEW NĖRA - ji vaizduojama kitoje projekcijoje (originalo 3D)
     return dict(x0=cx0, x1=cx0 + CAP_W * s, yt=yt, yb=YG, xb=xb)
 
 
