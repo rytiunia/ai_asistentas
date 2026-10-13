@@ -152,7 +152,7 @@ Naujiems lapams galioja `stilius.md` / SPAR etalonas; šis šablonas - tik kaip 
 - ICA: šviesdėžės korpusas 2 mm Alu „negative cut", priekis 3 mm balta plexi, RAL 5002 / 7016 / 3020; raidės 8 mm, RAL 9003.
 - BK: termoformuota 3 mm plexi, LED 5100K, RAL 9006, 3M 3630-84 / -143.
 
-## Klausimai Ryčiui
+## Neišspręsta - klausti Ryčio, kai klausimas iškyla darant projektą (ne iš anksto)
 1. Ar senasis ALT Corel šablonas (C / B / P / I blokai) dar naudojamas BF užsakymams, ar viskas jau SPAR etalono stiliumi?
 2. BF „Profile 5 / 5s" -> mes darome Profile 6 (Norli) - tai taisyklė visiems BF užsakymams?
 3. KIWI 2027 etalonas (trafai raidėse, 230V, rėmas RAL 3003) - ar tai naujas KIWI standartas vietoj 12V 3 m išvesčių?

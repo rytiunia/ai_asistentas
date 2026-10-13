@@ -4,7 +4,7 @@
 
 Raktažodžiai: tentinė šviesdėžė, tentas, PVC banner, banner lightbox, flexface / flex face, "PVC banner lighbox".
 Klientai, kur naudota: Skyltkoncept (ChopChop, Burger King, Friskis, OKQ8 pilonai), BN Skilte (Hormann, COOP/Kvickly,
-Thansen, Normal, Netto, Prisma Hammelev, Wash World, BYGMA, Davidsen). Konstrukcija visur ta pati - keičiasi gylis,
+Thansen, Normal, Netto, Prisma Hammelev, Wash World, BYGMA, Davidsen). **STANDARTINIS GYLIS - 200 mm** (Rytis 2026-10-13; kitas - tik pagal užklausą). Konstrukcija visur ta pati - keičiasi gylis,
 krašto uždengimas ir LED.
 
 Etalonai (rel. `uzsienio reklama/`):
@@ -110,8 +110,8 @@ Front view su matmenimis + "x N" / "N pcs."; pjūvio detalė (gylis, rėmo gylis
 "Inside frame without painting"; plėvelių / RAL langeliai; LED blokas (Depth, Module, pcs, Power, Distance); Trafo box schema
 220V / 12V; kėlimo kilpos; rėmo dalijimas raudonais varžtų taškais.
 
-## Klausimai Ryčiui
-1. Kuris gylis dabar STANDARTAS naujiems užsakymams: 170/150 (ChopChop 2025-26) ar 200/190 (BN Skilte)?
+## Neišspręsta - klausti Ryčio, kai klausimas iškyla darant projektą (ne iš anksto)
+1. ~~Gylis~~ - ATSAKYTA (Rytis 2026-10-13): **STANDARTINIS GYLIS 200 mm**; kitas - tik pagal užklausą.
 2. LED standartas tentinėms: P320L 2 W ~170 (ALT7421) ar KM-T7 7 W ~400? Ar "Depth 140" = atstumas LED-tentas?
 3. TENTINIU_sviesdeziu_pakabinimai.cdr: 5 mm plokštelių (110x150, 100x150) ir Z pakabų (10/10/32 vnt.) paskirtis - patvirtinti.
 4. Tento atsargos taisyklė: +185 kiekvienoje pusėje (Rental Village: 50 lankstymas + laisvumas) ar +140 (OKQ8) - nuo ko priklauso (gylio)?

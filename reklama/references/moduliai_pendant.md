@@ -64,7 +64,7 @@ MENY Trekanten: dvipusis termoformuotas logotipas 700 x 320 x 118 (3 vnt.): Fram
 - `bn-skilte.dk/Order No 2340 SJF BANK Frederiksværk flagsign ref no 421687-MFA/ALT7533_09.04__...pdf`
 - `Brandfactory/NORLI PANDURO_Order no 225671/ALT8792_09.22_NORLI PANDURO_Order no 225671.pdf`
 
-## Klausimai Ryčiui
+## Neišspręsta - klausti Ryčio, kai klausimas iškyla darant projektą (ne iš anksto)
 1. Standartinė koja / plokštė, kai klientas nenurodo: D40x3 + 10 mm Ø150 (MENY) ar 35x35 + 8 mm (JAGGER)?
 2. COOP SM20: lape „Acryl WN 070" ir XLG/HLG PSU - ar dabar keisti į XT WN770 ir Kaisen/BaltLED (šiandienos sprendimai)?
 3. Pendant kabinimo standartas (Norli 20 mm skaidrus plexi rėmas) - taikyti visiems pendant ar tik Norli?

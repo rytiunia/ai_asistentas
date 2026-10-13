@@ -112,8 +112,8 @@ Wall distance 30 mm (point mounting no rail), Gloss 60 %". Mean Well HLG čia - 
 - `AlfaNeon/DSV/orders/DSV order number 33541/` (PO + xml + ALT8823) - tipinis užsakymas.
 - `AlfaNeon/DSV/DARBINIAI/DSV_lighbox_singleside/pirminiai/ALT7927_01.05_DSV_lighbox_singlesided_700x370mm_NEW_20260105.pdf`.
 
-## Klausimai Ryčiui
-1. Indirect nugara: lapuose Plexiglas WN770 8 mm, o DSV PO - „GS Wh14 8 mm". Kuris galioja?
+## Neišspręsta - klausti Ryčio, kai klausimas iškyla darant projektą (ne iš anksto)
+1. ~~Indirect nugara~~ - ATSAKYTA (Rytis 2026-10-13): WN770 8 mm ARBA GS Wh14 8 mm - abu tinka, naudojama **pagal tiekimą (kas yra)**; lape rašyti faktiškai naudojamą.
 2. White 3D Small: 01003 (ALT8642) ar 01002 (BLANKAS)? 2D logo White kodai 07003 / 07004 - ar teisingai Small / Medium?
 3. Frontlit White - ar taip pat ORACAL 8500 006 folija (lapuose ta pati), ar be folijos?
 4. PO rašo „Wall distance 30 mm, point mounting no rail", o gaminame su Z profiliais (40 mm L3000+). Ar PO tekstas tiesiog senas?

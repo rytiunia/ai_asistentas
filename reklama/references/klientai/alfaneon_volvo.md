@@ -162,8 +162,8 @@ Visas pilonas 9,3 (Alfa Neon 12-0081-S, plienas, 9320 aukštis) + transportavimo
 - `VOLVO/VOLVO order 33465/ALT8779_09.17_VOLVO order 33465.pdf` (užsakymo lapas iš kodų) + `Volvo_order_33212/info/33212.xml` (PO formatas)
 - `.../stanless steel letters/VOLV24-01001/VOLV24-01001.pdf` (P6 VOLVO 3023x235)
 
-## Klausimai Ryčiui
-1. VOLV24-01001 / 01004 rėmas lape RAL 5013, o PO - „Frame + 2 L profiles ... RAL 50050“. Kuris teisingas dabar?
+## Neišspręsta - klausti Ryčio, kai klausimas iškyla darant projektą (ne iš anksto)
+1. ~~Rėmo spalva~~ - ATSAKYTA (Rytis 2026-10-13): Volvo spalvos būna skirtingos - **pagal užklausą** (PO / užsakymą); lape RAL 5013 ar 50050 rašyti tik tą, kurią nurodo užsakymas.
 2. RAL 50050 blizgumas: BS 2400/3600 plokštės lapuose 70% (w.p.), visa kita 50%. Ar 70% vis dar galioja, ar viską vienodai 50%?
 3. Trafai: Volvo lapuose tik Mean Well (XLG-A 75/100/150, HLG-A 40, LPV 35). Ar Volvo standartiniams kodams paliekam Mean Well, nors bendrinis default - Kaisen/BaltLED?
 4. Service šviesdėžių frontas lapuose `Plexiglas XT Wn071 4 mm`, o Volvo opalo standartas - WN770. Ar 02104/02206/02214 keisti į WN770?

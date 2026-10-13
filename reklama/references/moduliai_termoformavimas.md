@@ -85,7 +85,7 @@ Formuoto lakšto kraštas ~25-30, iškilimas ~15-20, kontūro R16 / R20.
 - `ALFA_thermoformated/Drawing_Maten_Alfa Romeo milano service logo.pdf` (spauda + formavimas)
 - `Brandfactory/MENY/ETALONAI/MENY_L____/3m 3d forma/3.pdf` (dalijama forma)
 
-## Klausimai Ryčiui
+## Neišspręsta - klausti Ryčio, kai klausimas iškyla darant projektą (ne iš anksto)
 1. Formos offset'as: taisyklė „- medžiagos storis" (3 mm -> -3) teisinga? Kodėl Volvo forma -6 mm?
 2. Kas termoformuoja (savo mašina ar subrangovas) ir koks max lakšto / formos dydis (dėl dalijimo 3 m+ logotipams)?
 3. Volvo raidžių priekių medžiaga ir storis (lapuose nenurodyta)?

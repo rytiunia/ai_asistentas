@@ -115,7 +115,7 @@ ten ir `scripts/projektai/thales_d059422/` - NEdubliuoti). Čia - tik tai, kas b
 - Didelis komplektas - vienas .cdr su daug lapų ir pozicijų kodais lape + „Packing list" (Actual ALT6139: 23 lapai,
   kiekiai pagal tipą H400 / H450 / H650 / dvipusės H700).
 
-## Klausimai Ryčiui
+## Neišspręsta - klausti Ryčio, kai klausimas iškyla darant projektą (ne iš anksto)
 1. SGIV ir CEOS Groupe - vienas užsakovas (SGIV = CEOS narys)? Kurį vardą rašyti CLIENT lauke Actual / FedEx užsakymams?
 2. „-50 mm nuo viso ilgio" ir „+1 indelis dažų" - CEOS standartas visiems ilgiems folded fonams ar tik Decathlon?
 3. Ar „AR ! INCLUDING PAPER MOUNTING TEMPLATE" privaloma visiems FR raidžių užsakymams (ir laikiklio pavadinimas „PVC

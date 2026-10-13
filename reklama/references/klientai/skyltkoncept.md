@@ -112,7 +112,7 @@ canopy RAL 2002 + ORACAL 8500 032. Senesni: 3M 3630-84 / 3630-143, ORAJET 3850-0
 - **BaltLED Smartbridge 200 W 12 V** (Wi-Fi / Tuya valdomas) - 21 vnt. (ALT8549_06.25, 2026).
 - Gaminiuose: Trafo box (RAL 9006 arba objekto spalva), „+1,5m 12V El. Output"; dideliuose - visi trafai vienoje dėžėje.
 
-## Klausimai Ryčiui
+## Neišspręsta - klausti Ryčio, kai klausimas iškyla darant projektą (ne iš anksto)
 1. Ar ChopChop totemų standartu laikyti `GERAS_SU NAUJAIS PADAIS_2026` (12 mm padai) ir ar `SENI_PADAI_2026` nebenaudojami?
 2. Profilių kodai L1 / L3 / L4 / 6 - ar tai Skyltkoncept katalogo kodai, kuriuos reikia rašyti ir naujuose lapuose?
 3. BaltLED Smartbridge - ar tai naujas Skyltkoncept default PSU (vietoj HLG), ar tik vienkartinis užsakymas?

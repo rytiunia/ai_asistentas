@@ -151,7 +151,7 @@ aluminium profile. 7. Suport, 5mm aluminium (Coop - 3mm). 8. LED modules. 9. Han
 4. `Order No 2323 M3 Property Ringsted 10x2m pylon ref no 421465-LN/ALT7548_09.10_..._upd_20250915.pdf` - 10x2 m pilonas.
 5. `SUBWAY/PO 2583 Subway Herning/ALT8090_02.12_PO 2583 Subway Herning.pdf` - Profile 5 raidės.
 
-## Klausimai Ryčiui
+## Neišspręsta - klausti Ryčio, kai klausimas iškyla darant projektą (ne iš anksto)
 1. LED/PSU: BN flexface ir Unik mand lapuose nuolat Mean Well (PWM-200-24, XLG/ELG-75, LPF-40-12). Ar BN tai išimtis (kliento specifikacija),
    ar ir čia default Kaisen KPS / BaltLED BPS, o Mean Well - tik kai BN nurodo?
 2. B1 PC: 2026 lapuose pažymėtas Option 2 (Exolon UV). Ar dabar default Exolon UV, o PALSUN B1 - alternatyva?
