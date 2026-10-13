@@ -139,11 +139,40 @@ def clean_src():
         for xr in pg.get_contents():
             s0 = d.xref_stream(xr).decode("latin1")
             s1 = re.sub(r"(" + GUIDE + r" SCN\n(?:(?!S\n)[^\n]*\n){0,8}?)S\n", r"\1n\n", s0)          # linijos - nepiešiamos
-            s1 = re.sub(r"(" + GUIDE + r" scn\nBT\n)(.*?)(ET\n)", r"\g<1>3 Tr\n\2 0 Tr\n\3", s1, flags=re.S)  # užrašai - nematomi
             if s1 != s0:
                 d.update_stream(xr, s1.encode("latin1"))
     _CLEAN = os.path.join(tempfile.gettempdir(), "thales_client_clean.pdf"); d.save(_CLEAN)
     return _CLEAN
+
+
+_FRAG = {}
+GUIDE_RGB = 0x1C6FA8                                   # kliento matmenų užrašų spalva (CMYK 0.8 0.4 0 0.2)
+
+
+def clip_src(pno, clip):
+    """v154 (Rytis 2026-10-13 "kodėl dokumente šriftas kitoks"): įdedamas fragmentas - ATSKIRAS 1 psl. PDF, kuriame
+    lieka TIK matoma kliento grafika: visa, kas už iškarpos (kliento antraštės, užrašai Arial, kiti vaizdai) ir kliento
+    matmenų užrašai fiziškai pašalinami (redakcija), ne tik paslepiami - CorelDRAW importuojant nerodo svetimo teksto."""
+    key = (pno, tuple(round(v, 2) for v in clip))
+    if key in _FRAG:
+        return _FRAG[key]
+    nd = fitz.open(); nd.insert_pdf(fitz.open(clean_src()), from_page=pno, to_page=pno)
+    pg = nd[0]; c = fitz.Rect(clip); R = pg.rect
+    for r in (fitz.Rect(R.x0, R.y0, R.x1, c.y0), fitz.Rect(R.x0, c.y1, R.x1, R.y1),
+              fitz.Rect(R.x0, c.y0, c.x0, c.y1), fitz.Rect(c.x1, c.y0, R.x1, c.y1)):
+        if r.width > 0.1 and r.height > 0.1:
+            pg.add_redact_annot(r, fill=False)
+    for b in pg.get_text("dict")["blocks"]:
+        for l in b.get("lines", []):
+            for sp in l["spans"]:
+                if sp["color"] == GUIDE_RGB:
+                    pg.add_redact_annot(fitz.Rect(sp["bbox"]), fill=False)
+    pg.apply_redactions(images=fitz.PDF_REDACT_IMAGE_PIXELS, graphics=fitz.PDF_REDACT_LINE_ART_REMOVE_IF_COVERED,
+                        text=fitz.PDF_REDACT_TEXT_REMOVE)
+    fn = os.path.join(tempfile.gettempdir(), f"thales_frag_{pno}_{abs(hash(key)) % 10 ** 8}.pdf")
+    nd.save(fn, garbage=3, deflate=True)
+    _FRAG[key] = fn
+    return fn
 
 
 def inset(clip, d=0.6):
@@ -156,7 +185,7 @@ def place_img(pno, clip, tl, tr, bl, ol=0.3):
     br = (tr[0] + bl[0] - tl[0], tr[1] + bl[1] - tl[1])                                   # po grafika - grynai balta
     K.c.saveState(); K.c.setFillColor(white); pth = K.c.beginPath(); pth.moveTo(*tl); pth.lineTo(*tr); pth.lineTo(*br)
     pth.lineTo(*bl); pth.close(); K.c.drawPath(pth, stroke=0, fill=1); K.c.restoreState()      # (kliento balti maskavimo kv.)
-    K.place_pdf(clean_src(), pno, inset(clip), tl, tr, bl, outline=ol)
+    K.place_pdf(clip_src(pno, inset(clip)), 0, inset(clip), tl, tr, bl, outline=ol)
 
 
 def draw_client(pno, clip, x, y, w, h, mirror=False):

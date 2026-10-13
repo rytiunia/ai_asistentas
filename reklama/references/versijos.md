@@ -2,6 +2,13 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v155 (2026-10-13)
+
+v155, Rytis 2026-10-13 („kodėl dokumente šriftas kitoks nei skill?“): lape GOST Common, bet įdėtas kliento puslapis nešė
+visą kliento turinį (antraštės, „APS Communication", matmenų užrašai ArialMT / Arial-Bold / Gotham) - iškirpta tik vaizdiškai.
+`thales_pylons.py clip_src()` - fragmentas su redakcija (už iškarpos + matmenų užrašai 0x1C6FA8 šalinami). Po pataisos lape
+tik GOST Common.
+
 ## v153 (2026-10-13)
 
 v153, Rytis 2026-10-13 („patvirtinta: ALT8878_10.13_“): Thales D059422 gamybos paketas - `thales_pylons.py` ORDER NO. iš `THALES_ORDER`,

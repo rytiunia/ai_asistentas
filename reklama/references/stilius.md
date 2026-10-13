@@ -87,6 +87,9 @@ Prieš kuriant naujo tipo lapą - peržiūrėk bent vieną etaloną (pdftoppm ->
 Kliento maketas / logotipas / tekstas lape - `lapas_core.place_pdf(src_pdf, pno, clip, tl, tr, bl)`: tikslus kliento PDF
 fragmentas (vektorius + gyvas tekstas + paveikslėliai + gradientai), 2D - stačiakampis, 3D - lygiagretainis (r3d `S.V.S`
 kampai). NEPERPIEŠTI `get_drawings` kontūrais - praranda tekstą, paveikslėlius, gradientus (Thales rev B klaida).
+v155: įdedamas fragmentas - ATSKIRAS 1 psl. PDF, iš kurio redakcija pašalinta viskas už iškarpos ir kliento matmenų
+užrašai (Thales `clip_src`) - kitaip Corel / tekstų sąraše matosi kliento antraštės Arial / Gotham šriftais. Lapo tekstas - tik GOST Common;
+po generavimo patikrinti `pdffonts` / span šriftus: kiti šriftai leidžiami TIK matomoje kliento grafikoje.
 
 ## Ko nedaryti
 - Neišgalvoti matmenų, medžiagų, storių, tvirtinimų - palikti tuščią vietą ir paklausti.
