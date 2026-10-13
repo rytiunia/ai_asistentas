@@ -730,6 +730,19 @@ def sheet(spec, res, out):
     from reportlab.lib.units import mm
     W, H = landscape(A3)
     c = canvas.Canvas(out, pagesize=(W, H))
+    # v194 (Rytis 2026-10-13: GOST šriftas visur, hairline projekcijose, objektai centruojami / lapas užpildomas tolygiai)
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    _ff = "Helvetica"
+    try:
+        _gp = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "gost_common.ttf")
+        if "GOST" not in pdfmetrics.getRegisteredFontNames():
+            pdfmetrics.registerFont(TTFont("GOST", _gp))
+        _ff = "GOST"
+    except Exception:
+        pass
+    _sf = c.setFont
+    c.setFont = lambda name, size, leading=None: _sf(_ff, size)
     GREY = HexColor("#E2E8E5"); RED = HexColor("#E2001A"); ORANGE = HexColor("#F7A600")
     # rėmas
     c.setLineWidth(0.4); c.setStrokeColor(HexColor("#BBBBBB")); c.rect(10 * mm, 10 * mm, W - 20 * mm, H - 20 * mm)
@@ -753,7 +766,10 @@ def sheet(spec, res, out):
     M = next((v for v in nice if v >= sc_), sc_)
     s = mm / M
     ox = (W - PW_ * s) / 2 - x0 * s
-    top = H - 10 * mm - 28 * mm
+    # vertikaliai - turinys (raidės + matmuo + informacija) centruojamas tarp rėmelio viršaus ir apatinės juostos
+    _cont = PH_ * s + 14 + 34 + 34 * n_info
+    _ya, _yb = H - 10 * mm - 8 * mm, 36 * mm + 8 * mm
+    top = _yb + (_ya - _yb + _cont) / 2
     T = lambda x, y: (ox + x * s, top - (y - y0) * s)
     for r in res:
         col = RED if r["gr"].get("led") == "red" else black
@@ -769,7 +785,7 @@ def sheet(spec, res, out):
                     p_.close()
                 c.setFillColor(GREY); c.setStrokeColor(GREY); c.setLineWidth(0.1)
                 c.drawPath(p_, stroke=0, fill=1, fillMode=0)
-            c.setStrokeColor(col); c.setLineWidth(0.35)
+            c.setStrokeColor(col); c.setLineWidth(0.1)
             for (px, py, ang) in x["pts"]:
                 cx, cy = T(px, py)
                 c.circle(cx, cy, r["pitch"] / 2 * s, stroke=1, fill=0)
@@ -780,14 +796,14 @@ def sheet(spec, res, out):
             nl = leds_of(r["mod"])
             ml, mw = sz[0] * s, sz[1] * s
             seq = _wire_order(x["pts"])
-            c.setStrokeColor(HexColor("#555555")); c.setLineWidth(0.3)
+            c.setStrokeColor(HexColor("#555555")); c.setLineWidth(0.1)
             for a_, b_ in zip(seq, seq[1:]):
                 if math.dist(a_[:2], b_[:2]) <= 1.6 * r["pitch"]:
                     p0, p1 = T(*a_[:2]), T(*b_[:2]); c.line(p0[0], p0[1], p1[0], p1[1])
             for (px, py, ang) in seq:
                 cx, cy = T(px, py)
                 c.saveState(); c.translate(cx, cy); c.rotate(-math.degrees(ang))
-                c.setFillColor(white); c.setStrokeColor(black); c.setLineWidth(0.4)
+                c.setFillColor(white); c.setStrokeColor(black); c.setLineWidth(0.1)
                 c.roundRect(-ml / 2, -mw / 2, ml, mw, min(1.5, mw / 4), stroke=1, fill=1)
                 c.setFillColor(col if r["gr"].get("led") == "red" else HexColor("#F2C200"))
                 for i_ in range(nl):
@@ -808,7 +824,7 @@ def sheet(spec, res, out):
                 tx, ty = T((bx0 + bx1) / 2, min(by0, ymax))
                 c.drawCentredString(tx, ty + 8, str(len(x["pts"])))
     # matmenys
-    c.setStrokeColor(black); c.setFillColor(black); c.setLineWidth(0.5)
+    c.setStrokeColor(black); c.setFillColor(black); c.setLineWidth(0.25)
     xa, yb = T(x0, y1); xb, _ = T(x1, y1)
     yd = yb - 14
     c.line(xa, yd, xb, yd); c.line(xa, yd - 4, xa, yd + 4); c.line(xb, yd - 4, xb, yd + 4)

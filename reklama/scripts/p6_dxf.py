@@ -598,6 +598,27 @@ for o in letters:
     ensure_min(segs_all, 4)                      # raidei >= 4: ilgiausi vienos skylės ruožai -> skylės galuose
     o["holes"] = seg_holes(segs_all)
     o["zones"] = segs_all
+    # v194 (Rytis 2026-10-13, „Alytus," kablelis): raidė / elementas, per kurį eina LAIKIKLIS (acc statmuo nuo bėgelio), - skylės
+    #  IR ant laikiklio ašies (tolimame gale ir, jei ilgas, viduryje), kad elementas nelaikytų tik ant 2 taškų bėgelyje
+    for v_ in VRAILS:
+        if not v_.get("acc") or not (v_["x1"] > o["bb"][0] and v_["x0"] < o["bb"][2] and v_["y1"] > o["bb"][1] and v_["y0"] < o["bb"][3]):
+            continue
+        ax = LineString([(v_["cx"], v_["y0"]), (v_["cx"], v_["y1"])]).intersection(back.buffer(-A.hole_edge, join_style=2, mitre_limit=10))
+        ys_ = sorted(c[1] for g_ in getattr(ax, "geoms", [ax]) for c in getattr(g_, "coords", []))
+        if not ys_:
+            warn.append(f"{o['id']}: laikiklio x{v_['cx']:.0f} ašis nekerta dugno - skylių ant laikiklio nėra"); continue
+        old_ys = [h[1] for h in o["holes"]]
+        # tolimesnis nuo bėgelio galas: tas, kuris toliau nuo esamų (bėgelio) skylių
+        far = max((ys_[0], ys_[-1]), key=lambda y: min([abs(y - q) for q in old_ys] or [1e9]))
+        near = ys_[0] if far == ys_[-1] else ys_[-1]
+        add = [far]
+        if abs(far - near) >= 2 * A.d11_fix_clear + 60:
+            add.append((far + near) / 2)
+        for y in add:
+            if all(math.hypot(v_["cx"] - hx, y - hy) >= 25 for hx, hy in o["holes"]):
+                o["holes"].append((round(v_["cx"], 2), round(y, 2)))
+        o["pressed"] = pressed_ratio(back, o["holes"])
+        warn.append(f"{o['id']}: + {len(add)} skylės ant laikiklio ašies x{v_['cx']:.0f} (elementas ne tik ant bėgelio)")
     o["pressed"] = pressed_ratio(back, o["holes"])
     done.append(o)
     if len(o["holes"]) < 4:

@@ -1,0 +1,20 @@
+{
+ "pdf": "Alytus_client.pdf",
+ "fill_rgb": [0.851, 0.102, 0.102],
+ "crop_pt": [0, 0, 3300, 918],
+ "scale_mm_per_pt": 1.0,
+ "depth": 80,
+ "module": null,
+ "groups": [{"fill_rgb": [0.851, 0.102, 0.102], "led": "white", "name": "Alytus,"}],
+ "letter_names": ["A", "l", "y", "t", "u", "s", ","],
+ "main_data": [["Product", "Alytus, - P6_8mm + ORACAL 8500 021, depth 80"], ["Power", "~230V, 1.5 m, left bottom (PSU inside)"]],
+ "psu": null,
+ "client": "TEST",
+ "title": "ALT0000_00.00_RS TEST Alytus_LED",
+ "drawing_no": "TEST Alytus P6",
+ "order_no": "ALT0000_00.00_RS",
+ "date": "2026-10-13",
+ "rev": "A",
+ "qty": 1,
+ "feed_at": ["left-bottom"]
+}
