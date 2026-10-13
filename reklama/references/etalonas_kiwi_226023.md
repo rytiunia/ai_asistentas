@@ -28,6 +28,7 @@ Bendras stilius - kaip visur (`references/stilius.md`, `etalonas_spar_225960.md`
 - **Rėmas:** tik originalo bėgeliai (`rails` su `len`), fitting plates originalo vietose (`fit_plates`), `client_frame: true`,
   `ears.enabled: false`, `frame_round_mm: 0`; galinio vaizdo ilgiai „3219 (□40x20x2)", žymos „740 vert." / „554 diag.";
   žymos toje pačioje vertikalėje sujungiamos („226 / 130 vert."); padalijimas - `joints` „DIVIDED".
+- **Ausėlės (fitting plates 40 x 75 Ø8):** skylė originalo vietoje, plokštelė VISADA privirinta prie bėgelio (v179) - jokių ausėlių ore.
 - **Laido išvestys:** TIK originalo LED brėžinio vietose (`cable_exits[].point`, `up_mm`, `side`), raudonas laidas į viršų
   už vaizdo ribų, užrašas „230V, ~3 m". Vienas variantas - jokio „bėgelio galo" papildomo.
 - **LED INSTALLATION:** originalas PERBRAIŽOMAS (`scripts/led_mini.py`, spec `led_fragment.rules_py` -> projekto

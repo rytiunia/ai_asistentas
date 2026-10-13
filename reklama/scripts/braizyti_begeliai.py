@@ -668,13 +668,42 @@ def client_frame_issues(g, t_):
     return why
 
 
+def _attach_plates(g):
+    """v179 (Rytis 2026-10-13: „tvirtinimo ausėlės kai kur kabo ore, taip neturėtų būti") - originalo fitting plate taškas
+    (skylė) lieka vietoje, o plokštelė (fit_plate_size x fit_plate_len, numatyta 40 x 75) visada PRIVIRINTA prie
+    artimiausio bėgelio: tęsiama nuo skylės iki bėgelio (užeina ant jo iki ašies). Jokia plokštelė nekabo ore."""
+    sz = g["fpl_sz"]; Lp = g["spec"].get("fit_plate_len", 75)
+    out = []
+    for fp in g["fplates"]:
+        px, py = fp[0], fp[1]
+        hx, hy = px + sz / 2, (fp[3] if len(fp) == 4 else py + sz / 2)
+        best = None
+        for r_ in g["rails"]:
+            if r_["x1"] - r_["x0"] < r_["y1"] - r_["y0"]:            # vertikalus - plokštelė tęsiama vertikaliai, netinka
+                continue
+            if not (r_["x0"] - 1 <= hx <= r_["x1"] + 1):
+                continue
+            d_ = 0 if r_["y0"] <= hy <= r_["y1"] else min(abs(hy - r_["y0"]), abs(hy - r_["y1"]))
+            if best is None or d_ < best[0]:
+                best = (d_, r_)
+        if best is None:
+            out.append(fp); print(f"  ! ausėlė x{hx:.0f} y{hy:.0f}: šalia nėra horizontalaus bėgelio - tikrinti"); continue
+        r_ = best[1]; mid = (r_["y0"] + r_["y1"]) / 2
+        if hy <= mid:                                    # skylė virš bėgelio - plokštelė žemyn iki bėgelio
+            y0_ = hy - sz / 2; y1_ = min(max(y0_ + Lp, mid), r_["y1"])
+        else:                                            # skylė po bėgeliu - plokštelė aukštyn
+            y1_ = hy + sz / 2; y0_ = max(min(y1_ - Lp, mid), r_["y0"])
+        out.append((px, y0_, y1_ - y0_, hy))
+    return out
+
+
 for g in groups:
     fr = g["spec"].get("frame")
     if g["plate"] or (not fr and not g["spec"].get("rails")) or g["spec"].get("no_rails"):
         continue
     if EARS.get("enabled", True) is False and g["spec"].get("rails"):   # rėmas be ausėlių (pvz. kvadratinis wallframe)
         # v160: detalizacijos ausėlės (fit_plates) paliekamos - tik automatinis išdėstymas išjungtas
-        g["fplates"] = g["fplates"] if g["spec"].get("fit_plates") else []
+        g["fplates"] = _attach_plates(g) if g["spec"].get("fit_plates") else []
         g["fp_rows"], g["fp_ext"], g["fp_missing"], g["ear_max"] = [], 0, 0, 0.0
         g["wall"] = spec.get("wall", "concrete")   # v90: fasadas nenurodytas = betonas (Rytis)
         continue
