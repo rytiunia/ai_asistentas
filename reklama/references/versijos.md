@@ -2,6 +2,16 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v152 (2026-10-13)
+
+v152, Rytis 2026-10-13 (Thales rev C: „nenaudojamos skill įrašytos taisyklės dėl žymėjimo ir pastabų ar matmenų: lipama vienas ant
+kito ar suspaudžiama iki nesuprantamo žymėjimo. šriftai vėl skirtingo dydžio“): priežastis - `thales_pylons.py` sukurtas prieš v145
+taisykles (matmenys 8 / 12 pt, grandinės 10-14 pt nuo kontūro), o `lapas_core.hchain / vchain` mažus užrašus dėdavo ant
+kaimyninių tarpų. Pataisyta: lapas_core maži užrašai (kraštiniai - išorėje, viduriniai - eilėje toliau su išvadine, vchain - šone),
+Thales visi matmenys 12 pt, D1 16 / D2 36, netelpančios grandinės pašalintos (sluoksniai - pjūvyje A, ankeriai - DETAIL H),
+rėmo užrašai nuo profilių nuimti, sekcija C perdaryta (ankeris nutrauktas, plotis po ankeriu), PMMA žyma nuo priekio vaizdo.
+Taisyklės - `references/stilius.md` CAD žymėjimai v152.
+
 ## v151 (2026-10-13)
 
 v151, Rytis 2026-10-13 („reikia patobulinti grafikos atvaizdavimą, labai daug neatitikimų. Sheet 5 labiausiai matosi iškraipyta

@@ -205,4 +205,18 @@ antraštė, P6 tipiniai pjūviai `p6_typical(variant=rail|folded|plate)`, 3D `Vi
 - **v145: matmenų tarp LED nededama** (LED kiekis ir žingsnis - LED lentelėje / MAIN DATA).
 - **Šriftai vienodi visame lape (v145 Rytis: „nepataisyti šriftų dydžiai"):** VISI matmenys vieno dydžio - 12 pt (ir grandinės,
   ir gabaritai); žymos, pastabos - 8 pt; vaizdų pavadinimai 13 pt, masteliai 9 pt. Šviesdėžė: `K.F_DIM_FRAME = K.F_DIM_MAIN`.
+- **v152 (Rytis 2026-10-13: „nenaudojamos skill įrašytos taisyklės dėl žymėjimo ... lipama vienas ant kito ar suspaudžiama
+  iki nesuprantamo žymėjimo; šriftai vėl skirtingo dydžio“):**
+  - Kiekvieno NAUJO lapo skripte - `DIM = K.F_DIM_MAIN` ir VISI `hdim / hchain / vchain` su `DIM` (jokių 8 / 10 matmenims);
+    kampai (10°) - irgi matmenys, 12 pt, ne paryškinti. Pastabos / žymos 8 pt, pavadinimai 13, masteliai 9.
+  - Atstumai: grandinė 16 pt nuo kontūro, gabaritas 36 pt (antra eilė), trečia eilė 52+. Arčiau - NE.
+  - `lapas_core.hchain`: mažo tarpo užrašas - tik kraštinio tarpo išorėje (už grandinės galo); vidurinio - eilėje TOLIAU
+    nuo objekto su išvadine; niekada ant kaimyninio tarpo rodyklių. `vchain`: mažas tarpas - horizontalus užrašas šone
+    nuo objekto su išvadine, vienas kito neliečia (`free` patikra).
+  - Jei 12 pt grandinė mastelyje NETELPA (pvz. 30 | 40 | 40 | 30 per 140 mm 1:20, ankerių žingsniai 1:15) - jos tame
+    vaizde NEDĖTI: tik gabaritas, smulkūs matmenys - pjūvyje / DETAIL stambesniu masteliu (nuoroda tekstu).
+  - Ant projekcijų tekstų nėra (rėmo elementų ilgiai - BOM formulėje / matmenimis, ne užrašai ant profilių).
+  - Žymų (tag) tekstai ir balionai - ne ant kito vaizdo, ne ant pavadinimų, išvadinė nekerta matmenų tekstų.
+  - Ilgi elementai (ankeris) - nutraukti lūžio linija, tikras ilgis matmeniu (pvz. „hef 125").
+  - PO GENERAVIMO peržiūrėti VISUS lapus 110+ dpi ir taisyti, kol nėra persidengimų.
 - **Spalvos vaizduose = užsakytos RAL** (pvz. RAL 7024 korpusas / rėmas - tamsiai pilka vaizduose ir 3D); A2 varžtai - šviesūs.

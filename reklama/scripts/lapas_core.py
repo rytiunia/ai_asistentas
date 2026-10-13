@@ -343,20 +343,26 @@ def _Tbg(x_, y_, s_, size_, align="l", rot=0, **kw):
 
 def hchain(y, xs, ext_from_y, labels, size=8, bg=False, avoid=None):
     """horizontali grandinė; xs - x (pt), ext_from_y - y, iš kurio kyla kiekviena išvadinė.
-    Rytis 2026-10-07: matmenų tekstai NESIDENGIA - mažų tarpų užrašai perkeliami (dešinėn / kairėn / eile aukščiau)."""
+    Rytis 2026-10-07 / v152 (2026-10-13 "lipama vienas ant kito, suspaudžiama"): matmenų tekstai NESIDENGIA ir neužlipa ant
+    rodyklių / kitų tarpų: mažo tarpo užrašas - tik kraštinio tarpo IŠORĖJE (už grandinės galo), vidurinių - eilėje TOLIAU
+    nuo objekto, virš savo tarpo, su trumpa išvadine; eilės stumiamos, kol laisva."""
     TX = _Tbg if bg else T
     for x, ey in zip(xs, ext_from_y):
         sgn = 1 if ey > y else -1
         line(x, ey - 2 * sgn, x, y - 3 * sgn, 0.25, EXT)
     line(xs[0], y, xs[-1], y, 0.3)
+    away = -1 if sum(ey - y for ey in ext_from_y) >= 0 else 1      # kryptis nuo objekto (puslapio y)
     placed = []                                            # (x0, x1, y) užimti tekstų plotai
 
     def free(x0, x1, yy):
-        return all(x1 + 2 <= a or x0 - 2 >= b or abs(yy - c_) >= size for a, b, c_ in placed)
-    smalls = []
+        return all(x1 + 3 <= a or x0 - 3 >= b or abs(yy - c_) >= size + 1 for a, b, c_ in placed)
+    smalls, n = [], len(labels)
     for i, (a, b, lab) in enumerate(zip(xs[:-1], xs[1:], labels)):
+        if str(lab) == "":
+            arrowhead(a, y, 180); arrowhead(b, y, 0)
+            continue
         w_ = pdfmetrics.stringWidth(str(lab), "F", size)
-        if b - a > max(16, w_ + 4):
+        if b - a > max(16, w_ + 10):
             arrowhead(a, y, 180); arrowhead(b, y, 0)
             cx = _dodge((a + b) / 2, a, b, lab, size, avoid)
             TX(cx, y - 2.5, lab, size, align="c"); placed.append((cx - w_ / 2, cx + w_ / 2, y - 2.5))
@@ -364,49 +370,72 @@ def hchain(y, xs, ext_from_y, labels, size=8, bg=False, avoid=None):
             arrowhead(a, y, 0); arrowhead(b, y, 180)
             smalls.append((i, a, b, lab, w_))
     for i, a, b, lab, w_ in smalls:
-        yl = y + size * 0.35
-        opts = ([("l", a - 10 - w_, a - 10, yl, a - 8, a)] if i == 0 else []) + \
-               [("r", b + 10, b + 10 + w_, yl, b, b + 8), ("l", a - 10 - w_, a - 10, yl, a - 8, a)]
+        yl = y - 2.5
+        opts = []
+        if i == 0:
+            opts.append(("l", a - 10 - w_, a - 10, a - 8, a))
+        if i == n - 1:
+            opts.append(("r", b + 10, b + 10 + w_, b, b + 8))
         done = False
-        for side, x0, x1, yy, l0, l1 in opts:
-            if free(x0, x1, yy):
+        for side, x0, x1, l0, l1 in opts:
+            if free(x0, x1, yl):
                 line(l0, y, l1, y, 0.3)
-                TX(x0 if side == "r" else x1, yy, lab, size, align="l" if side == "r" else "r")
-                placed.append((x0, x1, yy)); done = True; break
-        if not done:                                        # eile aukščiau, virš tarpo, su išvadine
+                TX(x0 if side == "r" else x1, yl, lab, size, align="l" if side == "r" else "r")
+                placed.append((x0, x1, yl)); done = True; break
+        if not done:                                        # eile toliau nuo objekto, virš tarpo, su išvadine
             k = 1
-            while not free((a + b) / 2 - w_ / 2, (a + b) / 2 + w_ / 2, y - 2.5 - k * (size + 1.5)):
+            cx = (a + b) / 2
+            while True:
+                yy = y - 2.5 + away * k * (size + 2)
+                if free(cx - w_ / 2, cx + w_ / 2, yy):
+                    break
                 k += 1
-            yy = y - 2.5 - k * (size + 1.5)
-            line((a + b) / 2, y - 1, (a + b) / 2, yy + 1, 0.2, EXT)
-            TX((a + b) / 2, yy, lab, size, align="c"); placed.append(((a + b) / 2 - w_ / 2, (a + b) / 2 + w_ / 2, yy))
+            yt = yy - size * 0.75 if away < 0 else yy - size * 0.75
+            line(cx, y, cx, yy + (2 if away < 0 else -size * 0.8), 0.2, EXT)
+            TX(cx, yy, lab, size, align="c"); placed.append((cx - w_ / 2, cx + w_ / 2, yy))
 
 
 def vchain(x, ys, ext_to, labels, size=8, bg=False):
     """vertikali grandinė; ext_to - x, iki kurio eina išvadinė (abi pusės palaikomos).
-    Mažų tarpų užrašai nesidengia - gretimi pastumiami į šoną."""
+    v152: mažo tarpo užrašas - kraštinio tarpo IŠORĖJE (virš / po grandinės galu, pasuktas kaip kiti), vidurinių -
+    šone TOLIAU nuo objekto (horizontalus tekstas su išvadine), vienas kito neliečia."""
     TX = _Tbg if bg else T
     for y, ex in zip(ys, ext_to):
         sgn = 1 if ex > x else -1
         line(x - 3 * sgn, y, ex - 2 * sgn, y, 0.25, EXT)
     line(x, ys[0], x, ys[-1], 0.3)
     out = -1 if all(ex > x for ex in ext_to) else 1          # maži užrašai - į pusę nuo išvadinių
-    last = None                                              # (y, x0, x1) paskutinis mažas užrašas
-    for a, b, lab in zip(ys[:-1], ys[1:], labels):
+    n = len(labels); top, bot = min(ys), max(ys)
+    placed = []                                              # (y0, y1, x0, x1)
+
+    def free(y0, y1, x0, x1):
+        return all(y1 + 2 <= a or y0 - 2 >= b or x1 + 2 <= c_ or x0 - 2 >= d for a, b, c_, d in placed)
+    for i, (a, b, lab) in enumerate(zip(ys[:-1], ys[1:], labels)):
         w_ = pdfmetrics.stringWidth(str(lab), "F", size)
-        if b - a > max(14, w_ + 4):
-            arrowhead(x, a, 90); arrowhead(x, b, -90)
+        lo, hi = min(a, b), max(a, b)
+        if hi - lo > max(14, w_ + 6):
+            arrowhead(x, a, 90 if a < b else -90); arrowhead(x, b, -90 if a < b else 90)
             TX(x - 2.5, (a + b) / 2, lab, size, align="c", rot=90)
-        else:
-            arrowhead(x, a, -90); arrowhead(x, b, 90)
-            yy = (a + b) / 2 + size * 0.35
-            off = 3
-            if last and abs(yy - last[0]) < size + 1:
-                off = last[2] + 4                              # gretimas - toliau į šoną
-            if out > 0:
-                TX(x + off, yy, lab, size); last = (yy, x + off, off + w_)
-            else:
-                TX(x - off, yy, lab, size, align="r"); last = (yy, x - off, off + w_)
+            placed.append(((a + b) / 2 - w_ / 2, (a + b) / 2 + w_ / 2, x - size, x))
+            continue
+        arrowhead(x, a, -90 if a < b else 90); arrowhead(x, b, 90 if a < b else -90)
+        end = "side"                                         # v152: mažas tarpas - horizontalus užrašas šone (nuo objekto)
+        if end == "top" and free(top - 10 - w_, top - 8, x - size, x):
+            line(x, top - 8, x, top, 0.3)
+            TX(x - 2.5, top - 10 - w_ / 2, lab, size, align="c", rot=90); placed.append((top - 10 - w_, top - 8, x - size, x)); continue
+        if end == "bot" and free(bot + 8, bot + 10 + w_, x - size, x):
+            line(x, bot, x, bot + 8, 0.3)
+            TX(x - 2.5, bot + 10 + w_ / 2, lab, size, align="c", rot=90); placed.append((bot + 8, bot + 10 + w_, x - size, x)); continue
+        yy = (a + b) / 2 + size * 0.35
+        off = 4
+        while True:
+            x0, x1 = (x + off, x + off + w_) if out > 0 else (x - off - w_, x - off)
+            if free(yy - size * 0.8, yy + 1, x0, x1):
+                break
+            off += w_ + 4
+        line(x, (a + b) / 2, (x0 - 1) if out > 0 else (x1 + 1), (a + b) / 2, 0.2, EXT)
+        TX(x0 if out > 0 else x1, yy, lab, size, align="l" if out > 0 else "r")
+        placed.append((yy - size * 0.8, yy + 1, x0, x1))
 
 
 def _ang(dx, dy):
