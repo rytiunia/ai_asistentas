@@ -69,3 +69,26 @@ def overlay(pdf, page, clip, X0, Ytop, k, texts, out=None, min_size=8.0):
     d.save(tmp, garbage=3, deflate=True)
     d.close()
     os.replace(tmp, out or pdf)
+
+
+def draw(K, clip, X0, Ytop, k, texts, min_size=8.0):
+    """v171 (Rytis: „negaliu atsidaryti su CorelDRAW - corrupted file"): GOST užrašai rašomi TIESIAI lapo reportlab
+    sraute (tas pats „GOST Common" TrueType kaip visas lapas, be pymupdf Type0 šriftų); fragmentas dedamas
+    `K.place_pdf(..., under=True)` - po lapo turiniu. Koordinatės - lapo (y žemyn), kaip K.T."""
+    from reportlab.lib.colors import HexColor
+    for x, y, s, cap, col, al, rot in texts:
+        size = cap / CAP * k
+        if rot != 90:
+            size = max(size, min_size)
+        segs = s if isinstance(s, list) else [(s, col)]
+        w = sum(K.pdfmetrics.stringWidth(t_, "F", size) for t_, _ in segs)
+        px, py = X0 + (x - clip[0]) * k, Ytop + (y - clip[1]) * k
+        if rot == 90:
+            py += {"c": w / 2, "r": w}.get(al, 0)
+            for t_, c_ in segs:
+                K.T(px, py, t_, size, color=HexColor(c_), rot=90, auto_red=False)
+            continue
+        px -= {"c": w / 2, "r": w}.get(al, 0)
+        for t_, c_ in segs:
+            K.T(px, py, t_, size, color=HexColor(c_), auto_red=False)
+            px += K.pdfmetrics.stringWidth(t_, "F", size)

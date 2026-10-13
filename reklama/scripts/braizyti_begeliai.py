@@ -1509,7 +1509,10 @@ if LEDF:                                                   # v162: originalo LED
     _lx, _ly, _lw, _lh = POS["L"]
     _fh = _lh - 34
     K.place_pdf(LEDF["src"], LEDF.get("pno", 0), LEDF["clip"], (_lx, K.H - _ly), (_lx + _lw, K.H - _ly),
-                (_lx, K.H - _ly - _fh), outline=0)
+                (_lx, K.H - _ly - _fh), outline=0, under=True)
+    if LEDF.get("texts"):                                  # v171: originalo užrašai GOST (gost_frag.draw)
+        import gost_frag as _GF
+        _GF.draw(K, LEDF["clip"], _lx, _ly, _lw / (LEDF["clip"][2] - LEDF["clip"][0]), LEDF["texts"])
     view_title(_lx + _lw / 2, _ly + _fh + 22, "LED INSTALLATION", LEDF.get("note", "as original drawing"))
     json.dump({"clip": list(LEDF["clip"]), "X0": _lx, "Ytop": _ly, "k": _lw / (LEDF["clip"][2] - LEDF["clip"][0])},
               open(OUT + ".ledfrag.json", "w"))                   # v167: GOST tekstų overlay (gost_frag.py)

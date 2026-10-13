@@ -265,7 +265,10 @@ def sheet(out):
     X = K.IX0 + HALF + (HALF - w) / 2
     Yt = K.IY0 + (K.VIEW_BOT - K.IY0 - h) / 2
     FRAG[:] = [clip, X, Yt, k]
-    K.place_pdf(ORG_FR, 2, clip, (X, K.H - Yt), (X + w, K.H - Yt), (X, K.H - Yt - h), outline=0)
+    K.place_pdf(ORG_FR, 2, clip, (X, K.H - Yt), (X + w, K.H - Yt), (X, K.H - Yt - h), outline=0, under=True)
+    import gost_frag as GF                          # v171: originalo užrašai GOST - lapo šriftu
+    from frag_gost import TEXT
+    GF.draw(K, clip, X, Yt, k, TEXT[2])
     # balionai (BOM POS)
     K.leader(f["x0"] + 3, YG - 1500 * s40, f["x0"] - 40, YG - 1300 * s40, 1)
     K.leader(f["xb"] + W * s40 / 2, YG - 4300 * s40, f["x0"] - 40, YG - 4000 * s40, 2)
@@ -307,7 +310,4 @@ if __name__ == "__main__":
     ORG = sys.argv[2]          # originalas (ALT8858_10.07_Order 225948 Kiwi 343 Tollnes.pdf)
     ORG_FR = sys.argv[3] if len(sys.argv) > 3 else fragment_src(ORG, sys.argv[1] + ".org_fragment.pdf")
     sheet(sys.argv[1])
-    import gost_frag as GF                          # v167: originalo užrašai GOST šriftu virš fragmento
-    from frag_gost import TEXT
-    GF.overlay(sys.argv[1], 0, FRAG[0], FRAG[1], FRAG[2], FRAG[3], TEXT[2])
-    K.pdf_fix_fonts(sys.argv[1])
+

@@ -5,6 +5,8 @@ def R(x0, y0, x1, y1): return [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
 def rail(pts, o, kind): return {"kind": kind, "poly": P(pts, o)}
 GREEN, BLACK = "#A6CE39", "#231F20"
 ORG = __import__("sys").argv[2]
+__import__("sys").path.insert(0, "/home/claude/ai_asistentas/reklama/scripts/projektai/kiwi_226023")
+from frag_gost import TEXT
 base = {"scale": 40, "qty": "3 pcs.", "order_no": "ALT0000_10.13_RS", "rev": "A", "date": "2026-10-13",
         "client": "BrandFactory", "drawing_no": "Order 226023 KIWI 640 BYGNES", "client_pdf": __import__("sys").argv[1],
         "depth_mm": 100, "front": "3mm+foil", "export_1to1": False, "trafo_box": False, "client_frame": True,
@@ -19,7 +21,7 @@ earsM = [(419.3, 364.2), (480.4, 364.2), (419.3, 377.4), (480.4, 377.4), (419.3,
 fp = lambda e, o: [[round((x - o[0]) * SC, 1), round((y - o[1]) * SC, 1)] for x, y in e]
 O1 = (251.627, 351.543)
 cm = lambda x, y: [round((x - O1[0]) * SC), round((y - O1[1]) * SC)]
-s1 = dict(base, merge_rows=True, led_fragment={"src": ORG, "pno": 0, "clip": [78, 318, 580, 572], "note": "as original drawing (ALT8858)"}, callouts={"front": [cm(300, 392) + [1, -30, 40], cm(445, 372) + [2, 30, -34],
+s1 = dict(base, merge_rows=True, led_fragment={"src": ORG, "pno": 0, "clip": [78, 318, 580, 572], "note": "as original drawing (ALT8858)", "texts": TEXT[0]}, callouts={"front": [cm(300, 392) + [1, -30, 40], cm(445, 372) + [2, 30, -34],
                                                     cm(372.5, 360) + [4, 26, -36], cm(418.7, 400) + [15, 24, 44]]}, title="KIWI minipris 3362", file_code="KIWI_226023_01_logo3362", sheet="1 / 3", crop_pt=[245, 340, 500, 432],
           ignore_fills=[[0.66, 0.81, 0.27], [0.35, 0.35, 0.05]],
           decals=[{"client_fill": [0.66, 0.81, 0.27], "hex": GREEN, "group": "KIWI"},
@@ -65,7 +67,7 @@ s1 = dict(base, merge_rows=True, led_fragment={"src": ORG, "pno": 0, "clip": [78
 json.dump(s1, open("spec1.json", "w"), ensure_ascii=False, indent=1)
 # ------------------------------------------------ 2 lapas: 7-23 2037 (originalas: ALT8858 Sheet 2)
 o7 = (274.669, 503.107)
-s2 = dict(base, led_fragment={"src": ORG, "pno": 1, "clip": [66, 428, 664, 768], "note": "as original drawing (ALT8858)"}, section_labels={"1": "6", "2": "7", "3": "5", "4": "9", "5": "3", "A": "12"}, title="7-23  L 2037", file_code="KIWI_226023_02_723", sheet="2 / 3", crop_pt=[262, 495, 430, 562],
+s2 = dict(base, led_fragment={"src": ORG, "pno": 1, "clip": [66, 428, 664, 768], "note": "as original drawing (ALT8858)", "texts": TEXT[1]}, section_labels={"1": "6", "2": "7", "3": "5", "4": "9", "5": "3", "A": "12"}, title="7-23  L 2037", file_code="KIWI_226023_02_723", sheet="2 / 3", crop_pt=[262, 495, 430, 562],
           ignore_fills=[[0.66, 0.81, 0.27]], decals=[{"client_fill": [0.66, 0.81, 0.27], "hex": GREEN, "group": "7-23"}],
           cable_exits=[{"pt": [367.5, 506.0], "voltage": "230V", "label": "~3 m", "point": True}],
           groups=[{"name": "7-23", "profile": "6", "on_plate": False, "return_ral": "9010", "face_hex": BLACK,

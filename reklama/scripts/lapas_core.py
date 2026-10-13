@@ -135,21 +135,25 @@ def init(tmp_pdf, title=""):
 _PLACE = []
 
 
-def place_pdf(src_pdf, pno, clip, tl, tr, bl, outline=0.3):
+def place_pdf(src_pdf, pno, clip, tl, tr, bl, outline=0.3, under=False):
     """v151 (Rytis 2026-10-13, Thales: "labai daug neatitikimų" perpiešiant kliento grafiką kontūrais): TIKSLUS kito PDF
     fragmento įdėjimas - vektorius + gyvas tekstas + paveikslėliai + gradientai, kaip kliento faile. clip - šaltinio puslapio
     sritis (pymupdf koord.), tl / tr / bl - tikslo lygiagretainio kampai (reportlab koord.; 2D - stačiakampis, 3D - afininis).
     Įdedama save() metu VIRŠ lapo turinio."""
-    _PLACE.append((c.getPageNumber() - 1, src_pdf, pno, tuple(clip), tuple(tl), tuple(tr), tuple(bl), outline))
+    # v171: under=True - fragmentas PO lapo turiniu (ant jo rašomi GOST užrašai reportlab šriftu, ne papildomi Type0 šriftai)
+    _PLACE.append((c.getPageNumber() - 1, src_pdf, pno, tuple(clip), tuple(tl), tuple(tr), tuple(bl), outline, under))
 
 
 def _apply_place(doc):
     srcs = {}
-    for pi, src, pno, clip, tl, tr, bl, ol in _PLACE:
+    for it_ in _PLACE:
+        pi, src, pno, clip, tl, tr, bl, ol = it_[:8]
+        und = it_[8] if len(it_) > 8 else False
         srcs.setdefault(src, fitz.open(src))
         pg = doc[pi]; Hp = pg.rect.height
         old = {x[0] for x in pg.get_xobjects()}
-        pg.show_pdf_page(fitz.Rect(0, 0, 100, 100), srcs[src], pno, clip=fitz.Rect(clip), keep_proportion=False)
+        pg.show_pdf_page(fitz.Rect(0, 0, 100, 100), srcs[src], pno, clip=fitz.Rect(clip), keep_proportion=False,
+                         overlay=not und)
         xr = next(x[0] for x in pg.get_xobjects() if x[0] not in old)
         m0 = [float(v) for v in doc.xref_get_key(xr, "Matrix")[1].strip("[]").split()]
         # rect (0,0,100,100) pymupdf = PDF x 0..100, y Hp-100..Hp -> lygiagretainis
