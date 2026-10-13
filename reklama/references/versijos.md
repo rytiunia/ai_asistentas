@@ -2,6 +2,18 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v157 (2026-10-13)
+
+v157, Rytis 2026-10-13 („kažkas blogai - pasikeitė spalvos didelio pilono, stovelio grafika vėl neatitinka kliento užklausos.
+kliento grafika VISADA turi atitikti visose projekcijose, vaizduose ir failuose, tai svarbi taisyklė"):
+- priežastis 1: v156 Ghostscript `-dNoOutputFonts` perrašė visą fragmentą - išmetė overprint (OP / OPM), pakeitė ICC objektus
+  -> Corel / Acrobat / Preview rodė kitas spalvas. Be to, kliento maketų tekstai JAU buvo kreivės - gs nieko nekreivino.
+- priežastis 2: korpuso spalvos lape buvo ranka parinktos (#222D5A / #F1F0EA), kliento - ENT #2B2A5B / #F3FBF7, BLD #231E59 / #FFFFFF.
+- sprendimas: `scripts/pdf_outline.py` (pikepdf + fontTools) - Tj / TJ keičiami glifų kontūrais iš įterpto šrifto, tušti BT blokai
+  ir nenaudojami šriftai išmetami, kita grafika nepakeista (pikselių skirtumas 0, OP / ICC skaičius tas pats);
+  `lapas_core.pdf_text_to_paths` naudoja jį; `thales_pylons.client_fill(pno, x, y)` - spalvos iš kliento PDF.
+- ALT8879_10.13_RS rev D perdarytas.
+
 ## v156 (2026-10-13)
 
 v156, Rytis 2026-10-13 („kliento tekstus visada padaryk vektorinius, ne tekstą, taip sumažinama klaidų tikimybė"):

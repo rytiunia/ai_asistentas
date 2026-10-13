@@ -1516,16 +1516,11 @@ def dugnas_inset(geom, inset, blunt_len=12.0, mitre_limit=10):
 
 
 def pdf_text_to_paths(fn):
-    """v156 (Rytis 2026-10-13): KLIENTO tekstai visada kreivėmis (vektoriai, ne tekstas) - nėra šriftų keitimo
-    klaidų CorelDRAW / spaudoje. Ghostscript pdfwrite -dNoOutputFonts, spalvos nekeičiamos (CMYK lieka).
-    Jei gs nėra: apt-get install -y ghostscript. Perrašo fn vietoje; grąžina True, jei pavyko."""
-    import shutil, subprocess, tempfile
-    gs = shutil.which("gs")
-    if not gs:
-        raise RuntimeError("pdf_text_to_paths: nėra Ghostscript (apt-get install -y ghostscript)")
-    tmp = tempfile.mktemp(suffix=".pdf")
-    subprocess.run([gs, "-q", "-dNOPAUSE", "-dBATCH", "-dSAFER", "-sDEVICE=pdfwrite", "-dNoOutputFonts",
-                    "-dColorConversionStrategy=/LeaveColorUnchanged", "-dAutoRotatePages=/None",
-                    "-dCompatibilityLevel=1.6", "-dPDFSETTINGS=/prepress", f"-sOutputFile={tmp}", fn], check=True)
-    shutil.move(tmp, fn)
-    return True
+    """v157: tekstas -> kreivės savo moduliu pdf_outline (keičia TIK teksto operatorius; spalvos / ICC / overprint /
+    skaidrumas - baitas į baitą). Ghostscript NENAUDOTI - v156 perrašė ICC, išmetė OP / OPM -> pasikeitė kliento spalvos."""
+    import pdf_outline
+    st = pdf_outline.outline(fn)
+    if st["kept"] or st["missing"]:
+        print("pdf_text_to_paths: liko tekstas", st)
+    return st
+
