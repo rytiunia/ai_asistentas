@@ -8,7 +8,7 @@ Principas (Rytis 2026-10-10):
  - visas segmentas (mėlyna + balta) prisukamas csk varžtais per mėlynos šonų / viršaus atlankus prie rėmo
  - įėjimo pilonas: kairė koja +60 (nuolydis), flanšai 300x300 ant esamų inkarų (ašys 1000)
  - pastatų pilonai: vienpusiai, integruota pagrindo plokštė."""
-import sys, os, math, tempfile
+import sys, os, math, tempfile, re, io
 SK = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))   # skill scripts/
 sys.path.insert(0, SK)
 import lapas_core as K
@@ -16,6 +16,7 @@ from lapas_core import T, line, rect, poly, hdim, vchain, hchain, leader, view_t
 import r3d
 import pymupdf as fitz
 from reportlab.lib.colors import HexColor, white, black, Color
+from reportlab.lib.utils import ImageReader
 
 K.RAL.setdefault("5022", "#222D5A"); K.RAL.setdefault("5012", "#3B83BD")
 CLIENT, PROJECT, DRAWING_NO, DATE, REV = "CEOS Groupe", "Thales Campus Velizy", "CEOS D059422", "2026-10-13", "C"
@@ -120,14 +121,48 @@ def client_paths(pno, clip, skip_big=0.5):
     return out
 
 
-def draw_client(paths, clip, x, y, w, h, mirror=False):
-    clip = fitz.Rect(clip); sx, sy = w / clip.width, h / clip.height
+# rev C (Rytis 2026-10-13: "labai daug neatitikimų, tekstai su pakeitimais"): kliento grafika NEBEPERPIEŠIAMA kontūrais
+#  (get_drawings praranda gyvą tekstą, paveikslėlius, gradientus, permatomumą) - dedamas TIKSLUS kliento PDF fragmentas
+#  VEKTORIUMI (lapas_core.place_pdf), 2D ir 3D (afininė transformacija). Kliento matmenų linijos / užrašai (CMYK 0.8 0.4 0 0.2)
+#  iš kopijos pašalinami prieš rastrą.
+_CLEAN, _IMGS = None, {}
+GUIDE = r"0\.8 0\.4 0 0\.2"
+
+
+def clean_src():
+    global _CLEAN
+    if _CLEAN:
+        return _CLEAN
+    d = fitz.open(SRC)
+    for pg in d:
+        for xr in pg.get_contents():
+            s0 = d.xref_stream(xr).decode("latin1")
+            s1 = re.sub(r"(" + GUIDE + r" SCN\n(?:(?!S\n)[^\n]*\n){0,8}?)S\n", r"\1n\n", s0)          # linijos - nepiešiamos
+            s1 = re.sub(r"(" + GUIDE + r" scn\nBT\n)(.*?)(ET\n)", r"\g<1>3 Tr\n\2 0 Tr\n\3", s1, flags=re.S)  # užrašai - nematomi
+            if s1 != s0:
+                d.update_stream(xr, s1.encode("latin1"))
+    _CLEAN = os.path.join(tempfile.gettempdir(), "thales_client_clean.pdf"); d.save(_CLEAN)
+    return _CLEAN
+
+
+def inset(clip, d=0.6):
+    c = fitz.Rect(clip)
+    return (c.x0 + d, c.y0 + d, c.x1 - d, c.y1 - d)                                       # be kliento rėmelio linijos
+
+
+def place_img(pno, clip, tl, tr, bl, ol=0.3):
+    """kliento fragmentas VEKTORIUMI (K.place_pdf) į lygiagretainį (reportlab koord.)"""
+    br = (tr[0] + bl[0] - tl[0], tr[1] + bl[1] - tl[1])                                   # po grafika - grynai balta
+    K.c.saveState(); K.c.setFillColor(white); pth = K.c.beginPath(); pth.moveTo(*tl); pth.lineTo(*tr); pth.lineTo(*br)
+    pth.lineTo(*bl); pth.close(); K.c.drawPath(pth, stroke=0, fill=1); K.c.restoreState()      # (kliento balti maskavimo kv.)
+    K.place_pdf(clean_src(), pno, inset(clip), tl, tr, bl, outline=ol)
+
+
+def draw_client(pno, clip, x, y, w, h, mirror=False):
+    tl, tr, bl = (x, K.Y(y)), (x + w, K.Y(y)), (x, K.Y(y + h))
     if mirror:
-        tf = lambda px, py: (x + w - (px - clip.x0) * sx, K.Y(y + (py - clip.y0) * sy))
-    else:
-        tf = lambda px, py: (x + (px - clip.x0) * sx, K.Y(y + (py - clip.y0) * sy))
-    for sub, f, s_, lw in paths:
-        K.draw_shape(sub, tf, fill=Color(*f) if f else None, stroke=Color(*s_) if s_ else None, lw=min(lw * sx, 0.4))
+        tl, tr, bl = tr, tl, (x + w, K.Y(y + h))
+    place_img(pno, clip, tl, tr, bl)
 
 
 def cut(x, y, w, h, col):
@@ -274,11 +309,9 @@ def overlay_graphic(S, p, graphic):
     if not graphic:
         return
     pno, clip = graphic
-    c = fitz.Rect(clip); zf = TB + TW
-    sx, sy = p.W / c.width, p.OVH / c.height
-    tf = lambda px, py: S.V.S((px - c.x0) * sx, p.H - (py - c.y0) * sy, zf)
-    for sub, f, s_, lw in client_paths(pno, clip):
-        K.draw_shape(sub, tf, fill=Color(*f) if f else None, stroke=Color(*s_) if s_ else None, lw=0.2)
+    zf = TB + TW
+    tl, tr, bl = S.V.S(0, p.H, zf), S.V.S(p.W, p.H, zf), S.V.S(0, p.H - p.OVH, zf)
+    place_img(pno, clip, tl, tr, bl, K.HAIR)
 
 
 def exploded3d(S, p, g=420):
@@ -354,7 +387,7 @@ def ga(p, sheet, graphic, decals=None):
     rect(fx, fy + p.OVH * s, fw, (PL - p.BG) * s, fill=BLUE, lw=0.3)
     if graphic:
         pno, clip = graphic
-        draw_client(client_paths(pno, clip), clip, fx, fy, fw, p.OVH * s)
+        draw_client(pno, clip, fx, fy, fw, p.OVH * s)
     if p.legs == "ext":
         rect(fx + p.FX0 * s, ybase, FR * s, p.LONG * s, fill=AL, lw=0.3)
         for xf, yb in ((p.FAX, p.LONG), (W - p.FAX, 0)):
@@ -476,7 +509,7 @@ def ga(p, sheet, graphic, decals=None):
         for i, (name, pno, clip, dw_, dh_) in enumerate(decals):
             x_ = ddx + i * (ddw + gap)
             rect(x_, ddy, ddw, ddh, fill=WHITE_, lw=0.3); rect(x_, ddy + ddh, ddw, PL * ds, fill=BLUE, lw=0.3)
-            draw_client(client_paths(pno, clip), clip, x_, ddy, ddw, ddh)
+            draw_client(pno, clip, x_, ddy, ddw, ddh)
             T(x_ + ddw / 2, ddy + ddh + PL * ds + 11, name, 8, font="FB", align="c")
             T(x_ + ddw / 2, ddy + ddh + PL * ds + 21, f"{dw_} x {dh_}", 8, color=K.GREY, align="c")
         view_title(ddx + (4 * ddw + 3 * gap) / 2, ddy + ddh + PL * ds + 40, "DECALS (4) - 1 per pylon", f"SCALE 1:{dn}")
@@ -988,13 +1021,13 @@ def pmma_sheet(sheet):
     """Stalinis planas PMMA 297 x 210, termoformuotas L, priekis pakreiptas atgal 10 deg (stabilumas + matomumas)"""
     begin("Thales_PMMA", 8)
     Wp, Hp, tp, FOOT, ANG, Rb = 297, 210, 4, 80, 10, 10
-    clip = (690.0, 273.0, 1105.0, 566.0)
+    clip = (699.3, 276.6, 1120.2, 574.2)            # rev C: tikslus kliento maketo 297 x 210 rėmas (buvo nukirpta / pastumta)
     k = MM / 2
     fx, fy = VX0 + 70, VY0 + 40
     fw, fh = Wp * k, Hp * k * math.cos(math.radians(ANG))
     # FRONT VIEW (projekcija - aukštis sutrumpėja dėl pasvirimo)
     rect(fx, fy, fw, fh, fill=HexColor("#F4F6F8"), lw=0.3)
-    draw_client(client_paths(2, clip, 0.98), clip, fx, fy, fw, fh)
+    draw_client(2, clip, fx, fy, fw, fh)
     hdim(fx, fx + fw, fy - 12, f"{Wp}", fy, fy, 12)
     vchain(fx - 16, [fy, fy + fh], [fx] * 2, [f"{Hp * math.cos(math.radians(ANG)):.0f}"], 8)
     T(fx + fw / 2, fy + fh + 14, f"print area {Wp} x {Hp} (true size on the inclined face)", 8, color=K.GREY, align="c", auto_red=False)
@@ -1048,8 +1081,8 @@ def pmma_sheet(sheet):
     S.render((x3, y3, w3, h3))
     c_ = fitz.Rect(clip); sx_, sy_ = Wp / c_.width, Hp / c_.height
     tf = lambda px, py: S.V.S((px - c_.x0) * sx_, (Hp - (py - c_.y0) * sy_) * ca + tp * sa, -(Hp - (py - c_.y0) * sy_) * sa + tp * ca)
-    for sub, f, st, lw in client_paths(2, clip, 0.98):
-        K.draw_shape(sub, tf, fill=Color(*f) if f else None, stroke=Color(*st) if st else None, lw=0.2)
+    tl, tr, bl = tf(c_.x0, c_.y0), tf(c_.x1, c_.y0), tf(c_.x0, c_.y1)
+    place_img(2, clip, tl, tr, bl, K.HAIR)
     view_title(x3 + w3 / 2, VY1 - 6, "3D VIEW", "ILLUSTRATIVE - NOT TO SCALE")
     def sec(x, y, w, h):
         items = [("PMMA clear 4 mm", "#DDE6EE", "cast, polished edges, thermoformed"),

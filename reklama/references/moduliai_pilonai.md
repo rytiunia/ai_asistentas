@@ -26,8 +26,11 @@ README ten. Naujam pilonui - kopijuoti, keisti `Pyl(...)` parametrus, kliento gr
 6. **Tvirtinimai:** balta -> L įleidžiamais (csk) varžtais PAGAL PERIMETRĄ (šonai, apačia, viršaus galinė plokštuma;
    17 nuo lenkimo, ~300); balta + mėlyna surenkamos į SEGMENTĄ, segmentas prie rėmo - csk varžtais TIK per mėlynos ŠONŲ
    atlankus (25 nuo lenkimo, ~400). Per viršų į skersinį - NE.
-7. **Kliento grafikos importas (v150):** balti stačiakampiai kliento PDF - maskavimas, NEBRAIŽOMI, išskyrus esančius
-   spalvoto stačiakampio viduje (ikonos dalis, pvz. baltas kryžius žaliame kvadrate) - jie grafika. Patikrinti ikonas lape.
+7. **Kliento grafika lape (v151, Rytis 2026-10-13: „labai daug neatitikimų, tekstai su pakeitimais“):** NEPERPIEŠTI kontūrais
+   (`get_drawings` praranda gyvą tekstą, paveikslėlius, gradientus, permatomumą) - dėti TIKSLŲ kliento PDF fragmentą
+   `lapas_core.place_pdf(src, pno, clip, tl, tr, bl)` (vektorius, 2D ir 3D afininiu būdu). clip - TIKSLUS kliento maketo rėmas
+   (rasti jo stačiakampį / rėmelio liniją, ne apytikriai). Kliento matmenų linijos / užrašai (Thales - CMYK 0.8 0.4 0 0.2)
+   iš kopijos pašalinami (`clean_src`). Po grafika - grynai balta (kliento balti maskavimo kvadratai nesimato).
 8. **Grafika:** spauda ant polimerinės plėvelės + matinis laminatas, apklijuojamas VISAS baltas priekis ir apipjaunama
    pagal skardos kraštus (full-face wrap). RAL spalvos - atkartojamos spaudoje, spalvų bandinys klientui.
 

@@ -2,6 +2,14 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v151 (2026-10-13)
+
+v151, Rytis 2026-10-13 („reikia patobulinti grafikos atvaizdavimą, labai daug neatitikimų. Sheet 5 labiausiai matosi iškraipyta
+grafika. ant pilonų tekstai irgi su pakeitimais“): priežastys - kliento grafika buvo perpiešiama `get_drawings` kontūrais
+(prarandamas gyvas tekstas, 17 paveikslėlių, gradientai, permatomumas) ir PMMA iškarpa buvo nukirpta / pastumta (690-1105 vietoj
+699.3-1120.2). Dabar `lapas_core.place_pdf` - tikslus fragmentas vektoriumi (form XObject + afininė Matrix), 2D ir 3D;
+`thales_pylons.py clean_src` pašalina kliento matmenų linijas ir užrašus; po grafika balta, viršuje kontūras.
+
 ## v150 (2026-10-13)
 
 v150, Rytis 2026-10-13 (Thales D059422 rev B pataisymai): didelio pilono flanšo skylės Ø14, 237 tarp skylių (klausimai

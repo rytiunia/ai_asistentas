@@ -83,6 +83,11 @@ Prieš kuriant naujo tipo lapą - peržiūrėk bent vieną etaloną (pdftoppm ->
 - Nežinomos reikšmės - TUŠČIA vieta įrašymui pagal faktą (ne „?", ne raudona). Tekstas su „:"
   gauna rašymo liniją.
 
+## Kliento grafika lape (v151, visiems produktams)
+Kliento maketas / logotipas / tekstas lape - `lapas_core.place_pdf(src_pdf, pno, clip, tl, tr, bl)`: tikslus kliento PDF
+fragmentas (vektorius + gyvas tekstas + paveikslėliai + gradientai), 2D - stačiakampis, 3D - lygiagretainis (r3d `S.V.S`
+kampai). NEPERPIEŠTI `get_drawings` kontūrais - praranda tekstą, paveikslėlius, gradientus (Thales rev B klaida).
+
 ## Ko nedaryti
 - Neišgalvoti matmenų, medžiagų, storių, tvirtinimų - palikti tuščią vietą ir paklausti.
 - Neįterpti paveikslėlių / renderių iš kitų dokumentų - viskas braižoma tuo pačiu CAD stiliumi.

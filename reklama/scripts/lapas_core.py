@@ -132,9 +132,45 @@ def init(tmp_pdf, title=""):
     return c
 
 
+_PLACE = []
+
+
+def place_pdf(src_pdf, pno, clip, tl, tr, bl, outline=0.3):
+    """v151 (Rytis 2026-10-13, Thales: "labai daug neatitikimų" perpiešiant kliento grafiką kontūrais): TIKSLUS kito PDF
+    fragmento įdėjimas - vektorius + gyvas tekstas + paveikslėliai + gradientai, kaip kliento faile. clip - šaltinio puslapio
+    sritis (pymupdf koord.), tl / tr / bl - tikslo lygiagretainio kampai (reportlab koord.; 2D - stačiakampis, 3D - afininis).
+    Įdedama save() metu VIRŠ lapo turinio."""
+    _PLACE.append((c.getPageNumber() - 1, src_pdf, pno, tuple(clip), tuple(tl), tuple(tr), tuple(bl), outline))
+
+
+def _apply_place(doc):
+    srcs = {}
+    for pi, src, pno, clip, tl, tr, bl, ol in _PLACE:
+        srcs.setdefault(src, fitz.open(src))
+        pg = doc[pi]; Hp = pg.rect.height
+        old = {x[0] for x in pg.get_xobjects()}
+        pg.show_pdf_page(fitz.Rect(0, 0, 100, 100), srcs[src], pno, clip=fitz.Rect(clip), keep_proportion=False)
+        xr = next(x[0] for x in pg.get_xobjects() if x[0] not in old)
+        m0 = [float(v) for v in doc.xref_get_key(xr, "Matrix")[1].strip("[]").split()]
+        # rect (0,0,100,100) pymupdf = PDF x 0..100, y Hp-100..Hp -> lygiagretainis
+        a_, b_ = (tr[0] - tl[0]) / 100, (tr[1] - tl[1]) / 100
+        c_, d_ = (tl[0] - bl[0]) / 100, (tl[1] - bl[1]) / 100
+        e_, f_ = tl[0] - Hp * c_, tl[1] - Hp * d_
+        a0, b0, c0, d0, e0, f0 = m0
+        mn = (a0 * a_ + b0 * c_, a0 * b_ + b0 * d_, c0 * a_ + d0 * c_, c0 * b_ + d0 * d_,
+              e0 * a_ + f0 * c_ + e_, e0 * b_ + f0 * d_ + f_)
+        doc.xref_set_key(xr, "Matrix", "[" + " ".join(f"{v:.6f}" for v in mn) + "]")
+        if ol:                                                       # kontūras virš įdėtos grafikos (lapo detalės kraštas)
+            br = (tr[0] + bl[0] - tl[0], tr[1] + bl[1] - tl[1])
+            pg.draw_polyline([fitz.Point(q[0], Hp - q[1]) for q in (tl, tr, br, bl)], color=(0, 0, 0), width=ol, closePath=True)
+    _PLACE.clear()
+
+
 def save(out_pdf):
     c.save()
     doc = fitz.open(_tmp)
+    if _PLACE:
+        _apply_place(doc)
     doc.save(out_pdf, garbage=3, deflate=True)
     doc.close()
     pdf_fix_fonts(out_pdf)                        # v20: CorelDRAW atpažįsta GOST Common - tekstas lieka tekstu
