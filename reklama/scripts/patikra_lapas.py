@@ -156,10 +156,31 @@ def check(pdf, band_y=None, skips=(), verbose=True):
         # 5. įstrižos išvadinės nesikerta su matmenimis / kitomis išvadinėmis
         diag = [sg for sg, w, d in lines if 0.24 <= w <= 0.31 and abs(sg[0] - sg[2]) > 2 and abs(sg[1] - sg[3]) > 2]
         straight = [sg for sg, w, d in lines if 0.18 <= w <= 0.31 and sg not in diag]
+        # v176: išvadinė į objektą, kurį iš visų pusių supa matmenų eilės (balionas privalo būti UŽ vaizdo ribų), neišvengiamai
+        # kerta VIENĄ matmens liniją - leidžiama tik viena, statmenai (>= 45°) ir ne arčiau 4 pt nuo teksto. Kita - klaida.
+        def _ang_ok(a, b):
+            va = (a[2] - a[0], a[3] - a[1]); vb = (b[2] - b[0], b[3] - b[1])
+            cs = abs(va[0] * vb[0] + va[1] * vb[1]) / (math.hypot(*va) * math.hypot(*vb) + 1e-9)
+            return cs <= math.cos(math.radians(45))
+        def _xpt(a, b):
+            x1, y1, x2, y2 = a; x3, y3, x4, y4 = b
+            dd = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+            t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / dd
+            return x1 + t * (x2 - x1), y1 + t * (y2 - y1)
         for a in diag:
+            dimx = []
             for b in diag + straight:
                 if a is not b and _cross(a, b):
+                    if b in straight and 0.24 <= max(abs(b[0] - b[2]), abs(b[1] - b[3])) and _ang_ok(a, b):
+                        px_, py_ = _xpt(a, b)
+                        near = any(fitz.Rect(sp[0].x0 - 4, sp[0].y0 - 4, sp[0].x1 + 4, sp[0].y1 + 4).contains(fitz.Point(px_, py_))
+                                   for sp in spans)
+                        if not near:
+                            dimx.append(b)
+                            continue
                     errs.append(f"IŠVADINĖ KERTA LINIJĄ: ({a[0]:.0f}, {a[1]:.0f}) -> ({a[2]:.0f}, {a[3]:.0f})")
+            if len(dimx) > 1:
+                errs.append(f"IŠVADINĖ KERTA {len(dimx)} MATMENŲ LINIJAS: ({a[0]:.0f}, {a[1]:.0f}) -> ({a[2]:.0f}, {a[3]:.0f})")
         errs = sorted(set(errs))
         total += len(errs)
         if verbose:

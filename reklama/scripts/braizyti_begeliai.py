@@ -1513,11 +1513,26 @@ K.frame()
 if LEDF:                                                   # v162: originalo LED dėliojimo fragmentas (kiekiai, 230V)
     _lx, _ly, _lw, _lh = POS["L"]
     _fh = _lh - 34
-    K.place_pdf(LEDF["src"], LEDF.get("pno", 0), LEDF["clip"], (_lx, K.H - _ly), (_lx + _lw, K.H - _ly),
-                (_lx, K.H - _ly - _fh), outline=0, under=True)
+    _lk = _lw / (LEDF["clip"][2] - LEDF["clip"][0])
+    if LEDF.get("rules_py"):                              # v176: perbraižoma mūsų stiliumi su LED miniatiūromis
+        import importlib.util as _iu, led_mini as _LM
+        _sp_ = _iu.spec_from_file_location("led_rules", LEDF["rules_py"]); _LR = _iu.module_from_spec(_sp_)
+        _sp_.loader.exec_module(_LR)
+        _pn = LEDF.get("pno", 0)
+        _LRES = _LM.redraw(K, LEDF["src"], _pn, LEDF["clip"], _lx, _ly, _lk, _LR.RULES[_pn])
+        for _x, _y, _ru in getattr(_LR, "LEGEND", {}).get(_pn, []):
+            _LM.legend_icon(K, _lx + (_x - LEDF["clip"][0]) * _lk, _ly + (_y - LEDF["clip"][1]) * _lk, _ru, _lk, 1.6)
+        LED_BALLOONS = [(_lx + (_x - LEDF["clip"][0]) * _lk, _ly + (_y - LEDF["clip"][1]) * _lk, _n)
+                        for _x, _y, _n in getattr(_LR, "BALLOONS", {}).get(_pn, [])]
+        print(f"  LED (originalas, perbraižyta): {len(_LRES['modules'])} moduliai, PSU {len(_LRES['psu'])}")
+    else:
+        LED_BALLOONS = []
+        K.place_pdf(LEDF["src"], LEDF.get("pno", 0), LEDF["clip"], (_lx, K.H - _ly), (_lx + _lw, K.H - _ly),
+                    (_lx, K.H - _ly - _fh), outline=0, under=True)
     if LEDF.get("texts"):                                  # v171: originalo užrašai GOST (gost_frag.draw)
         import gost_frag as _GF
-        _GF.draw(K, LEDF["clip"], _lx, _ly, _lw / (LEDF["clip"][2] - LEDF["clip"][0]), LEDF["texts"])
+        _GF.draw(K, LEDF["clip"], _lx, _ly, _lk, LEDF["texts"])
+    VIEW_BOX_L = (_lx, _ly, _lx + _lw, _ly + _fh)
     view_title(_lx + _lw / 2, _ly + _fh + 22, "LED INSTALLATION", LEDF.get("note", "as original drawing"))
     json.dump({"clip": list(LEDF["clip"]), "X0": _lx, "Ytop": _ly, "k": _lw / (LEDF["clip"][2] - LEDF["clip"][0])},
               open(OUT + ".ledfrag.json", "w"))                   # v167: GOST tekstų overlay (gost_frag.py)
@@ -1702,7 +1717,7 @@ def _callouts(view, F):
     """v13: BOM pozicijų balionai vaizde - spec callouts.<view> = [[x_mm, y_mm, poz, dx_pt, dy_pt]] (priekio koord.)"""
     for co_ in spec.get("callouts", {}).get(view, []):
         x_, y_ = F(co_[0], co_[1])
-        K.balloon_auto(x_, y_, co_[2])                  # v172: be balto apvado; tik laisvoje vietoje, mažiausiai kirtimų
+        K.balloon_auto(x_, y_, co_[2], avoid=[VIEW_BOX[view]])   # v176 (Rytis): balionai TIK už vaizdo ribų
 
 
 VIEW_BOX = {"front": (FVX, FVY, FVX + fw, FVY + fh)}
@@ -2430,6 +2445,9 @@ for xj_, lj_ in JOINTS:
     _joint(RV(xj_, 0)[0], RVY - 8, RVY + rh + 8, lj_)
 VIEW_BOX["rear"] = (RVX, RVY, RVX + rw, RVY + rh)
 _callouts("rear", RV)
+if LEDF:
+    for _bx, _by, _bn in LED_BALLOONS:                    # v176: originalo LED / PSU balionai - už LED vaizdo
+        K.balloon_auto(_bx, _by, _bn, avoid=[VIEW_BOX_L])
 # v111 (Rytis 2026-10-12, etalonas EXTRA 223315 lapas 1): GALINIAME VAIZDE virš kiekvienos šviečiančios grupės - kokie LED
 #  dedami (spalva / temperatūra; plokštei X - vidus ir galas). spec grupės "led": "White LED modules, 6500K" arba eilučių
 #  sąrašas; nenurodyta šviečiančiai grupei - perspėjimas (neišgalvoti).
