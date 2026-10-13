@@ -39,7 +39,7 @@ D1, D2 = 16, 36
 
 TB = {"client": "BrandFactory", "title": "Lanterne med lys 6800, RAL 6018",
       "order_no": "ALT0000_10.13_RS", "drawing_no": "Order 226023 KIWI 640 BYGNES", "rev": "A", "date": "2026-10-13",
-      "sheet": "5 / 5", "revisions": [["A", "First issue", "2026-10-13", "RS"]]}
+      "sheet": "3 / 3", "revisions": [["A", "First issue", "2026-10-13", "RS"]]}
 
 
 def HM(x1, x2, y, label, e1, e2):
@@ -191,10 +191,16 @@ def view3d(box):
 
 # ---------------------------------------------------------------- juosta
 def bom():
-    """Parts List - kaip originale (Tollnes 225948 Sheet 3)"""
-    return [[1, "100x20x2mm Alu profile"], [2, "Backside, 1.5mm Alu"], [3, "Top cover, 1.5mm Alu"],
-            [4, "1mm stainless steel cover"], [5, "LED's with transformator"], [6, "Ffitting plate, 3mm Alu"],
-            [7, "Screws"]]
+    """Parts List - originalo pozicijos + perkelti originalo aprašai (LED modules / Trafo / El. Output) ir spalva (RAL 6018)
+    pagal detalę (v162, Rytis 2026-10-13)"""
+    return [[1, "100x20x2mm Alu profile", "", "", RAL],
+            [2, "Backside, 1.5mm Alu", "", "", RAL],
+            [3, "Top cover, 1.5mm Alu", "", "", RAL],
+            [4, "1mm stainless steel cover", "Cover with adjustable position", "", ""],
+            [5, "LED's with transformator\n\n", f"LED modules: Edge Modules SM280-12V\nTrafo: {PSU}\n+1,5m  ~230V  El. Output",
+             f"{N_LED}pcs.\n\n", ""],
+            [6, "Ffitting plate, 3mm Alu", "Connection point", "", ""],
+            [7, "Screws", "", "", ""]]
 
 
 def weight():
@@ -208,10 +214,6 @@ def weight():
 def main_data():
     return [["Quantity", "1 pcs."],
             ["Body height", f"{H_BODY}"],
-            ["LED modules", f"Edge Modules SM280-12V, {N_LED}pcs."],
-            ["Trafo", PSU],
-            ["El. Output", "+1,5m  ~230V"],
-            ["Colour", RAL],
             ["Weight (calc.)", f"≈ {weight():.0f} kg / pcs, excl. LED"]]
 
 
@@ -228,7 +230,7 @@ def band_section(x, y, w, h):
 
 def sheet(out):
     md, bm = main_data(), bom()
-    K.set_band(max(len(md), len(bm) + 1, 12))
+    K.set_band(max(len(md), len(bm) + 3, 12))
     K.init(out + ".tmp", "KIWI 226023 Lanterne")
     K.frame()
     s40 = MM / 40
@@ -256,7 +258,7 @@ def sheet(out):
     w, h = cw * k, ch * k
     X = K.IX1 - 12 - w
     Yt = K.IY0 + 8
-    K.place_pdf(ORG, 2, clip, (X, K.H - Yt), (X + w, K.H - Yt), (X, K.H - Yt - h), outline=0)
+    K.place_pdf(ORG_FR, 2, clip, (X, K.H - Yt), (X + w, K.H - Yt), (X, K.H - Yt - h), outline=0)
     # balionai (BOM POS)
     K.leader(f["x0"] + 3, YG - 1500 * s40, f["x0"] - 40, YG - 1300 * s40, 1)
     K.leader(f["xb"] + W * s40 / 2, YG - 4300 * s40, f["x0"] - 40, YG - 4000 * s40, 2)
@@ -273,12 +275,25 @@ def sheet(out):
     W_D, W_MD, W_TB = 214, 230, 272
     X_D = K.IX0; X_TB = K.IX1 - W_TB; X_MD = X_TB - W_MD; X_BOM = X_D + W_D; W_BOM = X_MD - X_BOM
     band_section(X_D, BY0, W_D, BH)
-    K.bom_table(X_BOM, BY0, W_BOM, BH, bm, title="PARTS LIST", cols=(("POS", 20), ("Part Number", None)))
+    K.bom_table(X_BOM, BY0, W_BOM, BH, bm, title="PARTS LIST",
+                cols=(("POS", 20), ("Part Number", 0.3), ("Description", 0.38), ("Qty", 0.1), ("FINISH", None)))
     K.main_data(X_MD, BY0, W_MD, BH, md, lab_w=64)
     K.title_block(X_TB, W_TB, TB, "1:40 / 1:10")
     K.save(out)
 
 
+def fragment_src(org, out):
+    """v162: originalo kopija be Parts List, RAL 6018 langelio ir LED modules teksto (perkelti į Parts List)"""
+    import pymupdf as fitz
+    d = fitz.open(org)
+    pg = d[2]
+    for r in ((905, 498, 1142, 705), (905, 707, 1142, 764), (858, 34, 1134, 118)):
+        pg.draw_rect(fitz.Rect(r), color=None, fill=(1, 1, 1), overlay=True)
+    d.save(out)
+    return out
+
+
 if __name__ == "__main__":
     ORG = sys.argv[2]          # originalas (ALT8858_10.07_Order 225948 Kiwi 343 Tollnes.pdf)
+    ORG_FR = fragment_src(ORG, sys.argv[1] + ".org_fragment.pdf")
     sheet(sys.argv[1])

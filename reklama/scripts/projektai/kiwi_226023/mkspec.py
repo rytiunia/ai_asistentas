@@ -4,6 +4,7 @@ def P(pts, o): return [[round((x - o[0]) * SC, 1), round((y - o[1]) * SC, 1)] fo
 def R(x0, y0, x1, y1): return [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
 def rail(pts, o, kind): return {"kind": kind, "poly": P(pts, o)}
 GREEN, BLACK = "#A6CE39", "#231F20"
+ORG = __import__("sys").argv[2]
 base = {"scale": 40, "qty": "3 pcs.", "order_no": "ALT0000_10.13_RS", "rev": "A", "date": "2026-10-13",
         "client": "BrandFactory", "drawing_no": "Order 226023 KIWI 640 BYGNES", "client_pdf": __import__("sys").argv[1],
         "depth_mm": 100, "front": "3mm+foil", "export_1to1": False, "trafo_box": False, "client_frame": True,
@@ -18,8 +19,8 @@ earsM = [(419.3, 364.2), (480.4, 364.2), (419.3, 377.4), (480.4, 377.4), (419.3,
 fp = lambda e, o: [[round((x - o[0]) * SC, 1), round((y - o[1]) * SC, 1)] for x, y in e]
 O1 = (251.627, 351.543)
 cm = lambda x, y: [round((x - O1[0]) * SC), round((y - O1[1]) * SC)]
-s1 = dict(base, merge_rows=True, callouts={"front": [cm(300, 392) + [1, -30, 40], cm(445, 372) + [2, 30, -34],
-                                                    cm(372.5, 360) + [4, 26, -36], cm(418.7, 400) + [15, 24, 44]]}, title="KIWI minipris 3362", file_code="KIWI_226023_01_logo3362", sheet="1 / 5", crop_pt=[245, 340, 500, 432],
+s1 = dict(base, merge_rows=True, led_fragment={"src": ORG, "pno": 0, "clip": [78, 318, 580, 572], "note": "as original drawing (ALT8858)"}, callouts={"front": [cm(300, 392) + [1, -30, 40], cm(445, 372) + [2, 30, -34],
+                                                    cm(372.5, 360) + [4, 26, -36], cm(418.7, 400) + [15, 24, 44]]}, title="KIWI minipris 3362", file_code="KIWI_226023_01_logo3362", sheet="1 / 3", crop_pt=[245, 340, 500, 432],
           ignore_fills=[[0.66, 0.81, 0.27], [0.35, 0.35, 0.05]],
           decals=[{"client_fill": [0.66, 0.81, 0.27], "hex": GREEN, "group": "KIWI"},
                   {"client_fill": [0.35, 0.35, 0.05], "hex": BLACK, "group": "minipris"}],
@@ -29,13 +30,11 @@ s1 = dict(base, merge_rows=True, callouts={"front": [cm(300, 392) + [1, -30, 40]
           groups=[
               {"name": "KIWI", "profile": "6", "on_plate": False, "return_ral": "9010", "face_hex": BLACK,
                "client_fill": [0.85, 0.1, 0.1], "frame": "verticals", "fit_plates": fp(earsK, oK),
-               "led": ["Module P130 (1W) green: 85 pcs.  Power: 85W", "Transf. KPS-100W: 1 vnt. (inside letter)"],
                "rails": [rail(R(260.0, 361.4, 260.0 + 3219 / SC, 364.2), oK, "h"), rail(R(260.0, 416.7, 260.0 + 3098 / SC, 419.5), oK, "h"),
                          rail(R(260.0, 364.2, 262.8, 364.2 + 740 / SC), oK, "v"), rail(R(335.0, 364.2, 337.8, 364.2 + 740 / SC), oK, "v"),
                          rail(R(402.3, 364.2, 405.2, 364.2 + 740 / SC), oK, "v")]},
               {"name": "minipris", "profile": "6", "on_plate": False, "return_ral": "9010", "face_hex": "#FFFFFF",
                "client_fill": [0.22, 0.2, 0.21], "frame": "verticals", "fit_plates": fp(earsM, oM),
-               "led": ["Module P65 (0,5W) white: 63 pcs.  Power: 31,5W", "Transf. KPS-20W: 2 vnt. (inside letter)"],
                "rails": [rail(R(405.2, 380.2, 405.2 + 1170 / SC, 383.0), oM, "h"), rail(R(405.2, 398.9, 405.2 + 1038 / SC, 401.7), oM, "h"),
                          rail(R(424.8, 364.2, 427.6, 380.2), oM, "v"), rail(R(485.3, 364.2, 488.1, 380.2), oM, "v"),
                          rail(R(424.8, 401.7, 427.6, 416.7), oM, "v"), rail(R(458.9, 401.7, 461.8, 416.7), oM, "v"),
@@ -64,13 +63,12 @@ s1 = dict(base, merge_rows=True, callouts={"front": [cm(300, 392) + [1, -30, 40]
 json.dump(s1, open("spec1.json", "w"), ensure_ascii=False, indent=1)
 # ------------------------------------------------ 2 lapas: 7-23 2037 (originalas: ALT8858 Sheet 2)
 o7 = (274.669, 503.107)
-s2 = dict(base, section_labels={"1": "6", "2": "7", "3": "5", "4": "9", "5": "3", "A": "12"}, title="7-23  L 2037", file_code="KIWI_226023_02_723", sheet="3 / 5", crop_pt=[262, 495, 430, 562],
+s2 = dict(base, led_fragment={"src": ORG, "pno": 1, "clip": [66, 428, 664, 768], "note": "as original drawing (ALT8858)"}, section_labels={"1": "6", "2": "7", "3": "5", "4": "9", "5": "3", "A": "12"}, title="7-23  L 2037", file_code="KIWI_226023_02_723", sheet="2 / 3", crop_pt=[262, 495, 430, 562],
           ignore_fills=[[0.66, 0.81, 0.27]], decals=[{"client_fill": [0.66, 0.81, 0.27], "hex": GREEN, "group": "7-23"}],
           cable_exits=[{"pt": [366, 506], "voltage": "230V", "label": "~3 m"}],
           groups=[{"name": "7-23", "profile": "6", "on_plate": False, "return_ral": "9010", "face_hex": BLACK,
                    "client_fill": [0.1, 0.1, 0.85], "frame": "verticals",
                    "fit_plates": fp([(314.31, 511.42), (386.22, 511.42), (380.19, 542.6), (296.66, 542.6)], o7),
-                   "led": ["Module P130 lens (1W) green: 26 pcs.  Power: 26", "KPS-V12-40W  1 pcs. (inside)"],
                    "rails": [rail(R(285.37, 508.59, 409.39, 511.42), o7, "h"), rail(R(285.37, 545.44, 409.39, 548.27), o7, "h"),
                              dict(rail([(297.39, 530.29), (368.88, 530.29), (367.25, 533.12), (295.75, 533.12)], o7, "h"), len=1032),
                              rail([(305.01, 511.42), (308.28, 511.42), (288.64, 545.44), (285.37, 545.44)], o7, "d"),

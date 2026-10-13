@@ -1406,7 +1406,8 @@ def r_box(n):
         if bt and _rail_n(g) > 1:
             bot_x = max(bot_x, 20)
     _tb = 40 if spec.get("trafo_box") is not False and (spec.get("cable_exits") or spec.get("trafo_box")) else 0
-    return 70 + PW * s_ + 60, 46 + top_x + PH * s_ + 62 + 34 + bot_x + _tb
+    _lx = (36 + 30) if spec.get("led_fragment") else 0     # v162: virš galinio - žymų eilės, po juo - laidų nuleidimai
+    return 70 + PW * s_ + 60, 46 + top_x + PH * s_ + 62 + 34 + bot_x + _tb + _lx
 
 
 V3 = K.View3D(spec.get("view_yaw", 32), spec.get("view_pitch", 17))
@@ -1419,6 +1420,11 @@ LAYS = [[["FS"], ["D", "R", "I"]], [["FS", "D"], ["R", "I"]], [["FS", "I"], ["D"
         [["FS", "R", "D"], ["I"]], [["FS", "D", "I"], ["R"]]]
 if not HAS_D:
     LAYS = [[[b for b in r if b != "D"] for r in lay] for lay in LAYS]
+LEDF = spec.get("led_fragment")                            # v162 (Rytis): LED dėliojimas iš originalo - lapo kairė apačia
+if LEDF:
+    # Rytis 2026-10-13: „kairė viršus - front view / dešinė viršus - rear view / kairė apačia - led / dešinė apačia - 3d view"
+    LAYS = [[["FS", "R"], ["L", "I"]]]
+    _lc = LEDF["clip"]; LED_ASP = (_lc[2] - _lc[0]) / (_lc[3] - _lc[1])
 Z_PREF = None
 if GZ:                                                      # Z rėmo detalė - bet kurioje eilutėje
     # Rytis 2026-10-07: WALLFRAME - šalia šoninio vaizdo (tęstinumas), 3D - apačioje didesnis
@@ -1434,6 +1440,13 @@ for lay, n1, n2, nz, dh in [(l_, a_, b_, c_, d_) for l_ in LAYS for a_ in STD fo
             if n2 < n1 or n2 > n1 * 2.5:
                 continue
             sz = {"FS": fs_box(n1), "R": r_box(n2), "D": (D_W, dh), "Z": z_box(nz) if GZ else (0, 0)}
+            if LEDF:
+                _r1 = max(sz["FS"][1], sz["R"][1])
+                _lh = H_AV - _r1 - 14 - 6
+                _lw = min(W_AV * 0.58 - 7, (_lh - 34) * LED_ASP)
+                if _lw < 150:
+                    continue
+                sz["L"] = (_lw, _lw / LED_ASP + 34)
             ok, rows_h, iso = True, [], None
             fixed_h = [max([sz[b][1] for b in r if b != "I"], default=0) for r in lay]
             for ri, r in enumerate(lay):
@@ -1484,6 +1497,12 @@ for r, rh_r in zip(LAY, ROWS_H):
 tmp = tempfile.mktemp(suffix=".pdf")
 K.init(tmp, spec.get("file_code", "drawing"))
 K.frame()
+if LEDF:                                                   # v162: originalo LED dėliojimo fragmentas (kiekiai, 230V)
+    _lx, _ly, _lw, _lh = POS["L"]
+    _fh = _lh - 34
+    K.place_pdf(LEDF["src"], LEDF.get("pno", 0), LEDF["clip"], (_lx, K.H - _ly), (_lx + _lw, K.H - _ly),
+                (_lx, K.H - _ly - _fh), outline=0)
+    view_title(_lx + _lw / 2, _ly + _fh + 22, "LED INSTALLATION", LEDF.get("note", "as original drawing"))
 
 RAILC = HexColor(K.ralhex(RAIL["ral"]))
 ZPC, ZFC = HexColor("#C4C7CA"), HexColor("#8E9295")      # Z ant plokštės (Alu natūralus) / sieninis rėmas
@@ -1748,7 +1767,7 @@ CABLES = [{"x": (c_["pt"][0] - OX) * S, "y": (c_["pt"][1] - OY) * S, "label": c_
 # ============================================================ REAR VIEW (MIRRORED)
 s2 = MM / SC2
 _TOPX = 20 if any(_stack(g)[1] and not _stack(g)[0] and _rail_n(g) > 1 for g in groups) else 0
-RVX, RVY = POS["R"][0] + 70, POS["R"][1] + 40 + _TOPX
+RVX, RVY = POS["R"][0] + 70, POS["R"][1] + 40 + _TOPX + (36 if LEDF else 0)
 rw, rh = PW * s2, PH * s2
 
 
@@ -2441,6 +2460,9 @@ if GZ and "Z" in POS:
 
 # ============================================================ 3D VIEW
 ix, iy, iw, ih = POS["I"]
+if LEDF:                                                   # v162: po galinio vaizdo pavadinimu (laidų užrašai jį nustumia žemyn)
+    _d3 = max(0.0, _rty + 4 + K.F_SCALE * 1.25 + 8 - iy)
+    iy, ih = iy + _d3, ih - _d3
 ih -= 30
 up = lambda geom: __import__("shapely.affinity", fromlist=["scale"]).scale(geom, 1, -1, origin=(0, PH / 2))
 fit = [(x, y, 0) for x in (-_WM, PW + _WM) for y in (-_WM * 0.8, PH + _WM * 0.8)] + \
@@ -2565,6 +2587,11 @@ _BOM_ROWS = [[_hang(c_) for c_ in r_] for r_ in _BOM_ROWS]
 _EAR_POS = next((str(r_[0]) for r_ in _BOM_ROWS if "ear" in str(r_[1]).lower() and not str(r_[1]).lower().startswith("rail")), "")
 _HAS_EARS = any(g.get("fplates") for g in groups)
 import p6_ref as _P6REF
+try:                                                       # v162: □ profilio gylis / aukštis pjūvyje (40x20x2 -> 0.5)
+    _rs = [float(v) for v in str(RAIL["size"]).lower().split("x")]
+    _P6REF.RAIL_RATIO = (float(RAIL.get("depth", _rs[1])) / _rs[0]) if RAIL_SQ else 1.0
+except Exception:
+    _P6REF.RAIL_RATIO = 1.0
 _P6REF.LABEL_MAP.update({str(k_): str(v_) for k_, v_ in spec.get("section_labels", {}).items()})
 if FRONT == "P1":
     K.p1_typical(X_P6, BY0, W_P6, BH, depth, variant="rail", title="PROFILE P1 ON RAILS - TYPICAL SECTION",

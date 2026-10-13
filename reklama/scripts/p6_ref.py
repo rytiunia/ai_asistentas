@@ -74,6 +74,7 @@ def _load(kind, front):
     return front, dr, spans
 
 
+RAIL_RATIO = 1.0   # v162: stačiakampio profilio gylis / aukštis pjūvyje (40x20 -> 0.5; Rytis: „turi matytis 40x20")
 LABEL_MAP = {}     # v160: pjūvio balionų numeriai pagal originalo BOM (spec "section_labels")
 
 
@@ -138,7 +139,16 @@ def draw(cv, H, x, y, w, h, kind, front, depth, *, leader, balloon, T, hdim, hai
     tx = x + pad + (aw - clip.width * k) / 2
     ty = y + top + (ah - clip.height * k) / 2
 
+    _piv = None
+    if kind == "square" and abs(RAIL_RATIO - 1.0) > 1e-3:
+        _tb = [d["rect"] for i, d in enumerate(dr) if i not in skip and d.get("fill") and 0.6 < max(d["fill"]) < 0.75
+               and d["rect"].width < 14 and d["rect"].height > 30 and _kinds(d).count("l") >= 16]
+        if _tb:
+            _piv = _tb[0].x1                              # profilio plokštuma prie raidės galo
+
     def X(v):
+        if _piv is not None and v < _piv:                 # sienos pusė (profilis, ausėlė) - gylis pagal RAIL_RATIO
+            v = _piv - (_piv - v) * RAIL_RATIO
         return tx + (v - clip.x0) * k
 
     def Yp(v):
