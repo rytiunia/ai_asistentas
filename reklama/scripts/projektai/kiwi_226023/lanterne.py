@@ -14,6 +14,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", ".."))
+sys.path.insert(0, HERE)
 import lapas_core as K  # noqa: E402
 from lapas_core import T, line, rect, poly, circle, hdim, vchain, view_title, MM  # noqa: E402
 from reportlab.lib.colors import HexColor, white, black  # noqa: E402
@@ -234,8 +235,14 @@ def sheet(out):
     K.init(out + ".tmp", "KIWI 226023 Lanterne")
     K.frame()
     s40 = MM / 40
-    YG = K.VIEW_BOT - 30
-    xf = K.IX0 + 110
+    # v167 (Rytis 2026-10-13): objektai centruojami savo plote, simetriškai - kairė pusė projekcijos, dešinė - originalo fragmentas
+    HALF = (K.IX1 - K.IX0) / 2
+    tagw = K.pdfmetrics.stringWidth("Backside plate connect point", "F", 8) + 16
+    fx0 = 0 - (CAP_W - W) / 2 * s40
+    L_ = fx0 - D1 - D2 - 16
+    R_ = fx0 + CAP_W * s40 + 70 + CAP_D * s40 + 90 + W * s40 + tagw
+    xf = K.IX0 + HALF / 2 - (L_ + R_) / 2
+    YG = (K.IY0 + K.VIEW_BOT) / 2 + (H_BODY * s40 + 56 - 40) / 2
     f = front_view(xf, YG, s40)
     xs = f["x1"] + 70
     sv = side_view(xs, YG, s40)
@@ -250,14 +257,14 @@ def sheet(out):
     K.cut_plane_h(ya, f["x0"], f["x1"], "C", look="down")
     # v161 (Rytis 2026-10-13): DETAIL A / B ir 3D - NE mūsų; dedamas TIKSLUS originalo fragmentas (ALT8858 Sheet 3:
     #  3D vaizdai, sprogdintas, B (1:10), A (1:10) connection point, Parts List, RAL 6018)
-    clip = (455, 38, 1142, 768)
+    clip = (455, 38, 1130, 768)
     cw, ch = clip[2] - clip[0], clip[3] - clip[1]
-    xa = rv["x1"] + 150
-    aw, ah = K.IX1 - 12 - xa, YG + 30 - (K.IY0 + 8)
+    aw, ah = HALF - 20, K.VIEW_BOT - K.IY0 - 16
     k = min(aw / cw, ah / ch)
     w, h = cw * k, ch * k
-    X = K.IX1 - 12 - w
-    Yt = K.IY0 + 8
+    X = K.IX0 + HALF + (HALF - w) / 2
+    Yt = K.IY0 + (K.VIEW_BOT - K.IY0 - h) / 2
+    FRAG[:] = [clip, X, Yt, k]
     K.place_pdf(ORG_FR, 2, clip, (X, K.H - Yt), (X + w, K.H - Yt), (X, K.H - Yt - h), outline=0)
     # balionai (BOM POS)
     K.leader(f["x0"] + 3, YG - 1500 * s40, f["x0"] - 40, YG - 1300 * s40, 1)
@@ -282,6 +289,9 @@ def sheet(out):
     K.save(out)
 
 
+FRAG = []
+
+
 def fragment_src(org, out):
     """v162: originalo kopija be Parts List, RAL 6018 langelio ir LED modules teksto (perkelti į Parts List)"""
     import pymupdf as fitz
@@ -295,5 +305,9 @@ def fragment_src(org, out):
 
 if __name__ == "__main__":
     ORG = sys.argv[2]          # originalas (ALT8858_10.07_Order 225948 Kiwi 343 Tollnes.pdf)
-    ORG_FR = fragment_src(ORG, sys.argv[1] + ".org_fragment.pdf")
+    ORG_FR = sys.argv[3] if len(sys.argv) > 3 else fragment_src(ORG, sys.argv[1] + ".org_fragment.pdf")
     sheet(sys.argv[1])
+    import gost_frag as GF                          # v167: originalo užrašai GOST šriftu virš fragmento
+    from frag_gost import TEXT
+    GF.overlay(sys.argv[1], 0, FRAG[0], FRAG[1], FRAG[2], FRAG[3], TEXT[2])
+    K.pdf_fix_fonts(sys.argv[1])

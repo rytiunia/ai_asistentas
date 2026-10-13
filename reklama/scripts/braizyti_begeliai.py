@@ -1493,6 +1493,14 @@ for r, rh_r in zip(LAY, ROWS_H):
         POS[b] = (xx_, yy_ + (rh_r - h_) / 2, w_, h_)
         xx_ += w_ + hg
     yy_ += rh_r + vg
+if LEDF:                                                   # v167 (Rytis): objektai centruojami savo ketvirtyje, simetriškai
+    _hw = W_AV / 2
+    for (b1, b2), rh_r in zip(LAY, ROWS_H):
+        for b, cx in ((b1, VX0 + _hw / 2), (b2, VX0 + 1.5 * _hw)):
+            x_, y_, w_, h_ = POS[b]
+            if b == "I":
+                w_ = _hw - 10
+            POS[b] = (cx - w_ / 2, y_, w_, h_)
 
 tmp = tempfile.mktemp(suffix=".pdf")
 K.init(tmp, spec.get("file_code", "drawing"))
@@ -1503,6 +1511,8 @@ if LEDF:                                                   # v162: originalo LED
     K.place_pdf(LEDF["src"], LEDF.get("pno", 0), LEDF["clip"], (_lx, K.H - _ly), (_lx + _lw, K.H - _ly),
                 (_lx, K.H - _ly - _fh), outline=0)
     view_title(_lx + _lw / 2, _ly + _fh + 22, "LED INSTALLATION", LEDF.get("note", "as original drawing"))
+    json.dump({"clip": list(LEDF["clip"]), "X0": _lx, "Ytop": _ly, "k": _lw / (LEDF["clip"][2] - LEDF["clip"][0])},
+              open(OUT + ".ledfrag.json", "w"))                   # v167: GOST tekstų overlay (gost_frag.py)
 
 RAILC = HexColor(K.ralhex(RAIL["ral"]))
 ZPC, ZFC = HexColor("#C4C7CA"), HexColor("#8E9295")      # Z ant plokštės (Alu natūralus) / sieninis rėmas

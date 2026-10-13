@@ -1457,7 +1457,8 @@ def pdf_fix_fonts(path_in, path_out=None):
                 t = d.xref_get_key(xr, key)
             except Exception:
                 continue
-            if t[0] == "name" and ("GOST-Common" in t[1] or "GOSTCommon" in t[1]):
+            if t[0] == "name" and ("GOST-Common" in t[1] or "GOSTCommon" in t[1] or ("GOST" in t[1] and "Common" in t[1]
+                                                                                        and t[1] != "/GOST#20Common")):
                 d.xref_set_key(xr, key, "/GOST#20Common"); n += 1
                 if key == "FontName":
                     d.xref_set_key(xr, "FontFamily", "(GOST Common)")
