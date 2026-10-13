@@ -30,6 +30,8 @@ FRONT = P6F.kind(spec.get("front", "3mm"))   # "3mm" (PVC) / "8mm" (frezuota, >=
 if P6F.parse(spec.get("front", "3mm"))["warn"]:
     print(P6F.parse(spec.get("front", "3mm"))["warn"])
 RAIL = {"size": "30x30x2", "depth": 30, "ral": "7035"}; RAIL.update(spec.get("rail", {}))
+# v183: rėmo RAL nežinomas („?") - FINISH langelis tuščias (ne „RAL ? matt")
+RAIL_FIN = "" if str(RAIL.get("ral", "")).strip() in ("", "?") else f"RAL {RAIL['ral']} matt"
 PLATE = {"thk": 3, "gap_mm": 30, "recess_mm": 25, "ral": "1023"}; PLATE.update(spec.get("plate", {}))
 # v47 (Rytis 2026-10-09): profilio forma VISUOSE vaizduose pagal tipą - U visur U, stačiakampis visur stačiakampis
 RAIL_SQ = str(RAIL.get("type", "u")).lower().startswith(("sq", "box", "kv"))
@@ -1289,7 +1291,7 @@ if MOUNTING == "brackets":
     if BRACKETS and not any("{BRK_" in str(c_) for r_ in spec["bom"] for c_ in r_):
         _pos = max([int(r_[0]) for r_ in spec["bom"] if str(r_[0]).isdigit()] or [0]) + 1
         spec["bom"].append([str(_pos), "Hanger U {BRK_DIM}", "{BRK_MAT}",
-                            f"RAL {RAIL['ral']} matt", "{BRK_N} pcs."])
+                            RAIL_FIN, "{BRK_N} pcs."])
 _bk = sorted({(round(b_["H"]), round(b_["fl"]), b_["mat"]) for b_ in BRACKETS})
 BRK_SUBS = {"{BRK_N}": str(len(BRACKETS)),
             "{BRK_DIM}": " / ".join(f"{h_}x{BRK['width_mm']:.0f}, fl. {f_}" for h_, f_, _ in _bk),
@@ -2718,7 +2720,7 @@ if MOUNTING in ("none", "brackets"):
         if str(row[0]).strip().isdigit():
             _n += 1; row[0] = str(_n)
     _BOM_ROWS = _kept
-_BOM_ROWS = [([r_[0], r_[1], r_[2] or "Alu box", f"RAL {RAIL['ral']} matt", ((f"1 pcs. ({len(CEX)} cables x {TB_LEN:.0f} m, {TB_V})" if TB_LEN else f"1 pcs. (cables {', '.join(f'{c_[0]['len_m']:.1f}' for c_ in CEX)} m, {TB_V})") if TB_ON and CEX else r_[4])]
+_BOM_ROWS = [([r_[0], r_[1], r_[2] or "Alu box", RAIL_FIN, ((f"1 pcs. ({len(CEX)} cables x {TB_LEN:.0f} m, {TB_V})" if TB_LEN else f"1 pcs. (cables {', '.join(f'{c_[0]['len_m']:.1f}' for c_ in CEX)} m, {TB_V})") if TB_ON and CEX else r_[4])]
               if "trafo" in str(r_[1]).lower() and not str(r_[3]).strip() else r_) for r_ in _BOM_ROWS]
 _BOM_ROWS = [[_hang(c_) for c_ in r_] for r_ in _BOM_ROWS]
 _EAR_POS = next((str(r_[0]) for r_ in _BOM_ROWS if "ear" in str(r_[1]).lower() and not str(r_[1]).lower().startswith("rail")), "")
@@ -2809,12 +2811,15 @@ def draw_bracket_sheet():
     n_sc = next(n_ for n_ in (1, 2, 2.5, 5, 10, 15, 20, 25, 50) if Hb * MM / n_ <= avail)
     s = MM / n_sc
     y0 = K.IY0 + 60
-    # vaizdas nuo sienos (sienos plokštuma)
+    # vaizdas nuo sienos (sienos plokštuma); v183: objektų kontūrai - hairline (patikra_lapas)
     x0 = K.IX0 + 150
+    K.set_view(True)
     rect(x0, y0, Wb * s, Hb * s, fill=K.mix(RAILC, 0.85), lw=0.6)
     hy = [y0 + Hb * s * (2 * k_ + 1) / (2 * nw) for k_ in range(nw)]          # v90: žingsnis p, galai p/2
     for yy_ in hy:
         K.circle(x0 + Wb * s / 2, yy_, max(1.2, hd / 2 * s), fill=white, lw=0.4)
+    K.set_view(False)
+    for yy_ in hy:
         K.centerline(x0 - 6, yy_, x0 + Wb * s + 6, yy_)
     K.centerline(x0 + Wb * s / 2, y0 - 8, x0 + Wb * s / 2, y0 + Hb * s + 8)
     hdim(x0, x0 + Wb * s, y0 - 16, f"{Wb:.0f}", y0, y0)
@@ -2827,6 +2832,7 @@ def draw_bracket_sheet():
     view_title(x0 + Wb * s / 2, y0 + Hb * s + 30, "VIEW FROM FACADE", f"SCALE 1:{n_sc:g}")
     # šonas: U (siena kairėje), plokštumos fl, įstatytas rėmas - punktyru
     x1 = x0 + Wb * s + 190
+    K.set_view(True)
     rect(x1, y0, tb * s, Hb * s, fill=K.mix(RAILC, 0.7), lw=0.5)
     rect(x1, y0, fl * s, tb * s, fill=K.mix(RAILC, 0.7), lw=0.5)
     rect(x1, y0 + (Hb - tb) * s, fl * s, tb * s, fill=K.mix(RAILC, 0.7), lw=0.5)
@@ -2834,10 +2840,13 @@ def draw_bracket_sheet():
     ext = tb + gap_                                         # rėmo viršus nuo laikiklio viršaus
     for ry_ in (ext, ext + b0["Hf"] - dep):                 # rėmo bėgeliai (punktyras), apatinis guli ant plokštumos
         rect(x1 + tb * s, y0 + ry_ * s, dep * s, dep * s, lw=0.35, dash=(3, 1.5))
+    K.set_view(False)
     K.centerline(x1 + (tb + dep / 2) * s, y0 - 10, x1 + (tb + dep / 2) * s, y0 + tb * s + 6)
     K.centerline(x1 + (tb + dep / 2) * s, y0 + (Hb - tb) * s - 6, x1 + (tb + dep / 2) * s, y0 + Hb * s + 10)
+    K.set_view(True)
     hatch(x1 - 12, y0 - 6, 10, Hb * s + 12, 6)
     line(x1 - 2, y0 - 6, x1 - 2, y0 + Hb * s + 6, 0.6)
+    K.set_view(False)
     hdim(x1, x1 + fl * s, y0 - 16, f"{fl:.0f}", y0, y0)
     vchain(x1 + fl * s + 26, [y0 + tb * s, y0 + (Hb - tb) * s], [x1 + fl * s] * 2,
            [f"{Hb - 2 * tb:.0f} (frame {b0['Hf']:.0f} + {gap_:g})"])
@@ -2848,9 +2857,11 @@ def draw_bracket_sheet():
     s1 = MM
     x2 = x1 + fl * s + 230
     y2 = y0 + 20
+    K.set_view(True)
     rect(x2, y2, Wb * s1, fl * s1, fill=K.mix(RAILC, 0.85), lw=0.6)
     rect(x2, y2, Wb * s1, tb * s1, fill=K.mix(RAILC, 0.6), lw=0.4)
     K.circle(x2 + Wb * s1 / 2, y2 + (tb + dep / 2) * s1, 3 * s1, fill=white, lw=0.4)
+    K.set_view(False)
     hdim(x2, x2 + Wb * s1, y2 - 16, f"{Wb:.0f}", y2, y2)
     vchain(x2 + Wb * s1 + 22, [y2, y2 + tb * s1, y2 + fl * s1], [x2 + Wb * s1] * 3, [f"{tb:g}", f"{dep:.0f}"])
     T(x2 + Wb * s1 / 2, y2 + fl * s1 + 14, "Ø6", 8, align="c")
@@ -2872,7 +2883,7 @@ def draw_bracket_sheet():
     rows_ = []
     for i_, (h_, f_, m_) in enumerate(_bk):
         q_ = sum(1 for b_ in BRACKETS if round(b_["H"]) == h_ and round(b_["fl"]) == f_ and b_["mat"] == m_)
-        rows_.append([str(i_ + 1), f"Hanger U {h_} x {Wb:.0f}, flanges {f_}", m_, f"RAL {RAIL['ral']} matt", f"{q_} pcs."])
+        rows_.append([str(i_ + 1), f"Hanger U {h_} x {Wb:.0f}, flanges {f_}", m_, RAIL_FIN, f"{q_} pcs."])
     rows_.append([str(len(rows_) + 1), f"Facade anchor for Ø{hd} hole", "-", "-", f"{sum(b_['nw'] for b_ in BRACKETS)} pcs."])
     rows_.append([str(len(rows_) + 1), "Screw flange -> rail (Ø6)", "-", "-", f"{2 * nb_} pcs."])
     K.bom_table(X_BOM, BY0, W_BOM, BH, rows_, title="BILL OF MATERIALS - HANGERS  (per 1 sign)")

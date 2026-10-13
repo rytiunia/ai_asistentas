@@ -89,13 +89,17 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
         r["t"] = _median([stroke_t(o["geom"]) for o in hs_])
         r["x0"] = min(o["bb"][0] for o in L); r["x1"] = max(o["bb"][2] for o in L)
         lo_ = r["xb"] + r["t"] / 2; hi_ = r["xt"] - r["t"] / 2
+        # v183: bėgelio kraštas >= 11 mm nuo raidžių viršaus / apačios (v49 taisyklė ir auto rėmui) - kitaip štrichas
+        # plonesnis už bėgelį + 2 x 10 (antikva / serifai: apačia - tik serifas) ir galų vietos raidėje nerandama
+        lo_ = max(lo_, r["xb"] + 11 + t_rail / 2); hi_ = min(hi_, r["xt"] - 11 - t_rail / 2)
         r["rails"] = [{"cy": lo_}, {"cy": hi_}]      # [0] - viršutinis (mažesnis y), [1] - apatinis
         # galai - kraštinių raidžių stiebo viduryje (kraštas +/- t/2), bet abu kampai >= edge raidės viduje
         geoms = [o["geom"] for o in L]
-        for rr in r["rails"]:
-            cy = rr["cy"]; y0, y1 = cy - t_rail / 2, cy + t_rail / 2
+        inner = [o.buffer(-edge) for o in geoms]
+
+        def ends(cy):
+            y0, y1 = cy - t_rail / 2, cy + t_rail / 2
             lx, rx = r["x0"] + r["t"] / 2, r["x1"] - r["t"] / 2
-            inner = [o.buffer(-edge) for o in geoms]
             def okx(x):
                 return any(i.covers(Point(x, y0)) and i.covers(Point(x, y1)) for i in inner)
             while not okx(lx) and lx < r["x0"] + r["t"] * 2: lx += 2
@@ -103,7 +107,29 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
             # v83: galinis elementas be stiebo prie krašto (apskritimas) - ieškoti toliau, kol abu kampai raidėje
             while not okx(lx) and lx < r["x1"]: lx += 2
             while not okx(rx) and rx > r["x0"]: rx -= 2
-            rr.update({"x0": lx, "x1": rx, "y0": y0, "y1": y1})
+            ok = okx(lx) and okx(rx) and rx - lx >= 3 * t_rail
+            return lx, rx, ok
+        # v183 (Welcome, Times New Roman): antikvos mažųjų raidžių viršus apvalus / su serifu - ties štricho centru
+        # bėgelio galai kraštinėse raidėse netelpa (rėmas sutrumpėja per pusę). Ieškoma bėgelio aukščio juostoje
+        # iki 30 % eilutės aukščio į vidų, kur bėgelis eina per ilgiausią raidžių ruožą (pirmenybė - pradinė vieta).
+        hh = r["xt"] - r["xb"]
+        for k, rr in enumerate(r["rails"]):
+            c0 = rr["cy"]; sgn = 1 if k == 0 else -1
+            cands = [c0 + sgn * 5 * j for j in range(int(0.3 * hh / 5) + 1)]
+            res = [(cy,) + ends(cy) for cy in cands]
+            good = [q for q in res if q[3]]
+            if good:
+                best_span = max(q[2] - q[1] for q in good)
+                # pradinė vieta (štricho centras) lieka, jei jos ilgis >= 85 % geriausio (BB LIETUVA - nekeičiama)
+                cy, lx, rx, _ = res[0] if res[0][3] and res[0][2] - res[0][1] >= 0.85 * best_span else \
+                    next(q for q in good if q[2] - q[1] >= best_span - 20)
+                if abs(cy - c0) > 0.1:
+                    log(f"  auto rėmas: bėgelis y{c0:.0f} -> y{cy:.0f} (galai kraštinėse raidėse, ilgis {rx - lx:.0f} mm)")
+            else:      # v183: galų vietos nerasta - ne apversti rėmo
+                cy = c0; lx, rx = r["x0"] + r["t"] / 2, r["x1"] - r["t"] / 2
+                log(f"  ! auto rėmas: bėgeliui y{cy:.0f} galų raidėje (kampai >= {edge} mm) nerasta - galai ties kraštinių raidžių centru, PATIKRINTI ranka")
+            rr.update({"cy": cy, "x0": lx, "x1": rx, "y0": cy - t_rail / 2, "y1": cy + t_rail / 2})
+        lo_, hi_ = r["rails"][0]["cy"], r["rails"][1]["cy"]
         log(f"  auto rėmas: eilutė y{r['xb']:.0f}-{r['xt']:.0f} štrichas ~{r['t']:.0f} mm -> bėgelių ašys y{lo_:.0f} / y{hi_:.0f}, "
             f"galai {r['rails'][0]['x0']:.0f}..{r['rails'][0]['x1']:.0f}")
     # statmenys

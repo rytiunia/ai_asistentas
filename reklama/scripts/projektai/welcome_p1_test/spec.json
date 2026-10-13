@@ -1,0 +1,59 @@
+{
+ "client_pdf": "Welcome_client.pdf",
+ "scale": 2.834645669291339,
+ "crop_pt": [0, 0, 2318, 523],
+ "ignore_fills": [],
+ "qty": "?",
+ "client": "TEST",
+ "company": "TEST",
+ "title": "Welcome - P1 non-lit letters on wallframe",
+ "project": "TEST Welcome P1",
+ "drawing_no": "TEST Welcome P1",
+ "order_no": "ALT0000_00.00_RS",
+ "file_code": "TEST_Welcome_P1",
+ "rev": "A",
+ "date": "2026-10-13",
+ "sheet": "1 / 2",
+ "depth_mm": 60,
+ "front": "P1",
+ "power_note": "P1 NON-LIT - no LED, plexi, cable or PSU",
+ "trafo_box": false,
+ "mounting": "brackets",
+ "auto_frame": true,
+ "merge_rows": true,
+ "rail": {"size": "30x30x2", "depth": 30, "ral": "?"},
+ "ears": {"inset": 50, "pitch": 1000, "min_edge": 15},
+ "plate": {"thk": 3, "gap_mm": 30, "recess_mm": 25, "ral": "?"},
+ "groups": [
+  {
+   "name": "Welcome",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "3020",
+   "face_hex": "#C1121C",
+   "client_fill": [0.1, 0.1, 0.1],
+   "frame": "verticals",
+   "lit": false,
+   "cable": false
+  }
+ ],
+ "bom": [
+  [1, "Letter face P1", "Alu 2 mm", "RAL 3020", "{A_Welcome} m²"],
+  [2, "Letter return", "Alu 1 mm", "RAL 3020", "{PER_Welcome} m / {RET_Welcome} m²"],
+  [3, "Letter back", "PVC 10 mm", "RAL 3020", "{PER_ALL} m / {A_ALL} m²"],
+  [5, "Wallframe U {RAIL_SIZE}", "Aluminium", "?", "{RAIL_TOTAL_M} m"],
+  [10, "Wall fixing", "?", "-", "?"]
+ ],
+ "main_data": [
+  ["Quantity", "?"],
+  ["Overall size", "{PW} x {PH}"],
+  ["Profile", "P1 on wallframe"],
+  ["Letter depth", "60"],
+  ["Face", "Alu 2 mm, RAL 3020"],
+  ["Returns", "RAL 3020"],
+  ["Font", "Times New Roman"],
+  ["Rails", "U 30x30x2 + hangers, RAL ___"],
+  ["Illumination", "NONE - P1, no LED / plexi"],
+  ["Environment", "Exterior"]
+ ]
+}

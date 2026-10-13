@@ -557,7 +557,11 @@ def hatch(x, y, w, h, step=5):
     p = c.beginPath(); p.rect(x, Y(y + h), w, h); c.clipPath(p, stroke=0, fill=0)
     c.setStrokeColor(GREY); c.setLineWidth(0.25)
     for i in range(-int(h), int(w) + int(h), step):
-        c.line(x + i, Y(y + h), x + i + h, Y(y))
+        # v183: brūkšniai apkerpami geometriškai (ne tik clipPath) - patikra_lapas nemato ilgų nematomų atkarpų per tekstus
+        t0, t1 = max(0.0, -i / h), min(1.0, (w - i) / h)
+        if t1 <= t0:
+            continue
+        c.line(x + i + t0 * h, Y(y + h - t0 * h), x + i + t1 * h, Y(y + h - t1 * h))
     c.restoreState()
     rect(x, y, w, h, lw=0.4)
 
