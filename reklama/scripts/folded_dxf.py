@@ -7,7 +7,8 @@
 - kampų išpjova stačiakampė, be spindulių.
 1000x1000x40 -> išklotinė 1076 x 1076. Ø3.2 tvirtinimo skylės (skill v37) - atskirame sluoksnyje HOLES_D3.2,
 7 mm nuo viršaus / apačios flanšo krašto, 50 nuo galų, žingsnis ~300 (`--no-holes` - be jų).
-`--tb-inside` (v174): viršus / apačia įsilenkia TARP šonų - jie t trumpesni iš galų (W - 2t), šonai per visą aukštį H.
+NUMATYTA (Rytis 2026-10-13, bet kokiems matmenims): „sides inside" - šonai įsilenkia į vidų, viršus / apačia užsilenkia ant jų.
+`--tb-inside` (v174, tik nurodžius „top/bottom inside"): viršus / apačia įsilenkia TARP šonų - jie t trumpesni iš galų (W - 2t), šonai per visą aukštį H.
 Naudojimas: python3 folded_dxf.py PLOTIS AUKŠTIS out.dxf [GYLIS] [--t 2] [--no-holes] [--tb-inside]"""
 import sys, os
 import ezdxf
@@ -46,7 +47,7 @@ th = min(30, H / 20)
 msp.add_text(f"FOLDED PLATE {W:.0f} x {H:.0f} x {PD:.0f} - Al {t:g} mm - FLAT {F:.0f} x {WF:.0f} - FACE OUT",
              height=th, dxfattribs={"layer": "TEXT"}).set_placement((F / 2, -2 * th), align=ezdxf.enums.TextEntityAlignment.MIDDLE_CENTER)
 msp.add_text(f"bend lines = {W:.0f} x {H:.0f}, flanges {FL:g} from bend line, "
-             + (f"top/bottom flanges {W - 2 * t:g} INSIDE (t shorter each end), sides {H:g}" if TB_IN else f"side flanges {H - 2 * t:g} (t shorter each end)")
+             + (f"top/bottom flanges {W - 2 * t:g} INSIDE (t shorter each end), sides {H:g}" if TB_IN else f"SIDES INSIDE (default): side flanges {H - 2 * t:g} (t shorter each end)")
              + ", 4 x 90 up"
              + (f" | D3.2 x 2 x {n + 1}: 50 | {n} x {span / n:.1f} | 50, 7 from edge" if HOLES else ""),
              height=th * 0.6, dxfattribs={"layer": "TEXT"}).set_placement((F / 2, -3.6 * th), align=ezdxf.enums.TextEntityAlignment.MIDDLE_CENTER)
