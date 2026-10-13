@@ -43,19 +43,16 @@ Raktažodžiai: P10_lightbox, P10 lightbox, push-through, iškištas stiklas, dv
   MARK_D6_STUDS - mėlynos D6 žymės), sienos pusės flanše - kojų išpjovos; 3 mm pagrindai (PLEXI_BASE_3MM + PLEXI_BASE_HOLES_D8);
   8 / 10 mm įdėklai (PLEXI_INSERT); rėmo pjaustymo sąrašas - lape (BOM 1).
 
-## 5a. Lapų struktūra (v198, Rytis: „nėra detalizacijos ir suprantamo pjūvio", pagrindas - double-sided šviesdėžės)
-Kaip `sviesdeze.py` - 2 A3 lapai viename PDF (v200, Rytis: turi likti tik 2 lapai):
-- 1 / 2 GA: FRONT A, VIEW FROM WALL (kojos, plokštės, padėklų siūlė punktyru), FRONT B (veidrodis), SECTION A-A per logotipo
-  centrą (padėklai, flanšai, išpjovos tarpas, įdėklai, pagrindai, rėmas, DUOLITE spinduliai; grandinė `prot | D | prot`),
-  3D A / B, TOP VIEW (varžtai, siūlė); juostoje DETAIL B - išpjovos kraštas (mastelis 2:1 / 1.5:1 / 1:1 pagal vietą:
-  Alu, tarpas, įdėklas, pagrindas, ilgasriegis + veržlė), BOM, MAIN DATA.
-- 2 / 2 FRAME + ASSEMBLY: rėmas su LED eilėmis ir C-C, SECTION C-C (LED) 1:2, PLATE 1A 1:2, FRONT A išklotinė 1:10
-  (lenkimo linijos raudonos, Ø3.2, išpjova, D6 mėlynos žymės), ASSEMBLY - EXPLODED VIEW (v199-v200, Rytis: „reikia exploded
-  view, nes niekas neaišku"; stiklo / pagrindo vaizdas išimtas - jo kontūrai ir Ø8 lieka DXF): sprogstamasis 3D išilgai gylio -
-  padėklas A (išorė, kojų išpjovos flanše) - įdėklas 4 - pagrindas 6 su Ø8 - veržlės - rėmas + kojos + plokštės + DUOLITE -
-  veržlės - pagrindas 7 - įdėklas 5 - padėklas B (vidus su ilgasriegiais), varžtai virš flanšų, ašys ilgasriegis -> veržlė;
-  juostoje LED lentelė, pjaustymo sąrašas, MAIN DATA.
-- BOM pozicijos = balionėlių numeriai visuose lapuose; DXF nepasikeitęs.
+## 5a. Lapo struktūra (v201, Rytis 2026-10-13: „reikia viską sutalpinti į vieną lapą")
+VIENAS A3 lapas (buv. 2-3 lapai - v198 GA + FRAME/LED/PARTS, v199 ASSEMBLY):
+- 1 eilė: FRONT A, VIEW FROM WALL (kojos, plokštės, siūlė punktyru), FRONT B (veidrodis) - mastelis automatiškai
+  (`scale_ga`, 600 dėžei 1:12); SECTION A-A per logotipo centrą (~1.6 x priekio mastelio, 600 dėžei 1:8);
+  FRAME (1) + LED (8) su matmenimis, po juo PLATE 1A.
+- 2 eilė: 3D A, 3D B, ASSEMBLY - EXPLODED VIEW (tray A - insert 4 - base 6 + veržlės - rėmas + LED - base 7 - insert 5 - tray B,
+  balionai = BOM), TOP VIEW (varžtai, siūlė).
+- Juosta: DETAIL B (išpjovos kraštas), BOM, MAIN DATA, antspaudas.
+- Išimta (v200-v201): pagrindo / įdėklo vaizdas, Alu išklotinė, SECTION C-C, LED lentelė, pjaustymo sąrašas -
+  išklotinės, pagrindai su Ø8 ir įdėklai lieka gamybiniame DXF; priekio grandinėje koja + plokštė = iškyša (100).
 
 ## 6. Generatoriaus prielaidos (PASIŪLYMAI - Rytis dar netvirtino)
 - Rėmo profilis pagal didesnę kraštinę: <= 1000 - □30x30x2, <= 1600 - □40x40x2, <= 2500 - □50x50x3, daugiau - □60x60x3 (spec `frame`).
