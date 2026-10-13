@@ -308,24 +308,37 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
             down = abs(ocy - (bot_r["y0"] + bot_r["y1"]) / 2) <= abs(ocy - (top_r["y0"] + top_r["y1"]) / 2)
             rr = bot_r if down else top_r
             yr = rr["y1"] if down else rr["y0"]                    # bėgelio plokštuma elemento pusėje
+            # v193 (Rytis 2026-10-13, eskizas): laikiklis per elemento VIDURĮ (ne kur ilgiausias), bėgelis - per visą elemento
+            #  plotį (T forma: bėgelio galas iki elemento išorinio krašto - edge), ausėlė - prie laikiklio (braizyti_begeliai)
+            from shapely.geometry import box as _box
+            _below = o["geom"].intersection(_box(o["bb"][0] - 1, yr, o["bb"][2] + 1, o["bb"][3] + 1)) if down else \
+                o["geom"].intersection(_box(o["bb"][0] - 1, o["bb"][1] - 1, o["bb"][2] + 1, yr))
+            _cx = _below.centroid.x if not _below.is_empty else (o["bb"][0] + o["bb"][2]) / 2
             best = None
-            for xc in range(int(o["bb"][0] + t_rail / 2), int(o["bb"][2] - t_rail / 2) + 1, 2):
+            for xc in sorted(range(int(o["bb"][0] + t_rail / 2), int(o["bb"][2] - t_rail / 2) + 1, 2), key=lambda x: abs(x - _cx)):
                 ys_ = range(int(o["bb"][3]), int(yr), -2) if down else range(int(o["bb"][1]), int(yr) + 1, 2)
                 ye = next((y for y in ys_ if inner_.covers(Point(xc - t_rail / 2, y)) and inner_.covers(Point(xc + t_rail / 2, y))), None)
                 if ye is None:
                     continue
                 L_ = (ye - yr) if down else (yr - ye)
+                if L_ >= 0.5 * (o["bb"][3] - o["bb"][1]) * 0.6:      # pirmoji vieta arčiausiai vidurio su pakankamu ilgiu
+                    best = (L_, xc, ye); break
                 if L_ > 0 and (best is None or L_ > best[0]):
                     best = (L_, xc, ye)
             if best is None:
                 log(f"  ! auto rėmas: elementui x{(o['bb'][0] + o['bb'][2]) / 2:.0f} laikiklis netelpa - spręsti ranka"); continue
             L_, xc, ye = best
+            # bėgelio galas - per elemento plotį iki išorinio krašto (- edge) bėgelio ašies aukštyje, ne trumpiau už laikiklį
+            _ix = o["geom"].intersection(LineString([(o["bb"][0] - 1, (rr["y0"] + rr["y1"]) / 2), (o["bb"][2] + 1, (rr["y0"] + rr["y1"]) / 2)]))
+            _xs = [c_[0] for g_ in getattr(_ix, "geoms", [_ix]) for c_ in getattr(g_, "coords", [])]
             if side_ == "r":
-                rr["ext_r"] = xc + t_rail / 2
+                rr["ext_r"] = max(xc + t_rail / 2, (max(_xs) - edge) if _xs else 0)
             else:
-                rr["ext_l"] = xc - t_rail / 2
+                rr["ext_l"] = min(xc - t_rail / 2, (min(_xs) + edge) if _xs else 1e9)
             y0, y1 = (yr, ye) if down else (ye, yr)
             vs.append({"x0": xc - t_rail / 2, "x1": xc + t_rail / 2, "y0": y0, "y1": y1, "kind": "v", "auto": True, "acc": True,
+                       "ext_holder": {"side": side_, "rail_y": (rr["y0"] + rr["y1"]) / 2, "down": down,
+                                      "elem_x": (o["bb"][0], o["bb"][2])},
                        "len": y1 - y0, "poly": [(xc - t_rail / 2, y0), (xc + t_rail / 2, y0), (xc + t_rail / 2, y1), (xc - t_rail / 2, y1)]})
             log(f"  auto rėmas: {'apatinis' if down else 'viršutinis'} bėgelis tęsiamas iki elemento, laikiklis x{xc:.0f} {L_:.0f} mm "
                 f"{'žemyn' if down else 'aukštyn'} per elementą (stabilus tvirtinimas)")

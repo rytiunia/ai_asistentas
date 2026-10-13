@@ -1176,6 +1176,28 @@ for g in groups:
                   + ", ".join(f"{e_['x'] - g['lx0']:.0f}{'e' if e_['ext'] else ''}" for e_ in sorted(ears_, key=lambda q: q['x']))
                   + f"  (bėgelis {rx0 - g['lx0']:.0f}..{rx1 - g['lx0']:.0f})")
     LET = _LET_ALL
+    # v193 (Rytis 2026-10-13, eskizas „Alytus,"): bėgelis, pratęstas iki smulkaus elemento su laikikliu (kablelis), - AUSĖLĖ prie
+    #  laikiklio: laisvoje vietoje tarp laikiklio ir rėmo galo (artimiausia laikikliui), bėgelio vidinėje pusėje
+    for v_ in [q_ for q_ in g["rails"] if q_.get("ext_holder")]:
+        eh_ = v_["ext_holder"]
+        for i_, (r_, xs_, t__) in enumerate(g["fp_rows"]):
+            if abs((r_["y0"] + r_["y1"]) / 2 - eh_["rail_y"]) > 6:
+                continue
+            base_ = r_["y1"] if t__ else r_["y0"]
+            hy_ = base_ + (es / 2 if t__ else -es / 2)
+            md_ = AUS.DEFAULTS["min_edge"]
+            if eh_["side"] == "r":
+                xs_try = [v_["x0"] - es / 2 - x for x in range(0, 400, 5)]
+            else:
+                xs_try = [v_["x1"] + es / 2 + x for x in range(0, 400, 5)]
+            hit_ = next((x for x in xs_try if AUS._free(LET, x, hy_, md_) is not None), None)
+            if hit_ is None:
+                print(f"  ! {g['name']}: ausėlei prie elemento laikiklio x{(v_['x0'] + v_['x1']) / 2:.0f} vietos nėra - tikrinti"); continue
+            if any(abs(x_ - hit_) < es for x_ in xs_):
+                continue
+            g["fplates"].append((hit_ - es / 2, base_ if t__ else base_ - es, es, hy_))
+            g["fp_rows"][i_] = (r_, sorted(xs_ + [hit_]), t__)
+            print(f"  {g['name']}: ausėlė prie elemento laikiklio x{hit_ - g['lx0']:.0f} ({'viršus' if t__ else 'apačia'})")
     # v80 (Rytis 2026-10-10): ausėlė RĖMO GALE - jei ant viršutinio / apatinio bėgelio per 300 mm nuo galo ausėlės nėra
     # (pvz. „A" viršūnė, „L" stiebas užimtas statmens), ausėlė dedama ANT GALINIO STATMENS (kvadratinė es x es plokštelė
     # prie statmens vidinės plokštumos, už raidės stiebo), aukštyje, kur yra laisva vieta už raidės.
