@@ -417,6 +417,13 @@ def sheet1(g, out):
       align="c", color=K.GREY)
     view_title(Xt((W + PR) / 2), Zt(-D / 2 - pr) - 44, "TOP VIEW", sl)
 
+    band(g, "1 / 3", " - GA", main_data1(g), bom1(g), detail_b(g))
+    K.save(out)
+
+
+def detail_b(g):
+    t, pr, bt, it_ = g["t"], g["prot"], g["base_t"], g["ins_t"]
+
     def detail(X_P6, BY0, W_P6, BH):
         """DETAIL B - išpjovos kraštas (A), 2:1: Alu, tarpas, iškištas įdėklas, pagrindas, ilgasriegis + veržlė"""
         hyo = g["hole_off"]
@@ -451,8 +458,7 @@ def sheet1(g, out):
           6.5, align="c", color=K.GREY)
         T(X_P6 + W_P6 / 2, BY0 + BH - 4, f"stud welded (D{g['mark_d']:g} mark); B = mirror", 6.5, align="c", color=K.GREY)
 
-    band(g, "1 / 2", " - GA", main_data1(g), bom1(g), detail)
-    K.save(out)
+    return detail
 
 
 def bom1(g):
@@ -682,7 +688,7 @@ def sheet2(g, out):
           ["Trays", f"2 x folded Alu {t:g}, flat {F:g} x {WF:g}"],
           ["Finish", g["frame_finish"] or ""],
           ["Qty", f"{g['qty']}"]]
-    band(g, "2 / 2", " - FRAME + LED + PARTS", md, cut, detail)
+    band(g, "2 / 3", " - FRAME + LED + PARTS", md, cut, detail)
     K.save(out)
 
 
@@ -788,6 +794,167 @@ def write_dxf(g, path):
     return path
 
 
+# ===================================================================== 3 LAPAS - ASSEMBLY / EXPLODED VIEW (v199)
+COL_NUT = HexColor("#9C9C9C")
+
+
+def _slab(sc, geo, w0, w1, col, xf, edge=None):
+    """shapely (u, v) kūnas w0..w1, abi plokštumos (r3d atmeta nugarines - plonoms detalėms reikia abiejų)"""
+    sc.extrude_xy(geo, w0, w1, col, col, edge=edge, xf=xf)
+    for gg in getattr(geo, "geoms", [geo]):
+        if gg.is_empty:
+            continue
+        ext = [xf(x, y, w0) for x, y in list(gg.exterior.coords)[:-1]]
+        hol = [[xf(x, y, w0) for x, y in list(r.coords)[:-1]] for r in gg.interiors]
+        n = sc._nrm(xf(0, 0, w0), xf(1, 0, w0), xf(0, 1, w0), ref=xf(0, 0, w0 - 1), base=xf(0, 0, w0))
+        sc.face(ext, n, col, edge, holes=hol, tile=False)
+
+
+def _hexagon(x, y, s):
+    r = s / math.sqrt(3)
+    return Polygon([(x + r * math.cos(math.radians(30 + 60 * k)), y + r * math.sin(math.radians(30 + 60 * k))) for k in range(6)])
+
+
+def exploded(g, box, yaw=-58, pitch=18):
+    """sprogstamasis vaizdas išilgai gylio (z): padėklas A - įdėklas A - pagrindas A (+ veržlės) - rėmas + LED -
+    pagrindas B - įdėklas B - padėklas B. Grąžina {pozicija: 2D taškas (lapo koord.)} balionams."""
+    import r3d
+    W, H, D, t = g["w"], g["h"], g["depth"], g["t"]
+    fa, fb, ft = g["frame"]
+    LL, PR = g["leg_len"], g["proj"]
+    PLw, PLh, PLt = g["plate"]
+    cl, bt, it_ = g["clear"], g["base_t"], g["ins_t"]
+    x0 = t + cl
+    FH, FW = g["FH"], g["FW"]
+    xr, xf = x0 + FW, W + LL
+    M = max(W, H)
+    e_base, e_ins, e_tray, e_nut = 0.55 * M, 0.95 * M, 1.45 * M, 0.3 * M
+    stud_l = bt + 8
+    sc = r3d.Scene(yaw=yaw, pitch=pitch)
+    lg = g.get("logo")
+    anc = {}
+
+    def side_xf(sgn, dz):
+        """side koordinatės (u, v = lapo x, y žemyn) + w (gylis nuo centro į tą pusę) -> pasaulis"""
+        if sgn > 0:
+            return lambda u, v, w: (u, H - v, w + dz)
+        return lambda u, v, w: (W - u, H - v, -(w + dz))
+
+    for sgn in (1, -1):
+        sd = "A" if sgn > 0 else "B"
+        # ---- padėklas (2 / 3): priekis su išpjova + 4 flanšai, sienos pusės flanše kojų išpjovos, ilgasriegiai
+        xp = side_xf(sgn, e_tray)
+        face_geo = sbox(0, 0, W, H)
+        if lg is not None:
+            face_geo = face_geo.difference(g["cut"])
+        _slab(sc, face_geo, D / 2 - t, D / 2, COL_BODY, xp, edge=EDGE)
+        zs = lambda w, dz=e_tray: sgn * (w + dz)
+        for y0_ in (0, H - t):                                      # viršus / apačia
+            z_a, z_b = sorted((zs(0), zs(D / 2 - t)))
+            sc.box((0, y0_, z_a), (W, 0, 0), (0, t, 0), (0, 0, z_b - z_a), COL_BODY, edge=EDGE)
+        z_a, z_b = sorted((zs(0), zs(D / 2 - t)))
+        sc.box((0, t, z_a), (t, 0, 0), (0, H - 2 * t, 0), (0, 0, z_b - z_a), COL_BODY, edge=EDGE)   # tolimas šonas
+        nd = fa / 2 + cl
+        wall = sbox(t, 0, H - t, D / 2 - t)
+        for ya in (g["ax"], H - g["ax"]):
+            wall = wall.difference(sbox(ya - fb / 2 - cl, 0, ya + fb / 2 + cl, nd))
+        _slab(sc, wall, W - t, W, COL_BODY, lambda u, v, w: (w, u, sgn * (v + e_tray)), edge=EDGE)
+        if lg is not None:
+            for (u, v) in g["studs"]:
+                _slab(sc, Point(u, v).buffer(3, 3), D / 2 - t - stud_l, D / 2 - t, COL_STUD, xp)
+        anc[2 if sgn > 0 else 3] = xp(W * 0.12, H * 0.82, D / 2 if sgn > 0 else D / 2 - t)
+        # varžtai (10) - viršutinis flanšas, |z| = 7 nuo siūlės, ištraukti į viršų
+        for x_ in g["scr_x"]:
+            z_ = sgn * (7 + e_tray)
+            sh = Point(x_, z_).buffer(1.6, 3)
+            hd = Point(x_, z_).buffer(3.2, 3)
+            up = 0.08 * M
+            sc.extrude_xy(sh, H + up, H + up + 12, COL_STUD, COL_STUD, xf=lambda a, b, c: (a, c, b))
+            _slab(sc, hd, H + up + 12, H + up + 14, COL_STUD, lambda a, b, c: (a, c, b))
+        anc["10" + sd] = (g["scr_x"][len(g["scr_x"]) // 2], H + 0.08 * M + 13, sgn * (7 + e_tray))
+        if lg is None:
+            continue
+        # ---- pagrindas (6 / 7) su Ø8, įdėklas (4 / 5) ant jo išorės, veržlės (9) vidinėje pusėje
+        xb = side_xf(sgn, e_base)
+        holes = unary_union([Point(u, v).buffer(g["hole_d"] / 2, 4) for (u, v) in g["studs"]])
+        _slab(sc, g["base"].difference(holes), D / 2 - t - bt, D / 2 - t, COL_BASE, xb, edge=EDGE)
+        xi = side_xf(sgn, e_ins)
+        _slab(sc, g["logo"], D / 2 - t, D / 2 - t + it_, COL_PLEX, xi, edge=EDGE)
+        xn = side_xf(sgn, e_nut)
+        for (u, v) in g["studs"]:
+            _slab(sc, _hexagon(u, v, 10).difference(Point(u, v).buffer(3, 3)), D / 2 - t - bt - 5, D / 2 - t - bt,
+                  COL_NUT, xn)
+        rp = g["base"].difference(g["logo"].buffer(4)).representative_point()
+        anc[6 if sgn > 0 else 7] = xb(rp.x, rp.y, D / 2 - t if sgn > 0 else D / 2 - t - bt)
+        lp = g["logo"].representative_point()
+        anc[4 if sgn > 0 else 5] = xi(lp.x, lp.y, D / 2 - t + it_ if sgn > 0 else D / 2 - t)
+        su, sv = max(g["studs"], key=lambda p: p[0] - p[1])
+        anc["9" + sd] = xn(su, sv, D / 2 - t - bt - 5)
+        anc["9s" + sd] = xp(su, sv, D / 2 - t - stud_l)
+        anc["ax" + sd] = [(xp(u, v, D / 2 - t - stud_l), xn(u, v, D / 2 - t - bt - 5)) for (u, v) in
+                          (min(g["studs"], key=lambda p: p[0]), max(g["studs"], key=lambda p: p[0]))]
+    # ---- rėmas (1) + kojos + plokštės (1A) + LED (8), gylio centre
+    for ys in (x0, x0 + FH - fb):
+        sc.box((x0, H - ys - fb, -fa / 2), (xf - x0, 0, 0), (0, fb, 0), (0, 0, fa), COL_FRAME, edge=EDGE)
+    for xx in (x0, xr - fa):
+        sc.box((xx, H - x0 - FH + fb, -fa / 2), (fa, 0, 0), (0, FH - 2 * fb, 0), (0, 0, fa), COL_FRAME, edge=EDGE)
+    for P in g["plates_l"]:
+        sc.box((xf, H - P["yc"] - P["h"] / 2, -P["w"] / 2), (PLt, 0, 0), (0, P["h"], 0), (0, 0, P["w"]), COL_FL, edge=EDGE)
+    led_x = [x0 + fa + g["led_step"] * (i + 0.5) for i in range(g["led_n_row"])]
+    for k_, ys in enumerate((x0 + fb, x0 + FH - fb - 8)):
+        for lx in led_x:
+            sc.box((lx - 11, H - ys - 8, -11), (22, 0, 0), (0, 8, 0), (0, 0, 22), COL_LED, edge=EDGE)
+    anc["1"] = (x0 + FW * 0.3, H - x0 - fb / 2, fa / 2)
+    anc["1A"] = (xf + PLt, H - g["plates_l"][0]["yc"], 0)
+    anc["8"] = (led_x[0], H - (x0 + FH - fb - 8), 11)
+    sc.render(box)
+    V = sc.V
+    to2 = lambda p: (V.S(*p)[0], K.H - V.S(*p)[1])
+    return {k: ([(to2(a), to2(b)) for a, b in v] if str(k).startswith("ax") else to2(v)) for k, v in anc.items()}
+
+
+def sheet3(g, out):
+    K.set_band(len(bom1(g)) + 1)
+    K.init(out + ".tmp", "sheet3")
+    K.frame()
+    top = K.IY0 + 60
+    col_w = 250                                                     # surinkimo eiga dešinėje
+    vx0, vx1 = K.IX0 + 20, K.IX1 - col_w - 30
+    box = (vx0, top, vx1 - vx0, K.VIEW_BOT - top - 30)
+    A = exploded(g, box)
+    reg = (K.IX0 + 4, K.IY0 + 4, vx1 + 10, K.VIEW_BOT - 4)
+    for sd in ("A", "B"):                                           # surinkimo ašys: ilgasriegis -> skylė -> veržlė
+        for a, b in A.get("ax" + sd, []):
+            K.centerline(a[0], a[1], b[0], b[1])
+    for key, lab in (("1", "1"), ("1A", "1A"), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6), (7, 7), ("8", 8),
+                     ("9A", 9), ("9B", 9), ("10A", 10), ("10B", 10)):
+        if key in A:
+            K.balloon_auto(A[key][0], A[key][1], lab, region=reg)
+    view_title((vx0 + vx1) / 2, top - 22, "ASSEMBLY - EXPLODED VIEW", "ILLUSTRATIVE - NOT TO SCALE; parts moved apart along depth")
+    # ------------------------------------------------ surinkimo eiga
+    cx = K.IX1 - col_w - 10
+    view_title(cx + col_w / 2, top - 22, "ASSEMBLY SEQUENCE", "order of work")
+    fa, fb, ft = g["frame"]
+    steps = [
+        ("FRAME (1)", [f"Weld members {prof(fa, fb, ft)}: top / bottom = legs", "+ 2 verticals between them; weld plates 1A", "to legs, grind welds (sheet 2)."]),
+        ("LED (8)", [f"Fix {g['led_n']} x {g['led_name']} on top + bottom", "members, wire to PSU; cable through leg", "and plate."]),
+        ("TRAYS A (2) / B (3)", ["Laser cut flat (DXF), bend flanges 90 deg,", f"weld studs (9) at blue D{g['mark_d']:g} marks on", "the inside face."]),
+        ("INSERT -> BASE", [f"Glue insert A (4) on base A (6),", "insert B (5) on base B (7);", "insert centred on base contour."]),
+        ("BASE -> TRAY", ["Put base on studs from inside, insert", f"goes through cut-out (gap {g['cut_gap']:g} around);", "tighten nuts (9)."]),
+        ("CLOSE", ["Slide tray A over frame (legs in flange", "notches), then tray B; seam at centre;", f"screws (10) in top + bottom flanges."]),
+    ]
+    y = top + 20
+    for i, (h_, ls) in enumerate(steps, 1):
+        T(cx + 6, y + 12, f"STEP {i} - {h_}", 8.5, font="FB")
+        for j, l_ in enumerate(ls):
+            T(cx + 6, y + 25 + j * 11, l_, 7.5)
+        y += 25 + len(ls) * 11 + 10
+    T(cx, y + 4, "Side B = mirror of side A.", 7.5, color=K.GREY)
+    T(cx, y + 15, "Balloons = BOM positions.", 7.5, color=K.GREY)
+    band(g, "3 / 3", " - ASSEMBLY", main_data1(g), bom1(g), detail_b(g))
+    K.save(out)
+
+
 def main(spec_path, out):
     S = dict(DEF); S.update(json.load(open(spec_path, encoding="utf-8")))
     if S.get("logo") and not os.path.isabs(S["logo"]["file"]):     # logotipo kelias - nuo spec failo
@@ -799,8 +966,8 @@ def main(spec_path, out):
         COL_FRAME = COL_FL = HexColor(K.ralhex(S["frame_finish"]))
     K.F_DIM_FRAME = K.F_DIM_MAIN
     g = geom(S)
-    p1, p2 = out + ".1.pdf", out + ".2.pdf"
-    for fn, pp in ((sheet1, p1), (sheet2, p2)):                    # 2 praėjimai - automatinis žymėjimas
+    p1, p2, p3 = out + ".1.pdf", out + ".2.pdf", out + ".3.pdf"
+    for fn, pp in ((sheet1, p1), (sheet2, p2), (sheet3, p3)):                    # 2 praėjimai - automatinis žymėjimas
         K.auto_begin("collect"); K.AUTO["region"] = None
         fn(g, pp)
         pl_ = K.auto_place(pp)
@@ -809,11 +976,11 @@ def main(spec_path, out):
         K.auto_begin(None)
     import pymupdf as fitz
     d = fitz.open()
-    for pp in (p1, p2):
+    for pp in (p1, p2, p3):
         d.insert_pdf(fitz.open(pp))
     d.save(out, garbage=3, deflate=True); d.close()
     K.pdf_fix_fonts(out)
-    for pp in (p1, p2, p1 + ".tmp", p2 + ".tmp"):
+    for pp in (p1, p2, p3, p1 + ".tmp", p2 + ".tmp", p3 + ".tmp"):
         os.path.exists(pp) and os.remove(pp)
     dxf = os.path.splitext(out)[0] + "_gamyba.dxf"
     write_dxf(g, dxf)
