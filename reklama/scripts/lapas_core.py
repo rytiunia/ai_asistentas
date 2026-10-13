@@ -1513,3 +1513,19 @@ def dugnas_inset(geom, inset, blunt_len=12.0, mitre_limit=10):
     if not fills:
         return M_
     return _uu([M_] + fills).buffer(0).simplify(0.005)
+
+
+def pdf_text_to_paths(fn):
+    """v156 (Rytis 2026-10-13): KLIENTO tekstai visada kreivėmis (vektoriai, ne tekstas) - nėra šriftų keitimo
+    klaidų CorelDRAW / spaudoje. Ghostscript pdfwrite -dNoOutputFonts, spalvos nekeičiamos (CMYK lieka).
+    Jei gs nėra: apt-get install -y ghostscript. Perrašo fn vietoje; grąžina True, jei pavyko."""
+    import shutil, subprocess, tempfile
+    gs = shutil.which("gs")
+    if not gs:
+        raise RuntimeError("pdf_text_to_paths: nėra Ghostscript (apt-get install -y ghostscript)")
+    tmp = tempfile.mktemp(suffix=".pdf")
+    subprocess.run([gs, "-q", "-dNOPAUSE", "-dBATCH", "-dSAFER", "-sDEVICE=pdfwrite", "-dNoOutputFonts",
+                    "-dColorConversionStrategy=/LeaveColorUnchanged", "-dAutoRotatePages=/None",
+                    "-dCompatibilityLevel=1.6", "-dPDFSETTINGS=/prepress", f"-sOutputFile={tmp}", fn], check=True)
+    shutil.move(tmp, fn)
+    return True

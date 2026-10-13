@@ -2,6 +2,14 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v156 (2026-10-13)
+
+v156, Rytis 2026-10-13 („kliento tekstus visada padaryk vektorinius, ne tekstą, taip sumažinama klaidų tikimybė"):
+`lapas_core.pdf_text_to_paths(fn)` - Ghostscript pdfwrite `-dNoOutputFonts`, `LeaveColorUnchanged`; Thales `clip_src`
+fragmentą po redakcijos paverčia kreivėmis - lape kliento šriftų nebėra (pdffonts: tik GOST Common).
+„mažiuko pilono 3D view baltas viršus ne per visą plotą" - `ext3d`: baltas viršus per visą gylį ir vienpusiam (EAR iki galo).
+Patvirtinimas ALT8879_10.13_RS (rev D): PDF + 6 DXF.
+
 ## v155 (2026-10-13)
 
 v155, Rytis 2026-10-13 („kodėl dokumente šriftas kitoks nei skill?“): lape GOST Common, bet įdėtas kliento puslapis nešė

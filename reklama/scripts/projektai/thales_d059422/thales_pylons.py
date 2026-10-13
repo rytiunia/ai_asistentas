@@ -19,7 +19,7 @@ from reportlab.lib.colors import HexColor, white, black, Color
 from reportlab.lib.utils import ImageReader
 
 K.RAL.setdefault("5022", "#222D5A"); K.RAL.setdefault("5012", "#3B83BD")
-CLIENT, PROJECT, DRAWING_NO, DATE, REV = "CEOS Groupe", "Thales Campus Velizy", "CEOS D059422", "2026-10-13", "C"
+CLIENT, PROJECT, DRAWING_NO, DATE, REV = "CEOS Groupe", "Thales Campus Velizy", "CEOS D059422", "2026-10-13", "D"
 SRC = os.environ.get("THALES_SRC", "APS_Communication_-_Thales_Campus_v5_phase_2.pdf")   # kliento PDF (CEOS D059422)
 OUT = os.environ.get("THALES_OUT", "out"); os.makedirs(OUT, exist_ok=True)
 BLUE, WHITE_ = HexColor("#222D5A"), HexColor("#F1F0EA")
@@ -94,7 +94,7 @@ def band(title, sheet, sec_title, sec, rows, md, scales, mdw=200):
     K.main_data(X_MD, BY0, W_MD, BH, md, lab_w=62)
     K.title_block(X_TB, W_TB, {"title": PROJECT + " - " + title, "sheet": sheet, "client": CLIENT, "drawing_no": DRAWING_NO,
                                "date": DATE, "rev": REV, "order_no": os.environ.get("THALES_ORDER", "ALT0000_00.00_RS"),
-                               "revisions": [["C", "Flange holes, white top, decals", DATE, ""]]}, scales)
+                               "revisions": [["D", "Client texts outlined, 3D white top", DATE, ""]]}, scales)
 
 
 def save(fn):
@@ -171,6 +171,7 @@ def clip_src(pno, clip):
                         text=fitz.PDF_REDACT_TEXT_REMOVE)
     fn = os.path.join(tempfile.gettempdir(), f"thales_frag_{pno}_{abs(hash(key)) % 10 ** 8}.pdf")
     nd.save(fn, garbage=3, deflate=True)
+    K.pdf_text_to_paths(fn)                                  # v156: kliento tekstai -> kreivės (ne tekstas)
     _FRAG[key] = fn
     return fn
 
@@ -325,9 +326,8 @@ def ext3d(S, p):
     S.box((0, PL, TB), (W, 0, 0), (0, H - PL, 0), (0, 0, TW), WHITE_)                     # balta priekis (30)
     if p.sides == 2:
         S.box((0, PL, -TB - TW), (W, 0, 0), (0, H - PL, 0), (0, 0, TW), WHITE_)
-        S.box((0, HB, -TB), (W, 0, 0), (0, H - HB, 0), (0, 0, 2 * TB), WHITE_)            # baltas viršus per visą gylį
-    else:
-        S.box((0, HB, 0), (W, 0, 0), (0, H - HB, 0), (0, 0, TB), WHITE_)                  # balta iki vidurio
+    S.box((0, HB, -TB), (W, 0, 0), (0, H - HB, 0), (0, 0, 2 * TB), WHITE_)                # v156: baltas viršus per visą gylį
+                                                                                           # (ir vienpusiam - EAR iki galo)
     if p.legs == "ext":
         S.box((p.FX0, -p.LONG, -FR / 2), (FR, 0, 0), (0, p.LONG, 0), (0, 0, FR), AL)
         for fx, fy in ((p.FAX, -p.LONG - p.FLT), (W - p.FAX, -p.FLT)):

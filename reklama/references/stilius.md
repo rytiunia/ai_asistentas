@@ -90,6 +90,9 @@ kampai). NEPERPIEŠTI `get_drawings` kontūrais - praranda tekstą, paveikslėli
 v155: įdedamas fragmentas - ATSKIRAS 1 psl. PDF, iš kurio redakcija pašalinta viskas už iškarpos ir kliento matmenų
 užrašai (Thales `clip_src`) - kitaip Corel / tekstų sąraše matosi kliento antraštės Arial / Gotham šriftais. Lapo tekstas - tik GOST Common;
 po generavimo patikrinti `pdffonts` / span šriftus: kiti šriftai leidžiami TIK matomoje kliento grafikoje.
+v156 (Rytis 2026-10-13): KLIENTO TEKSTAI VISADA KREIVĖMIS (vektoriai, ne tekstas) - mažiau klaidų (šriftų keitimas Corel /
+spaudoje). Fragmentą po redakcijos - `K.pdf_text_to_paths(fn)` (Ghostscript `-dNoOutputFonts`, spalvos nekeičiamos;
+nėra gs -> `apt-get install -y ghostscript`). Patikra: `pdffonts` - tik GOST Common (+ nenaudojamas Helvetica).
 
 ## Ko nedaryti
 - Neišgalvoti matmenų, medžiagų, storių, tvirtinimų - palikti tuščią vietą ir paklausti.
