@@ -30,6 +30,10 @@ Raktažodžiai: P10_lightbox, P10 lightbox, push-through, iškištas stiklas, dv
 - Profilis pagal dydį: nuo □30x30x2 iki □60x60x3 (laikantysis); □20x20x2 - TIK papildomas, nelaikantis.
 - Kojos / montavimas prie sienos: atskiros plokštės ARBA vientisa plokštė - pagal klientą arba pagal rėmą (spec `"plates"`:
   `"separate"` | `"single"`). Kitais atvejais - kaip `scripts/sviesdeze.py` (v134 / v144 principai).
+- RĖMO VARIANTAI (v202, Rytis 2026-10-13): dabartinis generatorius = variantas A (□ vamzdžių rėmas gylio centre,
+  kojos = pratęsti viršutinis / apatinis skersiniai, statmenys tarp jų, plokštės 1A ant kojų galų). Bus P10_lightbox versija
+  su KITOKIU rėmo principu - jo neišgalvoti, laukti Ryčio aprašymo / eskizo; korpusas, išpjova, pagrindai, LED, DXF
+  ir vieno lapo išdėstymas (5a) lieka tie patys.
 
 ## 4. LED ir maitinimas
 - LED - Kaisen DUOLITE (kaip dvipusėms dėžėms, `kaisen_led.json` -> `duolite`).
