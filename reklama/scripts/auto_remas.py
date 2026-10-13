@@ -109,26 +109,13 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
             while not okx(rx) and rx > r["x0"]: rx -= 2
             ok = okx(lx) and okx(rx) and rx - lx >= 3 * t_rail
             return lx, rx, ok
-        # v183 (Welcome, Times New Roman): antikvos mažųjų raidžių viršus apvalus / su serifu - ties štricho centru
-        # bėgelio galai kraštinėse raidėse netelpa (rėmas sutrumpėja per pusę). Ieškoma bėgelio aukščio juostoje
-        # iki 30 % eilutės aukščio į vidų, kur bėgelis eina per ilgiausią raidžių ruožą (pirmenybė - pradinė vieta).
-        hh = r["xt"] - r["xb"]
-        for k, rr in enumerate(r["rails"]):
-            c0 = rr["cy"]; sgn = 1 if k == 0 else -1
-            cands = [c0 + sgn * 5 * j for j in range(int(0.3 * hh / 5) + 1)]
-            res = [(cy,) + ends(cy) for cy in cands]
-            good = [q for q in res if q[3]]
-            if good:
-                best_span = max(q[2] - q[1] for q in good)
-                # pradinė vieta (štricho centras) lieka, jei jos ilgis >= 85 % geriausio (BB LIETUVA - nekeičiama)
-                cy, lx, rx, _ = res[0] if res[0][3] and res[0][2] - res[0][1] >= 0.85 * best_span else \
-                    next(q for q in good if q[2] - q[1] >= best_span - 20)
-                if abs(cy - c0) > 0.1:
-                    log(f"  auto rėmas: bėgelis y{c0:.0f} -> y{cy:.0f} (galai kraštinėse raidėse, ilgis {rx - lx:.0f} mm)")
-            else:      # v183: galų vietos nerasta - ne apversti rėmo
-                cy = c0; lx, rx = r["x0"] + r["t"] / 2, r["x1"] - r["t"] / 2
+        for rr in r["rails"]:
+            cy = rr["cy"]
+            lx, rx, ok = ends(cy)
+            if not ok:      # v183: galų vietos nerasta - ne apversti rėmo
+                lx, rx = r["x0"] + r["t"] / 2, r["x1"] - r["t"] / 2
                 log(f"  ! auto rėmas: bėgeliui y{cy:.0f} galų raidėje (kampai >= {edge} mm) nerasta - galai ties kraštinių raidžių centru, PATIKRINTI ranka")
-            rr.update({"cy": cy, "x0": lx, "x1": rx, "y0": cy - t_rail / 2, "y1": cy + t_rail / 2})
+            rr.update({"x0": lx, "x1": rx, "y0": cy - t_rail / 2, "y1": cy + t_rail / 2})
         lo_, hi_ = r["rails"][0]["cy"], r["rails"][1]["cy"]
         log(f"  auto rėmas: eilutė y{r['xb']:.0f}-{r['xt']:.0f} štrichas ~{r['t']:.0f} mm -> bėgelių ašys y{lo_:.0f} / y{hi_:.0f}, "
             f"galai {r['rails'][0]['x0']:.0f}..{r['rails'][0]['x1']:.0f}")

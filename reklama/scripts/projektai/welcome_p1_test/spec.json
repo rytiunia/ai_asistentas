@@ -1,7 +1,12 @@
 {
  "client_pdf": "Welcome_client.pdf",
  "scale": 2.834645669291339,
- "crop_pt": [0, 0, 2318, 523],
+ "crop_pt": [
+  0,
+  0,
+  2318,
+  523
+ ],
  "ignore_fills": [],
  "qty": "?",
  "client": "TEST",
@@ -19,11 +24,22 @@
  "power_note": "P1 NON-LIT - no LED, plexi, cable or PSU",
  "trafo_box": false,
  "mounting": "brackets",
- "auto_frame": true,
- "merge_rows": true,
- "rail": {"size": "30x30x2", "depth": 30, "ral": "?"},
- "ears": {"inset": 50, "pitch": 1000, "min_edge": 15},
- "plate": {"thk": 3, "gap_mm": 30, "recess_mm": 25, "ral": "?"},
+ "rail": {
+  "size": "30x30x2",
+  "depth": 30,
+  "ral": "?"
+ },
+ "ears": {
+  "inset": 50,
+  "pitch": 1000,
+  "min_edge": 15
+ },
+ "plate": {
+  "thk": 3,
+  "gap_mm": 30,
+  "recess_mm": 25,
+  "ral": "?"
+ },
  "groups": [
   {
    "name": "Welcome",
@@ -31,29 +47,180 @@
    "on_plate": false,
    "return_ral": "3020",
    "face_hex": "#C1121C",
-   "client_fill": [0.1, 0.1, 0.1],
-   "frame": "verticals",
+   "client_fill": [
+    0.1,
+    0.1,
+    0.1
+   ],
+   "frame": "horizontal",
    "lit": false,
-   "cable": false
+   "cable": false,
+   "rails": [
+    {
+     "kind": "h",
+     "poly": [
+      [
+       90,
+       144
+      ],
+      [
+       2165,
+       144
+      ],
+      [
+       2165,
+       174
+      ],
+      [
+       90,
+       174
+      ]
+     ]
+    },
+    {
+     "kind": "h",
+     "poly": [
+      [
+       170,
+       379
+      ],
+      [
+       2085,
+       379
+      ],
+      [
+       2085,
+       409
+      ],
+      [
+       170,
+       409
+      ]
+     ]
+    },
+    {
+     "kind": "v",
+     "poly": [
+      [
+       555,
+       174
+      ],
+      [
+       585,
+       174
+      ],
+      [
+       585,
+       379
+      ],
+      [
+       555,
+       379
+      ]
+     ]
+    },
+    {
+     "kind": "v",
+     "poly": [
+      [
+       1727,
+       174
+      ],
+      [
+       1757,
+       174
+      ],
+      [
+       1757,
+       379
+      ],
+      [
+       1727,
+       379
+      ]
+     ]
+    }
+   ],
+   "rails_note": "Rytis 2026-10-13: frame over whole text, verticals under first e and m middle leg; bottom rail ends where e tail allows"
   }
  ],
  "bom": [
-  [1, "Letter face P1", "Alu 2 mm", "RAL 3020", "{A_Welcome} m²"],
-  [2, "Letter return", "Alu 1 mm", "RAL 3020", "{PER_Welcome} m / {RET_Welcome} m²"],
-  [3, "Letter back", "PVC 10 mm", "RAL 3020", "{PER_ALL} m / {A_ALL} m²"],
-  [5, "Wallframe U {RAIL_SIZE}", "Aluminium", "?", "{RAIL_TOTAL_M} m"],
-  [10, "Wall fixing", "?", "-", "?"]
+  [
+   1,
+   "Letter face P1",
+   "Alu 2 mm",
+   "RAL 3020",
+   "{A_Welcome} m²"
+  ],
+  [
+   2,
+   "Letter return",
+   "Alu 1 mm",
+   "RAL 3020",
+   "{PER_Welcome} m / {RET_Welcome} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "PVC 10 mm",
+   "RAL 3020",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   5,
+   "Wallframe U {RAIL_SIZE}",
+   "Aluminium",
+   "?",
+   "{RAIL_TOTAL_M} m"
+  ],
+  [
+   10,
+   "Wall fixing",
+   "?",
+   "-",
+   "?"
+  ]
  ],
  "main_data": [
-  ["Quantity", "?"],
-  ["Overall size", "{PW} x {PH}"],
-  ["Profile", "P1 on wallframe"],
-  ["Letter depth", "60"],
-  ["Face", "Alu 2 mm, RAL 3020"],
-  ["Returns", "RAL 3020"],
-  ["Font", "Times New Roman"],
-  ["Rails", "U 30x30x2 + hangers, RAL ___"],
-  ["Illumination", "NONE - P1, no LED / plexi"],
-  ["Environment", "Exterior"]
+  [
+   "Quantity",
+   "?"
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profile",
+   "P1 on wallframe"
+  ],
+  [
+   "Letter depth",
+   "60"
+  ],
+  [
+   "Face",
+   "Alu 2 mm, RAL 3020"
+  ],
+  [
+   "Returns",
+   "RAL 3020"
+  ],
+  [
+   "Font",
+   "Times New Roman"
+  ],
+  [
+   "Rails",
+   "U 30x30x2 + hangers, RAL ___"
+  ],
+  [
+   "Illumination",
+   "NONE - P1, no LED / plexi"
+  ],
+  [
+   "Environment",
+   "Exterior"
+  ]
  ]
 }

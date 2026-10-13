@@ -1059,7 +1059,7 @@ def p6_typical(x, y, w, h, depth, variant="rail", title=None, show_magnifier=Tru
 
 
 def p1_typical(x, y, w, h, depth, variant="rail", title=None, numbers=None, boxed=True, plate_z=False, ears=True,
-                plate_rail=None, spacer_mm=30, plate_rail_f=None, rail_kind="u"):
+                plate_rail=None, spacer_mm=30, plate_rail_f=None, rail_kind="u", bracket=None):
     """v29 (Rytis 2026-10-08, EXTRA order 225978): P1 - NEŠVIEČIANTI tūrinė raidė: priekis Alu 2 mm (RAL), šonai Alu 1 mm,
     dugnas PVC 10 mm (kaip SPAR P1 etalone), BE LED ir BE plexi. variant: 'rail' (ant U bėgelių su ausėlėmis) arba
     'plate' (ant Alu plokštės su distanceriais 30 mm, nugara - lygiai su šonais, ne įleista)."""
@@ -1119,10 +1119,25 @@ def p1_typical(x, y, w, h, depth, variant="rail", title=None, numbers=None, boxe
                     hc = uy - 10
                 poly(pts, fill=HexColor("#8C8C8C"), lw=0.4)
                 line(wall - 4, hc, wall + t_ + 4, hc, 0.2, GREY, dash=([3, 1, 1, 1], 0))
+            if bracket is not None:
+                # v184 (Rytis 2026-10-13: „hangers turi atsispindėti ir profilio pjūvyje") - U laikiklio plokštuma virš
+                #  viršutinio / po apatiniu bėgeliu (rėmas + 2 mm laisvumas viršuje), Ø6 per plokštumą į bėgelį
+                mm_ = Uh / 30.0; t3_ = 3 * mm_; gp_ = 2 * mm_
+                fy_ = (uy - gp_ - t3_) if k2 == 0 else (uy + Uh)
+                rect(wall, fy_, bgx - wall, t3_, fill=HexColor("#8C8C8C"), lw=0.4)
+                ux_c = (ux0 + bgx) / 2
+                ya_, yb_ = ((fy_ - 3, uy + Uh * 0.5) if k2 == 0 else (uy + Uh * 0.5, fy_ + t3_ + 3))
+                line(ux_c, ya_, ux_c, yb_, 0.2, GREY, dash=([3, 1, 1, 1], 0))
+                if k2 == 0:
+                    _bk_top = fy_
+                else:
+                    _bk_bot = fy_ + t3_
             # varžtas per U sienelę į PVC dugną
             rect(bgx - t_ - 2.2, yc - 2.2, 2.2, 4.4, fill=HexColor("#3A3A3A"), lw=0.2)
             rect(bgx - t_, yc - 0.9, t_ + TB - 1, 1.8, fill=HexColor("#3A3A3A"), lw=0.2)
             line(bgx - 8, yc, bgx + TB + 3, yc, 0.2, GREY, dash=([3, 1, 1, 1], 0))
+    if variant == "rail" and bracket is not None:          # v184: laikiklio sienelė prie fasado tarp plokštumų
+        rect(wall, _bk_top, (Uh / 30.0) * 3, _bk_bot - _bk_top, fill=HexColor("#8C8C8C"), lw=0.4)
     if variant == "plate" and spacer_mm:
         for yc in (yt + (yb - yt) * 0.18, yt + (yb - yt) * 0.82):
             rect(plx + 3, yc - 1.2, bgx - plx - 3, 2.4, fill=HexColor("#D9D9D9"), lw=0.3)
@@ -1156,6 +1171,8 @@ def p1_typical(x, y, w, h, depth, variant="rail", title=None, numbers=None, boxe
         leader(wall + 10, yt + (yb - yt) * 0.13 - 8, wall + 4, py0 + 14, nm["mount"], 5)
         if ears:
             leader(wall + 0.6, yt + (yb - yt) * 0.13 + 22, wall - 10, yt + (yb - yt) * 0.40, nm["fit"], 5)
+        elif bracket:
+            leader(wall + 0.8, yt + (yb - yt) * 0.5, wall - 10, yt + (yb - yt) * 0.40, str(bracket), 5)
     else:
         sy_ = py0 + ph_ * (0.32 if plate_rail else (0.62 if plate_z else 0.5))
         leader(plx + 1.5, sy_, wall - 4, sy_, nm["plate"], 5)

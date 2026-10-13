@@ -32,6 +32,27 @@ if P6F.parse(spec.get("front", "3mm"))["warn"]:
 RAIL = {"size": "30x30x2", "depth": 30, "ral": "7035"}; RAIL.update(spec.get("rail", {}))
 # v183: rėmo RAL nežinomas („?") - FINISH langelis tuščias (ne „RAL ? matt")
 RAIL_FIN = "" if str(RAIL.get("ral", "")).strip() in ("", "?") else f"RAL {RAIL['ral']} matt"
+
+
+def _rail_pos():
+    """v184: galutinė bėgelio (rėmo) BOM pozicija - brackets / none režime pozicijos pernumeruojamos (buvo fiksuota 5)"""
+    rows_ = [r_ for r_ in spec.get("bom", []) if not (FRONT == "8mm" and str(r_[0]).upper() in ("A", "B"))]
+    if MOUNTING in ("none", "brackets"):
+        drop_ = r"\bear\b|ears\b|mounting ear|ausėl"
+        rows_ = [r_ for r_ in rows_ if re.match(r"\s*rail", str(r_[1]), re.I) or re.search(r"bracket|hanger", str(r_[1]), re.I)
+                 or not re.search(drop_, str(r_[1]), re.I)]
+        n_, out_ = 0, []
+        for r_ in rows_:
+            if str(r_[0]).strip().isdigit():
+                n_ += 1; out_.append([str(n_)] + list(r_[1:]))
+            else:
+                out_.append(list(r_))
+        rows_ = out_
+    return next((str(r_[0]) for r_ in rows_ if re.search(r"\brail|wallframe|\bframe\b|bėgel", str(r_[1]), re.I)
+                 and not re.search(r"ear|hanger|bracket|plate|tube|\bZ\b", str(r_[1]), re.I)), "5")
+
+
+RAIL_POS = None
 PLATE = {"thk": 3, "gap_mm": 30, "recess_mm": 25, "ral": "1023"}; PLATE.update(spec.get("plate", {}))
 # v47 (Rytis 2026-10-09): profilio forma VISUOSE vaizduose pagal tipą - U visur U, stačiakampis visur stačiakampis
 RAIL_SQ = str(RAIL.get("type", "u")).lower().startswith(("sq", "box", "kv"))
@@ -1892,12 +1913,13 @@ for g in groups:
 for b_ in BRACKETS:                                     # v90: U laikikliai (arčiausiai žiūrovo iš galo)
     hw_ = BRK["width_mm"] / 2
     a_, c_ = RV(b_["x"] + hw_, b_["y0"]), RV(b_["x"] - hw_, b_["y1"])
-    rect(a_[0], a_[1], c_[0] - a_[0], c_[1] - a_[1], fill=K.mix(RAILC, 0.72), lw=0.35)
+    # v184 (Rytis 2026-10-13): galiniame vaizde laikiklis - TIK punktyru (kontūras ir skylės), be užpildo
+    rect(a_[0], a_[1], c_[0] - a_[0], c_[1] - a_[1], fill=None, lw=K.HAIR, dash=([3, 1.5], 0))
     for k_ in range(b_["nw"]):
         yy_ = b_["y0"] + b_["H"] * (2 * k_ + 1) / (2 * b_["nw"])     # v90: žingsnis p, nuo galų p/2
         cc_ = RV(b_["x"], yy_)
-        K.c.saveState(); K.c.setFillColor(white); K.c.setLineWidth(K.HAIR)
-        K.c.circle(cc_[0], K.Y(cc_[1]), max(0.6, b_["hd"] / 2 * s2), stroke=1, fill=1); K.c.restoreState()
+        K.c.saveState(); K.c.setLineWidth(K.HAIR); K.c.setDash(1.5, 1)
+        K.c.circle(cc_[0], K.Y(cc_[1]), max(0.6, b_["hd"] / 2 * s2), stroke=1, fill=0); K.c.restoreState()
 SEP_LINE = None
 if MOUNTING == "none":                                  # v90: atskiros raidės - laidų išvestys vienoje horizontalioje linijoje
     from shapely.geometry import LineString as _LS
@@ -2530,7 +2552,7 @@ if r_first:
     _dx5 = 22                                      # v50: išvadinė nekerta laido - pasvyra nuo artimiausio laido
     if any(_x5 < a_ <= _x5 + 60 for a_, b_ in _busy):
         _dx5 = -22
-    K.balloon_auto(_x5, _y5, spec.get("section_labels", {}).get("5", 5), avoid=[(RVX, RVY, RVX + rw, RVY + rh)])
+    K.balloon_auto(_x5, _y5, spec.get("section_labels", {}).get("5", _rail_pos()), avoid=[(RVX, RVY, RVX + rw, RVY + rh)])
 _rty, _rtx = max(RVY + rh + 56, CH_BOT[0] + 26, _bottom[0] + 24), RVX + rw / 2
 if _rty + 4 + K.F_SCALE * 1.25 > K.VIEW_BOT and TB_ON and CEX:      # v44: netelpa po dėže - šalia trafo dėžės
     _rtw = K.pdfmetrics.stringWidth("REAR VIEW (MIRRORED)", "FB", K.F_VIEW) / 2 + 30
@@ -2690,6 +2712,11 @@ _BOM_ROWS = [row for row in spec["bom"] if not (FRONT == "8mm" and str(row[0]).u
 #  (spec "back_ral" / grupės "back_ral")
 _g0 = next((g for g in groups if not g["plate"]), None)
 _back_ral = spec.get("back_ral") or (_g0["spec"].get("back_ral") or _g0["spec"].get("return_ral") if _g0 else None)
+if FRONT == "P1":
+    # v184 (Rytis 2026-10-13): P1 dugnas PVC 10 mm dedamas NEDAŽYTAS - v100 („back = šonų spalva") P1 netaikoma
+    _back_ral = None
+    _BOM_ROWS = [([r_[0], r_[1], r_[2], "-", r_[4]] if re.search(r"letter back|\bback\b", str(r_[1]), re.I)
+                  and re.search(r"pvc", str(r_[2]), re.I) else r_) for r_ in _BOM_ROWS]
 if _back_ral:
     _BOM_ROWS = [([r_[0], r_[1], r_[2], f"RAL {_back_ral}", r_[4]] if re.search(r"letter back|\bback\b", str(r_[1]), re.I)
                   and not re.search(r"plate|foil|sheet", str(r_[1]), re.I) and str(r_[3]).strip() in ("", "-") else r_)
@@ -2734,7 +2761,8 @@ except Exception:
 _P6REF.LABEL_MAP.update({str(k_): str(v_) for k_, v_ in spec.get("section_labels", {}).items()})
 if FRONT == "P1":
     K.p1_typical(X_P6, BY0, W_P6, BH, depth, variant="rail", title="PROFILE P1 ON RAILS - TYPICAL SECTION",
-                 numbers={"fit": _EAR_POS or 6}, ears=_HAS_EARS)
+                 numbers={"fit": _EAR_POS or 6, "mount": _rail_pos()}, ears=_HAS_EARS,
+                 bracket=(next((str(r_[0]) for r_ in _BOM_ROWS if re.search(r"bracket|hanger", str(r_[1]), re.I)), "") if BRACKETS else None))
 else:
     K.p6_reference(X_P6, BY0, W_P6, BH, depth, kind=("folded" if MOUNTING == "none" else _P6R.kind_of("rail", spec.get("rail", {}).get("type"))), front=FRONT,
                    title=("PROFILE P6 - FIXED TO FACADE (SEPARATE LETTERS)" if MOUNTING == "none" else "PROFILE P6 ON RAILS - TYPICAL SECTION"), ears=(_EAR_POS if _HAS_EARS else None),
