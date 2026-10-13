@@ -1,5 +1,5 @@
 """Folded plokštės išklotinė DXF pagal skill'ą (v37+): Al 2 mm, R2, K 0.44, gylis 40 (STEP lankstinys_1prie1),
-šoniniai flanšai TARP viršutinio ir apatinio (0.1 tarpas) ir t (2 mm) SEKLESNI - gylis 40 -> šonai 38 (v170, Rytis
+šoniniai flanšai TARP viršutinio ir apatinio (0.1 tarpas) ir t (2 mm) SEKLESNI - gylis 40 -> šonai 38 (v172, Rytis
 2026-10-13: gamybos praktika - įsilenkiantys tarp skardų flanšai 2 mm mažesni, užsilenkiantys - pilnas gylis), Ø3.2 tvirtinimo skylės viršutinėje / apatinėje briaunoje
 7 mm nuo krašto, 50 nuo galų, žingsnis ~300. Naudojimas: python3 folded_dxf.py PLOTIS AUKŠTIS out.dxf [GYLIS]"""
 import sys, math
