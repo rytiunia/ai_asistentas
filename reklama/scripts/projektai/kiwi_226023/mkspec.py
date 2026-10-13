@@ -19,7 +19,7 @@ fp = lambda e, o: [[round((x - o[0]) * SC, 1), round((y - o[1]) * SC, 1)] for x,
 O1 = (251.627, 351.543)
 cm = lambda x, y: [round((x - O1[0]) * SC), round((y - O1[1]) * SC)]
 s1 = dict(base, merge_rows=True, callouts={"front": [cm(300, 392) + [1, -30, 40], cm(445, 372) + [2, 30, -34],
-                                                    cm(372.5, 360) + [4, 26, -36], cm(418.7, 400) + [15, 24, 44]]}, title="KIWI minipris 3362", file_code="KIWI_226023_01_logo3362", sheet="1 / 3", crop_pt=[245, 340, 500, 432],
+                                                    cm(372.5, 360) + [4, 26, -36], cm(418.7, 400) + [15, 24, 44]]}, title="KIWI minipris 3362", file_code="KIWI_226023_01_logo3362", sheet="1 / 5", crop_pt=[245, 340, 500, 432],
           ignore_fills=[[0.66, 0.81, 0.27], [0.35, 0.35, 0.05]],
           decals=[{"client_fill": [0.66, 0.81, 0.27], "hex": GREEN, "group": "KIWI"},
                   {"client_fill": [0.35, 0.35, 0.05], "hex": BLACK, "group": "minipris"}],
@@ -64,7 +64,7 @@ s1 = dict(base, merge_rows=True, callouts={"front": [cm(300, 392) + [1, -30, 40]
 json.dump(s1, open("spec1.json", "w"), ensure_ascii=False, indent=1)
 # ------------------------------------------------ 2 lapas: 7-23 2037 (originalas: ALT8858 Sheet 2)
 o7 = (274.669, 503.107)
-s2 = dict(base, section_labels={"1": "6", "2": "7", "3": "5", "4": "9", "5": "3", "A": "12"}, title="7-23  L 2037", file_code="KIWI_226023_02_723", sheet="2 / 3", crop_pt=[262, 495, 430, 562],
+s2 = dict(base, section_labels={"1": "6", "2": "7", "3": "5", "4": "9", "5": "3", "A": "12"}, title="7-23  L 2037", file_code="KIWI_226023_02_723", sheet="3 / 5", crop_pt=[262, 495, 430, 562],
           ignore_fills=[[0.66, 0.81, 0.27]], decals=[{"client_fill": [0.66, 0.81, 0.27], "hex": GREEN, "group": "7-23"}],
           cable_exits=[{"pt": [366, 506], "voltage": "230V", "label": "~3 m"}],
           groups=[{"name": "7-23", "profile": "6", "on_plate": False, "return_ral": "9010", "face_hex": BLACK,

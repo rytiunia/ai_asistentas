@@ -91,6 +91,8 @@ ausėlių vietos, lentelės (stulpeliai ir eilutės), LED aprašai, užrašai ir
 iškraipant - keičiamas TIK lapo stilius (rėmelis, šriftas, vaizdų išdėstymas, juosta). Nepridėti savų eilučių, ALT pasiūlymų,
 klausimų lape ar „patobulinimų“ (skill taisyklės rėmui / ausėlėms netaikomos - originalo rėmas `rails` + `fit_plates` su `len`).
 Lentelė - originalo pavadinimu ir stulpeliais (`bom_cols`, `bom_title`), pjūvio balionai - originalo pozicijomis (`section_labels`).
+LED dėliojimas su kiekiais ir įtampa - VISADA perkeliamas (originalo fragmentas `K.place_pdf`, atskiras LED INSTALLATION lapas);
+originalo detalės / 3D / sprogdintas vaizdas - originalo fragmentu, ne savo perpieštos detalės (v161).
 
 ## Standartai (v161, Rytis 2026-10-13; iš darbų analizės `DARBAI/uzsienio reklama` 2024-2026)
 

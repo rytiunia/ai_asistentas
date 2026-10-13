@@ -39,7 +39,7 @@ D1, D2 = 16, 36
 
 TB = {"client": "BrandFactory", "title": "Lanterne med lys 6800, RAL 6018",
       "order_no": "ALT0000_10.13_RS", "drawing_no": "Order 226023 KIWI 640 BYGNES", "rev": "A", "date": "2026-10-13",
-      "sheet": "3 / 3", "revisions": [["A", "First issue", "2026-10-13", "RS"]]}
+      "sheet": "5 / 5", "revisions": [["A", "First issue", "2026-10-13", "RS"]]}
 
 
 def HM(x1, x2, y, label, e1, e2):
@@ -246,40 +246,28 @@ def sheet(out):
     # pjūvio plokštuma A-A per priekį (už vaizdo ribų)
     ya = YG - 2000 * s40
     K.cut_plane_h(ya, f["x0"], f["x1"], "C", look="down")
-    # detalės B / C
-    s5 = MM / 2
-    xb = rv["x1"] + 135
-    db = detail_top(xb, yt + 40, s5)
-    view_title((db["x0"] + db["x1"]) / 2, db["yb"] + 26, "DETAIL B", "SCALE 1:2")
-    xc = db["x1"] + 110
-    dc = detail_joint(xc, yt + 40, s5)
-    view_title((dc["x0"] + dc["x1"]) / 2, dc["yb"] + 40, "DETAIL A - CONNECTION POINT", "SCALE 1:2")
-    # žymos B / C ant šoninio vaizdo
-    for (cx_, cy_), lt in (((sv["x0"] + 4, yt + 6), "B"), ((sv["x0"] + 4, YG - joints_from_bottom()[1] * s40), "A")):
-        circle(cx_, cy_, 9, lw=0.35)
-        T(cx_ + 9, cy_ - 7, lt, 10, font="FB")
-    # 3D
-    x3 = dc["x1"] + 70
-    box3 = (x3, K.IY0 + 30, K.IX1 - 20 - x3, YG - K.IY0 - 40)
-    view3d(box3)
-    view_title(x3 + box3[2] / 2, YG + 24, "3D VIEW", "ILLUSTRATIVE - NOT TO SCALE")
+    # v161 (Rytis 2026-10-13): DETAIL A / B ir 3D - NE mūsų; dedamas TIKSLUS originalo fragmentas (ALT8858 Sheet 3:
+    #  3D vaizdai, sprogdintas, B (1:10), A (1:10) connection point, Parts List, RAL 6018)
+    clip = (455, 38, 1142, 768)
+    cw, ch = clip[2] - clip[0], clip[3] - clip[1]
+    xa = rv["x1"] + 150
+    aw, ah = K.IX1 - 12 - xa, YG + 30 - (K.IY0 + 8)
+    k = min(aw / cw, ah / ch)
+    w, h = cw * k, ch * k
+    X = K.IX1 - 12 - w
+    Yt = K.IY0 + 8
+    K.place_pdf(ORG, 2, clip, (X, K.H - Yt), (X + w, K.H - Yt), (X, K.H - Yt - h), outline=0)
     # balionai (BOM POS)
     K.leader(f["x0"] + 3, YG - 1500 * s40, f["x0"] - 40, YG - 1300 * s40, 1)
     K.leader(f["xb"] + W * s40 / 2, YG - 4300 * s40, f["x0"] - 40, YG - 4000 * s40, 2)
     K.leader(rv["x1"] - 3, yt + 4, rv["x1"] + 30, yt + 30, 3)
     K.leader(rv["x1"] - 3, YG - 350 * s40, rv["x1"] + 30, YG - 600 * s40, 4)
-    K.leader(*db["led"], db["x0"] - 34, db["yt"] + 6, 5)
-    K.leader(*db["back"], db["x0"] - 34, db["back"][1] + 20, 2)
-    K.leader(*db["prof"], db["x1"] + 40, db["prof"][1] + 10, 1)
-    K.leader(*dc["plate"], dc["x0"] - 34, dc["plate"][1] - 20, 6)
-    K.leader(*dc["screw"], dc["x0"] - 34, dc["screw"][1] + 30, 7)
     # originalo paaiškinimai (žymos už vaizdų)
     for yj in joints_from_bottom():
         K.tag(sv["x1"] - 1, YG - yj * s40, sv["x1"] + 14, YG - yj * s40 + 22, "Connection point", 8)
     K.tag(rv["x1"] - 1, YG - joints_from_bottom()[1] * s40, rv["x1"] + 12, YG - joints_from_bottom()[1] * s40 + 22,
           "Backside plate connect point", 8)
     K.tag(rv["x1"] - 1, YG - 200 * s40, rv["x1"] + 12, YG - 2, "Cover with adjustable position", 8)
-    K.tag(*db["psu"], db["x1"] + 12, db["yt"] - 14, "LED modules with transformator", 8)
     # juosta
     BY0 = K.BAND_Y; BH = K.IY1 - BY0
     W_D, W_MD, W_TB = 214, 230, 272
@@ -287,9 +275,10 @@ def sheet(out):
     band_section(X_D, BY0, W_D, BH)
     K.bom_table(X_BOM, BY0, W_BOM, BH, bm, title="PARTS LIST", cols=(("POS", 20), ("Part Number", None)))
     K.main_data(X_MD, BY0, W_MD, BH, md, lab_w=64)
-    K.title_block(X_TB, W_TB, TB, "1:40 / 1:10 / 1:2")
+    K.title_block(X_TB, W_TB, TB, "1:40 / 1:10")
     K.save(out)
 
 
 if __name__ == "__main__":
+    ORG = sys.argv[2]          # originalas (ALT8858_10.07_Order 225948 Kiwi 343 Tollnes.pdf)
     sheet(sys.argv[1])
