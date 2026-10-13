@@ -17,6 +17,9 @@ from scipy.ndimage import distance_transform_edt, gaussian_filter1d
 import cv2
 
 SRC, OUT = sys.argv[1], sys.argv[2]
+ARG = lambda k, d: float(next((x.split("=")[1] for x in sys.argv if x.startswith(f"--{k}=")), d))
+GROOVE, WALL = ARG("groove", 8.0), ARG("wall", 2.0)
+SPUR = ARG("spur", 1.5)        # v155: šakelė šalinama tik jei < 1.5 x pusplotis (kampų artefaktai); serifai, uodegėlės lieka
 PX = 3.0                                  # px / pt
 page = fitz.open(SRC)[0]
 d = page.get_drawings()[0]
@@ -75,7 +78,7 @@ for (a, b) in list(G.edges()):
             G.remove_edge(a, b)
 
 
-def prune(G, factor=2.6, rounds=8):
+def prune(G, factor=SPUR, rounds=8):
     """šakelės nuo galo iki mazgo, trumpesnės už vietinį plotį x factor - šalinamos"""
     for _ in range(rounds):
         removed = False
@@ -99,6 +102,8 @@ def prune(G, factor=2.6, rounds=8):
             break
 
 
+G0 = G.copy()                                   # v155: pilnas skeletas (serifai, uodegėlės) aprėpčiai
+prune(G0, factor=0.6)
 prune(G)
 if '--dbgsk' in sys.argv:
     im_ = cv2.cvtColor((img * 200).astype(np.uint8), cv2.COLOR_GRAY2BGR)
@@ -226,8 +231,12 @@ for ch in CH:
             k -= 1
         a2 = a[:k + 1]
         v = tangent_at_end(a2, min(1.2 * wm, 0.3 * s[k] + 1))
+        vb = tangent_at_end(a2, min(3.0 * wm, 0.6 * s[k] + 1))       # v155: apsauga nuo atgalinės krypties (kilpa gale)
+        if float(np.dot(v, vb)) < 0.7:
+            v = vb
         w0 = max(D(a2[-1]), 1.0)
-        ext = march(a2[-1], v, lambda q: D(q) < 0.8 * w0)
+        stopD = (GROOVE / 2 + WALL) / (25.4 / 72) * PX            # v155: galas - iki ten, kur dar telpa griovelis + sienelė
+        ext = march(a2[-1], v, lambda q: D(q) < (stopD if w0 > stopD else 0.8 * w0))
         a3 = np.vstack([a2] + ([np.array(ext)] if ext else []))
         ch["p"] = a3 if side == 1 else a3[::-1]
 
@@ -379,7 +388,11 @@ def recenter(a, closed, iters=4):
     for P, R in Jlist:                                      # mazgų zonose - Hermite jungtis, perėjimas tolygus
         dj = np.hypot(*(a - P).T)
         wgt = np.minimum(wgt, np.clip((dj - R) / R, 0, 1))
-    if not closed:
+    if not closed:                                          # v155: galuose (1.5 pusplotis) centravimas mažinamas -
+        s2_ = arclen(a)                                     # užbaigos zona dviprasmiška (zigzagai)
+        for e_, se in ((0, s2_), (-1, s2_[-1] - s2_)):
+            De = max(D(a[e_]), 3.0)
+            wgt = np.minimum(wgt, np.clip(se / (1.5 * De), 0, 1))
         wgt[[0, -1]] = 0
     offs = np.linspace(-1.0, 1.0, 41)
     mode = "wrap" if closed else "nearest"
@@ -455,6 +468,68 @@ for (i, side, p, v, J, R) in tees:
     else:
         own["s"] = np.vstack([a[:-1], brg])
 
+# 7) v155 (Rytis 2026-10-13: „šviesti turi tolygiai visa raidės plokštuma" - serifai, uodegėlės, formos ypatumai):
+#    APRĖPTIS - kiekvienas raidės taškas turi būti arti griovelio. Neaprėpta zona: atstumas iki linijos > COVER x
+#    vietinis pusplotis (tiesiam brėžiui max 1.0, kampui 1.41) - į ją pridedama šaka pagal pilną skeletą
+#    (trumpiausias kelias nuo esamos linijos iki tolimiausio skeleto taško zonoje), išlyginama ir centruojama.
+REACH = ARG("reach", 12.0) / (25.4 / 72) * PX     # mm: kiek toliau už įprasto puspločio dar laikoma aprėpta
+stopD_px = (GROOVE / 2 + WALL) / (25.4 / 72) * PX
+for it_ in range(12):
+    lm = np.zeros(img.shape, np.uint8)
+    for st in strokes:
+        cv2.polylines(lm, [np.round(st["s"][:, ::-1]).astype(np.int32)], False, 1, 1)
+    dl = distance_transform_edt(lm == 0)
+    if it_ == 0:                                     # vietinis pusplotis - pagal PAGRINDINES linijas (ne šakas)
+        _, ind = distance_transform_edt(lm == 0, return_indices=True)
+        Dloc = dist[ind[0], ind[1]]
+    unc = (img > 0) & (dl > Dloc + REACH) & (dl > stopD_px)
+    nl, L_ = cv2.connectedComponents(unc.astype(np.uint8), connectivity=8)
+    added = 0
+    for r_ in range(1, nl):
+        mask = L_ == r_
+        if mask.sum() < (stopD_px * 0.8) ** 2:
+            continue
+        # tikslas: zonos taškas toliausiai nuo linijos, kuriame dar telpa griovelis (dist >= riba)
+        okm = mask & (dist >= stopD_px * 0.9)
+        if not okm.any():
+            continue
+        ys_, xs_ = np.nonzero(okm)
+        kk = int(np.argmax(dl[ys_, xs_])); tip = (ys_[kk], xs_[kk])
+        # kelias iki esamos linijos tos pačios raidės viduje - pigiausias per ploto „keterą" (kaina 1 / dist^2)
+        lb = LAB[tip]
+        yy, xx = np.nonzero(LAB == lb)
+        y0b, y1b, x0b, x1b = yy.min(), yy.max() + 1, xx.min(), xx.max() + 1
+        sub = dist[y0b:y1b, x0b:x1b]
+        cost = np.where(LAB[y0b:y1b, x0b:x1b] == lb, 1.0 / (sub ** 2 + 1.0), np.inf)
+        starts = np.argwhere(lm[y0b:y1b, x0b:x1b] > 0)
+        if not len(starts):
+            continue
+        from skimage.graph import MCP_Geometric
+        mcp = MCP_Geometric(cost)
+        mcp.find_costs(starts.tolist(), [[tip[0] - y0b, tip[1] - x0b]])
+        P_ = [(py + y0b, px + x0b) for py, px in mcp.traceback([tip[0] - y0b, tip[1] - x0b])]
+        if '--dbgc' in sys.argv:
+            print('   šaka į', round(tip[1] / PX + x0 - pad), round(tip[0] / PX + y0 - pad), 'ilgis px', len(P_))
+        P_ = np.array(P_, float)
+        if len(P_) < 6:
+            continue
+        # galas tiesiai iki griovelio ribos, išlyginimas, centravimas (pradžia ant esamos linijos - fiksuota)
+        v = tangent_at_end(P_, min(len(P_) * 0.3, 1.0 * max(D(P_[-1]), 4)))
+        w0 = max(D(P_[-1]), 1.0)
+        ext = march(P_[-1], v, lambda q: D(q) < (stopD_px if w0 > stopD_px else 0.8 * w0))
+        if ext:
+            P_ = np.vstack([P_, np.array(ext)])
+        S_ = recenter(smooth2(P_, False), False)
+        sg = max(4.0, 0.7 * float(np.median([D(q) for q in S_])))      # šaka - papildomas išlyginimas (be laiptelių)
+        S2 = np.c_[gaussian_filter1d(S_[:, 0], sg, mode="nearest"), gaussian_filter1d(S_[:, 1], sg, mode="nearest")]
+        S2[0] = S_[0]
+        S_ = S2
+        strokes.append({"p": P_, "s": S_, "closed": False, "branch": True})
+        added += 1
+    if not added:
+        break
+    print(f"  aprėptis: +{added} šakos (iteracija {it_ + 1})")
+
 lines = []
 for st in strokes:
     a = np.array([to_pt(q) for q in st["s"]])
@@ -466,8 +541,6 @@ for st in strokes:
 # 6) griovelis: LED juostos frezavimas (Ø GROOVE), sienelė nuo griovelio iki kontūro >= WALL; galai nukerpami,
 #    kol ten telpa; siauros vietos - ataskaita
 MMk = 25.4 / 72
-GROOVE = float(next((x.split("=")[1] for x in sys.argv if x.startswith("--groove=")), 8.0))
-WALL = float(next((x.split("=")[1] for x in sys.argv if x.startswith("--wall=")), 2.0))
 rpt = (GROOVE / 2 + WALL) / MMk
 bnd_pt = geom.boundary; shapely.prepare(geom); shapely.prepare(bnd_pt)
 def Dpt(P):
