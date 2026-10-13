@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Centerline per raidžių ploto vidurį (v149): skeletas -> šakelių valymas -> galai tiesiai į ploto vidurį (ne į kampą) ->
-mazgų zonos nukerpamos (R = 2 x pusplotis), tiesiausiai tęsiančios šakos sujungiamos Hermite kreive (kryžiuje - 2 poros),
-kitos - T jungtimi; išlyginimas; DXF CENTERLINE (SPLINE) + OUTLINE, PDF peržiūra.
-Naudojimas: python3 centerline.py kontūrai.pdf out  (-> out.dxf, out.pdf)
--> šakelių valymas -> grandinės -> išlyginimas (Gauss) -> supaprastinimas -> DXF (LWPOLYLINE) + PDF peržiūra."""
+"""Centerline LED griovelio frezavimui P10 (30 mm plexi) raidėse (v150, Rytis 2026-10-13).
+Linija per TIKSLŲ ploto vidurį: skeletas -> šakelių valymas -> galai tiesiai į ploto vidurį -> mazgų zonos (R = 2 x pusplotis)
+sujungiamos Hermite kreivėmis (kryžiuje 2 poros, kitos šakos - T) -> kiekvienas taškas perkeliamas statmenai į vietą, kur
+atstumai iki abiejų kraštų lygūs (shapely, tikslus atstumas), 4 iteracijos -> galai nukerpami, kol telpa griovelis + sienelė.
+Naudojimas: python3 centerline.py kontūrai.pdf out [--groove=8] [--wall=2] [--err] [--rep]
+DXF: CENTERLINE (SPLINE), GROOVE_8MM, PROBLEM (griovelis + sienelė netelpa), OUTLINE; PDF peržiūra.
+"""
 import sys
 import numpy as np
 import pymupdf as fitz
@@ -323,8 +325,61 @@ def smooth2(a, closed):
     return b
 
 
+# 5) v3 (Rytis 2026-10-13: LED juostos 8 mm griovelis P10 raidėse - linija turi TIKSLIAI eiti per ploto vidurį):
+#    kiekvienas taškas perkeliamas statmenai linijai į vietą, kur atstumai iki abiejų kraštų lygūs (didžiausias
+#    įbrėžtas apskritimas, tikslus atstumas iki kontūro - shapely), po to lengvas išlyginimas; 3 iteracijos.
+import shapely
+from shapely.affinity import affine_transform
+gpx = affine_transform(geom, [0, PX, PX, 0, (pad - y0) * PX, (pad - x0) * PX])   # (x,y) pt -> (y_px, x_px)
+bnd = gpx.boundary
+shapely.prepare(gpx); shapely.prepare(bnd)
+
+
+def Dx(P):
+    P = np.asarray(P, float).reshape(-1, 2)
+    pts = shapely.points(P)
+    d = shapely.distance(bnd, pts)
+    return np.where(shapely.contains(gpx, pts), d, -d)
+
+
+Jlist = [(Jpos[J], 2.0 * max(D(Jpos[J]), 2.0)) for J in Jpos]
+
+
+def recenter(a, closed, iters=4):
+    s = arclen(a); n = max(int(s[-1] / PX), 6)              # ~1 pt žingsnis
+    u = np.linspace(0, s[-1], n)
+    a = np.c_[np.interp(u, s, a[:, 0]), np.interp(u, s, a[:, 1])]
+    wgt = np.ones(len(a))
+    for P, R in Jlist:                                      # mazgų zonose - Hermite jungtis, perėjimas tolygus
+        dj = np.hypot(*(a - P).T)
+        wgt = np.minimum(wgt, np.clip((dj - R) / R, 0, 1))
+    if not closed:
+        wgt[[0, -1]] = 0
+    offs = np.linspace(-1.0, 1.0, 41)
+    mode = "wrap" if closed else "nearest"
+    for _ in range(iters):
+        t = np.gradient(a, axis=0); t /= (np.linalg.norm(t, axis=1)[:, None] + 1e-9)
+        nrm = np.c_[-t[:, 1], t[:, 0]]
+        w = np.maximum(Dx(a), 2.0)
+        cand = a[:, None, :] + nrm[:, None, :] * (offs[None, :, None] * w[:, None, None])
+        dd = Dx(cand.reshape(-1, 2)).reshape(len(a), -1)
+        k = np.clip(np.argmax(dd, axis=1), 1, len(offs) - 2)
+        r_ = np.arange(len(a))
+        y0_, y1_, y2_ = dd[r_, k - 1], dd[r_, k], dd[r_, k + 1]
+        den = y0_ - 2 * y1_ + y2_
+        sh = np.where(np.abs(den) > 1e-9, 0.5 * (y0_ - y2_) / np.where(np.abs(den) > 1e-9, den, 1), 0)
+        o = (offs[k] + np.clip(sh, -1, 1) * (offs[1] - offs[0])) * w
+        new = a + nrm * (o * wgt)[:, None]
+        sig = 2.0 * PX
+        b = np.c_[gaussian_filter1d(new[:, 0], sig, mode=mode), gaussian_filter1d(new[:, 1], sig, mode=mode)]
+        a = a + (b - a) * np.maximum(wgt, 0.3)[:, None] if True else b
+        if not closed:
+            a[0], a[-1] = new[0], new[-1]
+    return a
+
+
 for st in strokes:
-    st["s"] = smooth2(st["p"], st["closed"])
+    st["s"] = recenter(smooth2(st["p"], st["closed"]), st["closed"])
 allS = [st["s"] for st in strokes]
 for (i, side, p, v, J, R) in tees:
     own = None
@@ -378,15 +433,67 @@ for st in strokes:
         approx = np.vstack([approx, approx[:1]])
     lines.append(approx)
 
+# 6) griovelis: LED juostos frezavimas (Ø GROOVE), sienelė nuo griovelio iki kontūro >= WALL; galai nukerpami,
+#    kol ten telpa; siauros vietos - ataskaita
+MMk = 25.4 / 72
+GROOVE = float(next((x.split("=")[1] for x in sys.argv if x.startswith("--groove=")), 8.0))
+WALL = float(next((x.split("=")[1] for x in sys.argv if x.startswith("--wall=")), 2.0))
+rpt = (GROOVE / 2 + WALL) / MMk
+bnd_pt = geom.boundary; shapely.prepare(geom); shapely.prepare(bnd_pt)
+def Dpt(P):
+    pts = shapely.points(np.asarray(P, float).reshape(-1, 2))
+    d = shapely.distance(bnd_pt, pts)
+    return np.where(shapely.contains(geom, pts), d, -d)
+def on_other(p, me):
+    return any(np.hypot(*(L - p).T).min() < 1.0 for j, L in enumerate(lines) if j != me)
+for i in range(len(lines)):
+    L = lines[i]
+    if len(L) < 3 or np.allclose(L[0], L[-1]):
+        continue
+    s_ = arclen(L); n = max(int(s_[-1] / 0.5), 4); u = np.linspace(0, s_[-1], n)
+    R_ = np.c_[np.interp(u, s_, L[:, 0]), np.interp(u, s_, L[:, 1])]
+    d = Dpt(R_)
+    k0, k1 = 0, len(R_) - 1
+    if not on_other(L[0], i):
+        while k0 < k1 and d[k0] < rpt:
+            k0 += 1
+    if not on_other(L[-1], i):
+        while k1 > k0 and d[k1] < rpt:
+            k1 -= 1
+    if k1 - k0 < 4:
+        continue
+    R_ = R_[k0:k1 + 1]
+    lines[i] = cv2.approxPolyDP(R_.astype(np.float32).reshape(-1, 1, 2), 0.12, False).reshape(-1, 2)
+from shapely.geometry import LineString
+groove = unary_union([LineString(L).buffer(GROOVE / 2 / MMk, quad_segs=16) for L in lines if len(L) > 1])
+bad = groove.difference(geom.buffer(-WALL / MMk))
+bad_parts = [g for g in getattr(bad, "geoms", [bad]) if g.area * MMk * MMk > 0.5]
+narrow = []
+for L in lines:
+    d = Dpt(L) * MMk
+    for q, dv in zip(L, d):
+        if dv < GROOVE / 2 + WALL:
+            narrow.append(((q[0] - x0) * MMk, dv - GROOVE / 2))
+print(f"griovelis {GROOVE} mm, sienelė >= {WALL} mm; probleminių zonų: {len(bad_parts)}")
+for g in bad_parts:
+    b_ = g.bounds
+    dmin = float(Dpt(np.array(g.representative_point().coords)).min() * MMk)
+    print(f"  x {((b_[0] - x0) * MMk):.0f}-{((b_[2] - x0) * MMk):.0f} mm, plotas {g.area * MMk * MMk:.1f} mm2")
+
 # DXF (mm: 1 pt = 0.3528 mm), y aukštyn
 import ezdxf
 doc = ezdxf.new("R2010"); doc.units = ezdxf.units.MM
 msp = doc.modelspace()
-doc.layers.add("CENTERLINE", color=1); doc.layers.add("OUTLINE", color=7)
+doc.layers.add("CENTERLINE", color=1); doc.layers.add("OUTLINE", color=7); doc.layers.add("GROOVE_8MM", color=3); doc.layers.add("PROBLEM", color=6)
 MMk = 25.4 / 72
 for g in getattr(geom, "geoms", [geom]):
     for r in [g.exterior] + list(g.interiors):
         msp.add_lwpolyline([((x - x0) * MMk, (y1 - y) * MMk) for x, y in r.coords], close=True, dxfattribs={"layer": "OUTLINE"})
+for g in getattr(groove, "geoms", [groove]):
+    for r in [g.exterior] + list(g.interiors):
+        msp.add_lwpolyline([((x - x0) * MMk, (y1 - y) * MMk) for x, y in r.coords], close=True, dxfattribs={"layer": "GROOVE_8MM"})
+for g in bad_parts:
+    msp.add_lwpolyline([((x - x0) * MMk, (y1 - y) * MMk) for x, y in g.exterior.coords], close=True, dxfattribs={"layer": "PROBLEM"})
 for L in lines:
     msp.add_spline([((x - x0) * MMk, (y1 - y) * MMk) for x, y in L], dxfattribs={"layer": "CENTERLINE"}) if len(L) > 3 else \
         msp.add_lwpolyline([((x - x0) * MMk, (y1 - y) * MMk) for x, y in L], dxfattribs={"layer": "CENTERLINE"})
@@ -397,6 +504,14 @@ out = fitz.open()
 pg = out.new_page(width=page.rect.width, height=page.rect.height)
 pg.show_pdf_page(pg.rect, fitz.open(SRC), 0)
 sh = pg.new_shape()
+for g in getattr(groove, "geoms", [groove]):
+    sh.draw_polyline([fitz.Point(*p) for p in g.exterior.coords])
+    for r in g.interiors:
+        sh.draw_polyline([fitz.Point(*p) for p in r.coords])
+sh.finish(color=None, fill=(1, 0.85, 0.3), fill_opacity=0.55, even_odd=True, width=0)
+for g in bad_parts:
+    sh.draw_polyline([fitz.Point(*p) for p in g.exterior.coords])
+    sh.finish(color=None, fill=(0.9, 0, 0.6), fill_opacity=0.8, width=0)
 for L in lines:
     sh.draw_polyline([fitz.Point(*p) for p in L])
     sh.finish(color=(0.89, 0, 0.1), width=1.2, closePath=False, lineCap=1, lineJoin=1)
@@ -419,3 +534,31 @@ if False:
         a = np.array([to_pt(p) for p in comp])
         if a[:, 0].min() > 4890 and a[:, 0].max() < 5300:
             sub = G.subgraph(comp); print("comp", len(comp), sorted(dict(sub.degree()).values()).count(1), [d for d in dict(sub.degree()).values() if d > 2])
+if "--width" in sys.argv:
+    wds = [2 * D(q) / PX * 25.4 / 72 for st in strokes for q in st["p"][::10]]
+    print("stroke width mm: p10 %.1f median %.1f p90 %.1f min %.1f" % tuple(np.percentile(wds, [10, 50, 90, 0])))
+if "--err" in sys.argv:
+    def ridge_off(a):
+        t = np.gradient(a, axis=0); t /= (np.linalg.norm(t, axis=1)[:, None] + 1e-9)
+        nrm = np.c_[-t[:, 1], t[:, 0]]
+        w = np.maximum(Dx(a), 2.0); offs = np.linspace(-1, 1, 201)
+        cand = a[:, None, :] + nrm[:, None, :] * (offs[None, :, None] * w[:, None, None])
+        dd = Dx(cand.reshape(-1, 2)).reshape(len(a), -1)
+        return np.abs(offs[np.argmax(dd, axis=1)] * w)
+    for name, key in (("v2 (išlyginta)", "v2"), ("v3 (centruota)", "s")):
+        errs = []
+        for st in strokes:
+            a = st["s"] if key == "s" else smooth2(st["p"], st["closed"])
+            wg = np.ones(len(a))
+            for P, R in Jlist:
+                wg = np.minimum(wg, (np.hypot(*(a - P).T) > 1.5 * R).astype(float))
+            e = ridge_off(a)[(wg > 0)][5:-5] if len(a) > 12 else []
+            errs += list(e)
+        errs = np.array(errs) / PX * 25.4 / 72
+        print(name, "nuokrypis nuo vidurio mm: mediana %.2f, p95 %.2f, max %.2f" % (np.median(errs), np.percentile(errs, 95), errs.max()))
+if "--rep" in sys.argv:
+    allp = np.vstack([L for L in lines if len(L) > 1])
+    d = Dpt(allp) * MMk
+    print("linijos taškų: %d, plotis (2xD) mm: min %.1f p5 %.1f mediana %.1f" % (len(d), 2 * d.min(), 2 * np.percentile(d, 5), 2 * np.median(d)))
+    print("griovelis telpa su sienele >= %.1f: %.0f %% ilgio" % (WALL, 100 * (d >= GROOVE / 2 + WALL).mean()))
+    print("su sienele >= 1: %.0f %%, griovelis tik telpa (>= 0.5): %.0f %%" % (100 * (d >= GROOVE / 2 + 1).mean(), 100 * (d >= GROOVE / 2 + 0.5).mean()))
