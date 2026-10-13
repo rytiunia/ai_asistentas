@@ -222,6 +222,9 @@ def sheet_fit(w, h, material, thk=None, margin=None):
     d = data()
     p = float(d["lakstai"].get("parastė_mm", 10)) if margin is None else float(margin)
     fm = sheet_formats(material, thk)
+    # v168: rifliuotas (checker plate) lakštas - ne lygus lakštas; siūlyti tik jei lygaus formato nėra / paprašyta
+    smooth = [f for f in fm if "rifliuot" not in str(f.get("preke", "")).lower()]
+    fm = smooth or fm
     a, b = max(w, h) + 2 * p, min(w, h) + 2 * p
     fits = [f for f in fm if a <= f["formatas_mm"][0] + 1e-6 and b <= f["formatas_mm"][1] + 1e-6]
     fits.sort(key=lambda f: f["formatas_mm"][0] * f["formatas_mm"][1])
