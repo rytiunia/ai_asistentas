@@ -119,6 +119,9 @@ Visų projekcijų (priekinis, šoninis, galinis vaizdas, 3D) objektų linijos - 
 ## (iš SKILL.md v75) Lapas (v9)
 - A3 paraštės minimalios: 5 mm iki išorinio rėmelio, 4 mm zonų juosta.
 - ORDER NO. - visada paryškintas 14 pt; nežinomas -> šablonas `ALT0000_00.00_RS`.
+  `ALT0000_00.00_RS` = PIRMINIS dokumentas (pasiūlymas / derinimas, dar nepatvirtintas): į jį įrašomas kliento ORDER
+  numeris (pvz. „Order no 225437“, „PO 2475“, „Volvo order 33465“); ALT numeris atsiranda tik patvirtinus, pagal sistemą
+  (`references/patvirtinimas.md`). Pirminio lapo failas - `Drawing_<užsakymas>.pdf` / `_upd_N` (v161, Rytis 2026-10-13).
 - PROFILE P6 ON RAILS pjūvis - TOS PAČIOS spalvos kaip DETAIL A (P6+3): šonai #6E6E6E, galas ir bėgeliai
   #B4B4B4, ausėlės #8C8C8C, PVC #C8C8C8, plexi baltas, varžtai #3A3A3A (`p6_ref.COLOR = True`).
 

@@ -42,6 +42,11 @@ pozicija), BOM: `Mounting ear, welded, Ø{EAR_HOLE} hole | Alu 3 mm | RAL rėmo 
 
 
 ## (iš SKILL.md v77) Maitinimas - TRAFO BOX (v9)
+- v161 (Rytis 2026-10-13, iš darbų analizės): leistini dėžės variantai - „TRAFO BOX" (bendras), „Trafbox", „Plastic IP box
+  with WAGO inside" (Volvo), su PWM / potenciometru (pritemdymas, „+ potentiometer"). PSU numatyta Kaisen KPS / BaltLED BPS;
+  **Mean Well - tik kliento nurodymu** (darbuose sutikti: HLG-40-A, HLG-60, HLG-80, HLG-240, XLG-75 / 100 / 150, ELG-75,
+  LPV-35, LPF-40-12, PWM-200-24 - Volvo, DSV, BN Skilte, Skyltkoncept sandėliui). Standartinis el. išvesties užrašas:
+  „+1,5m ~230V El. Output" / „+1,5m 12V El. Output", „From letter / construction: 1.5m, 12V".
 - REAR VIEW: kiekviena šviečianti grupė (raidės, X) turi SAVO laidą; VISI laidai eina į vieną TRAFO BOX.
   Dėžė - rėmo spalvos (RAL bėgelių), užrašas „TRAFO BOX / PWM, RAL ….", balionas = BOM „Trafo box" pozicija.
 - Prie kiekvieno laido: įtampa ir ilgis. Rytis 2026-10-08: VISI laidai 5 m („12V, 5.0 m"; spec

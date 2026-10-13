@@ -23,6 +23,11 @@ Matmenų užrašas kataloge: L [didesnė, mažesnė, t]; **U [B išorinis plotis
 H x B x H x t („30x30x30x2“), Heliopolis vidus x B x H x t („26x30x30x2“) - `parse_profile` abu suveda į U 30x30x2;
 O [didesnė, mažesnė, t]; R apvalus [D, t] (Heliopolis D x d x t); T [a, b, t]; FB juosta [plotis, storis].
 
+**RĖMO PROFILIŲ STANDARTAS (v161, Rytis 2026-10-13): 20x20x2 / 30x30x2 / 40x40x2 / 60x60x2 / 80x80x2.**
+Visi kiti (25x25x2, 30x30x3, 40x20x2, 50x50x2 ...) - TIK pagal atskirą užklausą (kliento specifikacija / standartas
+`references/klientai/*.md` arba Ryčio nurodymas). `medziagos.is_standard_profile`, `profile_check` / `profile_warn` perspėja
+„! NE STANDARTAS“. Darbų analizė 2024-2026: 30x30x2 - dažniausias (~20 % lapų), toliau 25x25x2, 40x40x2, 20x20x2, 30x30x3.
+
 Dažniausi skill'o profiliai:
 
 | Profilis | Yra | Pastaba |

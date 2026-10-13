@@ -12,6 +12,7 @@ Funkcijos:
                                             rėmas užima vienu strypu mažiau; None - nėra ką trumpinti / neverta
   sheet_fit(w, h, material, thk)          - ar detalė telpa į tiekėjo lakštą (su parašte), kokie formatai tinka
 
+  is_standard_profile(m)                  - v161: rėmo profilių standartas 20/30/40/60/80 x 2
   profile_check(text, kind)               - v114: ar profilis yra LT tiekėjų sandėlyje (Heliopolis, Lankava, Proplastik)
                                             + artimiausi variantai; profile_warn() - perspėjimas konsolei
   sheet_check(material, thk, ral)         - v114: ar lakštas / AKP spalva yra pas tiekėjus
@@ -300,6 +301,22 @@ def _eq(a, b):
     return a is None or b is None or abs(a - b) < 0.051
 
 
+STD_PROFILES = [(20, 20, 2), (30, 30, 2), (40, 40, 2), (60, 60, 2), (80, 80, 2)]   # v161, Rytis 2026-10-13
+
+
+def is_standard_profile(m):
+    """v161: rėmo profilių STANDARTAS 20x20x2 / 30x30x2 / 40x40x2 / 60x60x2 / 80x80x2 (U / O / L);
+    visi kiti - tik pagal atskirą užklausą (kliento specifikacija ar Ryčio nurodymas)."""
+    if not m or len(m) != 3 or None in m:
+        return None
+    return any(all(_eq(a, b) for a, b in zip(m, s)) for s in STD_PROFILES)
+
+
+def _std_note(m):
+    st = is_standard_profile(m)
+    return "" if st in (True, None) else " ! NE STANDARTAS (20/30/40/60/80 x 2) - tik pagal atskirą užklausą"
+
+
 def profile_check(text, kind=None):
     """Ar profilis yra LT tiekėjų sandėlyje (assets/medziagos.json -> profiliu_katalogas).
     Grąžina {"ok", "tipas", "m", "found": [katalogo įrašai], "near": [artimiausi], "msg"}.
@@ -329,17 +346,21 @@ def profile_check(text, kind=None):
             name = "/".join(sorted({r["tipas"] for r in found})) + " " + "x".join(f"{v:g}" for v in m) + " (tipas nenurodytas)"
         msg = f"{name}: YRA - {', '.join(sup)}" + (" (yra ir anoduotas)" if an else "") + \
               (" ! tiekėjas aukščio nenurodo - patikslinti" if unk else "")
-        return {"ok": True, "tipas": tp, "m": m, "found": found, "near": near, "msg": msg}
+        return {"ok": True, "tipas": tp, "m": m, "found": found, "near": near, "msg": msg + _std_note(m),
+                "standartas": is_standard_profile(m)}
     alt = "; ".join(f"{r['tipas']} " + "x".join("?" if v is None else f"{v:g}" for v in r["m"]) + " (" + ", ".join(sorted({s['t'] for s in r['tiekejai']})) + ")" for r in near)
     nr = [x for x in k.get("nerasta", []) if parse_profile(x["profilis"])[1] == m]
     msg = f"! {name}: LT tiekėjų sandėlyje NĖRA (Heliopolis, Lankava, Proplastik)" + (f" - {nr[0]['pastaba']}" if nr else "") + \
           (f". Artimiausi: {alt}" if alt else "") + ". Lape nerašyti be Ryčio patvirtinimo."
-    return {"ok": False, "tipas": tp, "m": m, "found": [], "near": near, "msg": msg}
+    return {"ok": False, "tipas": tp, "m": m, "found": [], "near": near, "msg": msg + _std_note(m),
+            "standartas": is_standard_profile(m)}
 
 
 def profile_warn(text, kind=None):
     """trumpas perspėjimas konsolei; '' jei profilis yra"""
     r = profile_check(text, kind)
+    if r.get("ok") and r.get("standartas") is False:
+        return "  " + r["msg"]
     return "" if r["ok"] or r["ok"] is None and "plienas" in r["msg"] else "  " + r["msg"]
 
 
