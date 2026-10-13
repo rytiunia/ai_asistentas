@@ -127,6 +127,7 @@ F_DIM_MAIN, F_DIM_FRAME, F_INFO, F_VIEW, F_SCALE = 12, 8, 8, 13, 9
 def init(tmp_pdf, title=""):
     global c, _tmp
     _tmp = tmp_pdf
+    TEXT_BOXES.clear()
     c = canvas.Canvas(tmp_pdf, pagesize=(W, H))
     c.setTitle(title)
     return c
@@ -234,6 +235,11 @@ def T(x, y, s, size=7.5, font="F", color=black, align="l", rot=0, auto_red=True,
     c.translate(x, Y(y)); c.rotate(rot)
     w_ = pdfmetrics.stringWidth(s, font, size)
     x0_ = {"l": 0, "c": -w_ / 2, "r": -w_}[align]
+    if s.strip():                                       # v172: visų lapo tekstų plotai - matmenų užrašai jų nedengia
+        if rot % 180 == 0:
+            TEXT_BOXES.append((c.getPageNumber(), x + x0_, y - size * 0.75, x + x0_ + w_, y + size * 0.1))
+        else:
+            TEXT_BOXES.append((c.getPageNumber(), x - size * 0.75, y - x0_ - w_, x + size * 0.1, y - x0_))
     t_ = c.beginText(x0_, 0); t_.setFont(font, size)
     if font == "FB":
         t_.setTextRenderMode(2); c.setLineWidth(size * 0.045)
@@ -305,11 +311,24 @@ def hdim(x1, x2, y, label, e1=None, e2=None, size=8, small_side="r", avoid=None)
     line(x1, y, x2, y, 0.3)
     if x2 - x1 > max(16, pdfmetrics.stringWidth(str(label), "F", size) + 4):
         arrowhead(x1, y, 180); arrowhead(x2, y, 0)
-        T(_dodge((x1 + x2) / 2, x1, x2, label, size, avoid), y - 2.5, label, size, align="c")
+        cx_ = _dodge((x1 + x2) / 2, x1, x2, label, size, avoid)
+        w_ = pdfmetrics.stringWidth(str(label), "F", size)
+        if avoid and any(cx_ - w_ / 2 - 3 <= ax <= cx_ + w_ / 2 + 3 for ax in avoid):
+            # v172: matmens ribose vietos be kirtimų nėra - tekstas UŽ matmens galo (linija pratęsiama), ne ant išvadinių
+            for side in (("l", "r") if small_side == "l" else ("r", "l")):
+                for d_ in range(10, 160, 2):                 # artimiausia laisva vieta už galo
+                    if side == "l" and not any(x1 - d_ - w_ - 3 <= ax <= x1 - d_ + 3 for ax in avoid):
+                        line(x1 - d_ - w_ - 2, y, x1, y, 0.3); T(x1 - d_, y - 2.5, label, size, align="r"); return
+                    if side == "r" and not any(x2 + d_ - 3 <= ax <= x2 + d_ + w_ + 3 for ax in avoid):
+                        line(x2, y, x2 + d_ + w_ + 2, y, 0.3); T(x2 + d_, y - 2.5, label, size, align="l"); return
+        T(cx_, y - 2.5, label, size, align="c")
     else:
         arrowhead(x1, y, 0); arrowhead(x2, y, 180)
         line(x1 - 8, y, x1, y, 0.3); line(x2, y, x2 + 8, y, 0.3)
-        if small_side == "l":
+        w_ = pdfmetrics.stringWidth(str(label), "F", size)
+        fl = text_free(x1 - 10 - w_, y - size * 0.4, x1 - 10, y + size * 0.45)
+        fr = text_free(x2 + 10, y - size * 0.4, x2 + 10 + w_, y + size * 0.45)
+        if (small_side == "l" and (fl or not fr)) or (small_side != "l" and fl and not fr):   # v172: į laisvą pusę
             T(x1 - 10, y + size * 0.35, label, size, align="r")
         else:
             T(x2 + 10, y + size * 0.35, label, size)
@@ -324,20 +343,24 @@ def _bg(x, y, s, size, align="c", rot=0):
 
 
 def _dodge(cx, a, b, lab, size, avoid):
-    """Rytis 2026-10-07: matmens tekstas nekertamas išvadinių / žymų linijų - pastumiamas šalia linijos"""
+    """Rytis 2026-10-07 / v172: matmens tekstas nekertamas JOKIOS išvadinės / žymos / laido linijos - ieškoma artimiausia
+    centrui vieta matmens ribose, kur nė viena `avoid` x nepatenka į teksto plotą (+3 pt); nėra - mažiausiai kirtimų."""
     if not avoid:
         return cx
     w_ = pdfmetrics.stringWidth(str(lab), "F", size)
-    for ax in avoid:
-        if cx - w_ / 2 - 2 <= ax <= cx + w_ / 2 + 2:
-            r_ = ax + w_ / 2 + 8                     # v52: aiškus tarpas nuo laido / išvadinės
-            l_ = ax - w_ / 2 - 8
-            if r_ + w_ / 2 <= b - 3:
-                return r_
-            if l_ - w_ / 2 >= a + 3:
-                return l_
-            return r_ if (b - ax) > (ax - a) else l_
-    return cx
+    lo, hi = a + w_ / 2 + 3, b - w_ / 2 - 3
+    best = None
+    k = 0.0
+    while k <= max(hi - lo, 0) + 1:
+        for c_ in ((cx + k, cx - k) if k else (cx,)):
+            if lo <= c_ <= hi or (hi < lo and abs(c_ - (a + b) / 2) < 1):
+                hits = sum(1 for ax in avoid if c_ - w_ / 2 - 3 <= ax <= c_ + w_ / 2 + 3)
+                if best is None or hits < best[0]:
+                    best = (hits, c_)
+                if hits == 0:
+                    return c_
+        k += 1.0
+    return best[1] if best else cx
 
 
 def _Tbg(x_, y_, s_, size_, align="l", rot=0, **kw):
@@ -359,7 +382,8 @@ def hchain(y, xs, ext_from_y, labels, size=8, bg=False, avoid=None):
     placed = []                                            # (x0, x1, y) užimti tekstų plotai
 
     def free(x0, x1, yy):
-        return all(x1 + 3 <= a or x0 - 3 >= b or abs(yy - c_) >= size + 1 for a, b, c_ in placed)
+        return all(x1 + 3 <= a or x0 - 3 >= b or abs(yy - c_) >= size + 1 for a, b, c_ in placed) and \
+            text_free(x0, yy - size * 0.75, x1, yy + size * 0.1)
     smalls, n = [], len(labels)
     for i, (a, b, lab) in enumerate(zip(xs[:-1], xs[1:], labels)):
         if str(lab) == "":
@@ -413,7 +437,8 @@ def vchain(x, ys, ext_to, labels, size=8, bg=False):
     placed = []                                              # (y0, y1, x0, x1)
 
     def free(y0, y1, x0, x1):
-        return all(y1 + 2 <= a or y0 - 2 >= b or x1 + 2 <= c_ or x0 - 2 >= d for a, b, c_, d in placed)
+        return all(y1 + 2 <= a or y0 - 2 >= b or x1 + 2 <= c_ or x0 - 2 >= d for a, b, c_, d in placed) and \
+            text_free(x0, y0, x1, y1)
     for i, (a, b, lab) in enumerate(zip(ys[:-1], ys[1:], labels)):
         w_ = pdfmetrics.stringWidth(str(lab), "F", size)
         lo, hi = min(a, b), max(a, b)
@@ -423,7 +448,11 @@ def vchain(x, ys, ext_to, labels, size=8, bg=False):
             placed.append(((a + b) / 2 - w_ / 2, (a + b) / 2 + w_ / 2, x - size, x))
             continue
         arrowhead(x, a, -90 if a < b else 90); arrowhead(x, b, 90 if a < b else -90)
-        end = "side"                                         # v152: mažas tarpas - horizontalus užrašas šone (nuo objekto)
+        # v172 (Rytis: „matmenų linijos sugrūdamos"): kraštinis mažas tarpas - VIRŠ / PO grandinės galu (ne šone, kur
+        #  jį kerta išorinio matmens išvadinė); vidurinis - šone, toliau nuo objekto
+        end = "top" if i == 0 else ("bot" if i == n - 1 else "side")
+        if end == "top" and not free(top - 10 - w_, top - 8, x - size, x) and i == n - 1:
+            end = "bot"                                      # viršuje užimta (kiti matmenys) - po apačios galu
         if end == "top" and free(top - 10 - w_, top - 8, x - size, x):
             line(x, top - 8, x, top, 0.3)
             TX(x - 2.5, top - 10 - w_ / 2, lab, size, align="c", rot=90); placed.append((top - 10 - w_, top - 8, x - size, x)); continue
@@ -1307,6 +1336,14 @@ def balloon_side(items, edge, side="right", up=True, d=16, r=6.5, gap=None, tags
 # laisvos vietos ŠALIA detalės: trumpa ĮSTRIŽA išvadinė (30-60°, ne lygiagreti matmenims), balionas visas baltame plote,
 # išvadinė kuo mažiau kerta brėžinio linijų ir nekerta kitų išvadinių; 2 praėjimas - piešiama su rastomis vietomis.
 AUTO = {"mode": None, "reqs": [], "place": [], "i": 0}
+TEXT_BOXES = []                                         # v172: (puslapis, x0, y0, x1, y1) - jau parašyti tekstai
+
+
+def text_free(x0, y0, x1, y1, pad=2.0):
+    """v172: sritis nesikerta su jau parašytais to paties puslapio tekstais"""
+    pn = c.getPageNumber()
+    return all(p_ != pn or x1 + pad <= a or x0 - pad >= b_ or y1 + pad <= b or y0 - pad >= d
+               for p_, a, b, b_, d in TEXT_BOXES)
 
 
 def auto_begin(mode, placements=None):
@@ -1317,10 +1354,12 @@ def auto_begin(mode, placements=None):
         AUTO["place"] = placements or []
 
 
-def balloon_auto(tx, ty, label, r=6.5, region=None, kind="balloon", size=8, prefer=None):
-    """balionas (kind='balloon') arba žyma su tekstu (kind='tag') - vieta parenkama automatiškai (auto_begin)"""
+def balloon_auto(tx, ty, label, r=6.5, region=None, kind="balloon", size=8, prefer=None, avoid=None):
+    """balionas (kind='balloon') arba žyma su tekstu (kind='tag') - vieta parenkama automatiškai (auto_begin).
+    v172: avoid - [(x0, y0, x1, y1)] sritys (vaizdo objektas), kuriose balionas NEDEDAMAS (ne ant fono / raidžių)."""
     if AUTO["mode"] == "collect":
-        AUTO["reqs"].append(dict(tx=tx, ty=ty, label=str(label), r=r, region=region, kind=kind, size=size, prefer=prefer))
+        AUTO["reqs"].append(dict(tx=tx, ty=ty, label=str(label), r=r, region=region, kind=kind, size=size, prefer=prefer,
+                                 avoid=avoid))
         return
     if AUTO["mode"] == "draw" and AUTO["i"] < len(AUTO["place"]):
         bx, by = AUTO["place"][AUTO["i"]]; AUTO["i"] += 1
@@ -1393,7 +1432,7 @@ def auto_place(pdf_path, page=0, zoom=2.0):
             if 0 <= a < Ww and 0 <= b < Hh:
                 ink[max(b - 1, 0):b + 2, max(a - 1, 0):a + 2] = True
     angs = [45, 135, 225, 315, 30, 150, 210, 330, 60, 120, 240, 300]
-    rads = [14, 18, 23, 29, 36, 44, 54, 66, 80, 96]
+    rads = [14, 18, 23, 29, 36, 44, 54, 66, 80, 96, 115, 135, 160, 190]       # v172: toliau - už vaizdo ribų
     segs, out = [], []
     for q in AUTO["reqs"]:
         tx, ty, rr = q["tx"], q["ty"], q["r"] + 1.5
@@ -1418,12 +1457,15 @@ def auto_place(pdf_path, page=0, zoom=2.0):
                     if not (reg[0] + rr <= bx <= reg[2] - rr and reg[1] + rr <= by <= reg[3] - rr):
                         continue
                     free = circ_free(bx, by, rr + 1.5)
+                    if free and q.get("avoid"):
+                        free = not any(a0 - rr - 4 < bx < a1 + rr + 4 and b0 - rr - 4 < by < b1 + rr + 4
+                                       for a0, b0, a1, b1 in q["avoid"])
                     ex, ey = bx - ca * rr, by - sa * rr
                 if not free:
                     continue
                 cr = crossings(tx, ty, ex, ey)
                 lx = sum(1 for s_ in segs if seg_x((tx, ty), (ex, ey), s_[0], s_[1]))
-                score = R + 14 * cr + 200 * lx + k_ * 0.6
+                score = R + 40 * cr + 200 * lx + k_ * 0.6        # v172: kiekvienas kirtimas brangesnis už atstumą
                 if best is None or score < best[0]:
                     best = (score, bx, by, ex, ey, x0b if q["kind"] == "tag" else None,
                             (x1b, y0b, y1b) if q["kind"] == "tag" else None)

@@ -92,3 +92,40 @@ def draw(K, clip, X0, Ytop, k, texts, min_size=8.0):
         for t_, c_ in segs:
             K.T(px, py, t_, size, color=HexColor(c_), auto_red=False)
             px += K.pdfmetrics.stringWidth(t_, "F", size)
+
+
+def hairline(pdf, pages=None, out=None):
+    """v172 (Rytis: „kai kur naudojamas ne hairline"): įdedamo originalo fragmento VISOS linijos -> hairline (0 w), įskaitant
+    vidines formas (XObject). Originalo linijų storiai, padidinus fragmentą, tampa 0,17-0,8 pt - lape objektai tik hairline."""
+    import re
+    d = fitz.open(pdf)
+    rx = re.compile(rb"(?<![\w.])(-?\d*\.?\d+)\s+w(?=\s)")
+    done = set()
+    xrefs = []
+    for pno in (pages if pages is not None else range(len(d))):
+        pg = d[pno]
+        xrefs += list(pg.get_contents())
+        xrefs += [x[0] for x in pg.get_xobjects()]
+    while xrefs:
+        xr = xrefs.pop()
+        if xr in done:
+            continue
+        done.add(xr)
+        try:
+            st = d.xref_stream(xr)
+        except Exception:
+            continue
+        if st is None:
+            continue
+        new = rx.sub(b"0 w", st)
+        if new != st:
+            d.update_stream(xr, new)
+        res = d.xref_get_key(xr, "Resources/XObject")       # vidinės formos
+        if res[0] == "dict":
+            for m in re.findall(r"(\d+) 0 R", res[1]):
+                xrefs.append(int(m))
+    tmp = (out or pdf) + ".hl.pdf"
+    d.save(tmp, garbage=3, deflate=True)
+    d.close()
+    os.replace(tmp, out or pdf)
+    return out or pdf

@@ -1502,6 +1502,11 @@ if LEDF:                                                   # v167 (Rytis): objek
                 w_ = _hw - 10
             POS[b] = (cx - w_ / 2, y_, w_, h_)
 
+# v172 (Rytis: „nuorodų linijos lipa ant skaičių, fono, kitų linijų"): balionai - AUTOMATINIS 2 praėjimų išdėstymas
+#  (K.balloon_auto): 1 praėjimas surenka taikinius, `K.auto_place` randa vietą su mažiausiai susikirtimų, 2 - piešia
+_AUTO_FILE = os.environ.get("BB_AUTO")
+_AUTO = json.load(open(_AUTO_FILE)) if _AUTO_FILE else {}
+K.auto_begin("draw", _AUTO["place"]) if _AUTO_FILE else K.auto_begin("collect")
 tmp = tempfile.mktemp(suffix=".pdf")
 K.init(tmp, spec.get("file_code", "drawing"))
 K.frame()
@@ -1619,10 +1624,8 @@ for g in bot_gs:
         pr += [(g["x0"], extreme(g["plate"]["geom"], "minx")), (g["x1"], extreme(g["plate"]["geom"], "maxx"))]
 m = chain_marks(pr)
 yb = FVY + fh + 20
-for v, p in (m if len(m) > 2 else []):
-    line(FV(v, 0)[0], FV(*p)[1] + 2, FV(v, 0)[0], yb + 3, 0.25, K.EXT)
-if len(m) > 2:
-  hchain(yb, [FV(v, 0)[0] for v, _ in m], [yb + 0.01] * len(m), [f"{round(b[0]) - round(a[0])}" for a, b in zip(m[:-1], m[1:])], K.F_DIM_MAIN)
+if len(m) > 2:                                   # v172: išvadinės nuo objekto -> hchain žino kryptį (maži tarpai - toliau nuo objekto)
+  hchain(yb, [FV(v, 0)[0] for v, _ in m], [FV(*p)[1] for _, p in m], [f"{round(b[0]) - round(a[0])}" for a, b in zip(m[:-1], m[1:])], K.F_DIM_MAIN)
 # kairė: plokštės grupė (plokštė, raidė) + bendras aukštis
 pmn_y, pmx_y = extreme(ALL_G, "miny"), extreme(ALL_G, "maxy")
 pr = [(0, pmn_y), (PH, pmx_y)]
@@ -1699,10 +1702,10 @@ def _callouts(view, F):
     """v13: BOM pozicijų balionai vaizde - spec callouts.<view> = [[x_mm, y_mm, poz, dx_pt, dy_pt]] (priekio koord.)"""
     for co_ in spec.get("callouts", {}).get(view, []):
         x_, y_ = F(co_[0], co_[1])
-        line(x_, y_, x_ + co_[3], y_ + co_[4], 1.4, white)
-        leader(x_, y_, x_ + co_[3], y_ + co_[4], co_[2])
+        K.balloon_auto(x_, y_, co_[2])                  # v172: be balto apvado; tik laisvoje vietoje, mažiausiai kirtimų
 
 
+VIEW_BOX = {"front": (FVX, FVY, FVX + fw, FVY + fh)}
 _callouts("front", FV)
 view_title(FVX + fw / 2, FVY + fh + 52, "FRONT VIEW", f"SCALE 1:{SC1}")
 
@@ -1781,7 +1784,7 @@ CABLES = [{"x": (c_["pt"][0] - OX) * S, "y": (c_["pt"][1] - OY) * S, "label": c_
 # ============================================================ REAR VIEW (MIRRORED)
 s2 = MM / SC2
 _TOPX = 20 if any(_stack(g)[1] and not _stack(g)[0] and _rail_n(g) > 1 for g in groups) else 0
-RVX, RVY = POS["R"][0] + 70, POS["R"][1] + 40 + _TOPX + (36 if LEDF else 0)
+RVX, RVY = POS["R"][0] + 70, POS["R"][1] + 40 + _TOPX + (36 if LEDF else 0) + _AUTO.get("shift_r", 0)
 rw, rh = PW * s2, PH * s2
 
 
@@ -2072,6 +2075,7 @@ CH_BOT = [0]
 #  3 eilė - kiti elementai (vidurinis bėgelis, statmenys, i taško laikiklis) - žyma su išvadine;
 #  bėgelių ašių grandinė - šone už grupės. Skaičiai ant raidžių nededami.
 ROW = [16, 36, 56]
+DIM_ROWS = []                                           # v172: galinio vaizdo matmenų eilės (side, row, x0, x1)
 TAG_BOXES = []                                          # v157: padėtų galinio vaizdo žymų dėžutės (x0, x1, y)
 UPR = [0]                                               # v13: matmenų eilių virš galinio vaizdo skaičius
 _PFX = "□" if str(spec.get("rail", {}).get("type", "u")).lower().startswith(("sq", "box", "kv")) else "U"
@@ -2084,13 +2088,22 @@ _CAB_UPX = [RV(e_[0], 0)[0] for g_ in groups if ((g_["spec"].get("cable") or {})
 
 def _rail_len_dim(r_, y_, from_y, g, avoid=None):
     xa_, xb_ = RV(r_["x1"], 0)[0], RV(r_["x0"], 0)[0]
-    avoid = list(avoid or []) + _CAB_UPX
-    hdim(xa_, xb_, y_, f"{round(r_['len'])}  ({_PFX}{g['rsz']['size']})", from_y, from_y, size=K.F_DIM_FRAME, avoid=avoid)
+    avoid = list(avoid or []) + _CAB_UPX + AV_ALL               # v172: VISŲ grupių žymų išvadinės ir laidai
+    hdim(xa_, xb_, y_, f"{round(r_['len'])}  ({_PFX}{g['rsz']['size']})", from_y, from_y, size=K.F_DIM_FRAME, avoid=avoid,
+         small_side="l" if (xa_ + xb_) / 2 < RVX + rw / 2 else "r")
 
 
 # Rytis 2026-10-07: galiniame vaizde TIK bendriniai matmenys - rėmo profilių ilgiai (pagrindas), statmenų / kitų
 # profilių ilgių žymos, bėgelių ašių atstumai; ausėlių grandinių NĖRA (ausėlės - 1:1 faile ir priekio vaizde);
 # X Z juostos - tik plotis (ilgis) ir aukštis tarp centrų.
+AV_ALL = []                                             # v172: x visų statmenų / vidurinių (jų žymų išvadinės)
+for g in groups:
+    _hs = sorted([r_ for r_ in g["rails"] if r_["kind"] == "h"], key=lambda r_: r_["y0"])
+    _car = [_hs[0], _hs[-1]] if len(_hs) >= 2 else _hs
+    AV_ALL += [RV((r_["x0"] + r_["x1"]) / 2, 0)[0] for r_ in g["rails"] if not any(r_ is q for q in _car)]
+AV_ALL += [RV(c_["x"], c_["y"])[0] for c_ in CABLES if c_.get("point")]
+AXIS_TXT = []                                           # v172: (y vidurys, teksto ilgis) - laidas nekerta užrašo
+AXIS_X = []                                             # v172: bėgelių ašių grandinių x (laidai nekerta jų užrašų)
 for g in groups:
     hs_ = sorted([r_ for r_ in g["rails"] if r_["kind"] == "h"], key=lambda r_: r_["y0"])
     car_ = [hs_[0], hs_[-1]] if len(hs_) >= 2 else hs_
@@ -2104,7 +2117,15 @@ for g in groups:
             side = "dn" if blk_top else "up"
         else:
             side = "up" if (blk_bot and not blk_top) else "dn"
-        row = used[side]; used[side] += 1
+        # v172 (Rytis: „matmenų linijos sugrūdamos viena ant kitos"): eilė - GLOBALI visam galiniam vaizdui; matmuo, kurio
+        #  x ruožas persidengia su kitos grupės matmeniu toje pačioje eilėje, keliamas į kitą eilę (20 pt)
+        _xa_, _xb_ = sorted((RV(r_["x0"], 0)[0], RV(r_["x1"], 0)[0]))
+        row = used[side]
+        while any(rw_ == row and _xa_ < xb2 + 6 and xa2 - 6 < _xb_ for (sd2, rw_, xa2, xb2) in DIM_ROWS if sd2 == side):
+            row += 1
+        used[side] = row + 1
+        DIM_ROWS.append((side, row, _xa_, _xb_))
+        UPR[0] = max(UPR[0], row + 1) if side == "up" else UPR[0]
         yy_ = (_vt - ROW[0] - 20 * row) if side == "up" else (_vb + ROW[0] + 20 * row)
         _rail_len_dim(r_, yy_, ey_, g, AV_)
         if side == "dn":
@@ -2119,6 +2140,20 @@ for g in groups:
         w_ = K.pdfmetrics.stringWidth(txt_, "F", K.F_DIM_FRAME)
         tags_.append({"a": a_, "t": txt_, "x0": a_[0] - w_ / 2 - 3, "x1": a_[0] + w_ / 2 + 3,
                       "up": (bool(hs_) and r_["y1"] <= hs_[0]["y0"] + 1) or (blk_bot and not blk_top), "row": 0})
+    # v172: kelios žymos toje pačioje vertikalėje (pvz. i taško laikiklis 130 + statmuo 226) - VIENA žyma, viena išvadinė
+    _mg = []
+    for t_ in sorted(tags_, key=lambda t_: t_["a"][0]):
+        if _mg and abs(_mg[-1]["a"][0] - t_["a"][0]) < 1.0 and _mg[-1]["up"] == t_["up"]:
+            k_ = _mg[-1]
+            sfx = " vert." if t_["t"].endswith(" vert.") and k_["t"].endswith(" vert.") else ""
+            k_["t"] = (k_["t"][:-len(sfx)] if sfx else k_["t"]) + " / " + t_["t"]
+            if (t_["a"][1] < k_["a"][1]) == k_["up"]:
+                k_["a"] = t_["a"]
+            w_ = K.pdfmetrics.stringWidth(k_["t"], "F", K.F_DIM_FRAME)
+            k_["x0"], k_["x1"] = k_["a"][0] - w_ / 2 - 3, k_["a"][0] + w_ / 2 + 3
+            continue
+        _mg.append(t_)
+    tags_ = _mg
     UPR[0] = max(UPR[0], used["up"] + (1 if any(t_["up"] for t_ in tags_) else 0))
     for up_ in (True, False):
         side_ = sorted([t_ for t_ in tags_ if t_["up"] == up_], key=lambda t_: -t_["a"][0])
@@ -2168,6 +2203,17 @@ for g in groups:
         ex_ = RV(g["x1"], 0)[0]
         if (id(g), 1) in CAB_SIDE and (id(g), -1) not in CAB_SIDE:
             xg = RV(g["x0"], 0)[0] + 14; ex_ = RV(g["x0"], 0)[0]
+        # v172: taškinė laido išvestis (raidėje) prie grandinės - grandinė perkeliama į kitą grupės pusę
+        _pcx = [RV(c_["x"], c_["y"])[0] for c_ in CABLES if c_.get("point")]
+        if any(abs(xg - px_) < 22 for px_ in _pcx):
+            _alt = RV(g["x0"], 0)[0] + 14 if ex_ == RV(g["x1"], 0)[0] else RV(g["x1"], 0)[0] - 14
+            if not any(abs(_alt - px_) < 22 for px_ in _pcx):
+                ex_ = RV(g["x0"], 0)[0] if ex_ == RV(g["x1"], 0)[0] else RV(g["x1"], 0)[0]
+                xg = _alt
+        _yv = [RV(0, y)[1] for y in ys_]
+        AXIS_X.append(xg)
+        AXIS_TXT.extend(((a + b) / 2, K.pdfmetrics.stringWidth(f"{round(b1 - a1)}", "F", K.F_DIM_FRAME))
+                        for a, b, a1, b1 in zip(_yv[:-1], _yv[1:], ys_[:-1], ys_[1:]))
         vchain(xg, [RV(0, y)[1] for y in ys_], [ex_] * len(ys_),
                [f"{round(b - a)}" for a, b in zip(ys_[:-1], ys_[1:])], K.F_DIM_FRAME)
 r_first = next((r_ for g in groups if not g["plate"] for r_ in g["rails"]), None)
@@ -2348,12 +2394,21 @@ else:
             K.c.saveState(); K.c.setFillColor(K.CABLE); K.c.circle(px_, K.Y(py_), 1.6, stroke=0, fill=1); K.c.restoreState()
             if cb.get("up_mm") is not None:
                 yt_ = py_ - cb["up_mm"] * s2
+                for _ym, _tw in AXIS_TXT:                  # v172: horizontali atkarpa - ne per grandinės užrašą
+                    if _ym - _tw / 2 - 4 < yt_ < _ym + _tw / 2 + 4:
+                        yt_ = _ym + _tw / 2 + 5 if yt_ > _ym else _ym - _tw / 2 - 5
             else:
                 yt_ = _vt - ROW[0] - 20 * max(UPR[0], 1) - 8 - 12 * _pt_rank[0]
                 _pt_rank[0] += 1
-            K.cable_line([(px_, py_), (px_, yt_)])
             td = {"left": -1, "right": 1}.get(cb.get("side")) or (-1 if px_ < RVX + rw / 2 else 1)   # galinio vaizdo kryptimi
-            ex, ey = _wiggle(px_, yt_, td, n=18)
+            if cb.get("up_mm") is not None:          # v172: tarp eilučių - horizontaliai UŽ vaizdo krašto, užrašas ne ant rėmo
+                xo_ = min([RVX - 8] + [ax_ - 22 for ax_ in AXIS_X]) if td < 0 else \
+                    max([RVX + rw + 8] + [ax_ + 22 for ax_ in AXIS_X])
+                K.cable_line([(px_, py_), (px_, yt_), (xo_, yt_)])
+                ex, ey = _wiggle(xo_, yt_, td, n=18)
+            else:
+                K.cable_line([(px_, py_), (px_, yt_)])
+                ex, ey = _wiggle(px_, yt_, td, n=18)
             _bolt(ex + td * 6, ey)
             v_ = cb["voltage"] if not K.unk(cb["voltage"]) else "___ V"
             TL(ex + td * 11, ey + 3, f"{v_}, {cb['label']}", K.F_INFO + 1, align="l" if td > 0 else "r")
@@ -2373,6 +2428,7 @@ else:
         T(RVX, RVY - 34, spec.get("power_note", "Power / PSU / cable exits:"), K.F_INFO + 1)   # v29: pvz. „NO LIGHTS - no cable / PSU"
 for xj_, lj_ in JOINTS:
     _joint(RV(xj_, 0)[0], RVY - 8, RVY + rh + 8, lj_)
+VIEW_BOX["rear"] = (RVX, RVY, RVX + rw, RVY + rh)
 _callouts("rear", RV)
 # v111 (Rytis 2026-10-12, etalonas EXTRA 223315 lapas 1): GALINIAME VAIZDE virš kiekvienos šviečiančios grupės - kokie LED
 #  dedami (spalva / temperatūra; plokštei X - vidus ir galas). spec grupės "led": "White LED modules, 6500K" arba eilučių
@@ -2425,10 +2481,7 @@ if r_first:
     _dx5 = 22                                      # v50: išvadinė nekerta laido - pasvyra nuo artimiausio laido
     if any(_x5 < a_ <= _x5 + 60 for a_, b_ in _busy):
         _dx5 = -22
-    if _yb5 is None:
-        leader(_x5, _y5, RVX + rw + 26, _y5 - 16, spec.get("section_labels", {}).get("5", 5))
-    else:
-        leader(_x5, _y5, _x5 + _dx5, _yb5, spec.get("section_labels", {}).get("5", 5))
+    K.balloon_auto(_x5, _y5, spec.get("section_labels", {}).get("5", 5), avoid=[(RVX, RVY, RVX + rw, RVY + rh)])
 _rty, _rtx = max(RVY + rh + 56, CH_BOT[0] + 26, _bottom[0] + 24), RVX + rw / 2
 if _rty + 4 + K.F_SCALE * 1.25 > K.VIEW_BOT and TB_ON and CEX:      # v44: netelpa po dėže - šalia trafo dėžės
     _rtw = K.pdfmetrics.stringWidth("REAR VIEW (MIRRORED)", "FB", K.F_VIEW) / 2 + 30
@@ -2789,6 +2842,19 @@ def draw_bracket_sheet():
 if BRACKETS:
     draw_bracket_sheet()
 K.save(OUT)
+if K.AUTO["mode"] == "collect" and K.AUTO["reqs"]:           # v172: 2 praėjimas su rastomis balionų vietomis
+    import subprocess as _sp
+    _af = OUT + ".auto.json"
+    # v172: galinio vaizdo viršutinės eilės (žymos, laidai) neturi išlįsti už rėmelio - 2 praėjime vaizdas nuleidžiamas
+    _pg = fitz.open(OUT)[0]
+    _rx0, _rx1 = POS["R"][0], POS["R"][0] + POS["R"][2]
+    _ys = [d_["rect"].y0 for d_ in _pg.get_drawings() if _rx0 - 40 < d_["rect"].x0 < _rx1 + 40 and d_["rect"].width < 600]
+    _ys += [b_["bbox"][1] for b_ in _pg.get_text("dict")["blocks"] if _rx0 - 40 < b_["bbox"][0] < _rx1 + 40]
+    _shift = max(0.0, K.IY0 + 8 - min(_ys)) if _ys else 0.0
+    json.dump({"place": K.auto_place(OUT), "shift_r": _shift}, open(_af, "w"))
+    _r = _sp.run([sys.executable] + sys.argv, env=dict(os.environ, BB_AUTO=_af), capture_output=True, text=True)
+    sys.stdout.write(_r.stdout); sys.stderr.write(_r.stderr)
+    sys.exit(_r.returncode)
 print("OK", OUT, f"1:{SC1}/1:{SC2}", "layout", LAY, "size", round(PW), "x", round(PH))
 for g in groups:
     print(" ", g["name"], g["spec"]["profile"], "letters", len(g["letters"]), "box", round(g["lx1"] - g["lx0"]), "x",

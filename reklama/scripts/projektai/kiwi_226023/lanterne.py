@@ -83,9 +83,12 @@ def front_view(X0, YG, s):
     HM(cx0, cx0 + CAP_W * s, yt - D2, f"{CAP_W}", yt, yt)
     HM(xb, xb + W * s, yt - D1, f"{W}", yt, yt)
     # EL išvestis viršuje
+    # v172: laidas virš visų matmenų eilių (D2 + 14), užrašas dešinėje - nekerta matmenų teksto
     ex, ey = xb + W * s * 0.8, yt
-    line(ex, ey, ex, ey - 26, 0.9, C_RED)
-    T(ex + 4, ey - 20, "+1,5m  ~230V  El. Output", K.F_INFO, color=C_RED)
+    ytop = yt - D2 - 18
+    line(ex, ey, ex, ytop, 0.9, C_RED)
+    line(ex, ytop, ex + 14, ytop, 0.9, C_RED)
+    T(ex + 17, ytop + 3, "+1,5m  ~230V  El. Output", K.F_INFO, color=C_RED)
     return dict(x0=cx0, x1=cx0 + CAP_W * s, yt=yt, yb=YG, xb=xb)
 
 
@@ -95,7 +98,6 @@ def side_view(X0, YG, s):
     rect(X0, yt, D * s, H_BODY * s, fill=C_G, lw=K.HAIR)
     rect(X0, yt, CAP_D * s, 75 * s, fill=C_G, lw=K.HAIR)
     rect(X0, YG - SS_H * s, CAP_D * s, SS_H * s, fill=C_SS, lw=K.HAIR)
-    VM(X0 + CAP_D * s + D1, [yt, yt + 75 * s], X0 + CAP_D * s, ["75"])
     for yj in joints_from_bottom():
         y_ = YG - yj * s
         line(X0 - 3, y_, X0 + D * s + 3, y_, 0.3, dash=([4, 1.5, 1, 1.5], 0))
@@ -104,6 +106,7 @@ def side_view(X0, YG, s):
             circle(X0 + D * s * k, y_ + 40 * s, 0.9, fill=black, lw=0)
     HM(X0, X0 + D * s, yt - D1, f"{D}", yt, yt)
     HM(X0, X0 + CAP_D * s, yt - D2, f"{CAP_D}", yt, yt)
+    VM(X0 + CAP_D * s + D1, [yt, yt + 75 * s], X0 + CAP_D * s, ["75"])      # v172: po horizontaliųjų (mato jų tekstus)
     return dict(x0=X0, x1=X0 + CAP_D * s, yt=yt, yb=YG)
 
 
@@ -254,7 +257,7 @@ def sheet(out):
     view_title((rv["x0"] + rv["x1"]) / 2, YG + 24, "REAR VIEW", "SCALE 1:40")
     # pjūvio plokštuma A-A per priekį (už vaizdo ribų)
     ya = YG - 2000 * s40
-    K.cut_plane_h(ya, f["x0"], f["x1"], "C", look="down")
+    K.cut_plane_h(ya, rv["x0"], rv["x1"], "C", look="down")      # v172: per galinį vaizdą - ne per priekio matmenų grandinę
     # v161 (Rytis 2026-10-13): DETAIL A / B ir 3D - NE mūsų; dedamas TIKSLUS originalo fragmentas (ALT8858 Sheet 3:
     #  3D vaizdai, sprogdintas, B (1:10), A (1:10) connection point, Parts List, RAL 6018)
     clip = (455, 38, 1130, 768)
@@ -270,16 +273,19 @@ def sheet(out):
     from frag_gost import TEXT
     GF.draw(K, clip, X, Yt, k, TEXT[2])
     # balionai (BOM POS)
-    K.leader(f["x0"] + 3, YG - 1500 * s40, f["x0"] - 40, YG - 1300 * s40, 1)
-    K.leader(f["xb"] + W * s40 / 2, YG - 4300 * s40, f["x0"] - 40, YG - 4000 * s40, 2)
-    K.leader(rv["x1"] - 3, yt + 4, rv["x1"] + 30, yt + 30, 3)
-    K.leader(rv["x1"] - 3, YG - 350 * s40, rv["x1"] + 30, YG - 600 * s40, 4)
+    # v172 (Rytis: „nuorodų linijos lipa ant skaičių, fono, kitų linijų"): balionai / žymos - automatinė vieta (2 praėjimai)
+    vbox = [(f["x0"], yt, f["x1"], YG), (sv["x0"], yt, sv["x1"], YG), (rv["x0"], yt, rv["x1"], YG)]
+    reg = (K.IX0 + 4, K.IY0 + 4, K.IX0 + HALF - 4, K.VIEW_BOT - 30)
+    K.balloon_auto(f["x0"] + 6, YG - 1500 * s40, 1, avoid=vbox, region=reg)
+    K.balloon_auto(f["xb"] + W * s40 / 2, YG - 4300 * s40, 2, avoid=vbox, region=reg)
+    K.balloon_auto(rv["x1"] - 3, yt + 4, 3, avoid=vbox, region=reg)
+    K.balloon_auto(rv["x1"] - 3, YG - 350 * s40, 4, avoid=vbox, region=reg)
     # originalo paaiškinimai (žymos už vaizdų)
     for yj in joints_from_bottom():
-        K.tag(sv["x1"] - 1, YG - yj * s40, sv["x1"] + 14, YG - yj * s40 + 22, "Connection point", 8)
-    K.tag(rv["x1"] - 1, YG - joints_from_bottom()[1] * s40, rv["x1"] + 12, YG - joints_from_bottom()[1] * s40 + 22,
-          "Backside plate connect point", 8)
-    K.tag(rv["x1"] - 1, YG - 200 * s40, rv["x1"] + 12, YG - 2, "Cover with adjustable position", 8)
+        K.balloon_auto(sv["x1"] - 1, YG - yj * s40, "Connection point", kind="tag", avoid=vbox, region=reg)
+    K.balloon_auto(rv["x1"] - 1, YG - joints_from_bottom()[1] * s40, "Backside plate connect point", kind="tag",
+                   avoid=vbox, region=reg)
+    K.balloon_auto(rv["x1"] - 1, YG - 200 * s40, "Cover with adjustable position", kind="tag", avoid=vbox, region=reg)
     # juosta
     BY0 = K.BAND_Y; BH = K.IY1 - BY0
     W_D, W_MD, W_TB = 214, 230, 272
@@ -309,5 +315,9 @@ def fragment_src(org, out):
 if __name__ == "__main__":
     ORG = sys.argv[2]          # originalas (ALT8858_10.07_Order 225948 Kiwi 343 Tollnes.pdf)
     ORG_FR = sys.argv[3] if len(sys.argv) > 3 else fragment_src(ORG, sys.argv[1] + ".org_fragment.pdf")
+    K.auto_begin("collect")                         # v172: 1 praėjimas - taikiniai, 2 - piešimas rastose vietose
+    sheet(sys.argv[1])
+    pl = K.auto_place(sys.argv[1])
+    K.auto_begin("draw", pl)
     sheet(sys.argv[1])
 
