@@ -98,6 +98,8 @@ v162 (Rytis 2026-10-13, SVARBI TAISYKLĖ): KLIENTO GRAFIKA VISADA ATITINKA ORIGI
   `K.pdf_text_to_paths` (pdf_outline) ir pranešti Ryčiui, kad būtų patikrinta.
 - (v165) 3D / perspektyviniai vaizdai - TAS PATS žiūrėjimo kampas kaip kliento 3D („Principe", vizualizacija): iš kurios pusės
   matomas šonas, ten ir mūsų (r3d yaw ženklas). Korpuso / fono spalvos - iš kliento lapo RAL legendos pavyzdžių, ne iš lentelės.
+- (v167) Rytis tikrina lapus CorelDRAW: kliento fragmentui VISADA `K.pdf_explicit_colors(fn)` (spot / ICC spalvos su aiškiu
+  `scn` po `cs`) - kitaip Corel sumaišo spalvas (baltas fonas -> mėlynas). Patikra: kiekvienas `cs` / `CS` turinio sraute turi `scn`.
 - Patikra prieš siunčiant: naujas lapas vs paskutinis patvirtintas (poppler + MuPDF) - kliento grafikos vietose skirtumo nėra.
 
 ## Ko nedaryti

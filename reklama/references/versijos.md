@@ -2,6 +2,15 @@
 
 Taisyklės perkeltos į SKILL.md skyrius (v43). Čia tik istorija.
 
+## v167 (2026-10-13)
+
+v167, Rytis 2026-10-13 (CorelDRAW ekrano nuotrauka: priekis mėlynas, THALES / WELCOME balti, BIENVENUE nesimato):
+kliento maketas spalvinamas Separation spalvomis „RAL 9016" (fonas), „RAL 5022" (užrašai), „PANTONE 306 C" (WELCOME),
+nustatomomis tik `/CSn cs` (be `1 scn` - PDF standartu pradinis atspalvis 1.0). Acrobat / Preview / MuPDF / poppler rodo teisingai,
+CorelDRAW importas palieka ankstesnę spalvą. Ta pati klaida buvo ir v151-v165 (ALT8878) - ankstesni „susigadino" skundai greičiausiai Corel.
+`lapas_core.pdf_explicit_colors(fn)`: po kiekvieno `cs` / `CS` įrašoma aiški pradinė spalva (Separation 1, DeviceN 1..1, ICC 0..0);
+keičiami tik turinio srautai, atvaizdas nepakito (5 lapai, skirtumas 0), 147 / 147 `cs` su aiškia spalva.
+
 ## v165 (2026-10-13)
 
 v165, Rytis 2026-10-13 („didelio pilono sheet 1 vaizdas neatitinka kliento užklausos"): kliento „Principe" 3D - iš kairės

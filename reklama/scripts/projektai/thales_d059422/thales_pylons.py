@@ -172,6 +172,7 @@ def clip_src(pno, clip):
                         text=fitz.PDF_REDACT_TEXT_REMOVE)
     fn = os.path.join(tempfile.gettempdir(), f"thales_frag_{pno}_{abs(hash(key)) % 10 ** 8}.pdf")
     nd.save(fn, garbage=3, deflate=True)
+    K.pdf_explicit_colors(fn)                                # v166: CorelDRAW - spot spalvos su aiškiu atspalviu (žr. lapas_core)
     if nd[0].get_text().strip():                             # v162: tik jei fragmente LIKO gyvas tekstas (Thales - nėra,
         K.pdf_text_to_paths(fn)                              # kliento maketų tekstai jau kreivės) - kitaip failas neliečiamas
     _FRAG[key] = fn

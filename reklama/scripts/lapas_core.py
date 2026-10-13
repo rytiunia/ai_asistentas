@@ -1526,3 +1526,76 @@ def pdf_text_to_paths(fn):
         print("pdf_text_to_paths: liko tekstas", st)
     return st
 
+
+
+def pdf_explicit_colors(fn):
+    """v166 (Rytis 2026-10-13: „atidarius su CorelDRAW vaizdas kardinaliai skiriasi, fonas mėlynas ir tekstas ne toks"):
+    kliento PDF (CorelDRAW / Illustrator eksportas) spot spalvas nustato tik `/CSn cs` - be `scn`, nes PDF standartu pradinis
+    atspalvis = 1.0. Acrobat / Preview / MuPDF tai daro, CorelDRAW importas - NE (palieka ankstesnę spalvą: baltas RAL 9016
+    fonas -> mėlynas, mėlyni užrašai -> balti). Čia po KIEKVIENO `cs` / `CS` įrašoma aiški pradinė spalva (Separation 1,
+    DeviceN 1..1, ICCBased / Lab / Cal 0..0, Indexed 0) - tai, ką standartas ir taip numato, todėl atvaizdas nepasikeičia.
+    Keičiami TIK turinio srautai (puslapio + Form XObject), kiti objektai (ICC, spalvų erdvės, OP, paveikslėliai) neliečiami."""
+    import re
+    doc = fitz.open(fn)
+
+    def cs_init(doc, page_or_xref, csname):
+        # surasti /ColorSpace /csname aprašą
+        t, v = doc.xref_get_key(page_or_xref, f"Resources/ColorSpace/{csname}")
+        if t == "null":
+            return None
+        obj = doc.xref_object(int(v.split()[0])) if t == "xref" else v
+        if "/Pattern" in obj and "/Separation" not in obj and "/DeviceN" not in obj:
+            return None
+        if "/Separation" in obj:
+            return "1"
+        if "/DeviceN" in obj:
+            m = re.search(r"/DeviceN\s*\[([^\]]*)\]", obj)
+            n = len(re.findall(r"/[^\s/\[\]]+", m.group(1))) if m else 1
+            return " ".join(["1"] * n)
+        if "/Indexed" in obj:
+            return "0"
+        if "/ICCBased" in obj:
+            m = re.search(r"/ICCBased\s+(\d+)\s+0\s+R", obj)
+            n = int(doc.xref_get_key(int(m.group(1)), "N")[1]) if m else 4
+            return " ".join(["0"] * n)
+        if "/Lab" in obj or "/CalRGB" in obj:
+            return "0 0 0"
+        if "/CalGray" in obj:
+            return "0"
+        return None
+
+    pat = re.compile(rb"(/([A-Za-z0-9_.#+-]+)\s+(cs|CS))(?=[\s/\[(<]|$)")
+
+    def patch(owner_xref, content_xrefs):
+        n = 0
+        for cx in content_xrefs:
+            s = doc.xref_stream(cx)
+            out, last = [], 0
+            for m in pat.finditer(s):
+                nm, op = m.group(2).decode(), m.group(3)
+                if nm in ("DeviceGray", "DeviceRGB", "DeviceCMYK", "Pattern"):
+                    init = {"DeviceGray": "0", "DeviceRGB": "0 0 0", "DeviceCMYK": "0 0 0 1"}.get(nm)
+                else:
+                    init = cs_init(doc, owner_xref, nm)
+                if not init:
+                    continue
+                out.append(s[last:m.end()])
+                out.append((" " + init + (" scn" if op == b"cs" else " SCN")).encode())
+                last = m.end(); n += 1
+            if n:
+                out.append(s[last:])
+                doc.update_stream(cx, b"".join(out))
+        return n
+
+    total = 0
+    seen = set()
+    for page in doc:
+        total += patch(page.xref, page.get_contents())
+        for x in page.get_xobjects():
+            xr = x[0]
+            if xr not in seen and doc.xref_get_key(xr, "Subtype")[1] == "/Form":
+                seen.add(xr)
+                total += patch(xr, [xr])
+    if total:
+        doc.save(fn, incremental=True, encryption=fitz.PDF_ENCRYPT_KEEP)
+    return total
