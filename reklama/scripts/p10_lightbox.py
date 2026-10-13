@@ -417,7 +417,7 @@ def sheet1(g, out):
       align="c", color=K.GREY)
     view_title(Xt((W + PR) / 2), Zt(-D / 2 - pr) - 44, "TOP VIEW", sl)
 
-    band(g, "1 / 3", " - GA", main_data1(g), bom1(g), detail_b(g))
+    band(g, "1 / 2", " - GA", main_data1(g), bom1(g), detail_b(g))
     K.save(out)
 
 
@@ -602,7 +602,7 @@ def sheet2(g, out):
     yyp = [P0["yc"] - P0["h"] / 2] + P0["holes"] + [P0["yc"] + P0["h"] / 2]
     vchain(rxp(P0["w"] / 2) + D1, [ryp(v) for v in yyp], [rxp(P0["w"] / 2)] * len(yyp),
            [f"{b - a:g}" for a, b in zip(yyp, yyp[1:])], size=K.F_DIM_FRAME)
-    T(rxp(0), ryp(P0["yc"] + P0["h"] / 2) + 44, f"t = {P0['t']:g}, Ø{g['plate_hole_d']:g}, welded to leg ({len(g['plates_l'])} pcs.)",
+    T(rxp(0), ryp(P0["yc"] + P0["h"] / 2) + 30, f"t = {P0['t']:g}, Ø{g['plate_hole_d']:g}, welded to leg ({len(g['plates_l'])} pcs.)",
       8, align="c")
     view_title(rxp(0), top - 96, "PLATE 1A", f"1:{2 if P0['h'] <= 200 else 5}")
     # ------------------------------------------------ TRAY (2) - FLAT PATTERN 1:10
@@ -640,26 +640,21 @@ def sheet2(g, out):
     T(TX(F / 2), TY(0) + 44, f"Ø3.2 {g['screw_edge']:g} from edge; cut-out + {g['cut_gap']:g}; D{g['mark_d']:g} blue = studs; leg cut-outs wall side",
       7.5, align="c", color=K.GREY)
     view_title(TX(F / 2), TY(WF) - 66, "FRONT A (2) - FLAT PATTERN, FACE OUT", "1:10  (back B (3) = mirror, wall side left)")
-    # ------------------------------------------------ BASE (6) + INSERT (4) 1:5
-    if g.get("logo") is not None:
-        bxa, bya, bxb, byb = g["base"].bounds
-        avail_w = K.IX1 - (TX(F) + 120) - 20
-        nb = nice_scale(avail_w, bxb - bxa, (4, 5, 6, 8, 10, 12, 15, 20))
-        sb = MM / nb
-        BX = lambda x: TX(F) + 130 + (x - bxa) * sb
-        BYy = lambda y: K.VIEW_BOT - 70 - (byb - bya) * sb + (y - bya) * sb
-        K.set_view(True)
-        draw_geom(g["base"], BX, BYy, fill=COL_BASE, lw=0.1)
-        draw_geom(g["logo"], BX, BYy, fill=COL_PLEX, lw=0.1, dash=([2, 1.5], 0))
-        for x_, y_ in g["studs"]:
-            circle(BX(x_), BYy(y_), g["hole_d"] / 2 * sb, fill=white, lw=0.1)
-        K.set_view(False)
-        HM(BX(bxa), BX(bxb), BYy(byb) + D1, f"{bxb - bxa:.0f}", BYy(byb), BYy(byb))
-        VM(BX(bxa) - D1, BYy(bya), BYy(byb), BX(bxa), f"{byb - bya:.0f}")
-        K.balloon_auto(BX(g["studs"][0][0]), BYy(g["studs"][0][1]), f"{len(g['studs'])} x Ø{g['hole_d']:g}", kind="tag")
-        T(BX((bxa + bxb) / 2), BYy(byb) + 40, f"base 6 = contour + {g['base_off']:g} (round); Ø{g['hole_d']:g} at {g['hole_off']:g}, "
-          f"~{g['hole_pitch']:g}; insert 4 (- - -) glued", 7.5, align="c", color=K.GREY)
-        view_title(BX((bxa + bxb) / 2), BYy(bya) - 40, "BASE 6 + INSERT 4 (A, from outside)", f"1:{nb:g}  (B = mirror)")
+    # ------------------------------------------------ ASSEMBLY - EXPLODED VIEW (v200: vietoj BASE + INSERT)
+    ex0, ex1 = TX(F) + 70, K.IX1 - 10
+    ey0 = TY(WF) - 40
+    ebox = (ex0, ey0, ex1 - ex0, K.VIEW_BOT - 12 - ey0)
+    A = exploded(g, ebox)
+    reg = (ex0 - 30, ey0 - 30, K.IX1 - 4, K.VIEW_BOT - 4)
+    for sd in ("A", "B"):                                           # surinkimo ašys: ilgasriegis -> veržlė
+        for a_, b_ in A.get("ax" + sd, []):
+            K.centerline(a_[0], a_[1], b_[0], b_[1])
+    for key, lab in (("1", "1"), ("1A", "1A"), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6), (7, 7), ("8", 8),
+                     ("9A", 9), ("9B", 9), ("10A", 10), ("10B", 10)):
+        if key in A:
+            K.balloon_auto(A[key][0], A[key][1], lab, region=reg)
+    view_title((ex0 + ex1) / 2, TY(WF) - 66, "ASSEMBLY - EXPLODED VIEW",
+               "not to scale; tray A - insert 4 - base 6 + nuts - frame + LED - base 7 - insert 5 - tray B")
 
     def detail(X_P6, BY0, W_P6, BH):
         K.main_data(X_P6, BY0, W_P6, BH, [
@@ -688,7 +683,7 @@ def sheet2(g, out):
           ["Trays", f"2 x folded Alu {t:g}, flat {F:g} x {WF:g}"],
           ["Finish", g["frame_finish"] or ""],
           ["Qty", f"{g['qty']}"]]
-    band(g, "2 / 3", " - FRAME + LED + PARTS", md, cut, detail)
+    band(g, "2 / 2", " - FRAME + ASSEMBLY", md, cut, detail)
     K.save(out)
 
 
@@ -794,7 +789,7 @@ def write_dxf(g, path):
     return path
 
 
-# ===================================================================== 3 LAPAS - ASSEMBLY / EXPLODED VIEW (v199)
+# ===================================================================== EXPLODED VIEW (v199; v200 - 2 lape)
 COL_NUT = HexColor("#9C9C9C")
 
 
@@ -913,48 +908,6 @@ def exploded(g, box, yaw=-58, pitch=18):
     return {k: ([(to2(a), to2(b)) for a, b in v] if str(k).startswith("ax") else to2(v)) for k, v in anc.items()}
 
 
-def sheet3(g, out):
-    K.set_band(len(bom1(g)) + 1)
-    K.init(out + ".tmp", "sheet3")
-    K.frame()
-    top = K.IY0 + 60
-    col_w = 250                                                     # surinkimo eiga dešinėje
-    vx0, vx1 = K.IX0 + 20, K.IX1 - col_w - 30
-    box = (vx0, top, vx1 - vx0, K.VIEW_BOT - top - 30)
-    A = exploded(g, box)
-    reg = (K.IX0 + 4, K.IY0 + 4, vx1 + 10, K.VIEW_BOT - 4)
-    for sd in ("A", "B"):                                           # surinkimo ašys: ilgasriegis -> skylė -> veržlė
-        for a, b in A.get("ax" + sd, []):
-            K.centerline(a[0], a[1], b[0], b[1])
-    for key, lab in (("1", "1"), ("1A", "1A"), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6), (7, 7), ("8", 8),
-                     ("9A", 9), ("9B", 9), ("10A", 10), ("10B", 10)):
-        if key in A:
-            K.balloon_auto(A[key][0], A[key][1], lab, region=reg)
-    view_title((vx0 + vx1) / 2, top - 22, "ASSEMBLY - EXPLODED VIEW", "ILLUSTRATIVE - NOT TO SCALE; parts moved apart along depth")
-    # ------------------------------------------------ surinkimo eiga
-    cx = K.IX1 - col_w - 10
-    view_title(cx + col_w / 2, top - 22, "ASSEMBLY SEQUENCE", "order of work")
-    fa, fb, ft = g["frame"]
-    steps = [
-        ("FRAME (1)", [f"Weld members {prof(fa, fb, ft)}: top / bottom = legs", "+ 2 verticals between them; weld plates 1A", "to legs, grind welds (sheet 2)."]),
-        ("LED (8)", [f"Fix {g['led_n']} x {g['led_name']} on top + bottom", "members, wire to PSU; cable through leg", "and plate."]),
-        ("TRAYS A (2) / B (3)", ["Laser cut flat (DXF), bend flanges 90 deg,", f"weld studs (9) at blue D{g['mark_d']:g} marks on", "the inside face."]),
-        ("INSERT -> BASE", [f"Glue insert A (4) on base A (6),", "insert B (5) on base B (7);", "insert centred on base contour."]),
-        ("BASE -> TRAY", ["Put base on studs from inside, insert", f"goes through cut-out (gap {g['cut_gap']:g} around);", "tighten nuts (9)."]),
-        ("CLOSE", ["Slide tray A over frame (legs in flange", "notches), then tray B; seam at centre;", f"screws (10) in top + bottom flanges."]),
-    ]
-    y = top + 20
-    for i, (h_, ls) in enumerate(steps, 1):
-        T(cx + 6, y + 12, f"STEP {i} - {h_}", 8.5, font="FB")
-        for j, l_ in enumerate(ls):
-            T(cx + 6, y + 25 + j * 11, l_, 7.5)
-        y += 25 + len(ls) * 11 + 10
-    T(cx, y + 4, "Side B = mirror of side A.", 7.5, color=K.GREY)
-    T(cx, y + 15, "Balloons = BOM positions.", 7.5, color=K.GREY)
-    band(g, "3 / 3", " - ASSEMBLY", main_data1(g), bom1(g), detail_b(g))
-    K.save(out)
-
-
 def main(spec_path, out):
     S = dict(DEF); S.update(json.load(open(spec_path, encoding="utf-8")))
     if S.get("logo") and not os.path.isabs(S["logo"]["file"]):     # logotipo kelias - nuo spec failo
@@ -966,8 +919,8 @@ def main(spec_path, out):
         COL_FRAME = COL_FL = HexColor(K.ralhex(S["frame_finish"]))
     K.F_DIM_FRAME = K.F_DIM_MAIN
     g = geom(S)
-    p1, p2, p3 = out + ".1.pdf", out + ".2.pdf", out + ".3.pdf"
-    for fn, pp in ((sheet1, p1), (sheet2, p2), (sheet3, p3)):                    # 2 praėjimai - automatinis žymėjimas
+    p1, p2 = out + ".1.pdf", out + ".2.pdf"
+    for fn, pp in ((sheet1, p1), (sheet2, p2)):                    # 2 praėjimai - automatinis žymėjimas
         K.auto_begin("collect"); K.AUTO["region"] = None
         fn(g, pp)
         pl_ = K.auto_place(pp)
@@ -976,11 +929,11 @@ def main(spec_path, out):
         K.auto_begin(None)
     import pymupdf as fitz
     d = fitz.open()
-    for pp in (p1, p2, p3):
+    for pp in (p1, p2):
         d.insert_pdf(fitz.open(pp))
     d.save(out, garbage=3, deflate=True); d.close()
     K.pdf_fix_fonts(out)
-    for pp in (p1, p2, p3, p1 + ".tmp", p2 + ".tmp", p3 + ".tmp"):
+    for pp in (p1, p2, p1 + ".tmp", p2 + ".tmp"):
         os.path.exists(pp) and os.remove(pp)
     dxf = os.path.splitext(out)[0] + "_gamyba.dxf"
     write_dxf(g, dxf)

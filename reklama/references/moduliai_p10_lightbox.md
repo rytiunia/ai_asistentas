@@ -44,18 +44,17 @@ Raktažodžiai: P10_lightbox, P10 lightbox, push-through, iškištas stiklas, dv
   8 / 10 mm įdėklai (PLEXI_INSERT); rėmo pjaustymo sąrašas - lape (BOM 1).
 
 ## 5a. Lapų struktūra (v198, Rytis: „nėra detalizacijos ir suprantamo pjūvio", pagrindas - double-sided šviesdėžės)
-Kaip `sviesdeze.py` + surinkimo lapas - 3 A3 lapai viename PDF:
+Kaip `sviesdeze.py` - 2 A3 lapai viename PDF (v200, Rytis: turi likti tik 2 lapai):
 - 1 / 2 GA: FRONT A, VIEW FROM WALL (kojos, plokštės, padėklų siūlė punktyru), FRONT B (veidrodis), SECTION A-A per logotipo
   centrą (padėklai, flanšai, išpjovos tarpas, įdėklai, pagrindai, rėmas, DUOLITE spinduliai; grandinė `prot | D | prot`),
   3D A / B, TOP VIEW (varžtai, siūlė); juostoje DETAIL B - išpjovos kraštas (mastelis 2:1 / 1.5:1 / 1:1 pagal vietą:
   Alu, tarpas, įdėklas, pagrindas, ilgasriegis + veržlė), BOM, MAIN DATA.
-- 2 / 2 FRAME + LED + PARTS: rėmas su LED eilėmis ir C-C, SECTION C-C (LED) 1:2, PLATE 1A 1:2, FRONT A išklotinė 1:10
-  (lenkimo linijos raudonos, Ø3.2, išpjova, D6 mėlynos žymės), BASE + INSERT vaizdas; juostoje LED lentelė, pjaustymo sąrašas, MAIN DATA.
-- 3 / 3 ASSEMBLY (v199, Rytis: „reikia exploded view, nes niekas neaišku"): sprogstamasis 3D vaizdas išilgai gylio -
-  padėklas A (išorė, kojų išpjovos flanše) - įdėklas A - pagrindas A su Ø8 - veržlės - rėmas + kojos + plokštės + DUOLITE -
-  veržlės - pagrindas B - įdėklas B - padėklas B (vidus su ilgasriegiais); varžtai ištraukti virš flanšų; ašys ilgasriegis ->
-  veržlė; dešinėje STEP 1-6 surinkimo eiga (rėmas, LED, padėklai + ilgasriegiai, įdėklas ant pagrindo, pagrindas ant
-  ilgasriegių, uždarymas); juostoje DETAIL B + BOM + MAIN DATA.
+- 2 / 2 FRAME + ASSEMBLY: rėmas su LED eilėmis ir C-C, SECTION C-C (LED) 1:2, PLATE 1A 1:2, FRONT A išklotinė 1:10
+  (lenkimo linijos raudonos, Ø3.2, išpjova, D6 mėlynos žymės), ASSEMBLY - EXPLODED VIEW (v199-v200, Rytis: „reikia exploded
+  view, nes niekas neaišku"; stiklo / pagrindo vaizdas išimtas - jo kontūrai ir Ø8 lieka DXF): sprogstamasis 3D išilgai gylio -
+  padėklas A (išorė, kojų išpjovos flanše) - įdėklas 4 - pagrindas 6 su Ø8 - veržlės - rėmas + kojos + plokštės + DUOLITE -
+  veržlės - pagrindas 7 - įdėklas 5 - padėklas B (vidus su ilgasriegiais), varžtai virš flanšų, ašys ilgasriegis -> veržlė;
+  juostoje LED lentelė, pjaustymo sąrašas, MAIN DATA.
 - BOM pozicijos = balionėlių numeriai visuose lapuose; DXF nepasikeitęs.
 
 ## 6. Generatoriaus prielaidos (PASIŪLYMAI - Rytis dar netvirtino)
