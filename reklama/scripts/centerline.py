@@ -19,6 +19,7 @@ import cv2
 SRC, OUT = sys.argv[1], sys.argv[2]
 ARG = lambda k, d: float(next((x.split("=")[1] for x in sys.argv if x.startswith(f"--{k}=")), d))
 GROOVE, WALL = ARG("groove", 8.0), ARG("wall", 2.0)
+PERP_IT = int(ARG("perp", 8))
 SPUR = ARG("spur", 1.5)        # v155: šakelė šalinama tik jei < 1.5 x pusplotis (kampų artefaktai); serifai, uodegėlės lieka
 PX = 3.0                                  # px / pt
 page = fitz.open(SRC)[0]
@@ -414,6 +415,37 @@ def recenter(a, closed, iters=4):
         a = a + (b - a) * np.maximum(wgt, 0.3)[:, None] if True else b
         if not closed:
             a[0], a[-1] = new[0], new[-1]
+    # v159 (Rytis 2026-10-13: „linija centre, kad griovelis tolygiai eitų raidės viduje"): STATMENA SIMETRIJA -
+    # statmenai linijai sienelė kairėje = sienelė dešinėje (griovelio sienelės lygios), ne tik didžiausias apskritimas
+    def ray(P, Nv, hi):
+        lo = np.zeros(len(P)); h = hi.copy()
+        for _ in range(22):
+            m_ = (lo + h) / 2
+            ins = shapely.contains(gpx, shapely.points(P + Nv * m_[:, None]))
+            lo = np.where(ins, m_, lo); h = np.where(ins, h, m_)
+        return lo
+    wp = np.ones(len(a))                                    # statmenam centravimui - tik mazgo šerdis fiksuota
+    for P, R in Jlist:
+        wp = np.minimum(wp, np.clip((np.hypot(*(a - P).T) - 0.5 * R) / (0.5 * R), 0, 1))
+    if not closed:
+        wp[[0, -1]] = 0
+    for _ in range(PERP_IT):
+        t = np.gradient(a, axis=0); t /= (np.linalg.norm(t, axis=1)[:, None] + 1e-9)
+        nrm = np.c_[-t[:, 1], t[:, 0]]
+        w = np.maximum(Dx(a), 2.0)
+        hi = 1.8 * w
+        wl, wr = ray(a, nrm, hi), ray(a, -nrm, hi)
+        ok = (np.maximum(wl, wr) < 1.25 * w + 3.0)          # tikras brėžys (ne sankirta / užbaiga / šakos pradžia)
+        ok = gaussian_filter1d(ok.astype(float), 3 * PX, mode=mode) > 0.95   # be pavienių šuolių
+        o = np.where(ok, (wl - wr) / 2, 0.0)
+        o = gaussian_filter1d(o, 2 * PX, mode=mode)
+        o = np.clip(o, -0.5 * w, 0.5 * w)
+        new = a + nrm * (0.7 * o * wp)[:, None]
+        sig = 1.5 * PX
+        b = np.c_[gaussian_filter1d(new[:, 0], sig, mode=mode), gaussian_filter1d(new[:, 1], sig, mode=mode)]
+        a = a + (b - a) * np.maximum(wp, 0.3)[:, None]
+        if not closed:
+            a[0], a[-1] = new[0], new[-1]
     return a
 
 
@@ -665,3 +697,66 @@ if "--rep" in sys.argv:
     print("linijos taškų: %d, plotis (2xD) mm: min %.1f p5 %.1f mediana %.1f" % (len(d), 2 * d.min(), 2 * np.percentile(d, 5), 2 * np.median(d)))
     print("griovelis telpa su sienele >= %.1f: %.0f %% ilgio" % (WALL, 100 * (d >= GROOVE / 2 + WALL).mean()))
     print("su sienele >= 1: %.0f %%, griovelis tik telpa (>= 0.5): %.0f %%" % (100 * (d >= GROOVE / 2 + 1).mean(), 100 * (d >= GROOVE / 2 + 0.5).mean()))
+if "--asym" in sys.argv:
+    # kiekvienam linijos taškui: sienelės kairėje ir dešinėje (statmenai) -> asimetrija mm, spalvota peržiūra
+    def walls(L):
+        s_ = arclen(L); n = max(int(s_[-1] / 1.0), 4); u = np.linspace(0, s_[-1], n)
+        R_ = np.c_[np.interp(u, s_, L[:, 0]), np.interp(u, s_, L[:, 1])]
+        t = np.gradient(R_, axis=0); t /= (np.linalg.norm(t, axis=1)[:, None] + 1e-9)
+        nr = np.c_[-t[:, 1], t[:, 0]]
+        out = []
+        for p_, n_ in zip(R_, nr):
+            ws = []
+            for sg in (1, -1):
+                lo, hi = 0.0, 200.0
+                for _ in range(30):
+                    m_ = (lo + hi) / 2
+                    if geom.contains(shapely.points(*(p_ + sg * n_ * m_))):
+                        lo = m_
+                    else:
+                        hi = m_
+                ws.append(lo * MMk)
+            out.append((p_, ws[0], ws[1]))
+        return out
+    sh = pg.new_shape(); tot = []
+    for L in lines:
+        W_ = walls(L)
+        for (p_, a_, b_) in W_:
+            asy = abs(a_ - b_) / 2                      # centro poslinkis mm
+            dsh = float(Dpt([p_])[0]) * MMk
+            if max(a_, b_) > 1.25 * dsh + 1.0:          # statmuo pataiko į sankirtą / užbaigą - ten simetrijos nėra
+                col = (0.6, 0.6, 0.6)
+                sh.draw_circle(fitz.Point(*p_), 5.5); sh.finish(color=None, fill=col, width=0)
+                continue
+            tot.append(asy)
+            col = (0, 0.6, 0) if asy < 0.5 else ((1, 0.6, 0) if asy < 1.5 else (0.9, 0, 0))
+            sh.draw_circle(fitz.Point(*p_), 5.5); sh.finish(color=None, fill=col, width=0)
+    sh.commit(); out.save(OUT + "_asym.pdf")
+    tot = np.array(tot)
+    print("poslinkis nuo centro (statmenai) mm: mediana %.2f, p90 %.2f, p95 %.2f, max %.2f; >1 mm: %.0f %%" %
+          (np.median(tot), np.percentile(tot, 90), np.percentile(tot, 95), tot.max(), 100 * (tot > 1).mean()))
+if "--asymdbg" in sys.argv:
+    for L in lines:
+        if L[:, 0].min() < 1300 and L[:, 0].max() > 1290 and L[:, 1].max() - L[:, 1].min() > 300:
+            k = len(L) // 2; p_ = L[k]; t = L[k + 1] - L[k - 1]; t = t / np.linalg.norm(t); n_ = np.array([-t[1], t[0]])
+            print("taškas", p_, "t", t, "D", float(Dpt([p_])[0]) * MMk)
+            for sg in (1, -1):
+                for m_ in (10, 30, 60, 74, 80, 100):
+                    q = p_ + sg * n_ * m_
+                    print(sg, m_, bool(geom.contains(shapely.points(*q))))
+            break
+if "--asymdbg2" in sys.argv:
+    def wall1(p_, n_, sg):
+        lo, hi = 0.0, 200.0
+        for _ in range(30):
+            m_ = (lo + hi) / 2
+            if geom.contains(shapely.points(*(p_ + sg * n_ * m_))): lo = m_
+            else: hi = m_
+        return lo * MMk
+    for L in lines:
+        sel = [k for k in range(1, len(L) - 1) if 1250 < L[k, 0] < 1350 and 200 < L[k, 1] < 600]
+        if sel:
+            print("L linija", len(L), len(sel))
+            for k in sel[::max(1, len(sel) // 10)]:
+                p_ = L[k]; t = L[k + 1] - L[k - 1]; t = t / np.linalg.norm(t); n_ = np.array([-t[1], t[0]])
+                print(np.round(p_, 1), round(wall1(p_, n_, 1), 2), round(wall1(p_, n_, -1), 2), "seg", round(float(np.linalg.norm(L[k+1]-L[k-1])), 2))
