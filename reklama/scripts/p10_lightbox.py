@@ -497,41 +497,114 @@ def sheet1(g, out):
 
 
 def detail_b(g):
+    """v213 (Rytis 2026-10-14): DETAIL B - pjūvis per VISĄ gylį (A | rėmas | B) TRIJOSE vietose: VIRŠUS / STIKLAS / APAČIA
+    (zonos atskirtos nutraukimo linijomis). Ilgasriegiai PRIŠAUDYTI iš VIDINĖS Alu pusės (nekiaurai priekį)."""
     t, pr, bt, it_ = g["t"], g["prot"], g["base_t"], g["ins_t"]
+    D, H = g["depth"], g["h"]
+    fa, fb, ft = g["frame"]
+    cl = g["clear"]
 
     def detail(X_P6, BY0, W_P6, BH):
-        """DETAIL B - išpjovos kraštas (A), 2:1: Alu, tarpas, iškištas įdėklas, pagrindas, ilgasriegis + veržlė"""
+        lg = g.get("logo")
+        xc = (g["logo_x"] + g["logo_w"] / 2) if lg is not None else g["w"] / 2
         hyo = g["hole_off"]
-        vtop = -6.0                                                  # v: 0 = išpjovos kraštas, + į Alu pusę
-        vmax = hyo + 6.0
-        avail = BH - 12 - 22 - 20                                    # antraštė, matmenys viršuje, pastabos apačioje
-        sc = 2.0 if (vmax - vtop) * 2 * MM <= avail else (1.5 if (vmax - vtop) * 1.5 * MM <= avail else 1.0)
-        s3 = sc * MM
-        K.header(X_P6, BY0, W_P6, f"DETAIL B - CUT-OUT EDGE  {sc:g}:1")
+        ytz = t + cl + fb + 8 + 6                                   # viršaus zona: flanšas, skersinis, LED
+        zones = [("TOP", 0.0, ytz)]
+        segc = vsegs(g["cut"], xc) if lg is not None else []
+        if segc:
+            ltop = vsegs(g["logo"], xc)[0][0]
+            zones.append(("GLASS", ltop - hyo - 9, ltop + 10))
+        zones.append(("BOTTOM", H - ytz, H))
+        gap = 9                                                     # tarpas tarp zonų (pt)
+        tot_mm = sum(b_ - a_ for _, a_, b_ in zones)
+        avail_h = BH - 12 - 26 - 14 - gap * (len(zones) - 1)
+        avail_w = W_P6 - 70
+        sc = next(n for n in (2, 2.5, 3, 4, 5, 6, 8) if tot_mm * MM / n <= avail_h and (D + 2 * pr) * MM / n <= avail_w)
+        s3 = MM / sc
+        K.header(X_P6, BY0, W_P6, f"DETAIL B - SECTION TOP / GLASS / BOTTOM  1:{sc:g}")
         rect(X_P6, BY0 + 12, W_P6, BH - 12, lw=0.6)
-        reg = (X_P6 + 3, BY0 + 15, X_P6 + W_P6 - 3, BY0 + BH - 26)
-        ox = X_P6 + 60 + pr * s3
-        Z = lambda z: ox + z * s3                                   # z: 0 = Alu išorė, + į dėžės vidų
-        oy = BY0 + 12 + 22
-        Yb = lambda v: oy + (v - vtop) * s3
-        K.set_view(True)
-        rect(Z(0), Yb(g["cut_gap"]), t * s3, (vmax - g["cut_gap"]) * s3, fill=COL_BODY, lw=0.1)
-        rect(Z(t), Yb(vtop), bt * s3, (vmax - vtop) * s3, fill=COL_BASE, lw=0.1)
-        if it_ > 0:
-            rect(Z(t - it_), Yb(vtop), it_ * s3, (-vtop) * s3, fill=COL_PLEX, lw=0.1)
-        rect(Z(0), Yb(hyo - 2), (t + bt + 5) * s3, 4 * s3, fill=COL_STUD, lw=0.1)
-        rect(Z(t + bt), Yb(hyo - 3.5), 3 * s3, 7 * s3, fill=HexColor("#8C8C8C"), lw=0.1)
-        K.set_view(False)
-        K.centerline(Z(-pr) - 4, Yb(hyo), Z(t + bt + 9), Yb(hyo))
-        hchain(BY0 + 26, [Z(t - it_), Z(0), Z(t + bt)], [Yb(vtop)] * 3, [f"{pr:g}", f"{t:g}+{bt:g}"],
+        reg = (X_P6 + 3, BY0 + 15, X_P6 + W_P6 - 3, BY0 + BH - 16)
+        ox = X_P6 + (W_P6 - (D + 2 * pr) * s3) / 2 + pr * s3
+        U = lambda u: ox + u * s3                                   # u: 0 = A Alu išorė, D = B Alu išorė
+        ys0 = BY0 + 12 + 26
+        maps = []
+        for name, a_, b_ in zones:
+            maps.append((name, a_, b_, ys0)); ys0 += (b_ - a_) * s3 + gap
+        bal = []
+        for name, a_, b_, sy in maps:
+            Yz = lambda y, a_=a_, sy=sy: sy + (y - a_) * s3
+            hh = (b_ - a_) * s3
+            K.set_view(True)
+            if name in ("TOP", "BOTTOM"):
+                top_ = name == "TOP"
+                yf0 = 0.0 if top_ else H - t                        # flanšas
+                yfr = (t + cl) if top_ else (H - t - cl - fb)       # skersinis
+                yled = (t + cl + fb) if top_ else (H - t - cl - fb - 8)
+                rect(U(0), Yz(a_), t * s3, hh, fill=COL_BODY, lw=0.1)                       # Alu A priekis
+                rect(U(D - t), Yz(a_), t * s3, hh, fill=COL_BODY, lw=0.1)                   # Alu B
+                rect(U(0), Yz(yf0), (D / 2) * s3, t * s3, fill=COL_BODY, lw=0.1)            # flanšas A (iki siūlės)
+                rect(U(D / 2), Yz(yf0), (D / 2) * s3, t * s3, fill=COL_BODY, lw=0.1)        # flanšas B
+                rect(U(D / 2 - fa / 2), Yz(yfr), fa * s3, fb * s3, fill=COL_FRAME, lw=0.1)
+                rect(U(D / 2 - fa / 2 + ft), Yz(yfr + ft), (fa - 2 * ft) * s3, (fb - 2 * ft) * s3, fill=white, lw=0.1)
+                rect(U(D / 2 - 11), Yz(yled), 22 * s3, 8 * s3, fill=COL_LED, lw=0.1)
+                for sg in (-1, 1):                                  # varžtai per flanšą į skersinį (7 nuo siūlės)
+                    uz = D / 2 + sg * g["screw_edge"]
+                    if top_:
+                        rect(U(uz) - 1.6 * s3, Yz(-1.2), 3.2 * s3, (t + cl + ft + 5) * s3, fill=COL_STUD, lw=0.1)
+                        rect(U(uz) - 3 * s3, Yz(-1.2), 6 * s3, 1.2 * s3, fill=COL_STUD, lw=0.1)
+                    else:
+                        rect(U(uz) - 1.6 * s3, Yz(H - t - cl - ft - 5), 3.2 * s3, (t + cl + ft + 5 + 1.2) * s3, fill=COL_STUD, lw=0.1)
+                        rect(U(uz) - 3 * s3, Yz(H), 6 * s3, 1.2 * s3, fill=COL_STUD, lw=0.1)
+                K.set_view(False)
+                line(U(D / 2), Yz(a_) - 2, U(D / 2), Yz(b_) + 2, 0.2, HexColor("#888888"), dash=(3, 1.5))
+                if top_:
+                    bal += [(U(t / 2), Yz(a_ + (b_ - a_) * 0.75), 2), (U(D - t / 2), Yz(a_ + (b_ - a_) * 0.75), 3),
+                            (U(D / 2 + fa / 2 - ft / 2), Yz(yfr + fb / 2), 1), (U(D / 2 + 8), Yz(yled + 4), 8),
+                            (U(D / 2 - g["screw_edge"]), Yz(t + 1), 10)]
+            else:
+                ltop = a_ + hyo + 9
+                cut_top = vsegs(g["cut"], xc)[0][0]
+                btop = vsegs(g["base"], xc)[0][0]
+                ys_ = ltop - hyo                                      # ilgasriegio ašis
+                for side in ("A", "B"):
+                    m = (lambda u: u) if side == "A" else (lambda u: D - u)
+                    def R(u0, u1, y0, y1, fill):
+                        ua, ub = sorted((m(u0), m(u1)))
+                        rect(U(ua), Yz(y0), (ub - ua) * s3, (y1 - y0) * s3, fill=fill, lw=0.1)
+                    R(0, t, a_, cut_top, COL_BODY)                           # Alu (virš išpjovos)
+                    R(t, t + bt, max(a_, btop), b_, COL_BASE)                 # pagrindas
+                    if it_ > 0:
+                        R(t - it_, t, ltop, b_, COL_PLEX)                     # įdėklas (iškištas pro išpjovą)
+                    R(t, t + bt + 6, ys_ - 2, ys_ + 2, COL_STUD)              # ilgasriegis - nuo VIDINĖS Alu pusės
+                    R(t + bt, t + bt + 3, ys_ - 3.5, ys_ + 3.5, HexColor("#8C8C8C"))   # veržlė
+                K.set_view(False)
+                for u_ in (t, D - t):
+                    K.centerline(U(u_) + (-4 if u_ < D / 2 else 4), Yz(ys_), U(u_ + (bt + 9 if u_ < D / 2 else -bt - 9)), Yz(ys_))
+                bal += [(U(t - it_ / 2), Yz(b_ - 3), 4), (U(D - t + it_ / 2), Yz(b_ - 3), 5),
+                        (U(t + bt / 2), Yz(b_ - 3), 6), (U(D - t - bt / 2), Yz(b_ - 3), 7), (U(t + bt + 4), Yz(ys_), 9)]
+            # nutraukimo linijos (zigzag) zonos krašte
+            for yy, show in ((Yz(a_), name != "TOP"), (Yz(b_), name != "BOTTOM")):
+                if show:
+                    xa_, xb_ = U(-pr) - 4, U(D + pr) + 4
+                    n_ = 8; pts = []
+                    for k in range(n_ + 1):
+                        pts.append((xa_ + (xb_ - xa_) * k / n_, yy + (1.5 if k % 2 else -1.5)))
+                    for p0, p1 in zip(pts, pts[1:]):
+                        line(p0[0], p0[1], p1[0], p1[1], 0.2)
+            T(X_P6 + 5, Yz((a_ + b_) / 2) + 3, name, 6.5, color=K.GREY)
+        hchain(BY0 + 12 + 16, [U(-pr), U(0), U(D), U(D + pr)], [maps[0][3]] * 4, [f"{pr:g}", f"{D:g}", f"{pr:g}"],
                size=K.F_DIM_FRAME)
-        vchain(Z(-pr) - 10, [Yb(0), Yb(hyo)], [Z(0)] * 2, [f"{hyo:g}"], size=K.F_DIM_FRAME)
-        for tx_, ty_, lab in ((Z(t / 2), Yb((g["cut_gap"] + hyo - 2) / 2), 2), (Z(t - it_ / 2), Yb(vtop / 2), 4),
-                              (Z(t + bt / 2), Yb(hyo + 4), 6), (Z(t + bt + 4), Yb(hyo), 9)):
-            K.balloon_auto(tx_, ty_, lab, region=reg)
-        T(X_P6 + W_P6 / 2, BY0 + BH - 13, f"gap {g['cut_gap']:g}; insert {it_:g} GLUED to base 6",
+        cxm = U(D / 2)
+        left = [q for q in bal if q[0] < cxm]; right = [q for q in bal if q[0] >= cxm]
+        ytop_, ybot_ = BY0 + 12 + 30, BY0 + BH - 22                # balionai - stulpeliais šonuose, eilės tvarka pagal y
+        for lst, bx in ((left, U(-pr) - 26), (right, U(D + pr) + 26)):
+            lst.sort(key=lambda q: q[1])
+            n_ = len(lst)
+            for k, (tx_, ty_, lab) in enumerate(lst):
+                by = ytop_ + (ybot_ - ytop_) * (k + 0.5) / max(n_, 1)
+                K.leader(tx_, ty_, bx, by, lab, 6)
+        T(X_P6 + W_P6 / 2, BY0 + BH - 4, f"gap {g['cut_gap']:g}; insert GLUED to base; studs welded inside, {hyo:g} from glass",
           6.5, align="c", color=K.GREY)
-        T(X_P6 + W_P6 / 2, BY0 + BH - 4, f"stud welded (D{g['mark_d']:g} mark); B = mirror", 6.5, align="c", color=K.GREY)
 
     return detail
 
