@@ -830,7 +830,7 @@ for g in groups:
 STOCK = MEDZ.cfg(spec.get("stock"))
 try:                                              # v98: strypai planuojami visam užsakymui (spec qty)
     QTY = max(1, int(str(spec.get("qty", 1)).split()[0]))
-except ValueError:
+except (ValueError, IndexError):            # v203: tuščias qty (nežinoma - tuščias langelis)
     QTY = 1
 
 

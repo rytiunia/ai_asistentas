@@ -1,0 +1,195 @@
+{
+ "client_pdf": "Lietuva_client.pdf",
+ "scale": 2.834645669291339,
+ "crop_pt": [
+  0,
+  0,
+  3500,
+  621
+ ],
+ "ignore_fills": [],
+ "qty": "",
+ "client": "TEST",
+ "company": "TEST",
+ "title": "LIETUVA - illuminated letters P6 on rails",
+ "project": "TEST LIETUVA P6",
+ "drawing_no": "TEST LIETUVA P6",
+ "order_no": "ALT0000_00.00_RS",
+ "file_code": "TEST_LIETUVA_P6",
+ "rev": "A",
+ "date": "2026-10-14",
+ "depth_mm": 80,
+ "front": "P6_3mm+foil",
+ "auto_frame": true,
+ "merge_rows": true,
+ "mounting": "ears",
+ "trafo_box": {
+  "voltage": "12V",
+  "cable_len_m": 1.5,
+  "mains": "230V"
+ },
+ "rail": {
+  "size": "40x40x2",
+  "depth": 40,
+  "ral": "9003",
+  "type": "square"
+ },
+ "ears": {
+  "inset": 50,
+  "pitch": 1000,
+  "min_edge": 15
+ },
+ "plate": {
+  "thk": 3,
+  "gap_mm": 30,
+  "recess_mm": 25,
+  "ral": "?"
+ },
+ "groups": [
+  {
+   "name": "LIETUVA",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "9005",
+   "face_hex": "#C11C13",
+   "client_fill": [
+    0.851,
+    0.102,
+    0.102
+   ],
+   "frame": "verticals"
+  }
+ ],
+ "bom": [
+  [
+   1,
+   "Letter face",
+   "Acrylic 3 mm white",
+   "white",
+   "{PER_6} m / {A_6} m²"
+  ],
+  [
+   "",
+   "Front foil ORACAL 8500 031 Red",
+   "translucent foil",
+   "031 Red",
+   "1190 mm x 1.77 m = 2.11 m² (nesting)"
+  ],
+  [
+   "A",
+   "Fitting PVC edge",
+   "PVC 3 mm",
+   "-",
+   "{PER_ALL} m"
+  ],
+  [
+   "B",
+   "Bolt, return to PVC edge",
+   "",
+   "-",
+   ""
+  ],
+  [
+   2,
+   "Letter return",
+   "Alu 1 mm",
+   "RAL 9005",
+   "{PER_6} m / {RET_LIETUVA} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "Alu 1.5 mm",
+   "",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   4,
+   "LED modules",
+   "",
+   "",
+   ""
+  ],
+  [
+   5,
+   "Rail □{RAIL_SIZE} with ears",
+   "Aluminium",
+   "RAL 9003 matt",
+   "{RAIL_TOTAL_M} m"
+  ],
+  [
+   6,
+   "Mounting ear {RAIL_SIZE}, Ø{EAR_HOLE} hole",
+   "Aluminium",
+   "RAL 9003 matt",
+   "{PLATES_N} pcs. ({PLATES_EXT} extended)"
+  ],
+  [
+   7,
+   "El. output 12V -> trafo box",
+   "cable 1.5 m",
+   "-",
+   "1 pcs."
+  ],
+  [
+   8,
+   "Trafo box + PSU",
+   "",
+   "RAL 9003",
+   ""
+  ],
+  [
+   9,
+   "Wall fixing",
+   "",
+   "-",
+   ""
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   ""
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profile",
+   "P6 on rails"
+  ],
+  [
+   "Letter depth",
+   "80"
+  ],
+  [
+   "Face",
+   "P6_3mm + ORACAL 8500 031"
+  ],
+  [
+   "Returns",
+   "RAL 9005"
+  ],
+  [
+   "Font",
+   "Times New Roman Bold"
+  ],
+  [
+   "Rails",
+   "□40x40x2 + ears, RAL 9003"
+  ],
+  [
+   "Illumination",
+   "LED"
+  ],
+  [
+   "Power",
+   "12V, 1.5 m -> TRAFO BOX, 230V"
+  ],
+  [
+   "Wind qp",
+   "{WIND_QP} kN/m²"
+  ]
+ ]
+}
