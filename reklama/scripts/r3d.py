@@ -16,6 +16,7 @@ class Scene:
         self.V = K.View3D(yaw=yaw, pitch=pitch, light=light)
         self.faces = []            # (pts3, holes3, normal, fill, edge_col, edge_lw, amb)
         self.tile = tile
+        self.flat = False                                          # v224: CAD - be šešėliavimo (baltas + juodi kontūrai)
 
     # ---------------------------------------------------------------- geometrija
     def face(self, pts3, normal, fill, edge=None, edge_lw=0.15, holes=(), amb=0.6, tile=True):
@@ -122,7 +123,7 @@ class Scene:
             if poly.is_empty or poly.area < 1e-4:
                 continue
             F.append({"poly": poly, "pl": (nx, ny, nz, d), "mz": cz, "f": f,
-                      "col": V.shade(f["fill"], f["n"], f["amb"])})
+                      "col": f["fill"] if self.flat else V.shade(f["fill"], f["n"], f["amb"])})
         k, ox, oy = V.k, V.ox, V.oy
 
         def depth(i, x, y):

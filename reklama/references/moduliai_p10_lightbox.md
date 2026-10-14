@@ -81,6 +81,10 @@ VIENAS A3 lapas (buv. 2-3 lapai - v198 GA + FRAME/LED/PARTS, v199 ASSEMBLY):
   `"screws": "countersunk"`.
 - DUOLITE ant viršutinio ir apatinio skersinio; gylis < 100 (lentelės min) - perspėjimas, ryškumą tikrinti.
 
+## 5c. 2 lapas - CAD rėmas (v224)
+2 lapas „FRAME (CAD)": SIDE VIEW (pozicijos 1.1-1.5), END VIEW (iš sienos, plokštė su matmenimis), ISOMETRIC, PLATE 1A
+(jei didesnis mastelis); juosta - LED, rėmo pjaustymo BOM, MAIN DATA. SKILL „Bendrinės taisyklės" 24.
+
 ## 5b. DETAIL B (v213, Rytis 2026-10-14)
 Juostos DETAIL B - pjūvis per VISĄ gylį (A | rėmas | B) TRIJOSE vietose, atskirtose nutraukimo linijomis: VIRŠUS (flanšai iki
 siūlės, skersinis, DUOLITE, varžtai Ø3.2 per flanšą į skersinį 7 nuo siūlės), STIKLAS (Alu iki išpjovos, tarpas, iškištas
