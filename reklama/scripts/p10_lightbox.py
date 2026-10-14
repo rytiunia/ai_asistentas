@@ -33,7 +33,8 @@ DEF = {"client": "", "title": "DOUBLE-SIDED LIGHTBOX P10 - PUSH-THROUGH", "order
        "frame": None, "plates": "separate", "plate": [66, 67, 8], "plate_hole_d": 10,
        "screw_step": 300, "screw_edge": 7, "screw_end": 50, "screws": "",
        "body_finish": "", "frame_finish": "", "plexi": "opal white", "film": "",
-       "led": "DS15", "psu": "", "cable": "", "logo": None, "scale_ga": None}
+       "led": "DS15", "psu": "", "cable": "", "logo": None, "scale_ga": None,
+       "cover_w": None, "cover_thk": 2, "cover_gap": 5}
 COL_FRAME, COL_FL, COL_PLEX = HexColor("#B4B4B4"), HexColor("#8C8C8C"), HexColor("#F7F7F2")
 COL_BODY = HexColor("#3A3A3A")
 BLUE = HexColor("#1F5FD0")
@@ -91,6 +92,7 @@ def geom(S):
     #  skylės >= 4, siaurame pade - šachmatine tvarka (kaip CEOS mažo pilono padas).
     LG = S.get("legs") or None
     g["legB"] = bool(LG)
+    g["cover"] = None
     xr = (t + cl) + g["FW"]                                          # rėmo sienos pusės išorė
     if g["legB"]:
         sp = float(LG["spacing"]); yc_ = float(LG.get("yc", H / 2))
@@ -117,6 +119,10 @@ def geom(S):
             hz = [((-zz if k % 2 == 0 else zz), z0_ + (z1_ - z0_) * k / (n - 1)) for k in range(n)]
             g["plate_holes_mode"] = "staggered"
         g["plates_l"] = [dict(yc=yc_, w=PLw, h=ph, t=PLt, holes=sorted(set(v for _, v in hz)), hz=hz)]
+        # v212 (Rytis 2026-10-14): KOJŲ UŽDENGIMAS - 2 dalys A + B (veidrodinės), Alu 2, korpuso spalva; ilgis 5 mm mažesnis už
+        #  kojų tarpą (korpusas - plokštė): po 2.5 mm iš abiejų galų; aukštis = kojų matmuo; plotis cover_w (numatyta kojos + 20)
+        g["cover"] = dict(y0=yc_ - ph / 2, y1=yc_ + ph / 2, w=S["cover_w"] or (fa + 20), thk=S["cover_thk"], gap=S["cover_gap"],
+                          L=g["leg_len"] - S["cover_gap"])
     else:
         g["legs_y"] = [g["ax"], H - g["ax"]]
         g["L_h"] = (W - (t + cl)) + g["leg_len"]                    # nuo rėmo laisvo krašto iki plokštės
@@ -240,6 +246,9 @@ def scene3d(g, yaw, box, title):
     sc.box((0, 0, -D / 2), (W, 0, 0), (0, H, 0), (0, 0, D), COL_BODY, edge=EDGE)
     for y_ in g["legs_y"]:
         sc.box((W, H - y_ - fb / 2, -fa / 2), (LL, 0, 0), (0, fb, 0), (0, 0, fa), COL_FRAME, edge=EDGE)
+    if g["cover"]:
+        C = g["cover"]
+        sc.box((W + C["gap"] / 2, H - C["y1"], -C["w"] / 2), (C["L"], 0, 0), (0, C["y1"] - C["y0"], 0), (0, 0, C["w"]), COL_BODY, edge=EDGE)
     for P in g["plates_l"]:
         sc.box((W + LL, H - P["yc"] - P["h"] / 2, -P["w"] / 2), (PLt, 0, 0), (0, P["h"], 0), (0, 0, P["w"]), COL_FL, edge=EDGE)
     if g.get("logo") is not None:
@@ -283,7 +292,14 @@ def sheet1(g, out):
             draw_geom(g["logo"], Xm, Yv, fill=COL_PLEX, lw=0.1)
         for y_ in g["legs_y"]:
             a_, _ = sorted((X(W), X(W + LL)))
-            rect(a_, Yv(y_ - fb / 2), LL * s, fb * s, fill=COL_FRAME, lw=0.1)
+            if g["cover"]:                                          # v212: kojos po uždengimu - punktyru
+                rect(a_, Yv(y_ - fb / 2), LL * s, fb * s, stroke=HexColor("#D8D8D8"), lw=0.3, dash=(2, 1.5))
+            else:
+                rect(a_, Yv(y_ - fb / 2), LL * s, fb * s, fill=COL_FRAME, lw=0.1)
+        if g["cover"]:
+            C = g["cover"]
+            c_a, _ = sorted((X(W + C["gap"] / 2), X(W + LL - C["gap"] / 2)))
+            rect(c_a, Yv(C["y0"]), C["L"] * s, (C["y1"] - C["y0"]) * s, fill=COL_BODY, lw=0.1)
         for P in g["plates_l"]:
             a2, _ = sorted((X(W + LL), X(W + PR)))
             rect(a2, Yv(P["yc"] - P["h"] / 2), PLt * s, P["h"] * s, fill=COL_FL, lw=0.1)
@@ -320,6 +336,8 @@ def sheet1(g, out):
     K.balloon_side([(XA(W * 0.1), Yv(H * 0.9), 2)] + ([(XA(g["logo_x"] + g["logo_w"] * 0.3), Yv(g["logo_y"] + g["logo_h"] * 0.5), 4)]
                                                      if lg is not None else []), XA(0) - 60, "left", up=False)
     K.balloon_auto(XA(W + LL * 0.5), Yv(g["legs_y"][1]), 1)
+    if g["cover"]:                                                  # v212: kojų uždengimas
+        K.balloon_auto(XA(W + LL * 0.5), Yv(g["cover"]["y1"] - 12), 11)
     view_title(XA((W + PR) / 2), top - 84, "FRONT VIEW - SIDE A", sl)
     # ------------------------------------------------ VAIZDAS IŠ SIENOS
     sxc = XA(W + PR) + 115
@@ -450,7 +468,11 @@ def sheet1(g, out):
     if pr > 0 and lg is not None:
         for sg in (1, -1):
             rect(Xt(g["logo_x"]), Zt(sg * D / 2) if sg > 0 else Zt(-D / 2 - pr), g["logo_w"] * s, pr * s, fill=COL_PLEX, lw=0.1)
-    rect(Xt(W), Zt(-fa / 2), LL * s, fa * s, fill=COL_FRAME, lw=0.1)
+    if g["cover"]:                                                  # v212: uždengimas (kojos po juo)
+        C = g["cover"]
+        rect(Xt(W + C["gap"] / 2), Zt(-C["w"] / 2), C["L"] * s, C["w"] * s, fill=COL_BODY, lw=0.1)
+    else:
+        rect(Xt(W), Zt(-fa / 2), LL * s, fa * s, fill=COL_FRAME, lw=0.1)
     rect(Xt(W + LL), Zt(-PLw / 2), PLt * s, PLw * s, fill=COL_FL, lw=0.1)
     for x_ in g["scr_x"]:
         for sg in (1, -1):
@@ -545,6 +567,10 @@ def bom1(g):
         rows += [[9, "Stud (welded to Alu) + nut", "?", "-", f"{2 * len(g['studs'])} pcs."]]
     rows += [[10, ("Countersunk screw" if g["screws"] == "countersunk" else "Screw") + ", Ø3.2 holes in flanges", "A2", "-",
               f"{g['n_scr']} pcs."]]
+    if g["cover"]:                                                  # v212: kojų uždengimas
+        C = g["cover"]
+        rows += [[11, f"Leg cover {C['thk']:g} mm, A + B (mirror)", "Alu, folded, screwed", g["body_finish"] or "",
+                  f"2 pcs., {C['L']:g} x {C['y1'] - C['y0']:g} x {C['w'] / 2:g}"]]
     return rows
 
 

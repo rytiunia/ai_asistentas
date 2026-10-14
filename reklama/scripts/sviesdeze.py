@@ -334,7 +334,7 @@ def scene3d(g, yaw, box, title):
             sc.box((g["xb"], Hd - L["y"] - L["h"] / 2, -L["d"] / 2), (LL, 0, 0), (0, L["h"], 0), (0, 0, L["d"]), COL_FRAME,
                    edge=EDGE)
     for C in g["covers"]:                                         # v144: kojų uždengimas (korpuso spalva)
-        sc.box((g["xb"] + g["cover_gap"], Hd - C["y1"], -C["w"] / 2), (LL - g["cover_gap"], 0, 0), (0, C["y1"] - C["y0"], 0), (0, 0, C["w"]), COL_BODY, edge=EDGE)
+        sc.box((g["xb"] + g["cover_gap"] / 2, Hd - C["y1"], -C["w"] / 2), (LL - g["cover_gap"], 0, 0), (0, C["y1"] - C["y0"], 0), (0, 0, C["w"]), COL_BODY, edge=EDGE)
     for P in g["plates"]:
         _flange3d(sc, g, P)
     SCR = HexColor("#D0D0D0")
@@ -403,8 +403,8 @@ def sheet1(g, out):
         for L in g["legs"]:
             if not g["covers"]:
                 rect(a_, Yv(L["y"] - L["h"] / 2), LL * s, L["h"] * s, fill=COL_FRAME, lw=0.1)
-        cg = g["cover_gap"]                                         # v145: uždengimas 5 mm trumpesnis už tarpą (prie korpuso)
-        c_a, c_b = sorted((X(g["xb"] + cg), X(g["xf"])))
+        cg = g["cover_gap"]                                         # v145 / v212: uždengimas 5 mm trumpesnis - po 2.5 iš abiejų galų
+        c_a, c_b = sorted((X(g["xb"] + cg / 2), X(g["xf"] - cg / 2)))
         for C in g["covers"]:                                       # v144: kojų uždengimas, kojos po juo - punktyru
             rect(c_a, Yv(C["y0"]), (LL - cg) * s, (C["y1"] - C["y0"]) * s, fill=COL_BODY, lw=0.1)
             for L in g["legs"]:
@@ -431,7 +431,7 @@ def sheet1(g, out):
     P0 = g["plates"][0]
     if g["covers"]:
         C0 = g["covers"][0]
-        K.balloon_side([(XA(g["xb"] + g["cover_gap"] + (LL - g["cover_gap"]) * 0.5), Yv(Hd / 2), 10),
+        K.balloon_side([(XA(g["xb"] + g["cover_gap"] / 2 + (LL - g["cover_gap"]) * 0.5), Yv(Hd / 2), 10),
                         (XA(g["xf"] + P0["t"] / 2), Yv(C0["y0"] + 10), "1A")], XA(g["PROJ"]) + 16, "right", up=False)
         vchain(XA(g["PROJ"]) + D1, [Yv(0), Yv(ax), Yv(Hd - ax), Yv(Hd)], [XA(Wd)] + [XA(g["PROJ"])] * 2 + [XA(Wd)],
                [f"{ax:g}", f"{Hd - 2 * ax:g} (legs)", f"{ax:g}"], size=K.F_DIM_FRAME)
@@ -562,7 +562,7 @@ def sheet1(g, out):
     if g["covers"]:
         cw = g["covers"][0]["w"]
         rect(Xt(g["xb"]), Zt(-g["leg"][1] / 2), LL * s, g["leg"][1] * s, fill=COL_FRAME, lw=0.1)
-        rect(Xt(g["xb"] + g["cover_gap"]), Zt(-cw / 2), (LL - g["cover_gap"]) * s, cw * s, fill=COL_BODY, lw=0.1)
+        rect(Xt(g["xb"] + g["cover_gap"] / 2), Zt(-cw / 2), (LL - g["cover_gap"]) * s, cw * s, fill=COL_BODY, lw=0.1)
     else:
         rect(Xt(g["xb"]), Zt(-fb / 2), LL * s, fb * s, fill=COL_FRAME, lw=0.1)
     P0 = g["plates"][0]
