@@ -1,6 +1,11 @@
 # P10_lightbox_singlesided - vienpusė šviesdėžė, priekis kaip P10_lightbox_doublesided, dugnas - folded plate (v227, Rytis 2026-10-14)
 
-Būklė: SUPRATIMAS PATVIRTINTAS (Rytis 2026-10-14 „teisingai"), parametrai atsakyti (3 sk.), generatorius DAR NESUKURTAS.
+Būklė: SUPRATIMAS PATVIRTINTAS (Rytis 2026-10-14 „teisingai"), parametrai atsakyti (3 sk.). **Generatorius v230:**
+`scripts/p10_lightbox_singlesided.py spec.json out.pdf` -> 2 lapai (1: FRONT / RIGHT SIDE (laidas) / SECTION A-A / TOP VIEW, 3D,
+EXPLODED, DETAIL B 3 zonos, BOM, MAIN DATA; 2: CAD padėklų išklotinės) + `_gamyba.dxf` (priekis FACE OUT su išpjova + 0,7, D6 žymės,
+Ø3.2, išpjova kabeliui; dugnas su Ø3.2 ir kabelio skyle; pagrindas + Ø8; įdėklas). Logotipas - tiesiai iš kliento vektorinio PDF
+(spec `"logo": {"pdf", "clip" (dėžės kontūras pt), "fill"}`). Pirmas projektas - `scripts/projektai/leapmotor_33577/` (poz. 30).
+Varžtai: priekio atlankas -> dugno atlankas, 7 nuo priekio atlanko laisvo krašto (fasado), viršuje ir apačioje, 50 nuo galų, ~300.
 Eskizas (patvirtintas): `assets/konstrukcijos/P10_lightbox_singlesided_eskizas.png` / `.pdf`.
 Raktažodžiai: P10_lightbox_singlesided, vienpusė P10 šviesdėžė, single-sided P10 lightbox. Dvipusė - `moduliai_p10_lightbox_doublesided.md`.
 
@@ -26,7 +31,11 @@ Raktažodžiai: P10_lightbox_singlesided, vienpusė P10 šviesdėžė, single-si
 5. **Dugnas - Alu 1,5 mm** (folded v173); priekis - Alu 2 mm.
 6. Stiklas: **įdėklas 8 mm** (su Alu 2 -> išsikišimas 6), 3 mm pagrindas - kaip doublesided.
 
-## 4. Dokumentai (planas, pagal „Bendrinės taisyklės" 20-24)
+## 4. Dokumentai (įgyvendinta v230; buvęs planas, pagal „Bendrinės taisyklės" 20-24)
 1 lapas - kaip P10_lightbox_doublesided etalonas (FRONT, VIEW FROM WALL / dugnas, SECTION A-A, 3D, EXPLODED, TOP VIEW, DETAIL B
 pjūvis su pozicijomis, BOM, MAIN DATA); 2 lapas - vietoj rėmo: DUGNAS (CAD) - vaizdai + kabelio skylė, priekio išpjova;
 gamybos DXF - priekio ir dugno išklotinės (folded v173), plexi pagrindas / įdėklas.
+
+## 5. Dar neatsakyta (Leapmotor poz. 30) - lape „?"
+- kabelio skylės aukštis nuo viršaus (y), skylės Ø ir tarpinės tipas, priekio išpjovos plotis (geometrija: centras 7 nuo
+  dugno nugaros -> Ø <= ~10, kitaip kerta lenkimą); LED moduliai / PSU (lape LED tik patvirtintas); varžtų tipas.
