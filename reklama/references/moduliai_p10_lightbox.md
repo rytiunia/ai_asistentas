@@ -54,6 +54,7 @@ Raktažodžiai: P10_lightbox, P10 lightbox, push-through, iškištas stiklas, dv
 - PSU vieta ir laidas - pagal dydį ir kliento užklausą (spec `psu`, `cable`); nenurodyta - klausti.
 
 ## 5. Spalvos, plėvelė, gamybos failai (Rytis 2026-10-13)
+- **v220 (Rytis 2026-10-14): dažosi tik kojos (+ plokštės) ir padėklų išorė; rėmas viduje ir padėklų vidus - BALTI (geresnis švietimas)** - SKILL „Bendrinės taisyklės" 21.
 - Spalvos (korpusas, rėmas, kojos, plexi) - PAGAL KLIENTĄ (spec `body_finish`, `frame_finish`, `plexi`); nenurodyta - tuščia vieta.
 - Plėvelė ant plexi - būna, pagal užklausą (spec `film`; sunaudojimas - `plevele.py`, nesting atskiriems įdėklams).
 - Gamybos failai (Ryčio patvirtinta mano rekomendacija): A3 lapas + vienas DXF `<out>_gamyba.dxf`:

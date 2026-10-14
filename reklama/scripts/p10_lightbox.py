@@ -618,18 +618,18 @@ def bom1(g):
     W, H = g["w"], g["h"]
     if g["legB"]:                                                   # v211: rėmo variantas B
         _rp = " + ".join(f"{b_ - a_:.0f}" for a_, b_ in g["rear_parts"])
-        r1 = [[1, f"Frame + 2 legs {prof(fa, fb, ft)}", "Alu, welded", g["frame_finish"] or "",
+        r1 = [[1, f"Frame + 2 legs {prof(fa, fb, ft)}, frame white", "Alu, welded", (g["frame_finish"] + " legs") if g["frame_finish"] else "",
                f"{g['prof_len']:.0f} mm (cut list - frame view)"],
               ["1A", f"Mounting plate {P0['w']:g}x{P0['h']:g}x{P0['t']:g}, {len(P0['hz'])} x Ø{g['plate_hole_d']:g}",
                "Alu, welded to legs", g["frame_finish"] or "", "1 pc."]]
     else:
-        r1 = [[1, f"Frame + legs {prof(fa, fb, ft)}", "Alu, welded", g["frame_finish"] or "",
+        r1 = [[1, f"Frame + legs {prof(fa, fb, ft)}, in box white", "Alu, welded", (g["frame_finish"] + " legs") if g["frame_finish"] else "",
                f"2 x {g['L_h']:.0f} + 2 x {g['L_v']:.0f} mm"],
               ["1A", f"Mounting plate {P0['w']:g}x{P0['h']:g}x{P0['t']:g}, Ø{g['plate_hole_d']:g}", "Alu, welded to leg",
                g["frame_finish"] or "", f"{len(g['plates_l'])} pcs."]]
     rows = r1 + [
-            [2, f"Front A, folded {W:g}x{H:g}x{g['PD']:g} (DXF)", f"Alu {g['t']:g} mm", g["body_finish"] or "", "1 pc."],
-            [3, f"Back B, folded {W:g}x{H:g}x{g['PD']:g} (DXF)", f"Alu {g['t']:g} mm", g["body_finish"] or "", "1 pc."]]
+            [2, f"Front A, folded {W:g}x{H:g}x{g['PD']:g}, in white", f"Alu {g['t']:g} mm", g["body_finish"] or "", "1 pc."],
+            [3, f"Back B, folded {W:g}x{H:g}x{g['PD']:g}, in white", f"Alu {g['t']:g} mm", g["body_finish"] or "", "1 pc."]]
     if g.get("logo") is not None:
         if g["ins_t"] > 0:
             for k_, sd in ((4, "A"), (5, "B")):
@@ -653,9 +653,9 @@ def main_data1(g):
     md = [["Product", "P10 lightbox, 2-sided"],
           ["Size", f"{g['w']:g} x {g['h']:g} x {g['depth']:g} (+ 2 x {g['prot']:g})"],
           ["From wall", f"{g['proj']:g} mm (legs {g['leg_len']:g} + plate {g['plate'][2]:g})"],
-          ["Body", f"Alu {g['t']:g}, 2 folded trays A + B, seam centre"],
+          ["Body", f"Alu {g['t']:g}, 2 trays A + B, inside white"],
           ["Glass", f"{g['glass']} mm, cut-out + {g['cut_gap']:g}"],
-          ["Frame", f"{prof(*g['frame'])} {g['frame_finish'] or ''}".strip()],
+          ["Frame", f"{prof(*g['frame'])} white, legs {g['frame_finish'] or ''}".strip()],
           ["LED / PSU", f"{g['led_n']} x {g['led_name']}, {g['psu_name']}"],
           ["Qty", f"{g['qty']}"],
           ["Weight (calc.)", f"≈ {g['kg']:.1f} kg / pcs, excl. PSU"]]

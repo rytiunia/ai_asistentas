@@ -41,6 +41,45 @@ DEF = {"client": "", "title": "DOUBLE-SIDED LIGHTBOX, WALL MOUNTED (PROJECTING)"
 COL_BODY, COL_FRAME, COL_FACE, COL_PVC, COL_FL, COL_LED = (HexColor("#9C9C9C"), HexColor("#B4B4B4"), HexColor("#F4F4F2"),
                                                            HexColor("#C8C8C8"), HexColor("#8C8C8C"), HexColor("#F2C230"))
 EDGE = HexColor("#555555")
+COL_INWHITE = HexColor("#F2F2F2")                                   # v220: rėmas viduje / korpuso vidus - balti
+
+# v220 (Rytis 2026-10-14): 2 lapas - kaip CAD brėžinys, BE SPALVŲ, tik linijos (_CAD = True tik sheet2)
+_CAD = False
+_k_rect, _k_poly, _k_circle, _k_line, _k_T = rect, poly, circle, line, T
+
+
+def _cad_args(fill, stroke):
+    if not _CAD:
+        return fill, stroke
+    return (white if fill is not None else None), (K.black if stroke is not None else None)
+
+
+def rect(x, y, w, h, fill=None, stroke=K.black, lw=0.5, dash=None):
+    fill, stroke = _cad_args(fill, stroke)
+    _k_rect(x, y, w, h, fill=fill, stroke=stroke, lw=lw, dash=dash)
+
+
+def poly(pts, fill=None, stroke=K.black, lw=0.5, close=True, dash=None):
+    fill, stroke = _cad_args(fill, stroke)
+    _k_poly(pts, fill=fill, stroke=stroke, lw=lw, close=close, dash=dash)
+
+
+def circle(x, y, r, fill=None, stroke=K.black, lw=0.5, dash=None):
+    fill, stroke = _cad_args(fill, stroke)
+    _k_circle(x, y, r, fill=fill, stroke=stroke, lw=lw, dash=dash)
+
+
+def line(x1, y1, x2, y2, w=0.3, col=K.black, dash=None):
+    _k_line(x1, y1, x2, y2, w, K.black if _CAD else col, dash)
+
+
+def T(x, y, txt, size=7.5, *a, color=None, **kw):
+    if _CAD and color is not None:
+        color = K.black
+    if color is None:
+        _k_T(x, y, txt, size, *a, **kw)
+    else:
+        _k_T(x, y, txt, size, *a, color=color, **kw)
 
 
 def geom(S):
@@ -168,7 +207,7 @@ def bom_rows(g):
     if g["inset"]:
         lw_, ld_, lt_ = g["leg"]
         P = g["plates"][0]
-        head = [[1, f"Frame {prof(fa, fb, ft)} (sheet 2)", "Alu EN AW-6060", g["frame_finish"],
+        head = [[1, f"Frame {prof(fa, fb, ft)} (sheet 2)", "Alu EN AW-6060", "white (inside)",
                  f"2 x {g['L_h']:g} + 1 x {g['L_v']:g} = {g['prof_len']:g} mm"],
                 ["1B", f"Legs {prof(lw_, ld_, lt_)}, end {g['leg_chamfer']:g}°", "Alu, welded to frame", g["frame_finish"],
                  f"2 x {g['L_leg']:.0f} mm"],
@@ -177,10 +216,10 @@ def bom_rows(g):
                 ["1C", f"Trafo plate {g['trafo_plate'][1]:g} mm (PSU)", "Alu, welded between legs", "-",
                  f"{g['tp_h']:g} x {g['trafo_plate'][0]:g} mm"]]
     else:
-        head = [[1, f"Frame + legs {prof(fa, fb, ft)} (sheet 2)", "Alu EN AW-6060", g["frame_finish"],
+        head = [[1, f"Frame + legs {prof(fa, fb, ft)}, in body white", "Alu EN AW-6060", f"{g['frame_finish']} legs",
                  f"2 x {g['L_h']:g} + 2 x {g['L_v']:g} = {g['prof_len']:g} mm"],
                 ["1A", f"Flange {FLw:g}x{FLh:g}x{FLt:g}, 4 x Ø{g['hole_d']:g}", "Alu, welded to leg", g["frame_finish"], "2 pcs."]]
-    return head + [[2, f"Body band {g['band_thk']:g} mm x {g['depth']:g}", "Alu, folded, welded to frame", g["body_finish"],
+    return head + [[2, f"Body band {g['band_thk']:g} x {g['depth']:g}, inside white", "Alu, folded, welded to frame", f"{g['body_finish']} out",
              f"{g['BW']:g} x {g['BH']:g}: {g['per_b']:g} mm"],
             [3, "Face A (glass)", g["face"], "-", f"{g['w']:g} x {g['h']:g} = {g['w'] * g['h'] / 1e6:.2f} m²"],
             [4, f"PVC edge {pw:g} x {pd:g} (face A)", "PVC, glued to face", "white", f"{g['pvc_len']:g} mm"],
@@ -934,6 +973,15 @@ def end_view(g, cx, Yv, s):
 
 # ===================================================================== 2 LAPAS - FRAME + LED
 def sheet2(g, out):
+    global _CAD
+    _CAD = True
+    try:
+        _sheet2(g, out)
+    finally:
+        _CAD = False
+
+
+def _sheet2(g, out):
     D, tb, ov, tf = g["depth"], g["band_thk"], g["face_over"], g["face_thk"]
     fa, fb, ft = g["frame"]
     LL = g["leg_len"]; FLw, FLh, FLt = g["flange"]
@@ -1071,9 +1119,9 @@ def sheet2(g, out):
             ["Supply", "not in Alt Reklama price list - check:"]], title="LED (7)", lab_w=64)
 
     ci = fa - 2 * ft
-    frame_cut = [["1.1", f"Top member + leg □{fa}x{fb}x{ft:g}", "Alu EN AW-6060", g["frame_finish"], f"1 x {g['L_h']:g} mm"],
-                 ["1.2", f"Bottom member + leg □{fa}x{fb}x{ft:g}", "Alu EN AW-6060", g["frame_finish"], f"1 x {g['L_h']:g} mm (cable)"],
-                 ["1.3", f"Vertical □{fa}x{fb}x{ft:g}", "Alu EN AW-6060", g["frame_finish"], f"2 x {g['L_v']:g} mm"],
+    frame_cut = [["1.1", f"Top member + leg □{fa}x{fb}x{ft:g}", "Alu EN AW-6060", f"{g['frame_finish']} leg", f"1 x {g['L_h']:g} mm"],
+                 ["1.2", f"Bottom member + leg □{fa}x{fb}x{ft:g}", "Alu EN AW-6060", f"{g['frame_finish']} leg", f"1 x {g['L_h']:g} mm (cable)"],
+                 ["1.3", f"Vertical □{fa}x{fb}x{ft:g}", "Alu EN AW-6060", "white", f"2 x {g['L_v']:g} mm"],
                  ["1A", f"Flange {FLw:g}x{FLh:g}x{FLt:g} R{g['flange_r']:g}", "Alu", g["frame_finish"],
                   f"2 pcs., 4 x Ø{g['hole_d']:g} + □{ci:g}"],
                  ["", "Frame profile total", "", "", f"{g['prof_len']:g} mm (+ cut allowance)"],
@@ -1083,9 +1131,9 @@ def sheet2(g, out):
                  ["", "", "", "", ""]]
     if g["inset"]:
         lw_, ld_, lt_ = g["leg"]; P = g["plates"][0]
-        frame_cut = [["1.1", f"Top member {prof(fa, fb, ft)}", "Alu EN AW-6060", g["frame_finish"], f"1 x {FW:g} mm"],
-                     ["1.2", f"Bottom member {prof(fa, fb, ft)}", "Alu EN AW-6060", g["frame_finish"], f"1 x {FW:g} mm"],
-                     ["1.3", f"Front vertical {prof(fa, fb, ft)}", "Alu EN AW-6060", g["frame_finish"], f"1 x {g['L_v']:g} mm"],
+        frame_cut = [["1.1", f"Top member {prof(fa, fb, ft)}", "Alu EN AW-6060", "white", f"1 x {FW:g} mm"],
+                     ["1.2", f"Bottom member {prof(fa, fb, ft)}", "Alu EN AW-6060", "white", f"1 x {FW:g} mm"],
+                     ["1.3", f"Front vertical {prof(fa, fb, ft)}", "Alu EN AW-6060", "white", f"1 x {g['L_v']:g} mm"],
                      ["1B", f"Leg {prof(lw_, ld_, lt_)}, end {g['leg_chamfer']:g}°", "Alu EN AW-6060", g["frame_finish"],
                       f"2 x {g['L_leg']:.0f} mm"],
                      ["1A", f"Mounting plate {P['w']:g}x{P['h']:g}x{P['t']:g}", "Alu", g["frame_finish"],
@@ -1103,7 +1151,7 @@ def sheet2(g, out):
           ["Body", f"band {g['BW']:g} x {g['BH']:g}, welded to frame"],
           ["Cable", ("PSU on 1C -> inside cover -> plate Ø" + f"{g['cable_hole']:g}") if g["inset"]
            else "bottom leg tube -> flange □ hole"],
-          ["Finish", g["frame_finish"]],
+          ["Finish", f"legs + plates {g['frame_finish']}; inside white"],
           ["Qty", f"{g['qty']} set"]]
     band(g, "2 / 2", " - FRAME + LED", md, frame_cut, detail, f"1:{g['scale_fr']:g} / 1:{g['scale_band']:g}")
     K.save(out)
