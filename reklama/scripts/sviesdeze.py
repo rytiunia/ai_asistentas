@@ -207,7 +207,7 @@ def bom_rows(g):
     if g["inset"]:
         lw_, ld_, lt_ = g["leg"]
         P = g["plates"][0]
-        head = [[1, f"Frame {prof(fa, fb, ft)} (cut list - frame view)", "Alu EN AW-6060", "white (inside)",
+        head = [[1, f"Frame {prof(fa, fb, ft)} (cut list - sheet 2)", "Alu EN AW-6060", "white (inside)",
                  f"2 x {g['L_h']:g} + 1 x {g['L_v']:g} = {g['prof_len']:g} mm"],
                 ["1B", f"Legs {prof(lw_, ld_, lt_)}, end {g['leg_chamfer']:g}°", "Alu, welded to frame", g["frame_finish"],
                  f"2 x {g['L_leg']:.0f} mm"],
@@ -635,18 +635,20 @@ def sheet1(g, out):
     K.init(out + ".tmp", "sheet1")
     K.frame(); K.set_view(True)
     # v223: VIENAS lapas kaip TEST_P10_lightbox_B - mastelis pagal vietą (spec scale_ga - jei nurodytas)
-    def _row1(n):                                                   # FRONT A | WALL | FRONT B | A-A -> rėmo mastelis
+    # v225 (Rytis 2026-10-14: „sheet 1 nereikia rėmo ir plate matmenų, kadangi tam sukurtas sheet 2"): 1 eilė - FRONT A | WALL |
+    #  FRONT B | SECTION A-A per visą plotį; mastelis - didžiausias telpantis (plotis + aukštis 2 eilei), eilė centruojama
+    def _row1(n):
         s_ = MM / n
         x_ = K.IX0 + 70 + g["PROJ"] * s_ + 118 + (40 if g["covers"] else 0) + TOT * s_ + 120 + g["PROJ"] * s_ + 95
-        n5_ = nice_scale(Hd * s_ * 1.6, Hd, (4, 5, 6, 8, 10, 12, 15, 20, 25, 30))
-        ffx_ = x_ + TOT * MM / n5_ + 95
-        return nice_scale(K.IX1 - ffx_ - 40 - 100, g["PROJ"] - g["x0"], (5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50))
+        n5_ = nice_scale(min(Hd * s_ * 1.6, 0.36 * (K.VIEW_BOT - K.IY0 - 112)), Hd, (4, 5, 6, 8, 10, 12, 15, 20, 25, 30))
+        return x_ + TOT * MM / n5_ + 70
     if g.get("scale_ga_spec"):
         g["scale_ga"] = g["scale_ga_spec"]
-    else:                                                           # v223: priekis ir rėmas - subalansuoti (min max mastelis)
-        n0 = nice_scale(170, max(Wd + LL + FLt, Hd * 1.15), (5, 6, 8, 10, 12, 15, 20, 25, 30, 40))
-        cand = [n for n in (5, 6, 8, 10, 12, 15, 20, 25, 30, 40) if n >= n0]
-        g["scale_ga"] = min(cand, key=lambda n: (max(n, 0.75 * _row1(n)), n))   # priekiui - pirmenybė
+    else:
+        hlim = 0.30 * (K.VIEW_BOT - K.IY0 - 112)       # v225: 2 eilei (3D, exploded) - vietos
+        cand = (4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 40)
+        g["scale_ga"] = next((n for n in cand if _row1(n) <= K.IX1 - 20 and Hd * MM / n <= hlim), cand[-1])
+    row_shift = max(0.0, (K.IX1 - 20 - _row1(g["scale_ga"])) / 2)
     s = MM / g["scale_ga"]
     sl = f"1:{g['scale_ga']:g}"
     top = K.IY0 + 112
@@ -695,7 +697,7 @@ def sheet1(g, out):
         return X
 
     # ---------------------------------------------------------------- SIDE A | VIEW FROM WALL | SIDE B
-    fxA = K.IX0 + 70
+    fxA = K.IX0 + 70 + row_shift
     XA = front(fxA, False, "SIDE A")
     K.balloon_side([(XA(Wd * 0.05), Yv(Hd * 0.1), 3)], XA(0) - 22, "left", up=True)
     P0 = g["plates"][0]
@@ -771,7 +773,7 @@ def sheet1(g, out):
     K.balloon_side([(XB(Wd * 0.05), Yv(Hd * 0.1), 5)], XB(0) + 22, "right", up=True)
     view_title((XB(0) + XB(g["PROJ"])) / 2, top - 84, "FRONT VIEW - SIDE B", sl + "  (mirrored)")
     # ---------------------------------------------------------------- SECTION A-A 1:5
-    n5 = nice_scale(Hd * s * 1.6, Hd, (4, 5, 6, 8, 10, 12, 15, 20, 25, 30))     # v223: kaip P10_lightbox
+    n5 = nice_scale(min(Hd * s * 1.6, 0.36 * (K.VIEW_BOT - K.IY0 - 112)), Hd, (4, 5, 6, 8, 10, 12, 15, 20, 25, 30))     # v223: kaip P10_lightbox
     g["scale_aa"] = n5
     s5 = MM / n5
     ya = lambda y: top + y * s5
@@ -816,32 +818,6 @@ def sheet1(g, out):
     circle(Xa(TOT / 2 - 10), ya(Hd - 12), 16, lw=0.3, dash=(3, 1.5))
     T(Xa(TOT / 2) + 14, ya(Hd - 30), "B", 10, font="FB")
     view_title(Xa(0), top - 84, "SECTION A-A", f"1:{n5:g}")
-    # ---------------------------------------------------------------- FRAME (1) + LED (7) + PLATE / FLANGE 1A (v223, iš buv. 2 lapo)
-    ffx = Xa(TOT / 2) + 95
-    x0f = g["x0"]
-    nF = nice_scale(K.IX1 - ffx - 40 - 100, g["PROJ"] - x0f, (5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50))
-    g["scale_fr"] = nF
-    fr_r = frame_view(g, ffx + 40, top + x0f * s, nF)
-    view_title((ffx + 40 + fr_r) / 2, top - 84, "FRAME (1) + LED (7)", f"1:{nF:g}  (from side A)")
-    sF = MM / nF
-    fbot = max([top + x0f * s + g["FH"] * sF] + [top + x0f * s + (P["yc"] + P["h"] / 2 - x0f) * sF for P in g["plates"]]) + D2 + 52
-    tvt = K.VIEW_BOT - 70 - max(P["w"] for P in g["plates"]) / 2 * s - 40     # TOP VIEW pavadinimas
-    P0_ = g["plates"][0]
-    pav = tvt - 30 - (fbot + 40) - 40 - ((D2 + 14) if g["inset"] else 0)
-    if g["inset"]:
-        npl = nice_scale(pav, P0_["h"], (2, 2.5, 4, 5, 6, 8, 10, 12, 15))
-        px_ = (ffx + 40 + fr_r) / 2 - P0_["w"] * MM / npl / 2
-        plate_view(g, px_, fbot + 40 + D2 + 14, MM / npl)
-        view_title(px_ + P0_["w"] * MM / npl / 2, fbot + 4, "MOUNTING PLATE 1A + LEGS 1B", f"1:{npl:g}  (from wall)")
-    else:
-        npl = nice_scale(pav - 2 * D2, FLh, (2, 2.5, 4, 5, 6, 8, 10))
-        if npl <= 5:
-            px_ = (ffx + 40 + fr_r) / 2 - FLw * MM / npl / 2
-            flange_view(g, px_, fbot + 40, MM / npl)
-            view_title(px_ + FLw * MM / npl / 2, fbot + 4, "FLANGE 1A (2 pcs.)", f"1:{npl:g}")
-        else:                                                       # per maža vieta - padas matomas VIEW FROM WALL (skylės)
-            T((ffx + 40 + fr_r) / 2, fbot + 14, f"flange 1A: {FLw:g}x{FLh:g}x{FLt:g} R{g['flange_r']:g}, 4 x Ø{g['hole_d']:g} / "
-              f"{g['hole_pitch']:g}, □{fa - 2 * ft:g} tube - see VIEW FROM WALL", 8, align="c", color=K.GREY)
     # ---------------------------------------------------------------- 2 eilė: 3D A, 3D B, EXPLODED (kaip P10_lightbox)
     y3 = max(Yv(Hd), ya(Hd)) + D2 + 22 + 56
     h3 = K.VIEW_BOT - y3 - 30
@@ -850,7 +826,7 @@ def sheet1(g, out):
     scene3d(g, -35, (K.IX0 + 30, y3, w3, h3), "3D VIEW - SIDE A")
     scene3d(g, 145, (K.IX0 + 30 + w3 + 30, y3, w3, h3), "3D VIEW - SIDE B")
     exx = K.IX0 + 30 + 2 * w3 + 30 + 50
-    exploded_view(g, (exx, y3, min(tx_l, ffx - 20) - exx, h3 + 8))
+    exploded_view(g, (exx, y3, tx_l - exx, h3 + 8))
     # ---------------------------------------------------------------- TOP VIEW (varžtai 8)
     tx0 = K.IX1 - g["PROJ"] * s - 90
     tyc = K.VIEW_BOT - 70
@@ -896,7 +872,7 @@ def sheet1(g, out):
           ["Qty", f"{g['qty']} pcs."],
           ["Weight (calc.)", f"≈ {g['kg']:.1f} kg / pcs, excl. PSU"]]
     md.insert(6, ["Finish", f"legs + plates {g['frame_finish']}; inside white"])
-    band(g, "1 / 2", "", md, bom_rows(g), detail_b(g), f"1:{g['scale_ga']:g} / 1:{g['scale_aa']:g} / 1:{g['scale_fr']:g}")
+    band(g, "1 / 2", "", md, bom_rows(g), detail_b(g), f"1:{g['scale_ga']:g} / 1:{g['scale_aa']:g}")
     K.save(out)
 
 

@@ -280,7 +280,18 @@ def sheet1(g, out):
     K.set_band(len(bom1(g)) + 1)
     K.init(out + ".tmp", "sheet1")
     K.frame()
-    nga = g["scale_ga"] or nice_scale(170, max(W + PR, H * 1.15), (5, 6, 8, 10, 12, 15, 20, 25, 30, 40))
+    # v225 (Rytis 2026-10-14): 1 lape rėmo ir plokštės vaizdų NĖRA (2 lapas) - 1 eilė per visą plotį, didžiausias telpantis mastelis
+    PLw_ = max(P["w"] for P in g["plates_l"])
+    def _row1(n):
+        s_ = MM / n
+        x_ = K.IX0 + 78 + (W + PR) * s_ + 115 + max(PLw_, D) / 2 * s_ + 125 + (W + PR) * s_ + 90
+        n5_ = nice_scale(H * s_ * 1.6, H, (4, 5, 6, 8, 10, 12, 15, 20, 25, 30))
+        return x_ + (D + 2 * pr) * MM / n5_ + 70
+    cand_ = (4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 40)
+    hlim = 0.30 * (K.VIEW_BOT - K.IY0 - 112)       # v225: 2 eilei (3D, exploded) - vietos
+    nga = g["scale_ga"] or next((n for n in cand_ if _row1(n) <= K.IX1 - 20 and H * MM / n <= hlim), cand_[-1])
+    gk = max(0.0, (K.IX1 - 20 - _row1(nga)) / 4)                    # v225: laisva vieta - po lygiai į tarpus (eilė centruota)
+    row_shift = gk
     s = MM / nga
     sl = f"1:{nga:g}"
     top = K.IY0 + 112
@@ -334,7 +345,7 @@ def sheet1(g, out):
         return X
 
     # ------------------------------------------------ SIDE A
-    fxA = K.IX0 + 78
+    fxA = K.IX0 + 78 + row_shift
     XA = front(fxA, False)
     xc = (g["logo_x"] + g["logo_w"] / 2) if lg is not None else W / 2
     K.cut_plane(XA(xc), Yv(0) - 30, Yv(H) + 54, "A", look="right")
@@ -345,7 +356,7 @@ def sheet1(g, out):
         K.balloon_auto(XA(W + LL * 0.5), Yv(g["cover"]["y1"] - 12), 11)
     view_title(XA((W + PR) / 2), top - 84, "FRONT VIEW - SIDE A", sl)
     # ------------------------------------------------ VAIZDAS IŠ SIENOS
-    sxc = XA(W + PR) + 115
+    sxc = XA(W + PR) + 115 + gk
     Zs = lambda z: sxc + z * s
     P0 = g["plates_l"][0]; PLw = P0["w"]
     K.set_view(True)
@@ -378,7 +389,7 @@ def sheet1(g, out):
     T(Zs(0), Yv(H) + 40, "= WALL DRILLING; - - - tray seam", 8, align="c", color=K.GREY)
     view_title(Zs(0), top - 84, "VIEW FROM WALL", sl)
     # ------------------------------------------------ SIDE B
-    fxB = Zs(ex_) + 125
+    fxB = Zs(ex_) + 125 + gk
     XB = front(fxB, True)
     K.balloon_side([(XB(W * 0.1), Yv(H * 0.9), 3)] + ([(XB(g["logo_x"] + g["logo_w"] * 0.3), Yv(g["logo_y"] + g["logo_h"] * 0.5), 5)]
                                                      if lg is not None else []), XB(0) + 60, "right", up=False)
@@ -433,27 +444,15 @@ def sheet1(g, out):
     VM(U(-pr) - D2, Ya(0), Ya(H), U(-pr), f"{H:g}")
     if segA:
         ym = (segA[0][0] + segA[0][1]) / 2
-        K.balloon_side([(U(t / 2), Ya(H * 0.85), 2), (U(-pr / 2), Ya(ym), 4), (U(t + bt / 2), Ya(segA[0][1] + 15), 6),
-                        (U(D / 2 - fa / 2), Ya(t + 10), 1), (U(D / 2 - 11), Ya(yl_t + 4), 8)], U(-pr) - 62, "left", up=True)
-        K.balloon_side([(U(D - t / 2), Ya(H * 0.85), 3), (U(D + pr / 2), Ya(ym), 5), (U(D - t - bt / 2), Ya(segA[0][1] + 15), 7)],
-                       U(D + pr) + 24, "right", up=True)
+        # v225: pjūvio pozicijos - žemyn / į dešinę (kairėje - matmenys), viršaus - aukštyn
+        for tx_, ty_, lab_ in [(U(t / 2), Ya(H * 0.85), 2), (U(-pr / 2), Ya(ym), 4), (U(t + bt / 2), Ya(segA[0][1] + 15), 6),
+                               (U(D / 2 - fa / 2), Ya(t + 10), 1), (U(D / 2 - 11), Ya(yl_t + 4), 8)]:
+            K.balloon_auto(tx_, ty_, lab_, prefer=[90, 135, 45] if lab_ in (1, 8) else [300, 270])
+        for tx_, ty_, lab_ in [(U(D - t / 2), Ya(H * 0.85), 3), (U(D + pr / 2), Ya(ym), 5), (U(D - t - bt / 2), Ya(segA[0][1] + 15), 7)]:
+            K.balloon_auto(tx_, ty_, lab_, prefer=[0, 315])
         circle(U(0), Ya(segA[0][0]), 14, lw=0.3, dash=(3, 1.5))
         T(U(0) - 4, Ya(segA[0][0]) - 17, "B", 10, font="FB", align="r")
     view_title(U(D / 2), top - 84, "SECTION A-A", f"1:{n5:g}")
-    # ------------------------------------------------ FRAME (1) + LED (8) - v201 iš buv. 2 lapo
-    ffx = U(D + pr) + 100
-    x0f = t + g["clear"]
-    nF = nice_scale(K.IX1 - ffx - 60, W + LL + PLt - x0f, (5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50))
-    fr_r = frame_view(g, ffx, top + x0f * s, nF)
-    fbot = top + x0f * s + g["FH"] * MM / nF + 40                  # po rėmo pastabomis
-    P0_ = g["plates_l"][0]
-    pav = (K.VIEW_BOT - 64 - (D / 2 + pr) * s - 44 - 30) - (fbot + 40) - 50     # iki TOP VIEW pavadinimo
-    if g["legB"]:                                                   # v211: ilga plokštė - gulsčiai
-        npl = nice_scale(min(fr_r - ffx - 60, K.IX1 - ffx - 80), P0_["h"], (2, 2.5, 4, 5, 8, 10))
-        plate_view_h(g, (ffx + fr_r) / 2 - 20, fbot + 40, npl)
-    else:
-        npl = nice_scale(pav, P0_["h"], (2, 2.5, 4, 5, 8, 10))
-        plate_view(g, (ffx + fr_r) / 2, fbot + 40, npl)
     # ------------------------------------------------ 2 eilė: 3D A, 3D B, EXPLODED, PLATE 1A + TOP VIEW
     y3 = max(Yv(H), Ya(H)) + D2 + 50
     h3 = K.VIEW_BOT - y3 - 30
@@ -621,7 +620,7 @@ def bom1(g):
     if g["legB"]:                                                   # v211: rėmo variantas B
         _rp = " + ".join(f"{b_ - a_:.0f}" for a_, b_ in g["rear_parts"])
         r1 = [[1, f"Frame + 2 legs {prof(fa, fb, ft)}, frame white", "Alu, welded", (g["frame_finish"] + " legs") if g["frame_finish"] else "",
-               f"{g['prof_len']:.0f} mm (cut list - frame view)"],
+               f"{g['prof_len']:.0f} mm (cut list - sheet 2)"],
               ["1A", f"Mounting plate {P0['w']:g}x{P0['h']:g}x{P0['t']:g}, {len(P0['hz'])} x Ø{g['plate_hole_d']:g}",
                "Alu, welded to legs", g["frame_finish"] or "", "1 pc."]]
     else:
