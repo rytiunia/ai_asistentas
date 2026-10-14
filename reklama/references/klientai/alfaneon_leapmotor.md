@@ -25,7 +25,7 @@ Leapmotor NETAIKOMAS - čia 12 V 1,5 m + TRAFO BOX, Rytis).
 - Projektas `scripts/projektai/leapmotor_33577/` (PO, kliento PDF, `spec_LEAP26-01002.json`).
 - Poz. 10: `braizyti_begeliai.py` su **"mounting": "acrylic"**, **"rail": {"type": "acrylic", "size": "40x20"}**, `"acrylic"`
   ({"thk": 20, "sheet": [3050, 2050], "joint_clear": 0.2, "hole_d": 8, "holes_every_gap": 2, "groove": {"w": 8, "d": 10}}); priekis
-  `"front": "8mm"` (balta akrilo priekis frezuota - PATIKSLINTI su Ryčiu, PO: „white acrylic fronts").
+  `"front": "P6"` (buv. "8mm"; balta akrilo priekis frezuota - PATIKSLINTI su Ryčiu, PO: „white acrylic fronts").
   Rezultatai: lapas, 1:1 PDF, `_akrilinis_remas.dxf` (ACRYLIC_20_CUT dalys su puzzle, HOLES_D8, GROOVE_BACK_AXIS).
 - Rytis 2026-10-14: ALT numeris - blank `ALT0000_00.00_RS`; akriliniam rėmui PAPILDOMI statmenys po raidėmis; puzzle -
   kiek įmanoma po raidėmis; Ø8 skylės tarp raidžių, bet dvigubai mažiau (kas antrame tarpe); bėgelis 40 mm; simbolis ant
@@ -34,4 +34,9 @@ Leapmotor NETAIKOMAS - čia 12 V 1,5 m + TRAFO BOX, Rytis).
   **jungtys pagal medžiagos ilgį nurodomos** (J1, dalys 1499 + 2967 iš lakšto 3050); **griovelis 8 pločio x 10 gylio**.
   Poz. 30: priekis prisukamas per perimetrą; LED ant dugno galinės plokštumos; LED tipas - paliekamas „?", tikrinama gamyboje;
   varžtų tipas neaktualus.
+- v232-v233 (Rytis 2026-10-14): statmenys / įstrižai - **atskiros detalės, į bėgelius jungiami puzzle** (taupoma medžiaga);
+  profilio pjūvis - etaloninis **P6** (ne senas `p6_typical`), akrilo bėgelis pilnaviduris; priekio kodas `"front": "P6"`
+  (buv. P6_8mm). Poz. 10 dokumentas - **2 lapai**: 2 lapas „ACRYLIC FRAME - PARTS & JOINTS" (R1-R4, V1-V5, J1, DETAIL C / D,
+  SECTION E, blokas „WHY / WHERE THE FRAME JOINS", dalių BOM); 1 lape nuorodos C / D.
+  Poz. 30: LED moduliai matomi pjūvyje A-A ir DETAIL B; exploded view - dešinė kolona per visą aukštį, top view - 2 eilėje.
 - Neatsakyta: poz. 20 profilis (P6 netinka - štrichas ~16,2, dugnas -3 iš kiekvienos pusės -> ~10 < 16).

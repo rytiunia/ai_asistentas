@@ -119,7 +119,7 @@ pvc / forex / simopor, akp / dibond / lightbond / albond, alu, pc, ps.
 
 | Medžiaga | Tiekėjas | Formatai (mm) x storis | Naudojimas skill'e |
 |---|---|---|---|
-| PMMA Plexiglas XT WN770 opal (balta) | Heliopolis | 4050x2050 x 8 | P6_8mm priekis |
+| PMMA Plexiglas XT WN770 opal (balta) | Heliopolis | 4050x2050 x 8 | P6 (buv. P6_8mm) priekis |
 | PMMA Plexiglas XT skaidri | Heliopolis | 3050x2050 x 5 | - |
 | PMMA PLAZCRYL balta R7065 / R7068 | Plastena | 3050x2050 x 2 / 3 / 4 / 10 / 15; 4000x2050 x 3; 2050x1500 ir 1020x1000 x 2 / 3 / 4 | 5S priekis (balta 3 mm) |
 | PMMA PLAZCRYL matinė (opal) R7072 | Plastena | 3050x2050 x 2 / 3 | - |
