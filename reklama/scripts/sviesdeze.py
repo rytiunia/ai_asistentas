@@ -528,28 +528,35 @@ def exploded(g, box, yaw=-54, pitch=17):
     Y = lambda y: Hd - y                                            # y žemyn -> pasaulio y aukštyn
     # korpuso juosta (2) - 4 kraštinės
     BW, BH = g["BW"], g["BH"]
-    for (xa, ya, w_, h_) in ((ov, ov, BW, tb), (ov, Hd - ov - tb, BW, tb), (ov, ov + tb, tb, BH - 2 * tb),
-                             (Wd - ov - tb, ov + tb, tb, BH - 2 * tb)):
-        sc.box((xa, Y(ya + h_), -D / 2), (w_, 0, 0), (0, h_, 0), (0, 0, D), COL_BODY, edge=EDGE)
+    hb = tb / 2                                                     # v222: juosta - išorė spalva, vidus baltas (per pusę storio)
+    for (xa, ya, w_, h_, col) in ((ov, ov, BW, hb, COL_BODY), (ov, ov + hb, BW, hb, COL_INWHITE),
+                                  (ov, Hd - ov - hb, BW, hb, COL_BODY), (ov, Hd - ov - tb, BW, hb, COL_INWHITE),
+                                  (ov, ov + tb, hb, BH - 2 * tb, COL_BODY), (ov + hb, ov + tb, hb, BH - 2 * tb, COL_INWHITE),
+                                  (Wd - ov - hb, ov + tb, hb, BH - 2 * tb, COL_BODY),
+                                  (Wd - ov - tb, ov + tb, hb, BH - 2 * tb, COL_INWHITE)):
+        sc.box((xa, Y(ya + h_), -D / 2), (w_, 0, 0), (0, h_, 0), (0, 0, D), col, edge=EDGE)
     anc[2] = (ov + BW * 0.25, Y(ov), D / 2 * 0.3)
     # rėmas (1) + kojos + padai / plokštė (1A)
     if g["inset"]:
         lw_, ld_, lt_ = g["leg"]
         for y0 in (x0, x0 + FH - fa):
-            sc.box((x0, Y(y0 + fa), -fb / 2), (FW, 0, 0), (0, fa, 0), (0, 0, fb), COL_FRAME, edge=EDGE)
-        sc.box((x0, Y(x0 + FH - fa), -fb / 2), (fa, 0, 0), (0, FH - 2 * fa, 0), (0, 0, fb), COL_FRAME, edge=EDGE)
+            sc.box((x0, Y(y0 + fa), -fb / 2), (FW, 0, 0), (0, fa, 0), (0, 0, fb), COL_INWHITE, edge=EDGE)
+        sc.box((x0, Y(x0 + FH - fa), -fb / 2), (fa, 0, 0), (0, FH - 2 * fa, 0), (0, 0, fb), COL_INWHITE, edge=EDGE)
         for L in g["legs"]:
-            sc.box((g["leg_x0"], Y(L["y"] + lw_ / 2), -ld_ / 2), (g["xf"] - g["leg_x0"], 0, 0), (0, lw_, 0), (0, 0, ld_),
-                   COL_FRAME, edge=EDGE)
+            sc.box((g["leg_x0"], Y(L["y"] + lw_ / 2), -ld_ / 2), (g["xb"] - g["leg_x0"], 0, 0), (0, lw_, 0), (0, 0, ld_),
+                   COL_INWHITE, edge=EDGE)                          # kojos dalis dėžės viduje - balta
+            sc.box((g["xb"], Y(L["y"] + lw_ / 2), -ld_ / 2), (g["xf"] - g["xb"], 0, 0), (0, lw_, 0), (0, 0, ld_),
+                   COL_FRAME, edge=EDGE)                            # koja lauke - spalva
         L0 = g["legs"][0]
         anc["1B"] = (g["xb"] + (g["xf"] - g["xb"]) * 0.45, Y(L0["y"] - lw_ / 2), ld_ / 4)
         sc.box((g["x_tp"], Y(g["ax"] + lw_ / 2 + g["tp_h"]), -g["trafo_plate"][0] / 2), (g["trafo_plate"][1], 0, 0),
                (0, g["tp_h"], 0), (0, 0, g["trafo_plate"][0]), HexColor("#7A7A7A"), edge=EDGE)
     else:
         for y0 in (x0, x0 + FH - fa):
-            sc.box((x0, Y(y0 + fa), -fb / 2), (g["L_h"], 0, 0), (0, fa, 0), (0, 0, fb), COL_FRAME, edge=EDGE)
+            sc.box((x0, Y(y0 + fa), -fb / 2), (g["xb"] - x0, 0, 0), (0, fa, 0), (0, 0, fb), COL_INWHITE, edge=EDGE)
+            sc.box((g["xb"], Y(y0 + fa), -fb / 2), (g["xf"] - g["xb"], 0, 0), (0, fa, 0), (0, 0, fb), COL_FRAME, edge=EDGE)
         for xx in (x0, xr - fa):
-            sc.box((xx, Y(x0 + FH - fa), -fb / 2), (fa, 0, 0), (0, FH - 2 * fa, 0), (0, 0, fb), COL_FRAME, edge=EDGE)
+            sc.box((xx, Y(x0 + FH - fa), -fb / 2), (fa, 0, 0), (0, FH - 2 * fa, 0), (0, 0, fb), COL_INWHITE, edge=EDGE)
     for P in g["plates"]:
         _flange3d(sc, g, P)
     P0 = g["plates"][0]
@@ -618,7 +625,7 @@ def exploded_view(g, box):
         if key in A:
             K.balloon_auto(A[key][0], A[key][1], lab, region=reg)
     view_title(ex0 + ew / 2, ey0 + eh + 18, "ASSEMBLY - EXPLODED VIEW",          # pavadinimas apačioje - kaip 3D vaizdų
-               "not to scale; face A + PVC 4 - body 2 + frame 1 + LED 7 - PVC 6 + face B")
+               "not to scale; face A + PVC 4 - body 2 + frame 1 + LED 7 - PVC 6 + face B; inside white")
 
 
 def sheet1(g, out):
@@ -1011,11 +1018,19 @@ def _sheet2(g, out):
         if nb_:
             nsc, nb, layB = n, nb_, True
             break
-    g["scale_fr"], g["scale_band"] = nsc, nb
+    g["scale_fr"], g["scale_band"], g["_layB"] = nsc, nb, layB
     print(f"  sheet2: hav {hav:.0f}/{havB:.0f}, h {(pl_b - pl_t):.0f} mm, w {gw_mm:.0f} mm -> 1:{nsc:g}, band 1:{nb:g}")
     s = MM / nsc
+    # v222 (Bendrinės taisyklės 22): projekcijos CENTRUOJAMOS savo blokuose - FRAME | VIEW FROM WALL (laisva vieta po lygiai
+    #  abiem blokams, kiekviename vaizdas per vidurį), vertikaliai - per vidurį laisvame aukštyje; BODY BAND - per lapo vidurį
     wblk = (wav - (Lband * MM / nb + 90 + 40)) if layB else wav
-    fx = K.IX0 + 10 + (wblk - (gw_mm * MM / nsc + fixed)) / 2 + 50
+    wF = (g["PROJ"] - x0) * s + 50 + 50
+    wE = max(PWm, D) * s + 50 + 100
+    free = max(0.0, wblk - wF - wE)
+    fx = K.IX0 + 10 + free / 4 + 50
+    cxe = K.IX0 + 10 + wF + free / 2 + free / 4 + 50 + max(PWm, D) / 2 * s
+    hused = (pl_b - pl_t) * s
+    top = top + max(0.0, ((havB if layB else hav) - hused) / 2)
     X = lambda x: fx + (x - x0) * s
     Yv = lambda y: top + (y - x0) * s
     FW, FH = g["FW"], g["FH"]
@@ -1058,14 +1073,13 @@ def _sheet2(g, out):
     view_title(X(x0 + (g["PROJ"] - x0) / 2), top - 96, "FRAME (1) + LED (7)",
                f"1:{nsc:g}  (from side A, welded; LED on member centre - light to both faces)")
     # ---------------------------------------------------------------- VIEW FROM WALL (galas) - plokštės su matmenimis
-    cxe = X(g["PROJ"]) + 64 + 40 + 50 + max(PWm, D) / 2 * s
     end_view(g, cxe, Yv, s)
     view_title(cxe, top - 96, "FRAME - VIEW FROM WALL (END)", f"1:{nsc:g}  (mounting plates 1A)")
     # ---------------------------------------------------------------- BODY BAND (2) - išklotinė 1:10 su D3.2 skylėmis
     s10 = MM / g["scale_band"]
     faces = [("top", g["BW"]), ("wall", g["BH"]), ("bottom", g["BW"]), ("front", g["BH"])]
     Ltot = sum(L for _, L in faces)
-    bx0 = K.IX1 - Ltot * s10 - 70
+    bx0 = (K.IX1 - Ltot * s10 - 70) if g.get("_layB") else ((K.IX0 + K.IX1) / 2 - Ltot * s10 / 2 - 5)   # v222: per vidurį
     by0 = K.VIEW_BOT - 96
     BX = lambda u: bx0 + u * s10
     BY = lambda v: by0 + v * s10                                  # v - nuo A pusės krašto (0) iki B (D)

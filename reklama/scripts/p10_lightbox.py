@@ -38,6 +38,7 @@ DEF = {"client": "", "title": "DOUBLE-SIDED LIGHTBOX P10 - PUSH-THROUGH", "order
        "cover_w": None, "cover_thk": 2, "cover_gap": 5}
 COL_FRAME, COL_FL, COL_PLEX = HexColor("#B4B4B4"), HexColor("#8C8C8C"), HexColor("#F7F7F2")
 COL_BODY = HexColor("#3A3A3A")
+COL_INWHITE = HexColor("#F2F2F2")                                   # v222: rėmas viduje / korpuso vidus - balti
 BLUE = HexColor("#1F5FD0")
 EDGE = HexColor("#555555")
 
@@ -809,7 +810,7 @@ def exploded_view(g, box):
         if key in A:
             K.balloon_auto(A[key][0], A[key][1], lab, region=reg)
     view_title(ex0 + ew / 2, ey0 - 26, "ASSEMBLY - EXPLODED VIEW",
-               "not to scale; tray A - insert 4 - base 6 + nuts - frame + LED - base 7 - insert 5 - tray B")
+               "not to scale; tray A - insert 4 - base 6 + nuts - frame + LED - base 7 - insert 5 - tray B; inside white")
 
 
 # ===================================================================== DXF
@@ -970,18 +971,23 @@ def exploded(g, box, yaw=-58, pitch=11):
         face_geo = sbox(0, 0, W, H)
         if lg is not None:
             face_geo = face_geo.difference(g["cut"])
-        _slab(sc, face_geo, D / 2 - t, D / 2, COL_BODY, xp, edge=EDGE)
+        # v222 (Bendrinės taisyklės 21): padėklo IŠORĖ - korpuso spalva, VIDUS - baltas (skarda per pusę storio: išorė / vidus)
+        h_ = t / 2
+        _slab(sc, face_geo, D / 2 - h_, D / 2, COL_BODY, xp, edge=EDGE)
+        _slab(sc, face_geo, D / 2 - t, D / 2 - h_, COL_INWHITE, xp, edge=EDGE)
         zs = lambda w, dz=e_tray: sgn * (w + dz)
-        for y0_ in (0, H - t):                                      # viršus / apačia
-            z_a, z_b = sorted((zs(0), zs(D / 2 - t)))
-            sc.box((0, y0_, z_a), (W, 0, 0), (0, t, 0), (0, 0, z_b - z_a), COL_BODY, edge=EDGE)
         z_a, z_b = sorted((zs(0), zs(D / 2 - t)))
-        sc.box((0, t, z_a), (t, 0, 0), (0, H - 2 * t, 0), (0, 0, z_b - z_a), COL_BODY, edge=EDGE)   # tolimas šonas
+        for y0_, yi_ in ((0, h_), (H - h_, H - t)):                  # apačia / viršus: išorė + vidus
+            sc.box((0, y0_, z_a), (W, 0, 0), (0, h_, 0), (0, 0, z_b - z_a), COL_BODY, edge=EDGE)
+            sc.box((0, yi_, z_a), (W, 0, 0), (0, h_, 0), (0, 0, z_b - z_a), COL_INWHITE, edge=EDGE)
+        sc.box((0, t, z_a), (h_, 0, 0), (0, H - 2 * t, 0), (0, 0, z_b - z_a), COL_BODY, edge=EDGE)   # tolimas šonas
+        sc.box((h_, t, z_a), (h_, 0, 0), (0, H - 2 * t, 0), (0, 0, z_b - z_a), COL_INWHITE, edge=EDGE)
         nd = fa / 2 + cl
         wall = sbox(t, 0, H - t, D / 2 - t)
         for ya in g["legs_y"]:
             wall = wall.difference(sbox(ya - fb / 2 - cl, 0, ya + fb / 2 + cl, nd))
-        _slab(sc, wall, W - t, W, COL_BODY, lambda u, v, w: (w, u, sgn * (v + e_tray)), edge=EDGE)
+        _slab(sc, wall, W - h_, W, COL_BODY, lambda u, v, w: (w, u, sgn * (v + e_tray)), edge=EDGE)
+        _slab(sc, wall, W - t, W - h_, COL_INWHITE, lambda u, v, w: (w, u, sgn * (v + e_tray)), edge=EDGE)
         if lg is not None:
             for (u, v) in g["studs"]:
                 _slab(sc, Point(u, v).buffer(3, 3), D / 2 - t - stud_l, D / 2 - t, COL_STUD, xp)
@@ -1019,17 +1025,19 @@ def exploded(g, box, yaw=-58, pitch=11):
     # ---- rėmas (1) + kojos + plokštės (1A) + LED (8), gylio centre
     if g["legB"]:
         for ys in (x0, x0 + FH - fb):
-            sc.box((x0, H - ys - fb, -fa / 2), (FW, 0, 0), (0, fb, 0), (0, 0, fa), COL_FRAME, edge=EDGE)
-        sc.box((x0, H - x0 - FH + fb, -fa / 2), (fa, 0, 0), (0, FH - 2 * fb, 0), (0, 0, fa), COL_FRAME, edge=EDGE)
+            sc.box((x0, H - ys - fb, -fa / 2), (FW, 0, 0), (0, fb, 0), (0, 0, fa), COL_INWHITE, edge=EDGE)
+        sc.box((x0, H - x0 - FH + fb, -fa / 2), (fa, 0, 0), (0, FH - 2 * fb, 0), (0, 0, fa), COL_INWHITE, edge=EDGE)
         for a_, b_ in g["rear_parts"]:
-            sc.box((xr - fa, H - b_, -fa / 2), (fa, 0, 0), (0, b_ - a_, 0), (0, 0, fa), COL_FRAME, edge=EDGE)
+            sc.box((xr - fa, H - b_, -fa / 2), (fa, 0, 0), (0, b_ - a_, 0), (0, 0, fa), COL_INWHITE, edge=EDGE)
         for y_ in g["legs_y"]:
-            sc.box((xr - fa, H - y_ - fb / 2, -fa / 2), (xf - xr + fa, 0, 0), (0, fb, 0), (0, 0, fa), COL_FRAME, edge=EDGE)
+            sc.box((xr - fa, H - y_ - fb / 2, -fa / 2), (W - xr + fa, 0, 0), (0, fb, 0), (0, 0, fa), COL_INWHITE, edge=EDGE)
+            sc.box((W, H - y_ - fb / 2, -fa / 2), (xf - W, 0, 0), (0, fb, 0), (0, 0, fa), COL_FRAME, edge=EDGE)   # koja - spalva
     else:
         for ys in (x0, x0 + FH - fb):
-            sc.box((x0, H - ys - fb, -fa / 2), (xf - x0, 0, 0), (0, fb, 0), (0, 0, fa), COL_FRAME, edge=EDGE)
+            sc.box((x0, H - ys - fb, -fa / 2), (W - x0, 0, 0), (0, fb, 0), (0, 0, fa), COL_INWHITE, edge=EDGE)   # dėžės viduje - balta
+            sc.box((W, H - ys - fb, -fa / 2), (xf - W, 0, 0), (0, fb, 0), (0, 0, fa), COL_FRAME, edge=EDGE)        # koja - spalva
         for xx in (x0, xr - fa):
-            sc.box((xx, H - x0 - FH + fb, -fa / 2), (fa, 0, 0), (0, FH - 2 * fb, 0), (0, 0, fa), COL_FRAME, edge=EDGE)
+            sc.box((xx, H - x0 - FH + fb, -fa / 2), (fa, 0, 0), (0, FH - 2 * fb, 0), (0, 0, fa), COL_INWHITE, edge=EDGE)
     for P in g["plates_l"]:
         sc.box((xf, H - P["yc"] - P["h"] / 2, -P["w"] / 2), (PLt, 0, 0), (0, P["h"], 0), (0, 0, P["w"]), COL_FL, edge=EDGE)
     led_x = [x0 + fa + g["led_step"] * (i + 0.5) for i in range(g["led_n_row"])]
