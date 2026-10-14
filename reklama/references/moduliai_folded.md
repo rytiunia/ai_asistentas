@@ -115,7 +115,7 @@ Fonas, L, skylės, varžtai, išklotinės - „Folded plate - bendrinės taisykl
   (šonai, galas, bėgelis, folded plokštės pjūvis) UŽPILDYTI JUODAI su balta tarpo linija tarp gretimų; plexi -
   plonas 45° štrichavimas; matomi kontūrai 0,35 pt; BE spalvų; numeriai - balti balionai (ne juodi „blynai");
   varžtai - CAD žymėjimas (galvutė, kotas, sriegio linija, ašinė). Mazgo detalizacijos (apskritimų, 1/2/A/B,
-  legendos) NĖRA. P6_3mm - bendrame žymėjime papildomai A (PVC juosta); P6_8mm - jokių papildomų žymų. 6 variantai - folded / U wallframe / square wallframe
+  legendos) NĖRA. 5S - bendrame žymėjime papildomai A (PVC juosta); P6_8mm - jokių papildomų žymų. 6 variantai - folded / U wallframe / square wallframe
   (`rail.type: "square"`) × plexi 3 mm / 8 mm. Ant viršaus tik gylio matmuo. Naujam variantui - Rytio etalono.
   Tik P6+3 ant plokštės (DETAIL A) lieka piešiamas `p6_typical(variant="plate")`.
 - **Ausėlės tipiniame pjūvyje (Rytis patvirtino 2026-10-07):** jei užklausoje yra ausėlės - jos VISADA
@@ -123,7 +123,7 @@ Fonas, L, skylės, varžtai, išklotinės - „Folded plate - bendrinės taisykl
   į rėmo vidų, Ø skylė su ašine), balionas = BOM ausėlės pozicija (`p6_reference(..., ears=pos)`).
 - **P6 sandara (tipinis pjūvis juostoje):** 5 fonas, 3 galas, 2 šonai, 1 plexi, 4 LED su laidu (priekio variantai - žr. „P6 priekio variantai");
   A - fitting PVC edge (klijuojamas STATMENAI plexi plokštumai, pjūvyje - juostelė po šonu, galu prie
-  plexi), B - bolt (vertikaliai per šoną į PVC bortelį; niekas nekiša per stiklą). A ir B BOM - TIK P6_3mm
+  plexi), B - bolt (vertikaliai per šoną į PVC bortelį; niekas nekiša per stiklą). A ir B BOM - TIK 5S
   (Rytis 2026-10-07: P6_8mm BOM A/B eilučių NĖRA; skriptas jas išmeta pagal `front`).
 - **POS:** 1 priekis, A PVC, B bolt, 2 šonas, 3 galas, 4 LED, 5 folded fonas, 6 L, 7 tvirtinimas į
   sieną, 8 raidės tvirtinimas prie fono, 9 varžtas fonas-L.

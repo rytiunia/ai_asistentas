@@ -1,16 +1,22 @@
 """v59 (Rytis 2026-10-09): P6 profilio REALUS vaizdavimas (>= 95 % realaus vaizdo) - šoninis vaizdas ir 3D.
 Sandara (visiems P6 priekio variantams):
   * STIKLAS (plexi) = ORIGINALUS kliento failo kontūras (raidės dydis = stiklo dydis), matomas kraštas 3 mm
-    (P6_3mm - 3 mm plexi; P6_8mm - 8 mm plexi frezuojama taip, kad išorinis kraštelis liktų 3 mm, liežuvis - korpuse);
-  * KORPUSAS (šonai) = kontūras 1,5 mm MAŽESNIS už stiklą (offset -1,5), gylis = bendras gylis - 3;
+    (5S, buv. P6_3mm - 3 mm polikarbonatas FR; P6_8mm - 8 mm plexi frezuojama taip, kad išorinis kraštelis liktų 3 mm, liežuvis - korpuse);
+  * KORPUSAS (šonai) = kontūras 1,5 mm MAŽESNIS už stiklą (offset -1,5; v210 5S - 2 mm), gylis = bendras gylis - 3;
   * +foil variantuose iš šono / 3D matosi: korpuso spalva | BALTAS stiklo kantelis 3 mm | plėvelės spalva priekyje;
-    color variante (P6_3mm color) kantelis = plexi spalva.
+    color variante (5S color) kantelis = plexi spalva.
 Naudojimas: layers(geom, depth, front) -> sluoksniai; add_3d(scene, ...) - r3d; side_view(...) - šoninis vaizdas."""
 import lapas_core as K
 from reportlab.lib.colors import HexColor, white
 
 GLASS_EDGE = 3.0         # matomas stiklo kraštas, mm
-BODY_INSET = 1.5         # korpusas mažesnis už stiklą, mm
+BODY_INSET = 1.5         # korpusas mažesnis už stiklą, mm (frezuoti 8+ mm)
+BODY_INSET_5S = 2.0      # v210: 5S - šonas 2 mm nuo priekio krašto (assets/konstrukcijos/5S_profilis.pdf)
+
+
+def body_inset(front):
+    import p6_front as P6F
+    return BODY_INSET_5S if P6F.parse(front)["kind"] == "3mm" else BODY_INSET
 GLASS_WHITE = HexColor("#F7F7F2")
 
 
@@ -21,14 +27,14 @@ def white_edge(front):
     return p["foil"] or not p["color"]
 
 
-def layers(geom, depth, front="3mm+foil"):
+def layers(geom, depth, front="5S+foil"):
     """-> dict: body (geom, z0, z1), glass (geom, z0, z1). z = 0 sienos / galo plokštuma, +z į žiūrovą."""
-    body = geom.buffer(-BODY_INSET, join_style=2)
+    body = geom.buffer(-body_inset(front), join_style=2)
     return {"body": (body, 0.0, depth - GLASS_EDGE), "glass": (geom, depth - GLASS_EDGE, depth),
             "foil": ("foil" in str(front)), "white_edge": white_edge(front), "front": front}
 
 
-def add_3d(S, geom, depth, ret_col, face_col, front="3mm+foil", glass_col=None, xf=None, z0=0.0):
+def add_3d(S, geom, depth, ret_col, face_col, front="5S+foil", glass_col=None, xf=None, z0=0.0):
     """r3d.Scene: korpusas (šonų spalva) + stiklas 3 mm (baltas kantelis arba plexi spalva) + priekis (plėvelė)"""
     L = layers(geom, depth, front)
     b, bz0, bz1 = L["body"]
@@ -38,7 +44,7 @@ def add_3d(S, geom, depth, ret_col, face_col, front="3mm+foil", glass_col=None, 
     S.extrude_xy(g, z0 + gz0, z0 + gz1, edge_col, face_col, xf=xf)
 
 
-def side_view(x_wall, y_top, s, geom_y0, geom_y1, depth, ret_col, face_col, front="3mm+foil", glass_col=None,
+def side_view(x_wall, y_top, s, geom_y0, geom_y1, depth, ret_col, face_col, front="5S+foil", glass_col=None,
               wall_right=True, rect_fn=None):
     """Šoninis vaizdas (iš dešinės): siena x_wall, z didėja į kairę (wall_right) ; y_top - raidės viršaus y lape,
     s - mastelis pt/mm, geom_y0..1 - raidės aukštis (mm). Piešia korpusą (inset 1,5), stiklą 3 mm, plėvelę."""
@@ -50,7 +56,8 @@ def side_view(x_wall, y_top, s, geom_y0, geom_y1, depth, ret_col, face_col, fron
     edge_col = glass_col or (GLASS_WHITE if white_edge(front) else face_col)
     zb = depth - GLASS_EDGE
     xa, xb = sorted((X(0), X(zb)))
-    R(xa, y_top + BODY_INSET * s, xb - xa, (H - 2 * BODY_INSET) * s, fill=ret_col, lw=0.4)
+    bi = body_inset(front)
+    R(xa, y_top + bi * s, xb - xa, (H - 2 * bi) * s, fill=ret_col, lw=0.4)
     xa, xb = sorted((X(zb), X(depth)))
     R(xa, y_top, xb - xa, H * s, fill=edge_col, lw=0.4)
     if foil:                                         # plėvelė - spalvota linija priekyje (perdidinta 0,8 pt)
@@ -80,7 +87,7 @@ def draw_geom(geom, tf, fill, stroke=None, lw=None, canvas=None):
     c.restoreState()
 
 
-def rear_view(geom, tf, ret_col, face_col, front="3mm+foil", glass_col=None, canvas=None, stroke=None):
+def rear_view(geom, tf, ret_col, face_col, front="5S+foil", glass_col=None, canvas=None, stroke=None):
     """Galinis vaizdas: aplink dugną matosi stiklo kraštas (1,5 mm) - stiklas (kliento kontūras) baltas / plexi spalvos,
     ant jo dugnas / korpusas 1,5 mm mažesnis (šonų spalva)."""
     from reportlab.lib.colors import black
@@ -90,5 +97,6 @@ def rear_view(geom, tf, ret_col, face_col, front="3mm+foil", glass_col=None, can
     #  < 0,8 pt: dvi hairline linijos susilieja į storą liniją -> vidinis kontūras be linijos (tik užpildas)
     (ax_, ay_), (bx_, by_) = tf(0.0, 0.0), tf(1.0, 0.0)
     s_ = ((bx_ - ax_) ** 2 + (by_ - ay_) ** 2) ** 0.5
-    inner_stroke = (stroke or black) if BODY_INSET * s_ >= 0.8 else None
-    draw_geom(geom.buffer(-BODY_INSET, join_style=2), tf, ret_col, inner_stroke, None, canvas)
+    bi = body_inset(front)
+    inner_stroke = (stroke or black) if bi * s_ >= 0.8 else None
+    draw_geom(geom.buffer(-bi, join_style=2), tf, ret_col, inner_stroke, None, canvas)

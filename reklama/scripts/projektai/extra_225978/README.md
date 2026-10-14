@@ -22,8 +22,8 @@ Sujungimas: pymupdf `insert_pdf` 1..5 -> `Drawing_EXTRA order 225978.pdf`, `lapa
 ## Rev B - „one frame" (Rytis 2026-10-09) - 4 lapai, `spec_one_frame/`
 | Lapas | Gaminys | Spec |
 |---|---|---|
-| 1 | Åpn496 7-23 1150x497, P6_3mm | `1_Apn496.json` |
-| 2 | Åpn894 7-23 2071x894, P6_3mm | `2_Apn894.json` |
+| 1 | Åpn496 7-23 1150x497, 5S | `1_Apn496.json` |
+| 2 | Åpn894 7-23 2071x894, 5S | `2_Apn894.json` |
 | 3 | FAS 700H80 4012x700, X + EXTRA vienas rėmas, 7-23 atskirai | `3_FAS700.json` (`one_frame`) |
 | 4 | FAS 1000H80 5732x1000 P1, X tiesiai ant apskritimo | `4_FAS1000_P1.json` (`one_frame`, `gap_mm: 0`) |
 Sujungta: `Drawing_EXTRA order 225978_one frame.pdf` + 4 x 1:1.

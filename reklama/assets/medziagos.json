@@ -42,7 +42,7 @@
       {"tiekejas": "Heliopolis", "preke": "Plexiglas XT 0A000 skaidri (POLYVANTIS)", "storis_mm": 5, "formatas_mm": [3050, 2050]},
       {"tiekejas": "Heliopolis", "preke": "Plexiglas XT WN770 opal (balta) (POLYVANTIS)", "storis_mm": 8, "formatas_mm": [4050, 2050], "naudojimas": "P6_8mm priekis (balta plexi 8 mm)"},
       {"tiekejas": "Plastena", "preke": "PLAZCRYL balta R7065 / R7068", "storis_mm": 2, "formatas_mm": [3050, 2050], "kiti_formatai_mm": [[2050, 1500], [1020, 1000]]},
-      {"tiekejas": "Plastena", "preke": "PLAZCRYL balta R7065 / R7068", "storis_mm": 3, "formatas_mm": [3050, 2050], "kiti_formatai_mm": [[4000, 2050], [2050, 1500], [1020, 1000]], "naudojimas": "P6_3mm priekis (balta plexi 3 mm)"},
+      {"tiekejas": "Plastena", "preke": "PLAZCRYL balta R7065 / R7068", "storis_mm": 3, "formatas_mm": [3050, 2050], "kiti_formatai_mm": [[4000, 2050], [2050, 1500], [1020, 1000]], "naudojimas": "5S priekis (balta plexi 3 mm)"},
       {"tiekejas": "Plastena", "preke": "PLAZCRYL balta R7065 / R7068 / R7063", "storis_mm": 4, "formatas_mm": [3050, 2050], "kiti_formatai_mm": [[2050, 1500], [1020, 1000]]},
       {"tiekejas": "Plastena", "preke": "PLAZCRYL balta R7063 / R7065", "storis_mm": 10, "formatas_mm": [3050, 2050]},
       {"tiekejas": "Plastena", "preke": "PLAZCRYL balta R7065", "storis_mm": 15, "formatas_mm": [3050, 2050]},
@@ -55,7 +55,7 @@
       {"tiekejas": "Plastena", "preke": "PLAZCRYL skaidri", "storis_mm": 10, "formatas_mm": [3050, 2050]},
       {"tiekejas": "Plastena", "preke": "PLAZCRYL skaidri", "storis_mm": 12, "formatas_mm": [3050, 2050]},
       {"tiekejas": "Plastena", "preke": "FABBACK veidrodinis auksas / sidabras", "storis_mm": 3, "formatas_mm": [3050, 2030]},
-      {"tiekejas": "?", "preke": "spalvota plexi (P6_3mm color)", "storis_mm": 3, "formatas_mm": [3050, 2050], "pastaba": "formatas pagal spalvą - tikrinti tiekėją"}
+      {"tiekejas": "?", "preke": "spalvota plexi (5S color)", "storis_mm": 3, "formatas_mm": [3050, 2050], "pastaba": "formatas pagal spalvą - tikrinti tiekėją"}
     ],
     "pvc_putu": [
       {"tiekejas": "Heliopolis", "preke": "Simopor Smart (SIMONA)", "storis_mm": 1, "formatas_mm": [3050, 2030]},

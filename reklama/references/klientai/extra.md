@@ -79,8 +79,8 @@ Extra Order 225818, ALT8852_10.06_RS (lapas 2 / 3), 1 vnt. Bendras 5603 x 1800. 
 | Gaminys | Dydis | Profilis | Montavimas |
 |---|---|---|---|
 | X ant apskritimo | apskritimas Ø1800, X 1410 x 1226 | **6+3**: P6 X ant 3 mm Alu lakšto (apskritimas RAL 1023), X šonai RAL 3020, distanceriai 30 mm | **60x60x2 Alu profilis X forma** (2 įstrižainės) už apskritimo (poz. 6) + 3 mm Alu lakštas (poz. 7) |
-| EXTRA | 3515 x 720 | P6_3mm, šonai RAL 3020 | U 30x30x2 bėgeliai + L 30x30x2 tvirtinimo plokštelės Ø8 (rėmas RAL 7035 matt) |
-| 7-23 | 1380 x 596 | P6_3mm, šonai RAL 1023 | U 30x30x2 bėgeliai + L 30x30x2 plokštelės Ø8 |
+| EXTRA | 3515 x 720 | 5S, šonai RAL 3020 | U 30x30x2 bėgeliai + L 30x30x2 tvirtinimo plokštelės Ø8 (rėmas RAL 7035 matt) |
+| 7-23 | 1380 x 596 | 5S, šonai RAL 1023 | U 30x30x2 bėgeliai + L 30x30x2 plokštelės Ø8 |
 
 Bendra: gylis 100, exterior (skylė laidui), priekis balta plexi 3 mm, kraštai PVC 3 mm, šonai Alu 1 mm, galas Alu 1,5 mm;
 plėvelės 3M 3630-33 (raudona) / 3630-125 (geltona); LED: X viduje RED, apskritimo gale (BACKSIDE) White 6500K, EXTRA RED,

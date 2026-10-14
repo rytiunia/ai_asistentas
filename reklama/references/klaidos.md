@@ -11,7 +11,7 @@ Procesinės (paskyros kopija sena, lygiagretūs pokalbiai, ASCII vardai, auseles
   turėti abiejų kampų 10 mm viduje, galas sustojo „s" kairiame galiuke (2523 vs 2683). Sprendimas - bėgelis +5 mm
   aukštyn (156-186), galas 10 mm nuo „s" išorinio krašto. Taisyklė - „Bėgelis per VISĄ raidžių eilę (v67)".
 - **Fasado eskizas apverstas (Clas Ohlson Horten 3, 2026-10-09):** plano eskizas paimtas kaip vaizdas iš priekio - kairė / dešinė sukeistos. Visada patikrinti, iš kurios pusės nupieštas planas, ir paklausti, jei neaišku.
-- **DETAIL A folded lape buvo visada P6_3mm** (PVC + A/B), nors juostoje P6_8mm - pataisyta v28 (pagal `front`).
+- **DETAIL A folded lape buvo visada 5S** (PVC + A/B), nors juostoje P6_8mm - pataisyta v28 (pagal `front`).
   Etalono 225960 18 lapo DETAIL A turi tą klaidą - perdarant naudoti v28.
 - **Folded laidas buvo „D11 bet kur ant fono"** - neteisinga, v28: tik po raide -> skylė užlenktoje briaunoje.
 - Bezier valdymo taškai išsikiša už kontūro - nulis ir gabaritai skaičiuojami iš tikros geometrijos

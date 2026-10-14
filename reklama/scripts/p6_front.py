@@ -1,9 +1,14 @@
 """P6 priekio variantai (v90, Rytis 2026-10-11) - vienas parseris visiems skriptams.
 
+v210 (Rytis 2026-10-14): profilis P6_3mm PERVADINTAS į „5S" - visur rašoma 5S (5S, 5S+foil, 5S color); senas kodas
+P6_3mm / 3mm priimamas kaip sinonimas. 5S: priekis 3 mm POLIKARBONATAS, antipireninis (fire retardant); PVC 3 mm tvirtinimo
+bortelis (~15 mm, įleistas 1 mm į priekį), šonas Alu 1 mm - 2 mm nuo priekio krašto, tarpas iki bortelio 1 mm, varžtas 2.9 mm
+per šone išgręžtą Ø3 skylę į bortelį (etalonas assets/konstrukcijos/5S_profilis.pdf).
+
 Kodai (spec "front", su arba be "P6_"):
-  3mm          balta plexi 3, PVC 3 mm bortelis, varžtas per šoną
-  3mm+foil     balta plexi 3 + plėvelė
-  3mm color    spalvota plexi 3
+  5S           (buv. P6_3mm) polikarbonatas 3 FR, PVC 3 mm bortelis, varžtas 2.9 per šoną
+  5S+foil      polikarbonatas 3 FR + plėvelė
+  5S color     spalvotas 3 mm priekis
   8mm          balta plexi 8, frezuota su kanteliu (matomas kraštelis 3 mm, liežuvis korpuse)
   8mm+foil     balta plexi 8 + plėvelė
   8mm color    spalvota plexi 8, frezuota kaip balta
@@ -17,8 +22,10 @@ COLOR_ALLOWED = (3, 8)
 
 
 def parse(front):
-    s = str(front or "3mm").strip()
+    s = str(front or "5S").strip()
     u = s.upper().replace("P6_", "").replace("P6 ", "").replace(" ", "")
+    if u.startswith("5S"):                          # v210: 5S = buv. P6_3mm
+        u = "3MM" + u[2:]
     if u == "P1":
         return {"code": "P1", "thk": 2.0, "milled": False, "foil": False, "color": False, "kind": "P1", "warn": None}
     m = re.match(r"(\d+(?:[.,]\d+)?)", u)
@@ -31,7 +38,7 @@ def parse(front):
     if color and int(thk) not in COLOR_ALLOWED:
         warn = f"! spalvota plexi {thk:g} mm - standartiškai tik 3 ir 8 mm, patikrinti"
     milled = thk >= 8
-    code = f"P6_{thk:g}mm" + (" color" if color else ("+foil" if foil else ""))
+    code = ("5S" if thk == 3 else f"P6_{thk:g}mm") + (" color" if color else ("+foil" if foil else ""))
     return {"code": code, "thk": thk, "milled": milled, "foil": foil, "color": color,
             "kind": "8mm" if milled else "3mm", "warn": warn}
 
@@ -54,12 +61,12 @@ def bom_face(front, face_txt="?"):
     p = parse(front)
     if p["kind"] == "P1":
         return "Letter face Al"
-    base = f"Acrylic {p['thk']:g} mm"
+    base = "Polycarbonate 3 mm FR" if p["thk"] == 3 else f"Acrylic {p['thk']:g} mm"   # v210: 5S - polikarbonatas FR
     if p["color"]:
         return f"{base} {face_txt}"
     return f"{base} white" + (f" + front foil {face_txt}" if p["foil"] else "")
 
 
 if __name__ == "__main__":
-    for t in ("3mm", "P6_3mm+foil", "3mm color", "8mm", "8mm+foil", "P6_8mm color", "10mm", "15mm+foil", "20mm", "30mm+foil", "5mm", "15mm color"):
+    for t in ("5S", "5S+foil", "5S color", "3mm", "P6_3mm+foil", "3mm color", "8mm", "8mm+foil", "P6_8mm color", "10mm", "15mm+foil", "20mm", "30mm+foil", "5mm", "15mm color"):
         print(t, "->", parse(t), bom_face(t, "RAL 3020"))

@@ -121,10 +121,10 @@ pvc / forex / simopor, akp / dibond / lightbond / albond, alu, pc, ps.
 |---|---|---|---|
 | PMMA Plexiglas XT WN770 opal (balta) | Heliopolis | 4050x2050 x 8 | P6_8mm priekis |
 | PMMA Plexiglas XT skaidri | Heliopolis | 3050x2050 x 5 | - |
-| PMMA PLAZCRYL balta R7065 / R7068 | Plastena | 3050x2050 x 2 / 3 / 4 / 10 / 15; 4000x2050 x 3; 2050x1500 ir 1020x1000 x 2 / 3 / 4 | P6_3mm priekis (balta 3 mm) |
+| PMMA PLAZCRYL balta R7065 / R7068 | Plastena | 3050x2050 x 2 / 3 / 4 / 10 / 15; 4000x2050 x 3; 2050x1500 ir 1020x1000 x 2 / 3 / 4 | 5S priekis (balta 3 mm) |
 | PMMA PLAZCRYL matinė (opal) R7072 | Plastena | 3050x2050 x 2 / 3 | - |
 | PMMA PLAZCRYL XT skaidri | Plastena | 3050x2050 x 1.5 / 2 / 3 / 4 / 10 / 12; 2050x2000, 2050x1000, 1020x1000 x 2 / 3 / 4 | - |
-| PMMA spalvota (P6_3mm color) | ? | 3050x2050 x 3 (tikrinti pagal spalvą) | P6_3mm color |
+| PMMA spalvota (5S color) | ? | 3050x2050 x 3 (tikrinti pagal spalvą) | 5S color |
 | PVC putų Simopor (SIMONA) / PP Connect | Heliopolis | 3050x2050 x 2 / 4 / 5; 3050x2030 x 1 / 8; 3050x1530 x 5 (pilka) | PVC bortelis / P1 dugnas 3 mm - formatas ? |
 | AKP LIGHTBOND PLUS | Heliopolis | 3050x1500 x 3 (balta); 4050x1500 x 3 (sidabrinė, raudona); 3100x1220 x 2 / 3 | plokščios iškabos, back plate |
 | AKP ALBOND PVDF | Heliopolis | 3200x1500 x 4 (balta, sidabrinė ~9006, antracitas ~7016, juoda ~9005, tamsiai pilka) | - |

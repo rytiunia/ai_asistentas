@@ -11,7 +11,7 @@
  "qty": "",
  "client": "TEST",
  "company": "TEST",
- "title": "LIETUVA - illuminated letters P6 on rails",
+ "title": "LIETUVA - illuminated letters 5S on rails",
  "project": "TEST LIETUVA P6",
  "drawing_no": "TEST LIETUVA P6",
  "order_no": "ALT0000_00.00_RS",
@@ -19,7 +19,7 @@
  "rev": "A",
  "date": "2026-10-14",
  "depth_mm": 80,
- "front": "P6_3mm+foil",
+ "front": "5S+foil",
  "auto_frame": true,
  "merge_rows": true,
  "mounting": "ears",
@@ -64,7 +64,7 @@
   [
    1,
    "Letter face",
-   "Acrylic 3 mm white",
+   "Polycarbonate 3 mm FR white",
    "white",
    "{PER_6} m / {A_6} m²"
   ],
@@ -77,14 +77,14 @@
   ],
   [
    "A",
-   "Fitting PVC edge",
+   "Fitting PVC edge 3 mm",
    "PVC 3 mm",
    "-",
    "{PER_ALL} m"
   ],
   [
    "B",
-   "Bolt, return to PVC edge",
+   "Screw 2.9 mm, return -> PVC edge (hole Ø3)",
    "",
    "-",
    ""
@@ -157,7 +157,7 @@
   ],
   [
    "Profile",
-   "P6 on rails"
+   "5S on rails"
   ],
   [
    "Letter depth",
@@ -165,7 +165,7 @@
   ],
   [
    "Face",
-   "P6_3mm + ORACAL 8500 031"
+   "5S + ORACAL 8500 031"
   ],
   [
    "Returns",

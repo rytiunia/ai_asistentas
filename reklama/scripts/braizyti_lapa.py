@@ -649,7 +649,7 @@ else:
     import p6_vaizdas as PV
     for a_, b_ in merged:                                    # v59: korpusas -1,5 | stiklo kraštas 3 | plėvelė
         PV.side_view(lf + depth * s10, FVY + a_ * s10, s10, a_, b_, depth, shade_ret, facec,
-                     front=spec.get("front", "3mm+foil"), rect_fn=rect)
+                     front=spec.get("front", "5S+foil"), rect_fn=rect)
 # matmenys
 hdim(lf, SVF, FVY - 18, f"{depth:.0f}", FVY + merged[0][0] * s10, FVY, small_side="l", size=12)
 hdim(SVF, bx, FVY - 18, f"{bend:.0f}", FVY, FVY, size=12)
@@ -822,7 +822,7 @@ line(du(LP["thk"] + 4), dv(wv), DWX + 15 * dk + 3, dv(wv), 0.2, GREY, dash=([4, 
 # P6 raidė: galas, viršutinis šonas, priekis (plexi), PVC kraštas + varžtas, LED, tvirtinimas prie fono
 srect(bend, bend + tB, TM, V_END)
 import p6_front as P6F   # v90
-F8_D = P6F.milled(spec.get("front", "3mm"))
+F8_D = P6F.milled(spec.get("front", "5S"))
 if F8_D:   # v28: P6_8mm - plexi 8 mm, frezuota briauna (liežuvis šonų viduje), varžtas per šoną į liežuvį
     tLip = 3.0                                             # matomas kantelis 3 mm
     tTg = max(5.0, P6F.thk(spec.get("front", "8mm")) - tLip)   # liežuvis: storis - 3 (8 mm -> 5; 30 mm -> 27)
@@ -1269,8 +1269,8 @@ for sol in sorted(solids, key=lambda p_: (SOLMETA.get(id(p_), (None, 0))[1], dep
     quads = []
     import p6_vaizdas as PV
     _real = not _ec                                          # v59: realus P6 - korpusas -1,5 + stiklas 3 mm
-    _gc = (PV.GLASS_WHITE if PV.white_edge(spec.get("front", "3mm+foil")) else _fc)
-    _parts = ([(sol.buffer(-PV.BODY_INSET, join_style=2), _z0, _z0 + depth - PV.GLASS_EDGE, _rc),
+    _gc = (PV.GLASS_WHITE if PV.white_edge(spec.get("front", "5S+foil")) else _fc)
+    _parts = ([(sol.buffer(-PV.body_inset(spec.get("front", "5S+foil")), join_style=2), _z0, _z0 + depth - PV.GLASS_EDGE, _rc),
                (sol, _z0 + depth - PV.GLASS_EDGE, _z0 + depth, _gc)] if _real else [(sol, _z0, _z0 + depth, _rc)])
     for _pg, _za, _zb, _col in _parts:
       for _pp in getattr(_pg, "geoms", [_pg]):
@@ -1327,7 +1327,8 @@ import lapas_core as K                          # v18: BOM / MAIN DATA - bendros
 K.c = c
 
 # --- P6 profilio pjūvis (pagal Rytio P6 pavyzdį, perpieštas dokumento CAD stiliumi)
-header(X_P6, BY0, W_P6, f"PROFILE P{spec['profile_no']} - TYPICAL SECTION")
+_PNAME = "5S" if (str(spec.get("profile_no")) == "6" and not P6F.milled(spec.get("front", "5S"))) else f"P{spec['profile_no']}"   # v210
+header(X_P6, BY0, W_P6, f"PROFILE {_PNAME} - TYPICAL SECTION")
 rect(X_P6, BY0 + 12, W_P6, BH - 12, lw=0.6)
 # Rytio etaloninis pjūvis (assets/p6_profiliai.pdf) - vektorinis įterpimas po c.save(), scripts/p6_ref.py
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -1340,12 +1341,12 @@ def _ld6(x1, y1, x2, y2, n, r=6):
     balloon(x2, y2, n, r)
 
 
-_P6R.draw(c, H, X_P6, BY0 + 12, W_P6, BH - 12, "folded", spec.get("front", "3mm"), depth, leader=_ld6,
+_P6R.draw(c, H, X_P6, BY0 + 12, W_P6, BH - 12, "folded", spec.get("front", "5S"), depth, leader=_ld6,
           balloon=balloon, T=T, hdim=hdim, hair=0.1)
 
 # --- MAIN DATA
 md = [("Quantity", f"{spec.get('qty', 1)} pcs."), ("Overall size", f"{PW:.0f} x {PH:.0f}" + ("" if IS_RECT else f", {SLOPE_DEG:.0f}°")),
-      ("Profile", f"P{spec['profile_no']}"), ("Letter depth", f"{depth:.0f}"), ("Bg. edge", f"{bend:.0f}"),
+      ("Profile", _PNAME), ("Letter depth", f"{depth:.0f}"), ("Bg. edge", f"{bend:.0f}"),
       ("Face", spec["face"]), ("Return", f"RAL {spec['return_ral']}"), ("Background", f"RAL {spec['background_ral']}"),
       ("Environment", spec["environment"]), ("Illumination", spec["led"]),
       ("Perim. letters", f"{PER_L:.2f} m"), ("Perim. line", f"{PER_T:.2f} m" if PER_T else "-"),
@@ -1355,9 +1356,9 @@ md += [tuple(subst(x) for x in r_) for r_ in spec.get("main_data_extra", [])]
 _SV = json.load(open(os.path.join(SKILL, "assets", "svoris.json")))
 _rho, _t = _SV["density_kg_dm3"], _SV["thk_mm"]
 _lb, _lh, _lt = (float(v) for v in str(LP["size"]).lower().split("x"))
-_front8 = P6F.milled(spec.get("front", "3mm"))
+_front8 = P6F.milled(spec.get("front", "5S"))
 _kg = {
-    "face": A_FACE * 1e6 * P6F.thk(spec.get("front", "3mm")) * _rho["pmma"],
+    "face": A_FACE * 1e6 * P6F.thk(spec.get("front", "5S")) * _rho["pmma"],
     "return": PER_L * 1000 * depth * _t["return"] * _rho["al"],
     "back": A_FACE * 1e6 * _t["back"] * _rho["al"],
     "pvc": 0.0 if _front8 else PER_L * 1000 * _SV["pvc_edge_section_mm2"] * _rho["pvc"],

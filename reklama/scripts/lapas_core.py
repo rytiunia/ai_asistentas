@@ -912,7 +912,7 @@ def p6_typical(x, y, w, h, depth, variant="rail", title=None, show_magnifier=Tru
                plate_rail=None, front="3mm", plate_z=False, plate_rail_f=None, rail_kind="u"):
     """P6 sandara: variant 'rail' (ant U bėgelio su L tvirtinimu), 'folded' (ant folded plokštės),
     'plate' (6+3: galas įleistas 25 mm, ant Alu plokštės su distanceriais 30 mm).
-    front: '3mm' - plexi 3 mm + PVC bortelis (A) ir varžtas (B) per šoną į bortelį;
+    front: '3mm' (5S, buv. P6_3mm) - polikarbonatas 3 mm FR + PVC bortelis (A) ir varžtas (B) per šoną į bortelį;
            '8mm' - plexi 8 mm su frezuota briauna (A, liežuvis šonų viduje), varžtas (B) per šoną į liežuvį."""
     nm = {"face": 1, "ret": 2, "back": 3, "led": 4, "mount": 5, "fit": 6, "plate": 8, "spacer": 9}
     nm.update(numbers or {})

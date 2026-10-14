@@ -1,4 +1,4 @@
-"""P6_3mm+foil - S raidės vaizdavimo bandymas (Rytis 2026-10-09)."""
+"""5S+foil - S raidės vaizdavimo bandymas (Rytis 2026-10-09)."""
 import sys
 sys.path.insert(0, "/tmp/claude-0/-home-claude/454aabe4-a26e-51a4-90bd-3f68e4f6d938/scratchpad/co")
 import os
@@ -91,13 +91,13 @@ S4 = r3d.Scene(yaw=40, pitch=24)
 PV.add_3d(S4, cut, 30.0, RET, FOIL, z0=DEPTH - 30.0)          # tik priekinė 30 mm dalis - kantelis matosi aiškiai
 S4.render((70, 425, 540, 175))
 view_title(340, 618, "3D DETAIL - EDGE (front 30 mm)", "RAL 3020 body | white glass edge 3 mm | foil 3M 3630-33")
-bom = [["1", "Face P6_3mm, client contour", "Plexi 3 mm white", "-", "edge 3 mm visible"],
+bom = [["1", "Face 5S, client contour", "Plexi 3 mm white", "-", "edge 3 mm visible"],
        ["2", "Letter return (body) - contour -1.5 mm", "Alu 1 mm", "RAL 3020", f"depth {DEPTH - 3:.0f}"],
        ["3", "Front foil", "Vinyl foil, cast", "3M 3630-33", "on face"]]
-md = [["Profile", "P6_3mm + foil"], ["Glass", "client contour, 3 mm"], ["Body", "1.5 mm smaller"],
+md = [["Profile", "5S + foil"], ["Glass", "client contour, 3 mm"], ["Body", "1.5 mm smaller"],
       ["Depth", f"{DEPTH:.0f} (to face)"], ["Side / 3D", "RAL | white 3 | foil"], ["P6_8mm", "edge milled to 3"]]
 def sect(x, y, w, h):
     T(x + w / 2, y + h / 2, "see DETAIL A", 9, align="c", color=K.GREY, auto_red=False)
-band("P6 EDGE", sect, bom, md, "P6_3mm + foil - letter S, representation test", "1 / 1", "1:5 / 2:1")
+band("P6 EDGE", sect, bom, md, "5S + foil - letter S, representation test", "1 / 1", "1:5 / 2:1")
 K.save(sys.argv[1])
 print("ok", round(W_S), H_S)

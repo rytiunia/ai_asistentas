@@ -24,11 +24,12 @@ from lapas_core import MM, T, line, rect, poly, hdim, hchain, vchain, leader, ta
 spec = json.load(open(sys.argv[1]))
 OUT = sys.argv[2]
 depth = spec["depth_mm"]
-# priekis: "3mm+foil" (balta plexi 3 + plėvelė, PVC bortelis), "3mm color" (spalvota 3, PVC), "8mm+foil" (balta 8, frezuota briauna)
+# priekis: "5S+foil" (buv. P6_3mm+foil: polikarbonatas 3 FR + plėvelė, PVC bortelis), "5S color" (spalvotas 3, PVC), "8mm+foil" (balta 8, frezuota briauna)
 import p6_front as P6F   # v90: visi priekio variantai (3/8/10/15/20/30 mm, +foil, color)
-FRONT = P6F.kind(spec.get("front", "3mm"))   # "3mm" (PVC) / "8mm" (frezuota, >= 8 mm) / "P1"
-if P6F.parse(spec.get("front", "3mm"))["warn"]:
-    print(P6F.parse(spec.get("front", "3mm"))["warn"])
+FRONT = P6F.kind(spec.get("front", "5S"))
+_PNAME = "5S" if FRONT == "3mm" else "P6"                 # v210: P6_3mm -> 5S   # "3mm" (PVC) / "8mm" (frezuota, >= 8 mm) / "P1"
+if P6F.parse(spec.get("front", "5S"))["warn"]:
+    print(P6F.parse(spec.get("front", "5S"))["warn"])
 RAIL = {"size": "30x30x2", "depth": 30, "ral": "7035"}; RAIL.update(spec.get("rail", {}))
 # v183: rėmo RAL nežinomas („?") - FINISH langelis tuščias (ne „RAL ? matt")
 RAIL_FIN = "" if str(RAIL.get("ral", "")).strip() in ("", "?") else f"RAL {RAIL['ral']} matt"
@@ -1832,7 +1833,7 @@ for g in order:
     for a_, b_ in mg:
         if P6_REAL(g):                                   # v59: korpusas -1,5 | stiklo kraštas 3 | plėvelė
             PV.side_view(SZx(z0), FVY + a_ * s1, s1, a_, b_, gd_, K.mix(retcol(g), 0.9), facecol(g),
-                         front=spec.get("front", "3mm+foil"))
+                         front=spec.get("front", "5S+foil"))
             continue
         rect(SZx(z0 + gd_), FVY + a_ * s1, gd_ * s1, (b_ - a_) * s1, fill=K.mix(retcol(g), 0.9), lw=0.5)
         rect(SZx(z0 + gd_), FVY + a_ * s1, 0.9, (b_ - a_) * s1, fill=facecol(g) if (g["spec"].get("behind") or FRONT == "P1") else white, lw=0.4)
@@ -1910,7 +1911,7 @@ for g in sorted(groups, key=lambda g: bool(g["spec"].get("behind"))):   # v10: i
         if g["plate"]:      # X už plokštės - nematoma, punktyru
             K.draw_shape(o["sub"], RVtf, stroke=HexColor("#555555"), dash=(2, 1.2))
         elif P6_REAL(g):    # v62: iš galo matosi stiklo kraštas aplink 1,5 mm mažesnį dugną
-            PV.rear_view(o["geom"], RVtf, retcol(g), facecol(g), front=spec.get("front", "3mm+foil"))
+            PV.rear_view(o["geom"], RVtf, retcol(g), facecol(g), front=spec.get("front", "5S+foil"))
         else:               # tikras vaizdas iš galo: raidžių dugnas (P1 - nedažytas PVC, v186)
             K.draw_shape(o["sub"], RVtf, fill=backcol(g), stroke=black)
 for g in groups:
@@ -2683,8 +2684,8 @@ for g in groups:
     gd_ = g["spec"].get("depth_mm", depth)
     for o in g["letters"]:
         if P6_REAL(g):                                   # v59: realus P6 - korpusas -1,5 + stiklas 3 mm
-            _ug = up(o["geom"]); _ub = _ug.buffer(-PV.BODY_INSET, join_style=2)
-            _foil = PV.white_edge(spec.get("front", "3mm+foil"))   # v90: balta plexi (su / be plėvelės)
+            _ug = up(o["geom"]); _ub = _ug.buffer(-PV.body_inset(spec.get("front", "5S+foil")), join_style=2)
+            _foil = PV.white_edge(spec.get("front", "5S+foil"))   # v90: balta plexi (su / be plėvelės)
             if not _ub.is_empty:
                 objs.append((_ub, z0, z0 + gd_ - PV.GLASS_EDGE, retcol(g), retcol(g), None))   # v190: korpuso priekis po stiklu - be kontūro
             objs.append((_ug, z0 + gd_ - PV.GLASS_EDGE, z0 + gd_, PV.GLASS_WHITE if _foil else facecol(g), facecol(g)))
@@ -2728,7 +2729,7 @@ def _hang(t_):
 
 
 import p6_ref as _P6R                                 # Rytio etaloninis pjūvis (U / square wallframe)
-# Rytis 2026-10-07: A (milled edge / PVC) ir B (bolt) žymėjimas - tik P6_3mm; P6_8mm BOM jų NĖRA
+# Rytis 2026-10-07: A (PVC bortelis) ir B (varžtas 2.9) žymėjimas - tik 5S (buv. P6_3mm); P6_8mm BOM jų NĖRA
 _BOM_ROWS = [row for row in spec["bom"] if not (FRONT == "8mm" and str(row[0]).upper() in ("A", "B"))]
 # v100 (Rytis 2026-10-11): „Letter back" visada su spalva - standartas = šonų (return) spalva; kitokia - tik nurodžius
 #  (spec "back_ral" / grupės "back_ral")
@@ -2787,7 +2788,7 @@ if FRONT == "P1":
                  bracket=(next((str(r_[0]) for r_ in _BOM_ROWS if re.search(r"bracket|hanger", str(r_[1]), re.I)), "") if BRACKETS else None))
 else:
     K.p6_reference(X_P6, BY0, W_P6, BH, depth, kind=("folded" if MOUNTING == "none" else _P6R.kind_of("rail", spec.get("rail", {}).get("type"))), front=FRONT,
-                   title=("PROFILE P6 - FIXED TO FACADE (SEPARATE LETTERS)" if MOUNTING == "none" else "PROFILE P6 ON RAILS - TYPICAL SECTION"), ears=(_EAR_POS if _HAS_EARS else None),
+                   title=(f"PROFILE {_PNAME} - FIXED TO FACADE (SEPARATE LETTERS)" if MOUNTING == "none" else f"PROFILE {_PNAME} ON RAILS - TYPICAL SECTION"), ears=(_EAR_POS if _HAS_EARS else None),
                    ear_hole=EAR_HOLE / float(RAIL.get("depth", 30)),
                    bracket=(next((str(r_[0]) for r_ in _BOM_ROWS if re.search(r"bracket|hanger", str(r_[1]), re.I)), "") if BRACKETS else None))
 if spec.get("bom_cols"):                                   # v160: originalo lentelės stulpeliai (perkeliama iš org. dokumento)
@@ -2815,7 +2816,7 @@ def _u_area(size):                                         # profilio skerspjūv
 _A_all = sum(g["area"] for g in groups) * 1e6              # mm2
 _P_all = sum(g["per"] for g in groups) * 1000              # mm
 _kg = {
-    "face": (_A_all * 2.0 * _rho["al"]) if FRONT == "P1" else _A_all * spec.get("face_thk", P6F.thk(spec.get("front", "3mm"))) * _rho["pmma"],
+    "face": (_A_all * 2.0 * _rho["al"]) if FRONT == "P1" else _A_all * spec.get("face_thk", P6F.thk(spec.get("front", "5S"))) * _rho["pmma"],
     "return": _P_all * depth * _t["return"] * _rho["al"],
     "back": (_A_all * 10.0 * _rho["pvc"]) if FRONT == "P1" else _A_all * _t["back"] * _rho["al"],
     "pvc": (_P_all * _SV["pvc_edge_section_mm2"] * _rho["pvc"]) if FRONT == "3mm" else 0.0,
