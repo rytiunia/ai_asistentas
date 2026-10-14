@@ -56,7 +56,7 @@ Pirmas bandymas: Joker 226001 (`scripts/projektai/joker_reinslettveien/`, „Pat
 ## v153 - NEŠVIEČIANTYS gaminiai / pilonai (Thales D059422, ALT8878_10.13_RS, 2026-10-13)
 - Patvirtinimas be inicialų ("ALT8878_10.13_") -> `ALT8878_10.13_RS`.
 - Lapų skriptas su ORDER NO. iš aplinkos: `THALES_ORDER=<ALT> THALES_OUT=... python3 thales_pylons.py all`, sujungti -> `<ALT>_<projektas>.pdf`.
-- DXF = GAMYBINĖS IŠKLOTINĖS (ne P6 raidės): `PREFIX=<ALT> THALES_OUT=... python3 thales_dxf.py` - skardos lovelės (Alu 2, R2, K 0.44,
-  BD 3.48 / 90 deg, lenkimo linijos sluoksnyje 1_LENKIMAS), flanšai, PMMA plokštė; failo vardas su kiekiu (`_x8`).
+- DXF = GAMYBINĖS IŠKLOTINĖS (ne P6 raidės): `PREFIX=<ALT> THALES_OUT=... python3 thales_dxf.py` - skardos lovelės (v207: folded v173 - atlankas = gylis - t,
+  šonai įsilenkia, Ø3.2 7 nuo krašto; sluoksniai CUT / BEND_UP_90 / HOLES_D3.2), flanšai, PMMA plokštė; failo vardas su kiekiu (`_x8`).
   Skylių Ø, kurių kliento lape nėra (csk / kniedės) - PRIELAIDA atskirame sluoksnyje, ataskaitoje paprašyti patvirtinti.
 - LED lapo NĖRA (nešviečiantis) - ataskaitoje pasakyti.

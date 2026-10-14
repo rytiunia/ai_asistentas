@@ -20,6 +20,8 @@ v37-v172 - NEBENAUDOTI; seni projektų skriptai jo nepakeisti.) max ilgis - lak�
 - **Fonas -> L: varžtai DIN 7504 N 4.2x16 T20 (St. gehärtet)**: 50 mm nuo kraštų, žingsnis ~300 mm,
   tolygiai: n = round((kraštinė - 100) / 300). Galiniame vaizde ašys ir `50 | n x žingsnis = ilgis | 50`,
   BOM - bendras kiekis (`14 pcs. (7/L)`).
+- **v207 (Rytis 2026-10-14): ši išklotinės taisyklė ir Ø3.2 / 7 mm skylės galioja VISIEMS lankstiniams** - pilonų ir
+  šviesdėžių lovelėms, padėklams (ne tik folded fonui); skylės Ø3.2, 7 mm nuo atlanko krašto ir csk varžtams.
 - **Fono tvirtinimo skylės (v37, Rytis 2026-10-09):** Ø3.2 viršutinėje ir apatinėje užlenktoje briaunoje, ašis **7 mm nuo
   briaunos krašto**; išklotinėje - skylės ir grandinė `50 | n x žingsnis | 50`, DETAIL A - varžto ašis 7 nuo krašto.
 - **Lūžtantis fasadas (kelios plokštumos, pvz. Clas Ohlson Horten 3, Rytis 2026-10-09):**

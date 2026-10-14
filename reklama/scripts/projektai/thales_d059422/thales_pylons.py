@@ -42,7 +42,9 @@ RED, SCREW = HexColor("#C00000"), HexColor("#E2001A")
 t, FR, FT, CL = 2, 60, 3, 3
 TB, TW, PL, LP, LT = 40, 30, 200, 25, 2
 RIB, NOTCH = 20, 3 + 60 + 2              # standumo briauna 20; išpjova ties koja 65 nuo krašto
-HO_W, HO_B = 17, 25                      # varžtų ašis: balta 17 nuo balto priekio lenkimo; mėlyna 25 nuo mėlyno priekio lenkimo
+HO_EDGE = 7                              # v207 (Rytis 2026-10-14): skylės Ø3.2, 7 mm nuo atlanko krašto - VISADA (csk ar ne)
+HO_D = 3.2
+HO_W, HO_B = TW - HO_EDGE, TB - HO_EDGE   # ašis nuo priekio (lenkimo išorės): balta 23, mėlyna TB - 7
 EAR = 70
 DIM = K.F_DIM_MAIN                        # rev C (Rytis 2026-10-13): VISI matmenys vieno dydžio - 12 pt (stilius.md v145)
 SHEETS = []
@@ -804,8 +806,8 @@ def sections(p, sheet):
         yy = y + 18
         for lab, col in items:
             rect(x + 14, yy - 8, 30, 10, fill=HexColor(col), lw=0.3); T(x + 52, yy, lab, 8.5); yy += 22
-        T(x + 14, yy + 6, f"white: {HO_W} from white face bend, pitch ~300", 8, color=K.GREY, auto_red=False)
-        T(x + 14, yy + 18, f"blue: SIDE returns only, {HO_B} from bend, ~400", 8, color=K.GREY, auto_red=False)
+        T(x + 14, yy + 6, f"white: Ø{HO_D:g}, {HO_EDGE} from return edge, pitch ~300", 8, color=K.GREY, auto_red=False)
+        T(x + 14, yy + 18, f"blue: SIDE returns, Ø{HO_D:g}, {HO_EDGE} from edge, ~400", 8, color=K.GREY, auto_red=False)
         T(x + 14, yy + 30, "rivets: L leg centre, pitch ~300", 8, color=K.GREY, auto_red=False)
     rows, md = bom(p)
     band(p.short + " - sections, details", sheet, "FIXINGS", sec, rows, md, "1:2 / 1:3.5" if p.rib else "1:2 / 1:5 / 1:6.5")
@@ -970,17 +972,17 @@ def flat_blue(p, sheet):
     # pastabos
     nx = cx; ny = oy_ + CH * c3 + p.rib * c3 + 90
     for s2 in [(f"- Alu 2 mm, RAL 5022 satin. Sides + top folded {TB}, bottom rib {p.rib} between legs." if p.rib else f"- Alu 2 mm, RAL 5022 satin. Sides + top folded {TB}, bottom open (no fold)."),
-               f"- Holes for csk screws into frame: sides {HO_B} from bend, from 100, {ns} x {ps:.0f};",
-               f"  top {HO_B} from bend, {nt} x {pt_:.0f}.",
+               f"- Holes Ø{HO_D:g} for screws into frame: sides {HO_EDGE} from return edge, from 100, {ns} x {ps:.0f};",
+               f"  top {HO_EDGE} from return edge, {nt} x {pt_:.0f}.",
                f"- Rivet holes for L 25 (centre of L leg, 16 from edge): {nr} x {pr:.0f} per L.",
                "- Corners: sides + top welded and ground (CEOS: pliees, soudees).",
-               "- Nominal outside sizes; bend deduction (R2, K 0.44) in the DXF stage."]:
+               "- Flat: bend lines = outside sizes, returns = depth - t, sides inside (folded rule v173)."]:
         T(nx, ny, s2, 8.5, fit=VX1 - nx - 4, fit_min=8); ny += 12
 
     def sec(x, y, w, h):
         T(x + w / 2, y + h / 2, "flat pattern - nominal", 9, align="c", color=K.GREY, auto_red=False)
     rows = [[2, f"Blue tray {W}x{Hh}x{TB}" + (f", rib {p.rib}" if p.rib else ", open bottom"), "Alu 2 mm folded", "RAL 5022", f"2 pcs. x {p.qty} = {2 * p.qty} pcs."],
-            ["", f"Holes csk -> frame: sides {2 * (ns + 1)}, top {nt + 1}", "", "", "D ___ csk"],
+            ["", f"Holes -> frame: sides {2 * (ns + 1)}, top {nt + 1}", "", "", f"Ø{HO_D:g}"],
             ["", f"Rivet holes L: {2 * (nr + 1) + nrh}", "", "", "D ___"],
             ["", "Weld + grind 2 top corners", "", "", "-"]]
     md = [["Flat (nominal)", f"{W + 2 * TB} x {Hh + TB + p.rib}"]] + ([["Notch", f"{NOTCH} at each leg"], ["Rib", f"{p.rib} between legs"]] if p.rib else [["Bottom", "open, no fold"]]) + [["Status", "nominal, DXF next"]]
@@ -1046,16 +1048,16 @@ def flat_white(p, sheet):
     nx = cx0; ny = oy_ + CH * c3 + 76
     for s2 in ["- Alu 2 mm, RAL 9016 satin. Sides + bottom 30; top 70 (inverted L over blue top);",
                "  ears 70 x 30 close the side above the blue body; ear + top return welded at corner.",
-               f"- Csk holes into L 25: sides / bottom {HO_W} from bend, from 50, sides {ns} x {ps:.0f}, bottom {nb} x {pb:.0f};",
+               f"- Holes Ø{HO_D:g} into L 25: sides / bottom {HO_EDGE} from return edge, from 50, sides {ns} x {ps:.0f}, bottom {nb} x {pb:.0f};",
                "  ears: 1 hole each into corner L 25x25x2 x 30 on blue top.",
                "- Front + back top returns meet at the pylon centre (butt joint)." if p.sides == 2 else "- Top return 70 ends at body centre; back half of blue top stays blue.",
-               "- Nominal outside sizes; bend deduction (R2, K 0.44) in the DXF stage."]:
+               "- Flat: bend lines = outside sizes, returns = depth - t, sides inside (folded rule v173)."]:
         T(nx, ny, s2, 8.5, fit=VX1 - nx - 4, fit_min=8); ny += 12
 
     def sec(x, y, w, h):
         T(x + w / 2, y + h / 2, "flat pattern - nominal", 9, align="c", color=K.GREY, auto_red=False)
     rows = [[4, f"White tray {Wp}x{Hp}, top 70, ears", "Alu 2 mm folded", "RAL 9016", f"{p.sides} pcs. x {p.qty} = {p.sides * p.qty} pcs."],
-            ["", f"Csk holes: sides {2 * (ns + 1)}, bottom {nb + 1}, ears 2", "", "", "D ___ csk"],
+            ["", f"Holes: sides {2 * (ns + 1)}, bottom {nb + 1}, ears 2", "", "", f"Ø{HO_D:g}"],
             ["", "Weld + grind ear / top return corners", "", "", "2 per tray"]]
     md = [["Flat (nominal)", f"{Wp + 2 * EAR} x {Hp + TOP + BOT}"], ["Ears", "70 x 30"], ["Status", "nominal, DXF next"]]
     band(p.short + " - white tray flat", sheet, "NOTE", sec, rows, md, f"1:{n} / 1:3")
@@ -1159,11 +1161,11 @@ if __name__ == "__main__":
     which = sys.argv[1:] or ["all"]
     NS = "5"
     if "all" in which or "E" in which:
-        TB = 40; EAR = TW + TB                 # dvipusis: baltas viršus iki vidurio (70)
+        TB = 40; EAR = TW + TB; HO_B = TB - HO_EDGE   # dvipusis: baltas viršus iki vidurio (70)
         ga(E, f"1 / {NS}", (1, (177.3, 225.6, 375.7, 665.9)))
         sections(E, f"2 / {NS}")
     if "all" in which or "B" in which:
-        TB = 43; EAR = TW + 2 * TB             # rev C (Rytis 2026-10-13): vienpusis - baltas viršus iki pilono galo (116)
+        TB = 43; EAR = TW + 2 * TB; HO_B = TB - HO_EDGE   # rev C (Rytis 2026-10-13): vienpusis - baltas viršus iki pilono galo (116)
         ga(B, f"3 / {NS}", (9, (354.4, 205.1, 467.8, 569.8)), decals=dec)
         sections(B, f"4 / {NS}")
     if "all" in which or "P" in which:
