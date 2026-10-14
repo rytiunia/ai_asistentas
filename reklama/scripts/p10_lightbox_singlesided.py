@@ -121,7 +121,13 @@ def geom(S, base_dir):
     span_s = W - 2 * S["screw_end"]
     ns = max(1, round(span_s / S["screw_step"]))
     g["scr_x"] = [S["screw_end"] + span_s * k / ns for k in range(ns + 1)]
-    g["n_scr"] = 2 * len(g["scr_x"])                                  # viršutinis + apatinis atlankas
+    # v231 (Rytis 2026-10-14): priekis prisukamas PER PERIMETRĄ - visi 4 atlankai; dešiniajame - ne ties laido išpjova
+    span_v = H - 2 * S["screw_end"]
+    nv_ = max(1, round(span_v / S["screw_step"]))
+    g["scr_y"] = [S["screw_end"] + span_v * k / nv_ for k in range(nv_ + 1)]
+    cy_ = (S.get("cable") or {}).get("y")
+    g["scr_yr"] = [y_ for y_ in g["scr_y"] if cy_ in (None, "?") or abs(y_ - cy_) > 40]
+    g["n_scr"] = 2 * len(g["scr_x"]) + len(g["scr_y"]) + len(g["scr_yr"])
     rho = json.load(open(os.path.join(HERE, "..", "assets", "svoris.json")))["density_kg_dm3"]
     front = (W * H + 2 * (W + H) * (D - t)) * t - (g["cut"].area * t if g["logo"] is not None else 0)
     back = (g["BW"] * g["BH"] + 2 * (g["BW"] + g["BH"]) * (DB - tb)) * tb
@@ -202,6 +208,8 @@ def sheet1(g, out):
         rect(Z(0), Yv(yc - sw / 2), (C["z"]) * s, sw * s, fill=white, lw=0.1)          # išpjova nuo laisvo krašto
         circle(Z(C["z"]), Yv(yc), sw / 2 * s, fill=white, lw=0.1)
         circle(Z(C["z"]), Yv(yc), hdia / 2 * s, fill=HexColor("#202020"), lw=0.1)     # tarpinė (dugno atlanke)
+    for y_ in g["scr_yr"]:                                            # v231: varžtai per perimetrą (dešinysis atlankas)
+        circle(Z(g["screw_edge"]), Yv(y_), max(1.6 * s, 0.9), fill=white, lw=0.1)
     K.set_view(False)
     line(Z(0) - 14, Yv(-10), Z(0) - 14, Yv(H + 10), 1.2, HexColor("#888888"))
     T(Z(0) - 20, Yv(H / 2), "FACADE", 7, color=K.GREY, rot=90, align="c")
@@ -246,14 +254,21 @@ def sheet1(g, out):
     HM(U(0), U(D + pr), Ya(H) + D2 + 10, f"{D + pr:g}", Ya(H), Ya(H))
     VM(U(D + pr) + D2, Ya(0), Ya(H), U(D), f"{H:g}")
     VM(U(-6) - 26, Ya(off), Ya(H - off), U(0), f"{g['BH']:g} (back)")
-    bal = [(U(D - t / 2), Ya(H * 0.9), 1), (U(tb / 2), Ya(H * 0.75), 2), (U(DB * 0.6), Ya(off + tb / 2), 2),
+    bal = [(U(D - t / 2), Ya(H * 0.9), 1), (U(tb / 2), Ya(H * 0.85), 2), (U(DB * 0.6), Ya(off + tb / 2), 2),
            (U(g["screw_edge"]), Ya(t + 3), 8)]
     if segA:
         ym = (segA[0][0] + segA[0][1]) / 2
         bal += [(U(D - t + it_ / 2), Ya(ym), 3), (U(D - t - bt / 2), Ya(segA[0][1] + 12), 4)]
     for tx_, ty_, lb_ in bal:
         K.balloon_auto(tx_, ty_, lb_)
-    T(U(DB / 2), Ya(H / 2), "LED: ?", 8, align="c", color=RED, rot=90)
+    # v231 (Rytis 2026-10-14): LED - ant DUGNO GALINĖS PLOKŠTUMOS (vidinis paviršius), ne ant kraštinių
+    K.set_view(True)
+    for k_ in range(4):
+        ym_ = off + g["BH"] * (k_ + 0.5) / 4
+        rect(U(tb), Ya(ym_ - 12), 6 * s5, 24 * s5, fill=HexColor("#F2E28C"), lw=0.1)
+    K.set_view(False)
+    K.balloon_auto(U(tb + 3), Ya(off + g["BH"] * 0.625), 6)
+    T(U(DB) + 4, Ya(H / 2), "LED on back base: ?", 7, align="c", color=RED, rot=90)
     view_title(U(D / 2), top - 84, "SECTION A-A", f"1:{n5:g}")
     # ---------------------------------------------------------------- TOP VIEW (varžtai)
     tx0 = ax0 + (D + pr) * s5 + 150
@@ -272,7 +287,8 @@ def sheet1(g, out):
         hchain(Zt(0) + D1, [Xt(v) for v in xs_], [Zt(g["screw_edge"])] * len(xs_), [f"{b - a:.0f}" for a, b in zip(xs_, xs_[1:])],
                size=K.F_DIM_MAIN)
         vchain(Xt(W) + D1, [Zt(g["screw_edge"]), Zt(0)], [Xt(W)] * 2, [f"{g['screw_edge']:g}"], size=K.F_DIM_MAIN)
-        T(Xt(W / 2), Zt(0) + D2 + 12, f"screws (8): {g['n_scr']} pcs. Ø3.2, front flange -> back flange, {g['screw_edge']:g} from edge",
+        T(Xt(W / 2), Zt(0) + D2 + 12, f"screws (8) on PERIMETER (all 4 flanges): {g['n_scr']} pcs., holes Ø3.2, front -> back flange, "
+          f"{g['screw_edge']:g} from edge",
           7, align="c", color=K.GREY)
         view_title(Xt(W / 2), top - 84, "TOP VIEW", sl)
     # ---------------------------------------------------------------- 2 eilė: 3D + EXPLODED
@@ -302,9 +318,9 @@ def bom1(g):
                  [4, f"Base {g['base_t']:g} mm, {len(g['studs'])} x Ø{g['hole_d']:g} (DXF)", f"Plexi {g['plexi']}", "-",
                   f"1 pc. {g['base'].area / 1e6:.3f} m²"],
                  [5, "Stud (welded inside front) + nut", "?", "-", f"{len(g['studs'])} pcs."]]
-    rows += [[6, "LED modules", "?", "6500 K", "?"],
+    rows += [[6, "LED modules on back base (inside)", "?", "6500 K", "?"],
              [7, f"Cable gland / rubber grommet Ø{unk(g['cab']['hole_d'])}", g["cab"].get("grommet") or "?", "-", "1 pc."],
-             [8, "Screw, Ø3.2, front -> back flange", "A2", "-", f"{g['n_scr']} pcs."],
+             [8, "Screw front -> back, perimeter", "-", "-", f"{g['n_scr']} pcs."],
              [9, "Fixing to facade through back", "screws + anchors", "-", "?"]]
     return rows
 
@@ -440,6 +456,10 @@ def exploded(g, box):
     for x0 in (off, W - off - tb):
         _box(sc, x0, off + tb, 0, tb, g["BH"] - 2 * tb, DB, COL_BACK)
     anc[2] = (off + g["BW"] * 0.2, H - off, DB * 0.5)
+    for i_ in range(3):                                               # v231: LED ant dugno galinės plokštumos
+        for j_ in range(3):
+            _box(sc, off + g["BW"] * (i_ + 0.5) / 3 - 20, off + g["BH"] * (j_ + 0.5) / 3 - 12, tb + 0.3, 40, 24, 6, HexColor("#F2E28C"))
+    anc[6] = (off + g["BW"] * 0.5, off + g["BH"] * 0.5, tb + 6)
     e_b, e_i, e_f = 0.45 * M, 0.75 * M, 1.05 * M
     if g["logo"] is not None:
         holes = unary_union([Point(u, v).buffer(g["hole_d"] / 2, 4) for u, v in g["studs"]])
@@ -487,6 +507,7 @@ def flats(g):
     ofr, bfr, FLf, (Ff, WFf) = flat_tray(W, H, D, t)
     x0, y0, x1, y1 = bfr
     hf = [(x0 + u, g["screw_edge"]) for u in g["scr_x"]] + [(x0 + u, WFf - g["screw_edge"]) for u in g["scr_x"]]
+    hf_s = [(g["screw_edge"], y0 + v) for v in g["scr_y"]] + [(Ff - g["screw_edge"], y0 + v) for v in g["scr_yr"]]
     slots = []
     if C["y_"] is not None:                                        # dešinysis atlankas: x nuo x1 (lenkimas, z = D-t) iki Ff (z = 0)
         sw = C["slot_w"] or ((C["hole_d"] or 10) + 4)
@@ -496,16 +517,17 @@ def flats(g):
                            Point(xs, y0 + C["y_"]).buffer(sw / 2, 24)])
         ofr = ofr.difference(sl_)
         slots.append(sl_)
-    front = dict(outline=ofr, bend=bfr, holes=hf, FL=FLf, size=(Ff, WFf), ox=x0, oy=y0)
+    front = dict(outline=ofr, bend=bfr, holes=hf, holes_s=hf_s, FL=FLf, size=(Ff, WFf), ox=x0, oy=y0)
     # DUGNAS (iš priekio, vidus): atlanko laisvas kraštas = dugno priekis (z = DB); varžtų skylės ties z = 7 nuo fasado
     obk, bbk, FLb, (Fb, WFb) = flat_tray(g["BW"], g["BH"], DB, tb)
     bx0, by0, bx1, by1 = bbk
     zs = g["screw_edge"]                                           # nuo fasado (dugno nugaros = lenkimo linija)
     hb = [(bx0 + (u - off), by0 - zs) for u in g["scr_x"]] + [(bx0 + (u - off), by1 + zs) for u in g["scr_x"]]
+    hb_s = [(bx0 - zs, by0 + (v - off)) for v in g["scr_y"]] + [(bx1 + zs, by0 + (v - off)) for v in g["scr_yr"]]
     cab = None
     if C["y_"] is not None:
         cab = (bx1 + C["z"], by0 + (C["y_"] - off), (C["hole_d"] or 10) / 2)
-    back = dict(outline=obk, bend=bbk, holes=hb, FL=FLb, size=(Fb, WFb), cable=cab, ox=bx0, oy=by0)
+    back = dict(outline=obk, bend=bbk, holes=hb, holes_s=hb_s, FL=FLb, size=(Fb, WFb), cable=cab, ox=bx0, oy=by0)
     return front, back
 
 
@@ -539,8 +561,13 @@ def _sheet2(g, out):
         draw_geom(d["outline"], X, Y, fill=white, lw=K.HAIR)
         bx0, by0, bx1, by1 = d["bend"]
         rect(X(bx0), Y(by0), (bx1 - bx0) * s, (by1 - by0) * s, lw=K.HAIR, dash=(4, 2))
-        for hx, hy in d["holes"]:
+        for hx, hy in d["holes"] + d["holes_s"]:
             circle(X(hx), Y(hy), max(1.6 * s, 0.8), lw=0.2)
+        _hl = [q for q in d["holes_s"] if q[0] < Fw_ / 2]                # kairiojo atlanko skylės - grandinė kairėje
+        if _hl:
+            ys_ = [0] + [hy for _, hy in _hl] + [Fh_]
+            vchain(X(0) - D1, [Y(v) for v in ys_], [X(_hl[0][0])] * len(ys_), [f"{b - a:.0f}" for a, b in zip(ys_, ys_[1:])],
+                   size=K.F_DIM_FRAME)
         if i == 0 and g["logo"] is not None:
             draw_geom(affinity.translate(g["cut"], d["ox"], d["oy"]), X, Y, lw=0.3)
             for sx_, sy_ in g["studs"]:
@@ -569,7 +596,7 @@ def _sheet2(g, out):
             ["Front", f"{W:g}x{H:g}x{D:g}, Alu {t:g}"],
             ["Back", f"{g['BW']:g}x{g['BH']:g}x{g['back_depth']:g}, Alu {g['back_t']:g}"],
             ["Gap", f"{g['gap']:g} mm / side (back in front)"],
-            ["Screws", f"{g['n_scr']} x, {g['screw_edge']:g} from flange edge"],
+            ["Screws", f"{g['n_scr']} x, perimeter, {g['screw_edge']:g} from flange edge"],
             ["Cable", f"z {g['cab']['z']:g} from facade, y {unk(g['cab']['y_'])}"]], title="TRAYS", lab_w=64)
     md = [["Bend rule", "folded v173, no K-factor"], ["Flanges front", f"{D - t:g}"],
           ["Flanges back", f"{g['back_depth'] - g['back_t']:g}"], ["Qty", f"{g['qty']}"]]
@@ -597,7 +624,7 @@ def write_dxf(g, path):
                 m.add_lwpolyline([Q(*c) for c in ring.coords], close=True, dxfattribs={"layer": "CUT"})
         bx0, by0, bx1, by1 = d["bend"]
         m.add_lwpolyline([Q(bx0, by0), Q(bx1, by0), Q(bx1, by1), Q(bx0, by1)], close=True, dxfattribs={"layer": "BEND_UP_90"})
-        for hx, hy in d["holes"]:
+        for hx, hy in d["holes"] + d["holes_s"]:
             m.add_circle(Q(hx, hy), 1.6, dxfattribs={"layer": "HOLES_D3.2"})
         if nm == "FRONT 1" and g["logo"] is not None:
             for pg in getattr(g["cut"], "geoms", [g["cut"]]):

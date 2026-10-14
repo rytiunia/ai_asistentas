@@ -58,7 +58,10 @@
   "joint_clear": 0.2,
   "hole_d": 8,
   "holes_every_gap": 2,
-  "groove": null
+  "groove": {
+   "w": 8,
+   "d": 10
+  }
  },
  "bom": [
   [
@@ -66,21 +69,21 @@
    "Letter face",
    "Acrylic 8 mm white",
    "-",
-   "{PER_6} m / {A_6} m\u00b2"
+   "{PER_6} m / {A_6} m²"
   ],
   [
    2,
    "Letter return",
    "Alu 1 mm",
    "RAL 7021",
-   "{PER_6} m / {RET_6} m\u00b2"
+   "{PER_6} m / {RET_6} m²"
   ],
   [
    3,
    "Letter back",
    "Alu 1.5 mm",
    "",
-   "{PER_ALL} m / {A_ALL} m\u00b2"
+   "{PER_ALL} m / {A_ALL} m²"
   ],
   [
    4,
@@ -112,7 +115,7 @@
   ],
   [
    8,
-   "Wall fixing through \u00d88 holes in frame",
+   "Wall fixing through Ø8 holes in frame",
    "screws + anchors",
    "-",
    ""
@@ -157,7 +160,7 @@
   ],
   [
    "Wind qp",
-   "{WIND_QP} kN/m\u00b2"
+   "{WIND_QP} kN/m²"
   ]
  ]
 }

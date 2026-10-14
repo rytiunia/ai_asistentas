@@ -13,8 +13,9 @@ Raktažodžiai: P10_lightbox_singlesided, vienpusė P10 šviesdėžė, single-si
 - **Priekis** - KAIP P10_lightbox_doublesided: Alu 2 mm lankstytas padėklas (folded v173), logotipo / teksto išpjova + 0,7,
   iškištas plexi įdėklas (PRIKLIJUOTAS prie pagrindo), 3 mm plexi pagrindas ant ilgasriegių (prišaudyti iš VIDINĖS pusės) + veržlės.
 - **Dugnas** - PAPRASTA folded plate, **3 mm mažesnė už priekį**, **tūris (atlankų gylis) 30 mm**.
-- **Priekis užsideda ant dugno** (priekio atlankai ant dugno atlankų) ir **prisukamas varžtais - tvirtinimo standartas**
-  (folded: Ø3.2, 7 mm nuo atlanko krašto, „Bendrinės taisyklės" 18).
+- **Priekis užsideda ant dugno** (priekio atlankai ant dugno atlankų) ir **prisukamas varžtais PER PERIMETRĄ - visi 4 atlankai**
+  (v231, Rytis; folded: Ø3.2, 7 mm nuo atlanko krašto, žingsnis ~300, nuo kampų 50; dešiniajame - ne arčiau 40 nuo laido išpjovos).
+  Varžtų tipas nenurodomas (standartas, Rytis: „neaktualu").
 - **Prie fasado - per dugną tiesiai į fasadą**: tvirtinimo skylių dugne NEBRAIŽYTI (gręžia montuotojas).
 - **Rėmo NĖRA** (laikantysis - dugnas).
 
@@ -26,7 +27,7 @@ Raktažodžiai: P10_lightbox_singlesided, vienpusė P10 šviesdėžė, single-si
 ## 3. Atsakyta (Rytis 2026-10-14, Leapmotor PO 33577 poz. 30)
 1. „3 mm mažesnė" - **3 mm KIEKVIENAI kraštinei** (dugnas W-6 x H-6).
 2. **Bendras tūris 80 mm**: priekio atlankas = 80 (- t); **dugnas 30 mm įlenda į priekį** (bendras tūris vis tiek 80).
-3. **LED - ant dugno.**
+3. **LED - ant dugno GALINĖS PLOKŠTUMOS** (vidinis dugno paviršius prie fasado), NE ant kraštinių (v231, Rytis).
 4. Laidas - pagal standartą (2 skyrius); skylės Ø / tarpinės tipas - kai paaiškės (neišgalvoti).
 5. **Dugnas - Alu 1,5 mm** (folded v173); priekis - Alu 2 mm.
 6. Stiklas: **įdėklas 8 mm** (su Alu 2 -> išsikišimas 6), 3 mm pagrindas - kaip doublesided.
@@ -38,4 +39,4 @@ gamybos DXF - priekio ir dugno išklotinės (folded v173), plexi pagrindas / įd
 
 ## 5. Dar neatsakyta (Leapmotor poz. 30) - lape „?"
 - kabelio skylės aukštis nuo viršaus (y), skylės Ø ir tarpinės tipas, priekio išpjovos plotis (geometrija: centras 7 nuo
-  dugno nugaros -> Ø <= ~10, kitaip kerta lenkimą); LED moduliai / PSU (lape LED tik patvirtintas); varžtų tipas.
+  dugno nugaros -> Ø <= ~10, kitaip kerta lenkimą); LED moduliai / PSU - lape „?", tikrinama gamyboje (Rytis 2026-10-14).

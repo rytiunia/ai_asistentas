@@ -24,10 +24,14 @@ Leapmotor NETAIKOMAS - čia 12 V 1,5 m + TRAFO BOX, Rytis).
 ## Įgyvendinimas (v229)
 - Projektas `scripts/projektai/leapmotor_33577/` (PO, kliento PDF, `spec_LEAP26-01002.json`).
 - Poz. 10: `braizyti_begeliai.py` su **"mounting": "acrylic"**, **"rail": {"type": "acrylic", "size": "40x20"}**, `"acrylic"`
-  ({"thk": 20, "sheet": [3050, 2050], "joint_clear": 0.2, "hole_d": 8, "holes_every_gap": 2, "groove": ?}); priekis
+  ({"thk": 20, "sheet": [3050, 2050], "joint_clear": 0.2, "hole_d": 8, "holes_every_gap": 2, "groove": {"w": 8, "d": 10}}); priekis
   `"front": "8mm"` (balta akrilo priekis frezuota - PATIKSLINTI su Ryčiu, PO: „white acrylic fronts").
   Rezultatai: lapas, 1:1 PDF, `_akrilinis_remas.dxf` (ACRYLIC_20_CUT dalys su puzzle, HOLES_D8, GROOVE_BACK_AXIS).
 - Rytis 2026-10-14: ALT numeris - blank `ALT0000_00.00_RS`; akriliniam rėmui PAPILDOMI statmenys po raidėmis; puzzle -
   kiek įmanoma po raidėmis; Ø8 skylės tarp raidžių, bet dvigubai mažiau (kas antrame tarpe); bėgelis 40 mm; simbolis ant
   to paties rėmo kaip raidės (vientisa reklama).
-- Neatsakyta: laidų griovelio dydis; poz. 20 profilis (P6 netinka - štrichas ~16,2, dugnas -3 iš kiekvienos pusės -> ~10 < 16).
+- v231 (Rytis 2026-10-14): **per daug statmenų** -> žingsnis 1000 mm per stiebus (5 statmenys + 1 įstrižas 4466 ilgiui);
+  **jungtys pagal medžiagos ilgį nurodomos** (J1, dalys 1499 + 2967 iš lakšto 3050); **griovelis 8 pločio x 10 gylio**.
+  Poz. 30: priekis prisukamas per perimetrą; LED ant dugno galinės plokštumos; LED tipas - paliekamas „?", tikrinama gamyboje;
+  varžtų tipas neaktualus.
+- Neatsakyta: poz. 20 profilis (P6 netinka - štrichas ~16,2, dugnas -3 iš kiekvienos pusės -> ~10 < 16).
