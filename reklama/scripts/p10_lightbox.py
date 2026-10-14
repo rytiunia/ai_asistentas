@@ -120,9 +120,12 @@ def geom(S):
             g["plate_holes_mode"] = "staggered"
         g["plates_l"] = [dict(yc=yc_, w=PLw, h=ph, t=PLt, holes=sorted(set(v for _, v in hz)), hz=hz)]
         # v212 (Rytis 2026-10-14): KOJŲ UŽDENGIMAS - 2 dalys A + B (veidrodinės), Alu 2, korpuso spalva; ilgis 5 mm mažesnis už
-        #  kojų tarpą (korpusas - plokštė): po 2.5 mm iš abiejų galų; aukštis = kojų matmuo; plotis cover_w (numatyta kojos + 20)
-        g["cover"] = dict(y0=yc_ - ph / 2, y1=yc_ + ph / 2, w=S["cover_w"] or (fa + 20), thk=S["cover_thk"], gap=S["cover_gap"],
-                          L=g["leg_len"] - S["cover_gap"])
+        #  kojų tarpą (korpusas - plokštė): po 2.5 mm iš abiejų galų; aukštis = kojų matmuo; plotis cover_w (numatyta kojos + 10)
+        # v214 (Rytis 2026-10-14): uždengimas 10 mm platesnis už kojų profilį (30 -> 20 + 20); viršuje 2 x Ø3.2 prisukimui;
+        #  priekyje ir gale (prie korpuso / plokštės) lenkiamos standumo briaunos 10 mm
+        cw_ = S["cover_w"] or (fa + 10)
+        g["cover"] = dict(y0=yc_ - ph / 2, y1=yc_ + ph / 2, w=cw_, thk=S["cover_thk"], gap=S["cover_gap"],
+                          L=g["leg_len"] - S["cover_gap"], rib=10.0, holes_top=2)
     else:
         g["legs_y"] = [g["ax"], H - g["ax"]]
         g["L_h"] = (W - (t + cl)) + g["leg_len"]                    # nuo rėmo laisvo krašto iki plokštės
@@ -642,7 +645,7 @@ def bom1(g):
               f"{g['n_scr']} pcs."]]
     if g["cover"]:                                                  # v212: kojų uždengimas
         C = g["cover"]
-        rows += [[11, f"Leg cover {C['thk']:g} mm, A + B (mirror)", "Alu, folded, screwed", g["body_finish"] or "",
+        rows += [[11, f"Leg cover A + B, 2 x Ø3.2 top (DXF)", f"Alu {C['thk']:g} folded, ribs {C['rib']:g}", g["body_finish"] or "",
                   f"2 pcs., {C['L']:g} x {C['y1'] - C['y0']:g} x {C['w'] / 2:g}"]]
     return rows
 
@@ -803,7 +806,7 @@ def exploded_view(g, box):
         for a_, b_ in A.get("ax" + sd, []):
             K.centerline(a_[0], a_[1], b_[0], b_[1])
     for key, lab in (("1", "1"), ("1A", "1A"), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6), (7, 7), ("8", 8),
-                     ("9A", 9), ("9B", 9), ("10A", 10), ("10B", 10)):
+                     ("9A", 9), ("9B", 9), ("10A", 10), ("10B", 10), ("11A", 11), ("11B", 11)):
         if key in A:
             K.balloon_auto(A[key][0], A[key][1], lab, region=reg)
     view_title(ex0 + ew / 2, ey0 - 26, "ASSEMBLY - EXPLODED VIEW",
@@ -884,6 +887,21 @@ def write_dxf(g, path):
         txt(f"{side}: FOLDED {W:g}x{H:g}x{g['PD']:g} Alu {g['t']:g} - FLAT {F:g}x{WF:g} - FACE OUT"
             + (" - wall side right" if wall_right else " - wall side left"), ox, -30)
         ox += F + gap
+    # v214: kojų uždengimo išklotinė (1 dalis; B - veidrodinė), folded v173: atlankas = gylis - t, briaunos tarp atlankų
+    if g.get("cover"):
+        C = g["cover"]; tc = C["thk"]; Lc = C["L"]; Hc = C["y1"] - C["y0"]
+        fl = C["w"] / 2 - tc; rb = C["rib"] - tc
+        cx0, cy0 = ox + rb, fl
+        pts = [(cx0, 0), (cx0 + Lc, 0), (cx0 + Lc, cy0 + tc), (cx0 + Lc + rb, cy0 + tc), (cx0 + Lc + rb, cy0 + Hc - tc),
+               (cx0 + Lc, cy0 + Hc - tc), (cx0 + Lc, cy0 + Hc + fl), (cx0, cy0 + Hc + fl), (cx0, cy0 + Hc - tc),
+               (cx0 - rb, cy0 + Hc - tc), (cx0 - rb, cy0 + tc), (cx0, cy0 + tc)]
+        msp.add_lwpolyline(pts, close=True, dxfattribs={"layer": "CUT"})
+        msp.add_lwpolyline([(cx0, cy0), (cx0 + Lc, cy0), (cx0 + Lc, cy0 + Hc), (cx0, cy0 + Hc)], close=True,
+                           dxfattribs={"layer": "BEND_UP_90"})
+        for k in range(C["holes_top"]):
+            msp.add_circle((cx0 + Lc * (k + 1) / (C["holes_top"] + 1), cy0 + Hc + fl - 7), 1.6, dxfattribs={"layer": "HOLES_D3.2"})
+        txt(f"LEG COVER {Lc:g}x{Hc:g}x{C['w'] / 2:g} Alu {tc:g} - x 2 (A + B mirror) - flanges {fl:g}, ribs {rb:g}, 2 x D3.2 top", ox, -30)
+        ox += Lc + 2 * rb + gap
     # plexi: pagrindai ir įdėklai (A ir B), po padėklais
     if g.get("logo") is not None:
         bx0, by0, bx1, by1 = g["base"].bounds
@@ -1031,6 +1049,21 @@ def exploded(g, box, yaw=-58, pitch=11):
     for k_, ys in enumerate((x0 + fb, x0 + FH - fb - 8)):
         for lx in led_x:
             sc.box((lx - 11, H - ys - 8, -11), (22, 0, 0), (0, 8, 0), (0, 0, 22), COL_LED, edge=EDGE)
+    if g["cover"]:                                                  # v214: uždengimo dalys A / B - ištrauktos į šonus
+        C = g["cover"]; ct = C["thk"]; hw = C["w"] / 2; Lc = C["L"]; xc0 = W + C["gap"] / 2
+        yb_, yt_ = H - C["y1"], H - C["y0"]
+        for sgn in (1, -1):
+            dz = sgn * 0.11 * M
+            zo = lambda z, sgn=sgn, dz=dz: sgn * z + dz
+            za, zb = sorted((zo(hw - ct), zo(hw)))
+            sc.box((xc0, yb_, za), (Lc, 0, 0), (0, yt_ - yb_, 0), (0, 0, zb - za), COL_BODY, edge=EDGE)          # šonas
+            za, zb = sorted((zo(0), zo(hw)))
+            for yy in (yb_, yt_ - ct):                                                                                # viršus / apačia
+                sc.box((xc0, yy, za), (Lc, 0, 0), (0, ct, 0), (0, 0, zb - za), COL_BODY, edge=EDGE)
+            za, zb = sorted((zo(hw - C["rib"]), zo(hw)))
+            for xx in (xc0, xc0 + Lc - ct):                                                                           # briaunos 10
+                sc.box((xx, yb_ + ct, za), (ct, 0, 0), (0, yt_ - yb_ - 2 * ct, 0), (0, 0, zb - za), COL_BODY, edge=EDGE)
+            anc["11" + ("A" if sgn > 0 else "B")] = (xc0 + Lc / 2, yt_ - (yt_ - yb_) * 0.3, zo(hw))
     anc["1"] = (x0 + FW * 0.3, H - x0 - fb / 2, fa / 2)
     anc["1A"] = (xf + PLt, H - g["plates_l"][0]["yc"], 0)
     anc["8"] = (led_x[0], H - (x0 + FH - fb - 8), 11)

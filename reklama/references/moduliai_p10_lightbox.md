@@ -40,8 +40,10 @@ Raktažodžiai: P10_lightbox, P10 lightbox, push-through, iškištas stiklas, dv
     kojų, ~120 žingsnis, lyginis); plati plokštė (>= 7 Ø) - 2 stulpeliai, SIAURA - ŠACHMATINE TVARKA (kaip CEOS mažo pilono
     padas, Thales D059422). Lape PLATE 1A gulsčiai. Testas `scripts/projektai/p10_lightbox_test/spec_B.json`.
     **KOJŲ UŽDENGIMAS (v212, Rytis 2026-10-14; kaip sviesdeze v144):** 2 dalys A + B (veidrodinės), Alu 2 mm, korpuso spalva,
-    aukštis = kojų matmuo, plotis `cover_w` (numatyta kojos + 20), ilgis 5 mm MAŽESNIS už kojų tarpą (korpusas - plokštė):
-    PO 2.5 mm iš abiejų galų; kojos po juo - punktyru; BOM 11.
+    aukštis = kojų matmuo, ilgis 5 mm MAŽESNIS už kojų tarpą (korpusas - plokštė): PO 2.5 mm iš abiejų galų; kojos po juo -
+    punktyru; BOM 11. **v214:** plotis 10 mm DIDESNIS už kojų profilį (30 -> 40 = 20 + 20, kiekviena dalis 20; `cover_w`);
+    viršuje 2 x Ø3.2 prisukimui (7 nuo krašto); priekyje ir gale (prie korpuso / plokštės) - standumo briaunos 10 mm;
+    exploded view - abi dalys ištrauktos į šonus; išklotinė DXF (folded v173: atlankai 20 - t, briaunos 10 - t).
   * Kitas rėmo principas - neišgalvoti, laukti Ryčio aprašymo / eskizo.
 
 ## 4. LED ir maitinimas
