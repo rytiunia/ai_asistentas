@@ -85,14 +85,48 @@ def geom(S):
     g["ax"] = t + cl + fa / 2                                       # kojų (skersinių) ašis nuo dėžės viršaus / apačios
     PLw, PLh, PLt = S["plate"]
     g["leg_len"] = S["proj"] - PLt                                  # koja nuo korpuso iki plokštės
-    g["L_h"] = (W - (t + cl)) + g["leg_len"]                        # nuo rėmo laisvo krašto iki plokštės
-    g["L_v"] = g["FH"] - 2 * fa                                     # statmenys tarp skersinių (laisvas galas + sienos pusė)
-    g["prof_len"] = 2 * g["L_h"] + 2 * g["L_v"]
-    ys = [g["ax"], H - g["ax"]]
-    if S["plates"] == "single":
-        g["plates_l"] = [dict(yc=H / 2, w=PLw, h=ys[1] - ys[0] + PLh, t=PLt, holes=ys)]
+    # v211 (Rytis 2026-10-14) RĖMO VARIANTAS B (spec "legs": {"spacing": <kojų ašių atstumas>, "yc": <centras, numatyta H/2>}):
+    #  kojos siauresnės už dėžę - eina PER galinį (sienos pusės) statmenį, kuris iš kelių dalių, kojos įvirintos tarp jų;
+    #  viršutinis / apatinis skersiniai - tik rėmo plotyje; montavimo plokštė VIENTISA, aukštis = kojų matmuo (sp + fb);
+    #  skylės >= 4, siaurame pade - šachmatine tvarka (kaip CEOS mažo pilono padas).
+    LG = S.get("legs") or None
+    g["legB"] = bool(LG)
+    xr = (t + cl) + g["FW"]                                          # rėmo sienos pusės išorė
+    if g["legB"]:
+        sp = float(LG["spacing"]); yc_ = float(LG.get("yc", H / 2))
+        g["legs_y"] = [yc_ - sp / 2, yc_ + sp / 2]
+        g["L_h"] = g["FW"]                                          # skersiniai - rėmo plotis
+        g["L_leg"] = (W + g["leg_len"]) - (xr - fa)                 # koja nuo galinio statmens vidaus iki plokštės
+        y_in0, y_in1 = (t + cl) + fb, (t + cl) + g["FH"] - fb
+        cuts = [y_in0] + [v for y_ in g["legs_y"] for v in (y_ - fb / 2, y_ + fb / 2)] + [y_in1]
+        g["rear_parts"] = [(a_, b_) for a_, b_ in zip(cuts[::2], cuts[1::2])]
+        g["L_v"] = g["FH"] - 2 * fa                                 # laisvo galo statmuo
+        g["prof_len"] = 2 * g["L_h"] + g["L_v"] + sum(b_ - a_ for a_, b_ in g["rear_parts"]) + 2 * g["L_leg"]
+        ph = sp + fb
+        hd = S["plate_hole_d"]
+        z0_, z1_ = g["legs_y"][0] + fb / 2 + hd, g["legs_y"][1] - fb / 2 - hd        # laisva zona tarp kojų
+        n = max(4, int(math.ceil((z1_ - z0_) / 120.0)) + 1)
+        if n % 2: n += 1
+        if PLw >= 7 * hd:                                            # 2 stulpeliai
+            zz = PLw / 2 - 2 * hd
+            rows = n // 2
+            hz = [(sg * zz, z0_ + (z1_ - z0_) * k / max(rows - 1, 1)) for k in range(rows) for sg in (-1, 1)]
+            g["plate_holes_mode"] = "2 columns"
+        else:                                                        # siauras - šachmatine tvarka
+            zz = max(0.0, PLw / 2 - 2 * hd)
+            hz = [((-zz if k % 2 == 0 else zz), z0_ + (z1_ - z0_) * k / (n - 1)) for k in range(n)]
+            g["plate_holes_mode"] = "staggered"
+        g["plates_l"] = [dict(yc=yc_, w=PLw, h=ph, t=PLt, holes=sorted(set(v for _, v in hz)), hz=hz)]
     else:
-        g["plates_l"] = [dict(yc=y, w=PLw, h=PLh, t=PLt, holes=[y]) for y in ys]
+        g["legs_y"] = [g["ax"], H - g["ax"]]
+        g["L_h"] = (W - (t + cl)) + g["leg_len"]                    # nuo rėmo laisvo krašto iki plokštės
+        g["L_v"] = g["FH"] - 2 * fa                                 # statmenys tarp skersinių (laisvas galas + sienos pusė)
+        g["prof_len"] = 2 * g["L_h"] + 2 * g["L_v"]
+        ys = g["legs_y"]
+        if S["plates"] == "single":
+            g["plates_l"] = [dict(yc=H / 2, w=PLw, h=ys[1] - ys[0] + PLh, t=PLt, holes=ys, hz=[(0, y) for y in ys])]
+        else:
+            g["plates_l"] = [dict(yc=y, w=PLw, h=PLh, t=PLt, holes=[y], hz=[(0, y)]) for y in ys]
     # logotipas
     g["logo"] = None
     if S.get("logo"):
@@ -204,7 +238,7 @@ def scene3d(g, yaw, box, title):
     fa, fb, ft = g["frame"]; LL = g["leg_len"]; PLt = g["plate"][2]
     sc = r3d.Scene(yaw=yaw, pitch=18)
     sc.box((0, 0, -D / 2), (W, 0, 0), (0, H, 0), (0, 0, D), COL_BODY, edge=EDGE)
-    for y_ in (g["ax"], H - g["ax"]):
+    for y_ in g["legs_y"]:
         sc.box((W, H - y_ - fb / 2, -fa / 2), (LL, 0, 0), (0, fb, 0), (0, 0, fa), COL_FRAME, edge=EDGE)
     for P in g["plates_l"]:
         sc.box((W + LL, H - P["yc"] - P["h"] / 2, -P["w"] / 2), (PLt, 0, 0), (0, P["h"], 0), (0, 0, P["w"]), COL_FL, edge=EDGE)
@@ -247,14 +281,14 @@ def sheet1(g, out):
         if lg is not None:
             Xm = (lambda x: X(W - x)) if mirror else X
             draw_geom(g["logo"], Xm, Yv, fill=COL_PLEX, lw=0.1)
-        for y_ in (ax, H - ax):
+        for y_ in g["legs_y"]:
             a_, _ = sorted((X(W), X(W + LL)))
             rect(a_, Yv(y_ - fb / 2), LL * s, fb * s, fill=COL_FRAME, lw=0.1)
         for P in g["plates_l"]:
             a2, _ = sorted((X(W + LL), X(W + PR)))
             rect(a2, Yv(P["yc"] - P["h"] / 2), PLt * s, P["h"] * s, fill=COL_FL, lw=0.1)
         K.set_view(False)
-        for y_ in (ax, H - ax):
+        for y_ in g["legs_y"]:
             K.centerline(X(W - 20), Yv(y_), X(W + PR + 8), Yv(y_))
         xs_ = sorted([X(0), X(W), X(W + PR)])                     # v201: koja + plokštė = iškyša (92 / 8 - sienos vaizde, rėme)
         labs = [f"{W:g}", f"{PR:g}"]
@@ -273,8 +307,9 @@ def sheet1(g, out):
         xe = xl if not mirror else xr
         VM(xe - D2 if not mirror else xe + D2, Yv(0), Yv(H), xe, f"{H:g}")
         xw = X(W + PR)
-        vchain(xw + D1 if not mirror else xw - D1, [Yv(0), Yv(ax), Yv(H - ax), Yv(H)], [X(W)] + [xw] * 2 + [X(W)],
-               [f"{ax:g}", f"{H - 2 * ax:g}", f"{ax:g}"], size=K.F_DIM_MAIN)
+        la_, lb_ = g["legs_y"]
+        vchain(xw + D1 if not mirror else xw - D1, [Yv(0), Yv(la_), Yv(lb_), Yv(H)], [X(W)] + [xw] * 2 + [X(W)],
+               [f"{la_:g}", f"{lb_ - la_:g}", f"{H - lb_:g}"], size=K.F_DIM_MAIN)
         return X
 
     # ------------------------------------------------ SIDE A
@@ -284,7 +319,7 @@ def sheet1(g, out):
     K.cut_plane(XA(xc), Yv(0) - 30, Yv(H) + 54, "A", look="right")
     K.balloon_side([(XA(W * 0.1), Yv(H * 0.9), 2)] + ([(XA(g["logo_x"] + g["logo_w"] * 0.3), Yv(g["logo_y"] + g["logo_h"] * 0.5), 4)]
                                                      if lg is not None else []), XA(0) - 60, "left", up=False)
-    K.balloon_auto(XA(W + LL * 0.5), Yv(H - ax), 1)
+    K.balloon_auto(XA(W + LL * 0.5), Yv(g["legs_y"][1]), 1)
     view_title(XA((W + PR) / 2), top - 84, "FRONT VIEW - SIDE A", sl)
     # ------------------------------------------------ VAIZDAS IŠ SIENOS
     sxc = XA(W + PR) + 115
@@ -293,27 +328,29 @@ def sheet1(g, out):
     K.set_view(True)
     rect(Zs(-D / 2), Yv(0), D * s, H * s, fill=COL_BODY, lw=0.1)
     nd = fa / 2 + g["clear"]
-    for y_ in (ax, H - ax):                                         # kojų išpjovos sienos pusės flanšuose (A + B)
+    for y_ in g["legs_y"]:                                          # kojų išpjovos sienos pusės flanšuose (A + B)
         rect(Zs(-fa / 2), Yv(y_ - fb / 2), fa * s, fb * s, fill=COL_FRAME, lw=0.1)
     for P in g["plates_l"]:
         rect(Zs(-P["w"] / 2), Yv(P["yc"] - P["h"] / 2), P["w"] * s, P["h"] * s, fill=COL_FL, lw=0.1)
-        for y_ in P["holes"]:
-            circle(Zs(0), Yv(y_), g["plate_hole_d"] / 2 * s, fill=white, lw=0.1)
+        for z_, y_ in P["hz"]:
+            circle(Zs(z_), Yv(y_), g["plate_hole_d"] / 2 * s, fill=white, lw=0.1)
     K.set_view(False)
     line(Zs(0), Yv(0), Zs(0), Yv(H), 0.2, HexColor("#888888"), dash=(3, 1.5))     # padėklų sandūra
     face_label(Zs(-D / 2) + 2, Yv(0) - 54, "A", 9); face_label(Zs(D / 2) - 2, Yv(0) - 54, "B", 9)
-    hy_ = sorted(y for P in g["plates_l"] for y in P["holes"])
+    hy_ = sorted(set(y for P in g["plates_l"] for y in P["holes"])) if not g["legB"] else []
     ptop = min(P["yc"] - P["h"] / 2 for P in g["plates_l"]); pbot = max(P["yc"] + P["h"] / 2 for P in g["plates_l"])
     yy = [ptop] + hy_ + [pbot]
     ex_ = max(PLw, D) / 2
-    vchain(Zs(ex_) + D1, [Yv(v) for v in yy], [Zs(PLw / 2)] * len(yy), [f"{b - a:g}" for a, b in zip(yy, yy[1:])],
-           size=K.F_DIM_MAIN)
+    if len(yy) > 2:
+        vchain(Zs(ex_) + D1, [Yv(v) for v in yy], [Zs(PLw / 2)] * len(yy), [f"{b - a:g}" for a, b in zip(yy, yy[1:])],
+               size=K.F_DIM_MAIN)
     VM(Zs(ex_) + D2, Yv(ptop), Yv(pbot), Zs(PLw / 2), f"{pbot - ptop:g}")
     VM(Zs(-ex_) - D1, Yv(0), Yv(H), Zs(-D / 2), f"{H:g}")
     HM(Zs(-D / 2), Zs(D / 2), Yv(0) - D1, f"{D:g}", Yv(0), Yv(0))
     HM(Zs(-PLw / 2), Zs(PLw / 2), Yv(pbot) + D1, f"{PLw:g}", Yv(pbot), Yv(pbot))
-    K.balloon_side([(Zs(0), Yv(hy_[-1]), f"{len(hy_)} x Ø{g['plate_hole_d']:g}"),
-                    (Zs(nd), Yv(ax + fb / 2 + g["clear"]), f"leg cut-out {2 * nd:g}x{fb + 2 * g['clear']:g}")],
+    _hz = [q for P in g["plates_l"] for q in P["hz"]]
+    K.balloon_side([(Zs(_hz[-1][0]), Yv(_hz[-1][1]), f"{len(_hz)} x Ø{g['plate_hole_d']:g}"),
+                    (Zs(nd), Yv(g["legs_y"][0] + fb / 2 + g["clear"]), f"leg cut-out {2 * nd:g}x{fb + 2 * g['clear']:g}")],
                    Zs(ex_) + 40, "right", up=True, tags=True)
     T(Zs(0), Yv(H) + 40, "= WALL DRILLING; - - - tray seam", 8, align="c", color=K.GREY)
     view_title(Zs(0), top - 84, "VIEW FROM WALL", sl)
@@ -388,8 +425,12 @@ def sheet1(g, out):
     fbot = top + x0f * s + g["FH"] * MM / nF + 40                  # po rėmo pastabomis
     P0_ = g["plates_l"][0]
     pav = (K.VIEW_BOT - 64 - (D / 2 + pr) * s - 44 - 30) - (fbot + 40) - 50     # iki TOP VIEW pavadinimo
-    npl = nice_scale(pav, P0_["h"], (2, 2.5, 4, 5, 8, 10))
-    plate_view(g, (ffx + fr_r) / 2, fbot + 40, npl)
+    if g["legB"]:                                                   # v211: ilga plokštė - gulsčiai
+        npl = nice_scale(min(fr_r - ffx - 60, K.IX1 - ffx - 80), P0_["h"], (2, 2.5, 4, 5, 8, 10))
+        plate_view_h(g, (ffx + fr_r) / 2 - 20, fbot + 40, npl)
+    else:
+        npl = nice_scale(pav, P0_["h"], (2, 2.5, 4, 5, 8, 10))
+        plate_view(g, (ffx + fr_r) / 2, fbot + 40, npl)
     # ------------------------------------------------ 2 eilė: 3D A, 3D B, EXPLODED, PLATE 1A + TOP VIEW
     y3 = max(Yv(H), Ya(H)) + D2 + 50
     h3 = K.VIEW_BOT - y3 - 30
@@ -477,10 +518,18 @@ def bom1(g):
     fa, fb, ft = g["frame"]
     P0 = g["plates_l"][0]
     W, H = g["w"], g["h"]
-    rows = [[1, f"Frame + legs {prof(fa, fb, ft)}", "Alu, welded", g["frame_finish"] or "",
-             f"2 x {g['L_h']:.0f} + 2 x {g['L_v']:.0f} mm"],
-            ["1A", f"Mounting plate {P0['w']:g}x{P0['h']:g}x{P0['t']:g}, Ø{g['plate_hole_d']:g}", "Alu, welded to leg",
-             g["frame_finish"] or "", f"{len(g['plates_l'])} pcs."],
+    if g["legB"]:                                                   # v211: rėmo variantas B
+        _rp = " + ".join(f"{b_ - a_:.0f}" for a_, b_ in g["rear_parts"])
+        r1 = [[1, f"Frame + 2 legs {prof(fa, fb, ft)}", "Alu, welded", g["frame_finish"] or "",
+               f"{g['prof_len']:.0f} mm (cut list - frame view)"],
+              ["1A", f"Mounting plate {P0['w']:g}x{P0['h']:g}x{P0['t']:g}, {len(P0['hz'])} x Ø{g['plate_hole_d']:g}",
+               "Alu, welded to legs", g["frame_finish"] or "", "1 pc."]]
+    else:
+        r1 = [[1, f"Frame + legs {prof(fa, fb, ft)}", "Alu, welded", g["frame_finish"] or "",
+               f"2 x {g['L_h']:.0f} + 2 x {g['L_v']:.0f} mm"],
+              ["1A", f"Mounting plate {P0['w']:g}x{P0['h']:g}x{P0['t']:g}, Ø{g['plate_hole_d']:g}", "Alu, welded to leg",
+               g["frame_finish"] or "", f"{len(g['plates_l'])} pcs."]]
+    rows = r1 + [
             [2, f"Front A, folded {W:g}x{H:g}x{g['PD']:g} (DXF)", f"Alu {g['t']:g} mm", g["body_finish"] or "", "1 pc."],
             [3, f"Back B, folded {W:g}x{H:g}x{g['PD']:g} (DXF)", f"Alu {g['t']:g} mm", g["body_finish"] or "", "1 pc."]]
     if g.get("logo") is not None:
@@ -530,10 +579,19 @@ def frame_view(g, fx, top, nF):
     xf = W + LL
     K.set_view(True)
     rect(X(0), Yv(0), W * s, H * s, stroke=HexColor("#9A9A9A"), lw=0.1, dash=(3, 2))   # korpusas
-    for y0 in (x0, x0 + FH - fb):
-        rect(X(x0), Yv(y0), (xf - x0) * s, fb * s, fill=COL_FRAME, lw=0.1)
-    for xx in (x0, xr - fa):
-        rect(X(xx), Yv(x0 + fb), fa * s, g["L_v"] * s, fill=COL_FRAME, lw=0.1)
+    if g["legB"]:                                                   # v211: skersiniai rėmo plotyje, kojos per galinį statmenį
+        for y0 in (x0, x0 + FH - fb):
+            rect(X(x0), Yv(y0), FW * s, fb * s, fill=COL_FRAME, lw=0.1)
+        rect(X(x0), Yv(x0 + fb), fa * s, g["L_v"] * s, fill=COL_FRAME, lw=0.1)
+        for a_, b_ in g["rear_parts"]:
+            rect(X(xr - fa), Yv(a_), fa * s, (b_ - a_) * s, fill=COL_FRAME, lw=0.1)
+        for y_ in g["legs_y"]:
+            rect(X(xr - fa), Yv(y_ - fb / 2), (xf - xr + fa) * s, fb * s, fill=COL_FRAME, lw=0.1)
+    else:
+        for y0 in (x0, x0 + FH - fb):
+            rect(X(x0), Yv(y0), (xf - x0) * s, fb * s, fill=COL_FRAME, lw=0.1)
+        for xx in (x0, xr - fa):
+            rect(X(xx), Yv(x0 + fb), fa * s, g["L_v"] * s, fill=COL_FRAME, lw=0.1)
     for P in g["plates_l"]:
         rect(X(xf), Yv(P["yc"] - P["h"] / 2), PLt * s, P["h"] * s, fill=COL_FL, lw=0.1)
     led_x = [x0 + fa + g["led_step"] * (i + 0.5) for i in range(g["led_n_row"])]
@@ -542,19 +600,64 @@ def frame_view(g, fx, top, nF):
         for lx in led_x:
             rect(X(lx - 11), Yv(yr if k_ == 0 else yr - 8), 22 * s, 8 * s, fill=COL_LED, lw=0.1)
     K.set_view(False)
-    hchain(Yv(x0) - D1, [X(x0), X(W), X(xf)], [Yv(x0)] * 3, [f"{W - x0:g}", f"{LL:g}"], size=K.F_DIM_FRAME)
-    HM(X(x0), X(xf), Yv(x0) - D2, f"{g['L_h']:.0f}", Yv(x0), Yv(x0))
+    if g["legB"]:
+        hchain(Yv(x0) - D1, [X(x0), X(xr)], [Yv(x0)] * 2, [f"{FW:g}"], size=K.F_DIM_FRAME)
+        yl_ = g["legs_y"][1] + fb / 2
+        hchain(Yv(yl_) + 12, [X(xr - fa), X(xf)], [Yv(yl_)] * 2, [f"{g['L_leg']:.0f}"], size=K.F_DIM_FRAME)
+        HM(X(x0), X(xf + PLt), Yv(x0) - D2, f"{xf + PLt - x0:g}", Yv(x0), Yv(x0))
+    else:
+        hchain(Yv(x0) - D1, [X(x0), X(W), X(xf)], [Yv(x0)] * 3, [f"{W - x0:g}", f"{LL:g}"], size=K.F_DIM_FRAME)
+        HM(X(x0), X(xf), Yv(x0) - D2, f"{g['L_h']:.0f}", Yv(x0), Yv(x0))
     vchain(X(x0) - D1, [Yv(x0), Yv(x0 + fb), Yv(x0 + FH - fb), Yv(x0 + FH)], [X(x0)] * 4,
            [f"{fb:g}", f"{g['L_v']:.0f}", f"{fb:g}"], size=K.F_DIM_FRAME)
     VM(X(x0) - D2, Yv(x0), Yv(x0 + FH), X(x0), f"{FH:g}")
-    vchain(X(xf + PLt) + D1, [Yv(g["ax"]), Yv(H - g["ax"])], [X(xf)] * 2, [f"{H - 2 * g['ax']:g}"], size=K.F_DIM_FRAME)
+    la_, lb_ = g["legs_y"]
+    vchain(X(xf + PLt) + D1, [Yv(la_), Yv(lb_)], [X(xf)] * 2, [f"{lb_ - la_:g}"], size=K.F_DIM_FRAME)
+    if g["legB"]:
+        _rp = [x0 + fb] + [v for a_, b_ in g["rear_parts"] for v in (a_, b_)][1:-1] + [x0 + FH - fb]
+        vchain(X(xr - fa) - 10, [Yv(v) for v in _rp], [X(xr - fa)] * len(_rp), [f"{b - a:.0f}" for a, b in zip(_rp, _rp[1:])],
+               size=K.F_DIM_FRAME)
     K.balloon_auto(X(xr - fa / 2), Yv(H * 0.45), 1)
-    K.balloon_auto(X(led_x[-1]), Yv(yrow[1] - 4), 8)
-    T(X(x0), Yv(x0 + FH) + 16, f"{prof(fa, fb, ft)}: legs 2 x {g['L_h']:.0f}, verticals 2 x {g['L_v']:.0f}",
+    K.balloon_auto(X(led_x[0] if g["legB"] else led_x[-1]), Yv(yrow[1] - 4), 8)
+    T(X(x0), Yv(x0 + FH) + 16, (f"{prof(fa, fb, ft)}: members 2 x {g['L_h']:.0f}, legs 2 x {g['L_leg']:.0f} (through rear vertical)"
+                               if g["legB"] else f"{prof(fa, fb, ft)}: legs 2 x {g['L_h']:.0f}, verticals 2 x {g['L_v']:.0f}"),
       7, color=K.GREY)
     T(X(x0), Yv(x0 + FH) + 25, f"welded, ground; LED {g['led_n']} pcs., {g['led_step']:.0f} mm", 7, color=K.GREY)
     view_title(X((x0 + xf) / 2), top - x0 * s - 84, "FRAME (1) + LED (8)", f"1:{nF:g}  (from side A)")
     return X(xf + PLt) + D1 + 10
+
+
+def plate_view_h(g, cx, top, n):
+    """v211 PLATE 1A rėmo variantui B - gulsčiai (ilgis = kojų matmuo išilgai x), centras cx, viršus top"""
+    fa, fb, ft = g["frame"]
+    P0 = g["plates_l"][0]
+    sp = MM / n
+    L, Wp = P0["h"], P0["w"]
+    X = lambda y: cx + (y - P0["yc"]) * sp
+    Y = lambda z: top + (z + Wp / 2) * sp
+    K.set_view(True)
+    rect(X(P0["yc"] - L / 2), Y(-Wp / 2), L * sp, Wp * sp, fill=COL_FL, lw=0.1)
+    for y_ in g["legs_y"]:
+        rect(X(y_ - fb / 2), Y(-fa / 2), fb * sp, fa * sp, lw=0.2, dash=(2, 1.5))
+    for z_, y_ in P0["hz"]:
+        circle(X(y_), Y(z_), g["plate_hole_d"] / 2 * sp, fill=white, lw=0.1)
+    K.set_view(False)
+    for z_, y_ in P0["hz"]:
+        K.centerline(X(y_), Y(z_) - 6, X(y_), Y(z_) + 6)
+    K.centerline(X(P0["yc"] - L / 2) - 5, Y(0), X(P0["yc"] + L / 2) + 5, Y(0))
+    ys_ = [P0["yc"] - L / 2] + [y_ for _, y_ in sorted(P0["hz"], key=lambda q: q[1])] + [P0["yc"] + L / 2]
+    yb = Y(Wp / 2)
+    hchain(yb + D1, [X(v) for v in ys_], [yb] * len(ys_), [f"{b - a:.0f}" for a, b in zip(ys_, ys_[1:])], size=K.F_DIM_FRAME)
+    HM(X(ys_[0]), X(ys_[-1]), yb + D2, f"{L:g}", yb, yb)
+    zs_ = sorted(set(round(z_, 2) for z_, _ in P0["hz"]))
+    xr_ = X(P0["yc"] + L / 2)
+    vchain(xr_ + D1, [Y(-Wp / 2)] + [Y(z_) for z_ in zs_] + [Y(Wp / 2)], [xr_] * (len(zs_) + 2),
+           [f"{b - a:g}" for a, b in zip([-Wp / 2] + zs_, zs_ + [Wp / 2])], size=K.F_DIM_FRAME)
+    xl_ = X(P0["yc"] - L / 2)
+    VM(xl_ - D1, Y(-Wp / 2), Y(Wp / 2), xl_, f"{Wp:g}")
+    T(cx, yb + D2 + 18, f"t = {P0['t']:g}, {len(P0['hz'])} x Ø{g['plate_hole_d']:g} {g['plate_holes_mode']}, welded to both legs (- - -)",
+      7.5, align="c", color=K.GREY)
+    view_title(cx, top - 26, "PLATE 1A", f"1:{n:g}  (one plate, length = legs)")
 
 
 def plate_view(g, cx, top, n):
@@ -566,22 +669,29 @@ def plate_view(g, cx, top, n):
     ryp = lambda y: top + (y - (P0["yc"] - P0["h"] / 2)) * sp
     K.set_view(True)
     rect(rxp(-P0["w"] / 2), ryp(P0["yc"] - P0["h"] / 2), P0["w"] * sp, P0["h"] * sp, fill=COL_FL, lw=0.1)
-    for y_ in P0["holes"]:
-        circle(rxp(0), ryp(y_), g["plate_hole_d"] / 2 * sp, fill=white, lw=0.1)
+    for z_, y_ in P0["hz"]:
+        circle(rxp(z_), ryp(y_), g["plate_hole_d"] / 2 * sp, fill=white, lw=0.1)
+    for y_ in g["legs_y"]:                                          # kojos (punktyru) - privirintos
         rect(rxp(-fa / 2), ryp(y_ - fb / 2), fa * sp, fb * sp, lw=0.2, dash=(2, 1.5))
     K.set_view(False)
-    for y_ in P0["holes"]:
-        K.centerline(rxp(-P0["w"] / 2 - 5), ryp(y_), rxp(P0["w"] / 2 + 5), ryp(y_))
+    for z_, y_ in P0["hz"]:
+        K.centerline(rxp(z_ - 8), ryp(y_), rxp(z_ + 8), ryp(y_))
     K.centerline(rxp(0), ryp(P0["yc"] - P0["h"] / 2) - 5, rxp(0), ryp(P0["yc"] + P0["h"] / 2) + 5)
-    HM(rxp(-P0["w"] / 2), rxp(P0["w"] / 2), ryp(P0["yc"] + P0["h"] / 2) + D1, f"{P0['w']:g}",
-       ryp(P0["yc"] + P0["h"] / 2), ryp(P0["yc"] + P0["h"] / 2))
-    yyp = [P0["yc"] - P0["h"] / 2] + P0["holes"] + [P0["yc"] + P0["h"] / 2]
+    _zs = sorted(set(round(z_, 2) for z_, _ in P0["hz"])) if g["legB"] else []
+    _yb = ryp(P0["yc"] + P0["h"] / 2)
+    if len(_zs) > 1:
+        hchain(_yb + D1, [rxp(-P0["w"] / 2)] + [rxp(z_) for z_ in _zs] + [rxp(P0["w"] / 2)], [_yb] * (len(_zs) + 2),
+               [f"{b - a:g}" for a, b in zip([-P0["w"] / 2] + _zs, _zs + [P0["w"] / 2])], size=K.F_DIM_FRAME)
+    HM(rxp(-P0["w"] / 2), rxp(P0["w"] / 2), _yb + (D2 if len(_zs) > 1 else D1), f"{P0['w']:g}", _yb, _yb)
+    yyp = [P0["yc"] - P0["h"] / 2] + sorted(set(P0["holes"])) + [P0["yc"] + P0["h"] / 2]
     if min(b - a for a, b in zip(yyp, yyp[1:])) * sp >= 45:
         vchain(rxp(P0["w"] / 2) + D1, [ryp(v) for v in yyp], [rxp(P0["w"] / 2)] * len(yyp),
                [f"{b - a:g}" for a, b in zip(yyp, yyp[1:])], size=K.F_DIM_FRAME)
     else:
         VM(rxp(P0["w"] / 2) + D1, ryp(yyp[0]), ryp(yyp[-1]), rxp(P0["w"] / 2), f"{P0['h']:g}")
-    T(rxp(0), ryp(P0["yc"] + P0["h"] / 2) + 30, f"t = {P0['t']:g}, Ø{g['plate_hole_d']:g}, welded to leg ({len(g['plates_l'])} pcs.), hole centred",
+    T(rxp(0), ryp(P0["yc"] + P0["h"] / 2) + (52 if len(_zs) > 1 else 30),
+      (f"t = {P0['t']:g}, {len(P0['hz'])} x Ø{g['plate_hole_d']:g} {g['plate_holes_mode']}, one plate welded to both legs"
+       if g["legB"] else f"t = {P0['t']:g}, Ø{g['plate_hole_d']:g}, welded to leg ({len(g['plates_l'])} pcs.), hole centred"),
       7.5, align="c", color=K.GREY)
     view_title(rxp(0), top - 26, "PLATE 1A", f"1:{n:g}")
 
@@ -615,7 +725,7 @@ def tray_flat(g, wall_right=True):
     # kojų išpjovos sienos pusės (šoniniame) flanše: koja fb aukščio, gylyje - fa / 2 + clear nuo sandūros
     notch_d = fa / 2 + g["clear"]
     notches = []
-    for yax in (g["ax"], H - g["ax"]):
+    for yax in g["legs_y"]:
         yc = y1 - yax                                                 # DXF y aukštyn: viršus = y1
         if wall_right:
             notches.append(sbox(F - notch_d, yc - fb / 2 - g["clear"], F + 1, yc + fb / 2 + g["clear"]))
@@ -765,7 +875,7 @@ def exploded(g, box, yaw=-58, pitch=11):
         sc.box((0, t, z_a), (t, 0, 0), (0, H - 2 * t, 0), (0, 0, z_b - z_a), COL_BODY, edge=EDGE)   # tolimas šonas
         nd = fa / 2 + cl
         wall = sbox(t, 0, H - t, D / 2 - t)
-        for ya in (g["ax"], H - g["ax"]):
+        for ya in g["legs_y"]:
             wall = wall.difference(sbox(ya - fb / 2 - cl, 0, ya + fb / 2 + cl, nd))
         _slab(sc, wall, W - t, W, COL_BODY, lambda u, v, w: (w, u, sgn * (v + e_tray)), edge=EDGE)
         if lg is not None:
@@ -803,10 +913,19 @@ def exploded(g, box, yaw=-58, pitch=11):
         anc["ax" + sd] = [(xp(u, v, D / 2 - t - stud_l), xn(u, v, D / 2 - t - bt - 5)) for (u, v) in
                           (min(g["studs"], key=lambda p: p[0]), max(g["studs"], key=lambda p: p[0]))]
     # ---- rėmas (1) + kojos + plokštės (1A) + LED (8), gylio centre
-    for ys in (x0, x0 + FH - fb):
-        sc.box((x0, H - ys - fb, -fa / 2), (xf - x0, 0, 0), (0, fb, 0), (0, 0, fa), COL_FRAME, edge=EDGE)
-    for xx in (x0, xr - fa):
-        sc.box((xx, H - x0 - FH + fb, -fa / 2), (fa, 0, 0), (0, FH - 2 * fb, 0), (0, 0, fa), COL_FRAME, edge=EDGE)
+    if g["legB"]:
+        for ys in (x0, x0 + FH - fb):
+            sc.box((x0, H - ys - fb, -fa / 2), (FW, 0, 0), (0, fb, 0), (0, 0, fa), COL_FRAME, edge=EDGE)
+        sc.box((x0, H - x0 - FH + fb, -fa / 2), (fa, 0, 0), (0, FH - 2 * fb, 0), (0, 0, fa), COL_FRAME, edge=EDGE)
+        for a_, b_ in g["rear_parts"]:
+            sc.box((xr - fa, H - b_, -fa / 2), (fa, 0, 0), (0, b_ - a_, 0), (0, 0, fa), COL_FRAME, edge=EDGE)
+        for y_ in g["legs_y"]:
+            sc.box((xr - fa, H - y_ - fb / 2, -fa / 2), (xf - xr + fa, 0, 0), (0, fb, 0), (0, 0, fa), COL_FRAME, edge=EDGE)
+    else:
+        for ys in (x0, x0 + FH - fb):
+            sc.box((x0, H - ys - fb, -fa / 2), (xf - x0, 0, 0), (0, fb, 0), (0, 0, fa), COL_FRAME, edge=EDGE)
+        for xx in (x0, xr - fa):
+            sc.box((xx, H - x0 - FH + fb, -fa / 2), (fa, 0, 0), (0, FH - 2 * fb, 0), (0, 0, fa), COL_FRAME, edge=EDGE)
     for P in g["plates_l"]:
         sc.box((xf, H - P["yc"] - P["h"] / 2, -P["w"] / 2), (PLt, 0, 0), (0, P["h"], 0), (0, 0, P["w"]), COL_FL, edge=EDGE)
     led_x = [x0 + fa + g["led_step"] * (i + 0.5) for i in range(g["led_n_row"])]
@@ -852,7 +971,7 @@ def main(spec_path, out):
     dxf = os.path.splitext(out)[0] + "_gamyba.dxf"
     write_dxf(g, dxf)
     print("OK", out, dxf)
-    print(f"  rėmas {prof(*g['frame'])} (PASIŪLYMAS pagal dydį), skersinis+koja {g['L_h']:.0f}, statmuo {g['L_v']:.0f}; "
+    print(f"  rėmas {prof(*g['frame'])} (PASIŪLYMAS pagal dydį)" + (f" VARIANTAS B: kojos 2 x {g['L_leg']:.0f} per galinį statmenį, padas {g['plates_l'][0]['w']:g}x{g['plates_l'][0]['h']:g}, {len(g['plates_l'][0]['hz'])} sk. {g['plate_holes_mode']}" if g["legB"] else f", skersinis+koja {g['L_h']:.0f}, statmuo {g['L_v']:.0f}") + "; "
           f"LED {g['led_n']} x {g['led_name']} ({g['led_W']:.1f} W), {g['psu_name']}; svoris {g['kg']:.1f} kg")
     if g.get("logo") is not None:
         print(f"  logotipas {g['logo_w']:.0f} x {g['logo_h']:.0f}, pagrindas {len(g['base_parts'])} d., ilgasriegiai {len(g['studs'])} / pusei")

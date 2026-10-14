@@ -1,0 +1,25 @@
+{
+ "client": "TEST",
+ "title": "P10_lightbox 600x600x80 - push-through (etalon)",
+ "drawing_no": "TEST P10_lightbox",
+ "w": 600,
+ "h": 600,
+ "depth": 80,
+ "proj": 100,
+ "glass": "3+10",
+ "plates": "separate",
+ "plate": [
+  66,
+  67,
+  8
+ ],
+ "plate_hole_d": 10,
+ "logo": {
+  "file": "etalon_logo.png",
+  "width": 443
+ },
+ "qty": "?",
+ "legs": {
+  "spacing": 300
+ }
+}
