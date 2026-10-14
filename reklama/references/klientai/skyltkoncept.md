@@ -51,7 +51,7 @@ gylis 100, RAL 9010, ant wallframe 40x40x2 RAL 8002 (950 aukščio, sujungimo ta
   apačia DI-NOC; service hatch 300x250; **12 mm plieno padas 940 x 300**, 4 x D20 (700 x 220), ovali anga 350 x 150 kabeliui;
   pamatas betonas 950 x 500 x 600, Ø12 armatūros karkasas, M16 x 700 inkarai, D50 PVC vamzdis.
 - Height sign pos 6a/6b / 7, drive thru (sheet 8): plieno rėmas 100x100x5, padas 15 mm plienas, šviesdėžės rėmas 60x40x2 Alu,
-  4 mm plexi, raudonas 10 mm plexi (aukščio profilis, U 20x20), 2 mm Alu kojų uždengimai, service hatch 400x300 / 300x210.
+  4 mm plexi, raudonas 10 mm plexi (aukščio profilis, U 20x20), 2 mm Alu kojų uždengimai (pagal SKILL „Bendrinės taisyklės" 19 / `koju_uzdengimas.py`), service hatch 400x300 / 300x210.
 - Piloniuko rėmas (`ChopChop_info/piloniukai.png`): 985 x 2596, kojos 60x60, šonai 30x30, viršus 30x60, padas su ovalia anga.
 - Metalų kiekiai per tipą (`ChopChop_info/metalai.png`), pvz. piloniukas: 60x60x2 - 1 strypas, 30x60x2 - 1,5 m, 30x30x2 - 1 strypas.
 **Didieji pilonai H12-H20 m:** padas (flanšas) - **12 x Ø44 skylės ant Ø876 apskritimo, žingsnis 227**, išorinis Ø1100,

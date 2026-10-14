@@ -22,6 +22,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import lapas_core as K  # noqa: E402
+import koju_uzdengimas as KU  # noqa: E402
 from lapas_core import T, line, rect, poly, circle, hdim, vchain, hchain, leader, view_title, MM  # noqa: E402
 from reportlab.lib.colors import HexColor, white  # noqa: E402
 
@@ -35,7 +36,7 @@ DEF = {"client": "", "title": "DOUBLE-SIDED LIGHTBOX, WALL MOUNTED (PROJECTING)"
        # v144: "legs_type": "inset" - kojos ŽEMESNĖS už dėžę (atskiri □40x40x4 vamzdžiai po rėmo skersiniais, viena
        # montavimo plokštė, kojų uždengimai 2 mm Alu, trafo plokštelė); "frame" - pailginti rėmo skersiniai (v134)
        "legs_type": "frame", "leg": [40, 40, 4], "leg_in": 53, "leg_chamfer": 50, "plate": [140, None, 5],
-       "plate_pitch": 109, "plate_hole_d": 8, "cable_hole": 11, "cover_w": 50, "cover_thk": 2, "cover_gap": 5, "trafo_plate": [40, 1.5],
+       "plate_pitch": 109, "plate_hole_d": 8, "cable_hole": 11, "cover_w": None, "cover_thk": 2, "cover_gap": 5, "trafo_plate": [40, 1.5],
        "proj": None}
 COL_BODY, COL_FRAME, COL_FACE, COL_PVC, COL_FL, COL_LED = (HexColor("#9C9C9C"), HexColor("#B4B4B4"), HexColor("#F4F4F2"),
                                                            HexColor("#C8C8C8"), HexColor("#8C8C8C"), HexColor("#F2C230"))
@@ -77,7 +78,9 @@ def geom(S):
         g["plates"] = [dict(yc=H_ / 2, h=PLh, w=PLw, t=PLt, r=0, d=S["plate_hole_d"], tube=None,
                             holes=[(dz, y_) for y_ in (g["ax"], H_ - g["ax"]) for dz in (-pp, pp)],
                             cable=(0, g["ax"] + lw_ / 2 + 12, S["cable_hole"]))]
-        g["covers"] = [dict(y0=H_ / 2 - PLh / 2, y1=H_ / 2 + PLh / 2, w=S["cover_w"])]
+        # v217 („Bendrinės taisyklės" 19): bendras modulis - plotis kojos + 10, aukštis kojų matmuo + 2t, briaunos 10 su išpjovomis
+        g["covers"] = [KU.make([g["ax"], H_ - g["ax"]], lw_, ld_, g["leg_len"], thk=S["cover_thk"], gap=S["cover_gap"],
+                               w=S["cover_w"])]
         g["led_a"], g["led_b"] = g["x0"] + fa, g["leg_x0"] - 10    # LED skersinyje iki kojos
         g["x_tp"] = g["leg_x0"] + g["leg_dxc"] + 6                   # trafo plokštelė (y-z plokštumoje) tarp kojų
         g["tp_h"] = H_ - 2 * g["ax"] - lw_
@@ -188,8 +191,7 @@ def bom_rows(g):
             [8, "Tapping screw, D3.2 holes", "A2", "-", f"{g['n_scr']} pcs. (into PVC edge)"]] + (
            [[9, "Logo, sides A + B", g["logo_mat"], "black", f"2 pcs., {g['logo_w']:g} x {g['logo_h']:.0f} mm"]]
            if g.get("logo_r") else []) + (
-           [[10, f"Leg cover {g['cover_thk']:g} mm, A + B (mirror)", "Alu, folded, screwed", g["body_finish"],
-             f"2 pcs., {g['leg_len'] - g['cover_gap']:g} x {g['covers'][0]['y1'] - g['covers'][0]['y0']:g} x {g['covers'][0]['w'] / 2:g}"]]
+           [[10, *KU.bom_desc(g["covers"][0]), g["body_finish"], f"2 pcs., {KU.size_txt(g['covers'][0])}"]]
            if g["covers"] else [])
 
 
@@ -889,6 +891,13 @@ def main(spec_path, out):
     K.pdf_fix_fonts(out)
     for p in (p1, p2, p1 + ".tmp", p2 + ".tmp"):
         os.path.exists(p) and os.remove(p)
+    if g["covers"]:                                                 # v217: kojų uždengimo išklotinė (Bendrinės taisyklės 19)
+        import ezdxf
+        doc = ezdxf.new("R2010"); doc.units = ezdxf.units.MM
+        for ln, col in (("CUT", 7), ("BEND_UP_90", 1), ("HOLES_D3.2", 3), ("TEXT", 8)):
+            doc.layers.add(ln, color=col)
+        KU.write_flat(doc.modelspace(), g["covers"][0], 0)
+        doc.saveas(os.path.splitext(out)[0] + "_gamyba.dxf")
     print("OK", out, f"svoris {g['kg']:.2f} kg, rėmas {g['FW']:g}x{g['FH']:g}, LED {g['led_n']} x {g['led_name']} "
           f"({g['led_W']:.1f} W, {g['psu'][0]}), netelpa: {K.OVERFLOW}")
 

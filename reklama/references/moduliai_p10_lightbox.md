@@ -46,7 +46,7 @@ Raktažodžiai: P10_lightbox, P10 lightbox, push-through, iškištas stiklas, dv
     exploded view - abi dalys ištrauktos į šonus; išklotinė DXF (folded v173: atlankai 20 - t, briaunos 10 - t).
     **v215:** briaunos remtųsi į kojas - TIES KOJOMIS briaunose IŠPJOVOS (nuo laisvo krašto, gylis = kojos/2 + tarpas -
     (plotis/2 - briauna), □30 -> 6 mm; ilgis = kojos profilis + 2 x tarpas); atlankai remiasi į kojas -> aukštis = kojų matmuo + 2t;
-    exploded view uždengimai pakelti virš rėmo, ne priglausti.
+    exploded view uždengimai pakelti virš rėmo, ne priglausti. v217: geometrija / DXF - bendras `scripts/koju_uzdengimas.py`.
   * Kitas rėmo principas - neišgalvoti, laukti Ryčio aprašymo / eskizo.
 
 ## 4. LED ir maitinimas

@@ -20,6 +20,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import lapas_core as K  # noqa: E402
+import koju_uzdengimas as KU  # noqa: E402
 from lapas_core import T, line, rect, poly, circle, hdim, vchain, hchain, view_title, MM  # noqa: E402
 from reportlab.lib.colors import HexColor, white  # noqa: E402
 from shapely.geometry import Polygon, Point, box as sbox  # noqa: E402
@@ -123,15 +124,8 @@ def geom(S):
         #  kojų tarpą (korpusas - plokštė): po 2.5 mm iš abiejų galų; aukštis = kojų matmuo; plotis cover_w (numatyta kojos + 10)
         # v214 (Rytis 2026-10-14): uždengimas 10 mm platesnis už kojų profilį (30 -> 20 + 20); viršuje 2 x Ø3.2 prisukimui;
         #  priekyje ir gale (prie korpuso / plokštės) lenkiamos standumo briaunos 10 mm
-        cw_ = S["cover_w"] or (fa + 10)
-        # v215 (Rytis 2026-10-14): briaunos remiasi į kojas - briaunose IŠPJOVOS ties kojomis; atlankai guli ant kojų
-        #  (uždengimo aukštis = kojų matmuo + 2 x skardos storis)
-        ct_ = S["cover_thk"]
-        g["cover"] = dict(y0=yc_ - ph / 2 - ct_, y1=yc_ + ph / 2 + ct_, w=cw_, thk=ct_, gap=S["cover_gap"],
-                          L=g["leg_len"] - S["cover_gap"], rib=10.0, holes_top=2)
-        _nd = fa / 2 + cl - (cw_ / 2 - 10.0)                        # išpjovos gylis nuo briaunos krašto
-        g["cover"]["notch_d"] = max(0.0, _nd)
-        g["cover"]["notches"] = [(y_ - fb / 2 - cl, y_ + fb / 2 + cl) for y_ in g["legs_y"]]   # y (dėžės koord.)
+        # v217: bendras modulis koju_uzdengimas („Bendrinės taisyklės" 19) - visiems kojų uždengimams
+        g["cover"] = KU.make(g["legs_y"], fb, fa, g["leg_len"], thk=S["cover_thk"], gap=S["cover_gap"], w=S["cover_w"], clear=cl)
     else:
         g["legs_y"] = [g["ax"], H - g["ax"]]
         g["L_h"] = (W - (t + cl)) + g["leg_len"]                    # nuo rėmo laisvo krašto iki plokštės
@@ -651,8 +645,7 @@ def bom1(g):
               f"{g['n_scr']} pcs."]]
     if g["cover"]:                                                  # v212: kojų uždengimas
         C = g["cover"]
-        rows += [[11, f"Leg cover A + B, 2 x Ø3.2 top (DXF)", f"Alu {C['thk']:g} folded, ribs {C['rib']:g}", g["body_finish"] or "",
-                  f"2 pcs., {C['L']:g} x {C['y1'] - C['y0']:g} x {C['w'] / 2:g}"]]
+        rows += [[11, *KU.bom_desc(C), g["body_finish"] or "", f"2 pcs., {KU.size_txt(C)}"]]
     return rows
 
 
@@ -895,28 +888,7 @@ def write_dxf(g, path):
         ox += F + gap
     # v214: kojų uždengimo išklotinė (1 dalis; B - veidrodinė), folded v173: atlankas = gylis - t, briaunos tarp atlankų
     if g.get("cover"):
-        C = g["cover"]; tc = C["thk"]; Lc = C["L"]; Hc = C["y1"] - C["y0"]
-        fl = C["w"] / 2 - tc; rb = C["rib"] - tc
-        cx0, cy0 = ox + rb, fl
-        flat_c = Polygon([(cx0, 0), (cx0 + Lc, 0), (cx0 + Lc, cy0 + tc), (cx0 + Lc + rb, cy0 + tc), (cx0 + Lc + rb, cy0 + Hc - tc),
-                          (cx0 + Lc, cy0 + Hc - tc), (cx0 + Lc, cy0 + Hc + fl), (cx0, cy0 + Hc + fl), (cx0, cy0 + Hc - tc),
-                          (cx0 - rb, cy0 + Hc - tc), (cx0 - rb, cy0 + tc), (cx0, cy0 + tc)])
-        nd_ = C["notch_d"]
-        if nd_ > 0:                                                 # v215: briaunų išpjovos ties kojomis
-            cuts_ = []
-            for ya_, yb_ in C["notches"]:
-                fa_, fb_ = cy0 + (C["y1"] - yb_), cy0 + (C["y1"] - ya_)   # DXF y aukštyn
-                cuts_.append(sbox(cx0 - rb - 1, fa_, cx0 - rb + nd_, fb_))
-                cuts_.append(sbox(cx0 + Lc + rb - nd_, fa_, cx0 + Lc + rb + 1, fb_))
-            flat_c = flat_c.difference(unary_union(cuts_))
-        for pg in getattr(flat_c, "geoms", [flat_c]):
-            msp.add_lwpolyline([(round(x, 3), round(y, 3)) for x, y in pg.exterior.coords], close=True, dxfattribs={"layer": "CUT"})
-        msp.add_lwpolyline([(cx0, cy0), (cx0 + Lc, cy0), (cx0 + Lc, cy0 + Hc), (cx0, cy0 + Hc)], close=True,
-                           dxfattribs={"layer": "BEND_UP_90"})
-        for k in range(C["holes_top"]):
-            msp.add_circle((cx0 + Lc * (k + 1) / (C["holes_top"] + 1), cy0 + Hc + fl - 7), 1.6, dxfattribs={"layer": "HOLES_D3.2"})
-        txt(f"LEG COVER {Lc:g}x{Hc:g}x{C['w'] / 2:g} Alu {tc:g} - x 2 (A + B mirror) - flanges {fl:g}, ribs {rb:g} (notched {C['notch_d']:g} at legs), 2 x D3.2 top", ox, -30)
-        ox += Lc + 2 * rb + gap
+        ox += KU.write_flat(msp, g["cover"], ox, txt) + gap
     # plexi: pagrindai ir įdėklai (A ir B), po padėklais
     if g.get("logo") is not None:
         bx0, by0, bx1, by1 = g["base"].bounds
