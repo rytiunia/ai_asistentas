@@ -79,6 +79,104 @@ def stems(letters, y0, y1, w_min):
     return sorted(out)
 
 
+def _stroke_iv(geom, y, bx0, bx1):
+    ix = geom.intersection(LineString([(bx0 - 10, y), (bx1 + 10, y)]))
+    segs = [q for q in getattr(ix, "geoms", [ix]) if not q.is_empty and q.length > 1]
+    return sorted((min(q.coords[0][0], q.coords[-1][0]), max(q.coords[0][0], q.coords[-1][0])) for q in segs)
+
+
+def leg_line(o, y0, y1, side):
+    """pasvirusios kojelės (A, V ...) vidurio tiesė tarp y0 ir y1 -> (x ties y0, x ties y1, nuolydis dx/dy) arba None"""
+    geo, (bx0, _, bx1, _) = o["geom"], o["bb"]
+    pts = []
+    for k in range(9):
+        y = y0 + (y1 - y0) * (0.3 + 0.075 * k)
+        iv = _stroke_iv(geo, y, bx0, bx1)
+        if len(iv) >= 2:
+            a_, b_ = iv[-1] if side == "right" else iv[0]
+            pts.append(((a_ + b_) / 2, y))
+    if len(pts) < 4:
+        return None
+    n_ = len(pts); my = sum(q[1] for q in pts) / n_; mx = sum(q[0] for q in pts) / n_
+    b = sum((q[1] - my) * (q[0] - mx) for q in pts) / max(sum((q[1] - my) ** 2 for q in pts), 1e-9)
+    if abs(b) < 0.08:
+        return None
+    return mx + b * (y0 - my), mx + b * (y1 - my), b
+
+
+def single_verticals(r, t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log):
+    """v204 (Rytis 2026-10-14, „LIETUVA"): vienos eilutės rėmas - bėgeliai per VISĄ ilgį (kiekvienas iki kraštinės raidės
+    krašto - edge), GALINIAI statmenys TIK ten, kur jie panaudojami: per kraštinei artimiausios raidės stiebą (L, T, E ...);
+    raidės be stiebo (V, A) - ĮSTRIŽAS per kojelės vidurį kaip EXTRA (v95). Tarpiniai - per stiebus tolygiai, kiekis
+    ceil(L / žingsnis) + 1. Statmenys / įstrižai - tarp bėgelių."""
+    from shapely.geometry import Polygon
+    top, bot = r["rails"][0], r["rails"][1]
+    ya, yb = top["y1"], bot["y0"]
+    hx0, hx1 = max(top["x0"], bot["x0"]), min(top["x1"], bot["x1"])
+    cands = []
+    for lo_, hi_, o in r["stems"]:
+        xc = (lo_ + hi_) / 2
+        if hx0 + t_rail / 2 <= xc <= hx1 - t_rail / 2:
+            cands.append({"x": xc, "k": "v", "o": o})
+    with_stem = {id(c["o"]) for c in cands}
+    for o in r["letters"]:
+        if id(o) in with_stem or o["bb"][3] - o["bb"][1] < 0.6 * r["h"]:
+            continue
+        inner = o["geom"].buffer(-edge)
+        for sd in ("left", "right"):
+            ln = leg_line(o, ya, yb, sd)
+            if not ln:
+                continue
+            xc0, xc1, b = ln
+            wh = t_rail / 2 * math.sqrt(1 + b * b)
+            poly = Polygon([(xc0 - wh, ya), (xc0 + wh, ya), (xc1 + wh, yb), (xc1 - wh, yb)])
+            mid = poly.intersection(Polygon([(-1e6, ya + 15), (1e6, ya + 15), (1e6, yb - 15), (-1e6, yb - 15)]))
+            if not inner.covers(mid):
+                continue
+            # galai turi remtis į bėgelius
+            if not (top["x0"] <= xc0 - wh and xc0 + wh <= top["x1"] and bot["x0"] <= xc1 - wh and xc1 + wh <= bot["x1"]):
+                continue
+            cands.append({"x": (xc0 + xc1) / 2, "k": "d", "line": ln, "o": o})
+    if not cands:
+        log("  ! auto rėmas: statmenims / įstrižams vietos po raidėmis nerasta - spręsti ranka")
+        return []
+    L = max(top["x1"], bot["x1"]) - min(top["x0"], bot["x0"])
+    _a = sum(o["geom"].area for o in r["letters"]) / 1e6
+    _p = pitch_heavy if _a / max(L / 1000, 1e-6) >= heavy_m2_m else pitch
+    nv = max(2, math.ceil(L / _p) + 1)
+    gap_ = 300
+    left_ = min(cands, key=lambda c: (c["x"], c["k"] != "v"))
+    right_ = max(cands, key=lambda c: (c["x"], c["k"] == "v"))
+    chosen = [left_] + ([right_] if right_["x"] - left_["x"] >= gap_ else [])
+    sp_ = (right_["x"] - left_["x"]) / max(nv - 1, 1)
+    for i in range(1, nv - 1):
+        tx = left_["x"] + sp_ * i
+        c_ = [c for c in cands if all(abs(c["x"] - q["x"]) >= gap_ for q in chosen)]
+        if not c_:
+            break
+        chosen.append(min(c_, key=lambda c: (c["k"] != "v", abs(c["x"] - tx))))
+    out = []
+    for c in sorted(chosen, key=lambda c: c["x"]):
+        if c["k"] == "v":
+            x0 = c["x"] - t_rail / 2
+            out.append({"x0": x0, "x1": x0 + t_rail, "y0": ya, "y1": yb, "kind": "v", "auto": True, "len": yb - ya,
+                        "end_v": c is left_ or c is right_,
+                        "poly": [(x0, ya), (x0 + t_rail, ya), (x0 + t_rail, yb), (x0, yb)]})
+            log(f"  auto rėmas: statmuo x{c['x']:.0f} per stiebą ({yb - ya:.0f} mm)" + (" - galinis" if c is left_ or c is right_ else ""))
+        else:
+            xc0, xc1, b = c["line"]
+            wh = t_rail / 2 * math.sqrt(1 + b * b)
+            poly = [(xc0 - wh, ya), (xc0 + wh, ya), (xc1 + wh, yb), (xc1 - wh, yb)]
+            out.append({"x0": min(q[0] for q in poly), "x1": max(q[0] for q in poly), "y0": ya, "y1": yb, "kind": "d",
+                        "auto": True, "len": math.hypot(xc1 - xc0, yb - ya), "poly": poly, "ang": math.degrees(math.atan(b)),
+                        "end_v": c is left_ or c is right_})
+            log(f"  auto rėmas: ĮSTRIŽAS per kojelę x{xc0:.0f}->{xc1:.0f} ({math.hypot(xc1 - xc0, yb - ya):.0f} mm, "
+                f"{math.degrees(math.atan(b)):.0f}°)" + (" - galinis (raidė be stiebo, kaip EXTRA)" if c is left_ or c is right_ else ""))
+    if len(out) < nv:
+        log(f"  auto rėmas: statmenų {len(out)} (taisyklė {nv}) - tik panaudojamose vietose")
+    return out
+
+
 def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=print):
     """g - grupė (letters su geom / bb); grąžina (hs, vs) bėgelių dict'ų sąrašus (x0, y0, x1, y1, kind, len, poly, auto)"""
     rows = rows_of(g["letters"])
@@ -147,7 +245,7 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
     # PRATĘSIAMAS IKI RAIDĖS GALO (abu bėgelio kampai >= edge raidės viduje, kuo arčiau krašto), o rėmo gale - ausėlė,
     # IŠSIKIŠUSI UŽ RAIDĖS (pažymima `out_l` / `out_r` - raidės krašto x; ausėlę deda braizyti_begeliai.py).
     wide_min = 600
-    for r in rows:
+    for r in (rows if len(rows) > 1 else []):        # v204: vienai eilutei bėgelių galai jau iki kraštinės raidės krašto
         geo = unary_union([o["geom"] for o in r["letters"]])
         inner = geo.buffer(-edge)
         for side in ("l", "r"):
@@ -197,7 +295,8 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
             else: r["xr"] = x
             r["out_" + side] = ex
             log(f"  auto rėmas: platus galinis elementas {'kairėje' if side == 'l' else 'dešinėje'} - rėmas pratęstas {abs(x - xe):.0f} mm iki raidės galo (x{x:.0f}), ausėlė išsikiša už raidės (kraštas x{ex:.0f})")
-    for side in ("l", "r"):
+    SINGLE = len(rows) == 1                              # v204: vienos eilutės rėmas - galiniai statmenys tik panaudojami
+    for side in (("l", "r") if not SINGLE else ()):
         i = 0
         while i < len(rows):
             r = rows[i]
@@ -344,7 +443,10 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
                 f"{'žemyn' if down else 'aukštyn'} per elementą (stabilus tvirtinimas)")
     for r in rows:
         for rr in r["rails"]:
-            rr["x0"], rr["x1"] = rr.get("ext_l", r["xl"]), rr.get("ext_r", r["xr"])
+            if SINGLE:                                  # v204: kiekvienas bėgelis - savo galai (abu kampai >= edge kraštinėje raidėje)
+                rr["x0"], rr["x1"] = rr.get("ext_l", rr["x0"]), rr.get("ext_r", rr["x1"])
+            else:
+                rr["x0"], rr["x1"] = rr.get("ext_l", r["xl"]), rr.get("ext_r", r["xr"])
     hs = []
     for r in rows:
         for rr in r["rails"]:
@@ -352,8 +454,10 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
                        "out_l": r.get("out_l") if "ext_l" not in rr else None, "out_r": r.get("out_r") if "ext_r" not in rr else None,
                        "stroke": r["t"], "len": rr["x1"] - rr["x0"],
                        "poly": [(rr["x0"], rr["y0"]), (rr["x1"], rr["y0"]), (rr["x1"], rr["y1"]), (rr["x0"], rr["y1"])]})
+    if SINGLE:
+        vs += single_verticals(rows[0], t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log)
     # tarpiniai statmenys - per stiebus; per abi eilutes, jei stiebas sutampa (pjaunami tarp bėgelių - bėgis vientisas)
-    for i, r in enumerate(rows):
+    for i, r in enumerate(rows if not SINGLE else []):
         st = [s for s in r["stems"] if r["xl"] + t_rail + 300 < (s[0] + s[1]) / 2 < r["xr"] - t_rail - 300]
         L = r["xr"] - r["xl"]
         # v87 (Rytis 2026-10-10): rėmas - KONSTRUKCIJA, statmenų kiekis pagal iškabos dydį ir svorį: statmenų (su galiniais)
@@ -443,6 +547,8 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
     # už bėgelių galų - nepjaunami (vientisi per abi eilutes, kai galai sutampa).
     segs = []
     for v in out:
+        if v.get("kind") == "d":                       # įstrižas - jau tarp bėgelių
+            segs.append(v); continue
         cuts = sorted((h["y0"], h["y1"]) for h in hs if h["y0"] >= v["y0"] - 1 and h["y1"] <= v["y1"] + 1
                       and h["x0"] - 1 <= (v["x0"] + v["x1"]) / 2 <= h["x1"] + 1)
         ya = v["y0"]
