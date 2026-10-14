@@ -1,0 +1,163 @@
+{
+ "client_pdf": "Leap_Motors_signs_2026-10-14.pdf",
+ "scale": 1.0,
+ "crop_pt": [
+  1000,
+  440,
+  13950,
+  2200
+ ],
+ "ignore_fills": [],
+ "qty": "40",
+ "client": "Alfa Neon AB / LEAPMOTOR",
+ "company": "Alfa Neon AB",
+ "title": "LEAP26-01002 Outdoor Logo 4500 x 585 - P6 on clear acrylic frame",
+ "project": "LEAPMOTOR PO 33577",
+ "drawing_no": "LEAP26-01002",
+ "order_no": "ALT0000_00.00_RS",
+ "file_code": "LEAP26-01002",
+ "rev": "A",
+ "date": "2026-10-14",
+ "depth_mm": 60,
+ "front": "8mm",
+ "auto_frame": true,
+ "merge_rows": true,
+ "mounting": "acrylic",
+ "trafo_box": {
+  "voltage": "12V",
+  "cable_len_m": 1.5,
+  "mains": "230V"
+ },
+ "rail": {
+  "size": "40x20",
+  "depth": 20,
+  "ral": "?",
+  "type": "acrylic"
+ },
+ "groups": [
+  {
+   "name": "LEAPMOTOR",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "7021",
+   "face_hex": "#FFFFFF",
+   "client_fill": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "frame": "verticals"
+  }
+ ],
+ "acrylic": {
+  "thk": 20,
+  "sheet": [
+   3050,
+   2050
+  ],
+  "joint_clear": 0.2,
+  "hole_d": 8,
+  "holes_every_gap": 2,
+  "groove": null
+ },
+ "bom": [
+  [
+   1,
+   "Letter face",
+   "Acrylic 8 mm white",
+   "-",
+   "{PER_6} m / {A_6} m\u00b2"
+  ],
+  [
+   2,
+   "Letter return",
+   "Alu 1 mm",
+   "RAL 7021",
+   "{PER_6} m / {RET_6} m\u00b2"
+  ],
+  [
+   3,
+   "Letter back",
+   "Alu 1.5 mm",
+   "",
+   "{PER_ALL} m / {A_ALL} m\u00b2"
+  ],
+  [
+   4,
+   "LED modules 6500K",
+   "",
+   "",
+   ""
+  ],
+  [
+   5,
+   "Frame rails {RAIL_SIZE} + verticals (DXF)",
+   "Clear acrylic 20 mm",
+   "clear",
+   "{RAIL_TOTAL_M} m"
+  ],
+  [
+   6,
+   "El. output 12V -> trafo box",
+   "cable 1.5 m",
+   "-",
+   "1 pcs."
+  ],
+  [
+   7,
+   "Trafo box + PSU",
+   "",
+   "",
+   ""
+  ],
+  [
+   8,
+   "Wall fixing through \u00d88 holes in frame",
+   "screws + anchors",
+   "-",
+   ""
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "40 pcs."
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profile",
+   "P6 on clear acrylic frame"
+  ],
+  [
+   "Letter depth",
+   "60"
+  ],
+  [
+   "Face",
+   "Acrylic 8 mm white"
+  ],
+  [
+   "Returns",
+   "RAL 7021"
+  ],
+  [
+   "Rails",
+   "clear acrylic 40x20, puzzle"
+  ],
+  [
+   "Illumination",
+   "LED 6500K"
+  ],
+  [
+   "Power",
+   "12V, 1.5 m -> TRAFO BOX, 230V"
+  ],
+  [
+   "Wind qp",
+   "{WIND_QP} kN/m\u00b2"
+  ]
+ ]
+}

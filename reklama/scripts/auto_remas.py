@@ -44,6 +44,10 @@ def rows_of(letters):
         if r["h"] < 0.5 * hmax:
             host = min(big, key=lambda b: abs(b["cy"] - r["cy"]))
             host["letters"] += r["letters"]
+    # v229 (Leapmotor): eilutės aukštis - raidžių aukščių MEDIANA (ne pirmos raidės): aukštas simbolis (logotipo ženklas
+    #  2 x teksto aukščio) neturi tapti eilutės matu - bėgeliai per TEKSTO štrichų vidurį, simbolis - ant to paties rėmo
+    for r in big:
+        r["h"] = _median([o["bb"][3] - o["bb"][1] for o in r["letters"]])
     return big
 
 
@@ -104,7 +108,7 @@ def leg_line(o, y0, y1, side):
     return mx + b * (y0 - my), mx + b * (y1 - my), b
 
 
-def single_verticals(r, t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log):
+def single_verticals(r, t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log, every_letter=False):
     """v204 (Rytis 2026-10-14, „LIETUVA"): vienos eilutės rėmas - bėgeliai per VISĄ ilgį (kiekvienas iki kraštinės raidės
     krašto - edge), GALINIAI statmenys TIK ten, kur jie panaudojami: per kraštinei artimiausios raidės stiebą (L, T, E ...);
     raidės be stiebo (V, A) - ĮSTRIŽAS per kojelės vidurį kaip EXTRA (v95). Tarpiniai - per stiebus tolygiai, kiekis
@@ -148,8 +152,27 @@ def single_verticals(r, t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log):
     left_ = min(cands, key=lambda c: (c["x"], c["k"] != "v"))
     right_ = max(cands, key=lambda c: (c["x"], c["k"] == "v"))
     chosen = [left_] + ([right_] if right_["x"] - left_["x"] >= gap_ else [])
+    if every_letter:                                 # v229 (Rytis 2026-10-14, Leapmotor): AKRILINIS rėmas - statmuo po KIEKVIENA raide
+        for o in r["letters"]:
+            if o["bb"][3] - o["bb"][1] < 0.6 * r["h"] or any(c["o"] is o for c in chosen):
+                continue
+            c_ = [c for c in cands if c["o"] is o]
+            if c_:
+                xm = (o["bb"][0] + o["bb"][2]) / 2
+                chosen.append(min(c_, key=lambda c: (c["k"] != "v", abs(c["x"] - xm))))
+            else:                                    # raidė be ištiso stiebo (P, R šiame šrifte) - statmuo ten, kur raidė
+                from shapely.geometry import box as _bx     #  dengia daugiausia (rėmas skaidrus - dalis gali matytis)
+                best = None
+                for k_ in range(0, int(o["bb"][2] - o["bb"][0] - t_rail) + 1, 2):
+                    x_ = o["bb"][0] + k_
+                    cov = o["geom"].intersection(_bx(x_, ya, x_ + t_rail, yb)).area / max(t_rail * (yb - ya), 1e-6)
+                    if best is None or cov > best[0]:
+                        best = (cov, x_ + t_rail / 2)
+                if best and best[0] >= 0.5:
+                    chosen.append({"x": best[1], "k": "v", "o": o, "partial": best[0]})
+        nv = len(chosen)
     sp_ = (right_["x"] - left_["x"]) / max(nv - 1, 1)
-    for i in range(1, nv - 1):
+    for i in range(1, (nv - 1) if not every_letter else 1):
         tx = left_["x"] + sp_ * i
         c_ = [c for c in cands if all(abs(c["x"] - q["x"]) >= gap_ for q in chosen)]
         if not c_:
@@ -162,7 +185,8 @@ def single_verticals(r, t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log):
             out.append({"x0": x0, "x1": x0 + t_rail, "y0": ya, "y1": yb, "kind": "v", "auto": True, "len": yb - ya,
                         "end_v": c is left_ or c is right_,
                         "poly": [(x0, ya), (x0 + t_rail, ya), (x0 + t_rail, yb), (x0, yb)]})
-            log(f"  auto rėmas: statmuo x{c['x']:.0f} per stiebą ({yb - ya:.0f} mm)" + (" - galinis" if c is left_ or c is right_ else ""))
+            log(f"  auto rėmas: statmuo x{c['x']:.0f} per stiebą ({yb - ya:.0f} mm)" + (" - galinis" if c is left_ or c is right_ else "")
+                + (f" - po raide {c['partial'] * 100:.0f} % (dalis matysis)" if c.get("partial") else ""))
         else:
             xc0, xc1, b = c["line"]
             wh = t_rail / 2 * math.sqrt(1 + b * b)
@@ -177,7 +201,7 @@ def single_verticals(r, t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log):
     return out
 
 
-def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=print):
+def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=print, every_letter=False, v_edge=None):
     """g - grupė (letters su geom / bb); grąžina (hs, vs) bėgelių dict'ų sąrašus (x0, y0, x1, y1, kind, len, poly, auto)"""
     rows = rows_of(g["letters"])
     for r in rows:
@@ -227,7 +251,7 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
         log(f"  auto rėmas: eilutė y{r['xb']:.0f}-{r['xt']:.0f} štrichas ~{r['t']:.0f} mm -> bėgelių ašys y{lo_:.0f} / y{hi_:.0f}, "
             f"galai {r['rails'][0]['x0']:.0f}..{r['rails'][0]['x1']:.0f}")
     # statmenys
-    w_min = t_rail + 2 * edge
+    w_min = t_rail + 2 * (edge if v_edge is None else v_edge)    # v229: akrilinis rėmas - statmuo po štrichu, kraštas v_edge
     for r in rows:
         top, bot = r["rails"][0], r["rails"][1]
         r["stems"] = stems(r["letters"], top["y1"], bot["y0"], w_min)
@@ -455,7 +479,8 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
                        "stroke": r["t"], "len": rr["x1"] - rr["x0"],
                        "poly": [(rr["x0"], rr["y0"]), (rr["x1"], rr["y0"]), (rr["x1"], rr["y1"]), (rr["x0"], rr["y1"])]})
     if SINGLE:
-        vs += single_verticals(rows[0], t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log)
+        vs += single_verticals(rows[0], t_rail, edge if v_edge is None else v_edge, pitch, pitch_heavy, heavy_m2_m, log,
+                               every_letter=every_letter)
     # tarpiniai statmenys - per stiebus; per abi eilutes, jei stiebas sutampa (pjaunami tarp bėgelių - bėgis vientisas)
     for i, r in enumerate(rows if not SINGLE else []):
         st = [s for s in r["stems"] if r["xl"] + t_rail + 300 < (s[0] + s[1]) / 2 < r["xr"] - t_rail - 300]
