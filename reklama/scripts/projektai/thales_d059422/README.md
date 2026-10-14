@@ -18,3 +18,4 @@ Išklotinių funkcijos (`flat_blue`, `flat_white`) paliktos gamybai, į kliento 
 v207-v208 (Rytis 2026-10-14): išklotinės pagal folded v173 (atlankas = gylis - t, be K / BD), skylės Ø3.2 7 mm nuo atlanko krašto
 (ir csk). Mėlynos lovelės - šonai įsilenkia (numatyta); BALTOS lovelės (visos projekte) - VIRŠUS / APAČIA lenkiasi Į VIDŲ tarp
 šonų (W - 2t), šonai ir ausės per visą aukštį. `PREFIX=ALT8879_10.13_RS THALES_OUT=... python3 thales_dxf.py`.
+v209 (Rytis 2026-10-14): ĮĖJIMO (didelio) pilono balta lovelė apačioje lenkiasi TIK 20 mm (`Pyl.WBOT`), pastatų pilonų - 30.

@@ -63,6 +63,7 @@ class Pyl:
         if legs != "ext":
             s.LONG = 0                         # int: plokštė iškart po korpusu, ant žemės
         s.rib = RIB if legs == "ext" else 0    # int: mėlyna apačioje be lenkimo (dengia plokštę)
+        s.WBOT = 20 if legs == "ext" else TW   # v209 (Rytis 2026-10-14): didelio (įėjimo) pilono balta - apačioje lenkiasi tik 20
         s.BP = (600, 300, 10)                  # int: pagrindo plokštė Alu 10 (Rytis 2026-10-11)
         s.BPH = (500, 220, 14)                 # skylės 500 x 220, D14, 4 vnt. (M12 chem.)
         s.RAILS = [CL, (CL + s.FY1 - FR) / 2, s.FY1 - FR]       # Rytis 2026-10-11: tik 1 tarpinis skersinis (centre)
@@ -601,7 +602,7 @@ def bom(p):
             [10, "Blind rivet L -> blue tray", "?", "-", f"{n_r} pcs."]]
     md = [["Quantity", f"{p.qty} pcs."], ["Overall", f"{W} x {p.H} x {p.D}"], ["Type", "non-illum., " + ("double-sided" if sides == 2 else "single-sided")],
           ["Frame", f"{p.FW} x {p.FY1 - CL} (60x60x3), sheet - 6"], ["Blue", f"2 trays x {TB}, " + (f"bottom rib {p.rib}" if p.rib else "bottom open (no fold)")],
-          ["White", "sides / bottom 30, top 70, ears 70x30"], ["Graphics", "full-face wrap, print + matt lam."], ["Fixing", "csk screws, perimeter"],
+          ["White", f"sides {TW}, bottom {p.WBOT}, top {EAR}, ears {EAR}x30"], ["Graphics", "full-face wrap, print + matt lam."], ["Fixing", "csk screws, perimeter"],
           ["Base", f"2 x flange {p.FL}, left leg +{p.LONG}" if p.legs == "ext" else "hidden beam 80x40x4 + 4 x M16"],
           ["Weight (calc.)", f"≈ {kg:.0f} kg / pcs"]]
     return rows, md
@@ -994,7 +995,7 @@ def flat_white(p, sheet):
     begin(f"Thales_{p.key}_WHITE", 8)
     n = 15; s_ = MM / n
     Wp, Hp = p.W, p.OVH
-    TOP, BOT, SIDE, EAR_H = 70, TW, TW, 30
+    TOP, BOT, SIDE, EAR_H = 70, p.WBOT, TW, 30
     fw, fh = Wp * s_, Hp * s_
     fx = VX0 + 120; fy = VY0 + TOP * s_ + 44
     K.set_view(True)
@@ -1046,7 +1047,7 @@ def flat_white(p, sheet):
     T(ox_ + CW * c3 / 2, oy_ + CH * c3 / 2, "front face", 8, align="c", color=K.GREY, auto_red=False)
     view_title(ox_ + (CW - EAR) * c3 / 2, oy_ + CH * c3 + 44, "DETAIL G - TOP CORNER (flat)", "SCALE 1:3")
     nx = cx0; ny = oy_ + CH * c3 + 76
-    for s2 in ["- Alu 2 mm, RAL 9016 satin. Sides + bottom 30; top 70 (inverted L over blue top);",
+    for s2 in [f"- Alu 2 mm, RAL 9016 satin. Sides {TW}, bottom {p.WBOT}; top {EAR} (inverted L over blue top);",
                "  ears 70 x 30 close the side above the blue body; ear + top return welded at corner.",
                f"- Holes Ø{HO_D:g} into L 25: sides / bottom {HO_EDGE} from return edge, from 50, sides {ns} x {ps:.0f}, bottom {nb} x {pb:.0f};",
                "  ears: 1 hole each into corner L 25x25x2 x 30 on blue top.",

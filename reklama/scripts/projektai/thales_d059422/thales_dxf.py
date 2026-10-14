@@ -82,7 +82,8 @@ def white_tray(p):
     """balta lovelė (FACE OUT): priekis W x OVH; šonai + apačia TW; viršus EAR + galinė plokštuma 30 (2 lenkimai);
     ausės (EAR x 30) šonų viršuje. v208: viršus / apačia įsilenkia TARP šonų (W - 2t), šonai per visą aukštį."""
     t = T_AL; W, H = p.W, p.OVH
-    S = TP.TW - t                                     # šono / apačios atlankas
+    S = TP.TW - t                                     # šono atlankas
+    SB = p.WBOT - t                                   # v209: apačios atlankas (įėjimo pilonas - 20, pastatų - 30)
     top1 = TP.EAR - t                                 # viršus tarp lenkimo linijų
     top2 = 30 - t                                     # galinė plokštuma
     ear = TP.EAR - t                                  # ausė (šono plotis viršuje)
@@ -90,7 +91,7 @@ def white_tray(p):
     d = new(); m = d.modelspace()
     # v208 (Rytis 2026-10-14): WHITE plates (visos projekte) - VIRŠUS / APAČIA LENKIASI Į VIDŲ (tarp šonų, folded --tb-inside):
     #  viršaus ir apačios atlankai iš abiejų galų t trumpesni (x t .. W - t), šonai (ir ausės) - per visą aukštį 0 .. H
-    pts = [(t, -S), (W - t, -S), (W - t, 0), (W + S, 0), (W + S, H - EH), (W + ear, H - EH), (W + ear, H), (W - t, H),
+    pts = [(t, -SB), (W - t, -SB), (W - t, 0), (W + S, 0), (W + S, H - EH), (W + ear, H - EH), (W + ear, H), (W - t, H),
            (W - t, H + top1 + top2), (t, H + top1 + top2), (t, H), (-ear, H), (-ear, H - EH), (-S, H - EH), (-S, 0), (t, 0)]
     poly(m, pts)
     bend(m, (0, 0), (W, 0)); bend(m, (0, 0), (0, H)); bend(m, (W, 0), (W, H)); bend(m, (0, H), (W, H))
@@ -98,15 +99,15 @@ def white_tray(p):
     for q in p.w_side_holes()[2]:
         hole(m, -S + HE, q); hole(m, W + S - HE, q)
     for q in p.w_bot_holes()[2]:
-        hole(m, q, -S + HE)
+        hole(m, q, -SB + HE)
     for q in p.w_bot_holes()[2]:                     # galinė plokštuma -> L 25 ant mėlyno viršaus (žingsnis ~300)
         hole(m, q, H + top1 + top2 - HE)
     ye = H - EH / 2
     hole(m, -ear + HE, ye); hole(m, W + ear - HE, ye)
-    FW_, FH_ = W + 2 * ear, H + S + top1 + top2
-    info(m, W / 2 - 250, H / 2, f"WHITE TRAY {W}x{H} Alu {t:g} RAL 9016 - top {TP.EAR} + rear 30 - {p.sides * p.qty} pcs. - FACE OUT - flat {FW_:g} x {FH_:g}")
+    FW_, FH_ = W + 2 * ear, H + SB + top1 + top2
+    info(m, W / 2 - 250, H / 2, f"WHITE TRAY {W}x{H} Alu {t:g} RAL 9016 - bottom {p.WBOT}, top {TP.EAR} + rear 30 - {p.sides * p.qty} pcs. - FACE OUT - flat {FW_:g} x {FH_:g}")
     info(m, W / 2 - 250, H / 2 - 14, f"returns = depth - t from bend line, TOP / BOTTOM INSIDE (W - 2t), sides full height, D{HD:g} {HE:g} from edge", 6)
-    save(d, f"{p.key}_WHITE_tray_Alu2_x{p.sides * p.qty}", p.sides * p.qty, f"White tray {W}x{H}, top {TP.EAR} + 30, Alu 2 mm RAL 9016, flat {FW_:g} x {FH_:g}")
+    save(d, f"{p.key}_WHITE_tray_Alu2_x{p.sides * p.qty}", p.sides * p.qty, f"White tray {W}x{H}, bottom {p.WBOT}, top {TP.EAR} + 30, Alu 2 mm RAL 9016, flat {FW_:g} x {FH_:g}")
 
 
 def flange(p):
