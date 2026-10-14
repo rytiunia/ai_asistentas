@@ -371,6 +371,217 @@ def scene3d(g, yaw, box, title):
     view_title(box[0] + box[2] / 2, box[1] + box[3] + 18, title, "ILLUSTRATIVE - NOT TO SCALE")
 
 
+# ===================================================================== DETAIL B (v218) + EXPLODED VIEW (v218)
+COL_SCR = HexColor("#B8B8B8")
+
+
+def _zigzag(xa, xb, yy):
+    n_ = 8
+    pts = [(xa + (xb - xa) * k / n_, yy + (1.5 if k % 2 else -1.5)) for k in range(n_ + 1)]
+    for p0, p1 in zip(pts, pts[1:]):
+        line(p0[0], p0[1], p1[0], p1[1], 0.2)
+
+
+def detail_b(g):
+    """v218 (Rytis 2026-10-14: „pjūvyje pozicijos ... 5S tipo šviesdėžėse viršaus / apačios"): DETAIL B - pjūvis per VISĄ
+    gylį (stiklas A | korpusas + rėmas | stiklas B) DVIEJOSE vietose VIRŠUS / APAČIA, atskirtose nutraukimo linija;
+    pozicijos (balionai = BOM) stulpeliais šonuose."""
+    Hd, D, tf, tb, ov, TOT = g["h"], g["depth"], g["face_thk"], g["band_thk"], g["face_over"], g["TOT"]
+    fa, fb, ft = g["frame"]
+    pw, pd = g["pvc_edge"]
+    zs = D / 2 - pd / 2
+
+    def detail(X_P6, BY0, W_P6, BH):
+        ytz = ov + tb + fa + 8 + 6
+        zones = [("TOP", 0.0, ytz), ("BOTTOM", Hd - ytz, Hd)]
+        gap = 9
+        tot_mm = sum(b_ - a_ for _, a_, b_ in zones)
+        avail_h = BH - 12 - 26 - 14 - gap
+        avail_w = W_P6 - 70
+        sc = next((n for n in (1, 1.5, 2, 2.5, 3, 4, 5, 6, 8) if tot_mm * MM / n <= avail_h and TOT * MM / n <= avail_w), 8)
+        s3 = MM / sc
+        K.header(X_P6, BY0, W_P6, f"DETAIL B - SECTION TOP / BOTTOM  1:{sc:g}")
+        rect(X_P6, BY0 + 12, W_P6, BH - 12, lw=0.6)
+        ox = X_P6 + (W_P6 - TOT * s3) / 2
+        U = lambda u: ox + (u + TOT / 2) * s3                     # u: -TOT/2 = A stiklo išorė, +TOT/2 = B
+        ys0 = BY0 + 12 + 26
+        maps = []
+        for name, a_, b_ in zones:
+            maps.append((name, a_, b_, ys0)); ys0 += (b_ - a_) * s3 + gap
+        bal = []
+        for name, a_, b_, sy in maps:
+            Yz = lambda y, a_=a_, sy=sy: sy + (y - a_) * s3
+            top_ = name == "TOP"
+            K.set_view(True)
+            ya_, yb_ = (0.0, b_) if top_ else (a_, Hd)
+            for zz in (-TOT / 2, TOT / 2 - tf):                    # stiklai (3 / 5)
+                rect(U(zz), Yz(ya_), tf * s3, (yb_ - ya_) * s3, fill=COL_FACE, lw=0.1)
+            yband = ov if top_ else Hd - ov - tb
+            rect(U(-D / 2), Yz(yband), D * s3, tb * s3, fill=COL_BODY, lw=0.1)         # korpuso juosta (2)
+            ypvc = ov + tb if top_ else Hd - ov - tb - pw
+            for z0 in (-D / 2, D / 2 - pd):                         # PVC bortelis (4 / 6)
+                rect(U(z0), Yz(ypvc), pd * s3, pw * s3, fill=COL_PVC, lw=0.1)
+            yfr = ov + tb if top_ else Hd - ov - tb - fa             # rėmo skersinis (1)
+            rect(U(-fb / 2), Yz(yfr), fb * s3, fa * s3, fill=COL_FRAME, lw=0.1)
+            rect(U(-fb / 2 + ft), Yz(yfr + ft), (fb - 2 * ft) * s3, (fa - 2 * ft) * s3, fill=white, lw=0.1)
+            led = top_ and g["led_rows"] > 1 or not top_
+            yled = yfr + fa if top_ else yfr - 8
+            if led:
+                rect(U(-11), Yz(yled), 22 * s3, 8 * s3, fill=COL_LED, lw=0.1)
+            for zz in (-zs, zs):                                    # varžtai (8) per juostą į PVC
+                if top_:
+                    rect(U(zz) - 3.5 * s3, Yz(ov - 1.6), 7 * s3, 1.6 * s3, fill=COL_SCR, lw=0.1)
+                    rect(U(zz) - 1.1 * s3, Yz(ov), 2.2 * s3, (tb + pw + 4) * s3, fill=COL_SCR, lw=0.1)
+                else:
+                    rect(U(zz) - 3.5 * s3, Yz(Hd - ov), 7 * s3, 1.6 * s3, fill=COL_SCR, lw=0.1)
+                    rect(U(zz) - 1.1 * s3, Yz(Hd - ov - tb - pw - 4), 2.2 * s3, (tb + pw + 4) * s3, fill=COL_SCR, lw=0.1)
+            K.set_view(False)
+            for zz in (-zs, zs):
+                K.centerline(U(zz), Yz(a_) - 2, U(zz), Yz(b_) + 2)
+            _zigzag(U(-TOT / 2) - 4, U(TOT / 2) + 4, Yz(b_ if top_ else a_))
+            T(U(-(fb / 2 + D / 2) / 2), Yz((a_ + b_) / 2) + 3, name, 6.5, align="c", color=K.GREY)   # zonos vardas - tuščioje dėžės vidaus vietoje
+            if top_:
+                bal += [(U(-D / 2 + pd / 2), Yz(ypvc + pw / 2), 4), (U(D / 2 - pd / 4), Yz(ypvc + pw / 2), 6),
+                        (U(-D / 2 + 4), Yz(yband + tb / 2), 2), (U(fb / 2 - ft / 2), Yz(yfr + fa / 2), 1),
+                        (U(zs) + 3.5 * s3, Yz(ov - 0.8), 8)]
+            else:
+                ym = a_ + (b_ - a_) * 0.75
+                bal += [(U(8), Yz(yled + 4), 7), (U(-TOT / 2 + tf / 2), Yz(ym), 3), (U(TOT / 2 - tf / 2), Yz(ym), 5)]
+        hchain(BY0 + 12 + 16, [U(-TOT / 2), U(-D / 2), U(D / 2), U(TOT / 2)], [maps[0][3]] * 4, [f"{tf:g}", f"{D:g}", f"{tf:g}"],
+               size=K.F_DIM_FRAME)
+        cxm = U(0)
+        left = [q for q in bal if q[0] < cxm]; right = [q for q in bal if q[0] >= cxm]
+        ytop_, ybot_ = BY0 + 12 + 30, BY0 + BH - 22
+        for lst, bx in ((left, U(-TOT / 2) - 22), (right, U(TOT / 2) + 22)):
+            lst.sort(key=lambda q: q[1])
+            n_ = len(lst)
+            for k, (tx_, ty_, lab) in enumerate(lst):
+                by = ytop_ + (ybot_ - ytop_) * (k + 0.5) / max(n_, 1)
+                K.leader(tx_, ty_, bx, by, lab, 6)
+        T(X_P6 + W_P6 / 2, BY0 + BH - 4, f"screws 8 (D3.2) through band into PVC edge; band welded to frame", 6.5,
+          align="c", color=K.GREY)
+
+    return detail
+
+
+def _slab(sc, geo, w0, w1, col, xf, edge=None):
+    sc.extrude_xy(geo, w0, w1, col, col, edge=edge, xf=xf)
+    for gg in getattr(geo, "geoms", [geo]):
+        ext = [xf(x, y, w0) for x, y in list(gg.exterior.coords)[:-1]]
+        hol = [[xf(x, y, w0) for x, y in list(r.coords)[:-1]] for r in gg.interiors]
+        n = sc._nrm(xf(0, 0, w0), xf(1, 0, w0), xf(0, 1, w0), ref=xf(0, 0, w0 - 1), base=xf(0, 0, w0))
+        sc.face(ext, n, col, edge, holes=hol, tile=False)
+
+
+def exploded(g, box, yaw=-54, pitch=17):
+    """v218: sprogstamasis vaizdas išilgai gylio (z): stiklas A (3) - PVC 4 - korpusas (2) + rėmas (1) + LED (7) + kojos /
+    padai - PVC 6 - stiklas B (5); varžtai (8) ištraukti į viršų; kojų uždengimas (10) - atitrauktas virš kojų, A / B į šonus."""
+    import r3d
+    from shapely.geometry import Point
+    Wd, Hd, D, tf, tb, ov = g["w"], g["h"], g["depth"], g["face_thk"], g["band_thk"], g["face_over"]
+    fa, fb, ft = g["frame"]
+    pw, pd = g["pvc_edge"]
+    x0, FW, FH, xr = g["x0"], g["FW"], g["FH"], g["xr"]
+    M = max(Wd, Hd)
+    e_pvc, e_face = 0.5 * M, 0.82 * M
+    sc = r3d.Scene(yaw=yaw, pitch=pitch)
+    anc = {}
+    Y = lambda y: Hd - y                                            # y žemyn -> pasaulio y aukštyn
+    # korpuso juosta (2) - 4 kraštinės
+    BW, BH = g["BW"], g["BH"]
+    for (xa, ya, w_, h_) in ((ov, ov, BW, tb), (ov, Hd - ov - tb, BW, tb), (ov, ov + tb, tb, BH - 2 * tb),
+                             (Wd - ov - tb, ov + tb, tb, BH - 2 * tb)):
+        sc.box((xa, Y(ya + h_), -D / 2), (w_, 0, 0), (0, h_, 0), (0, 0, D), COL_BODY, edge=EDGE)
+    anc[2] = (ov + BW * 0.25, Y(ov), D / 2 * 0.3)
+    # rėmas (1) + kojos + padai / plokštė (1A)
+    if g["inset"]:
+        lw_, ld_, lt_ = g["leg"]
+        for y0 in (x0, x0 + FH - fa):
+            sc.box((x0, Y(y0 + fa), -fb / 2), (FW, 0, 0), (0, fa, 0), (0, 0, fb), COL_FRAME, edge=EDGE)
+        sc.box((x0, Y(x0 + FH - fa), -fb / 2), (fa, 0, 0), (0, FH - 2 * fa, 0), (0, 0, fb), COL_FRAME, edge=EDGE)
+        for L in g["legs"]:
+            sc.box((g["leg_x0"], Y(L["y"] + lw_ / 2), -ld_ / 2), (g["xf"] - g["leg_x0"], 0, 0), (0, lw_, 0), (0, 0, ld_),
+                   COL_FRAME, edge=EDGE)
+        L0 = g["legs"][0]
+        anc["1B"] = (g["xb"] + (g["xf"] - g["xb"]) * 0.45, Y(L0["y"] - lw_ / 2), ld_ / 4)
+        sc.box((g["x_tp"], Y(g["ax"] + lw_ / 2 + g["tp_h"]), -g["trafo_plate"][0] / 2), (g["trafo_plate"][1], 0, 0),
+               (0, g["tp_h"], 0), (0, 0, g["trafo_plate"][0]), HexColor("#7A7A7A"), edge=EDGE)
+    else:
+        for y0 in (x0, x0 + FH - fa):
+            sc.box((x0, Y(y0 + fa), -fb / 2), (g["L_h"], 0, 0), (0, fa, 0), (0, 0, fb), COL_FRAME, edge=EDGE)
+        for xx in (x0, xr - fa):
+            sc.box((xx, Y(x0 + FH - fa), -fb / 2), (fa, 0, 0), (0, FH - 2 * fa, 0), (0, 0, fb), COL_FRAME, edge=EDGE)
+    for P in g["plates"]:
+        _flange3d(sc, g, P)
+    P0 = g["plates"][0]
+    anc["1A"] = (g["xf"] + P0["t"], Y(P0["yc"] + P0["h"] / 2 - 10), P0["w"] / 2 * 0.5)
+    anc[1] = (x0 + FW * 0.72, Y(x0 + FH - fa), fb / 2 - 3)            # apatinio skersinio viršus (matomas)
+    # LED (7)
+    led_x = [g["led_a"] + g["led_step"] * (i + 0.5) for i in range(g["led_n_row"])]
+    rows = [x0 + FH - fa - 8] + ([x0 + fa] if g["led_rows"] > 1 else [])
+    for yr in rows:
+        for lx in led_x:
+            sc.box((lx - 11, Y(yr + 8), -11), (22, 0, 0), (0, 8, 0), (0, 0, 22), COL_LED, edge=EDGE)
+    anc[7] = (led_x[-1], Y(rows[0]), 11)
+    # stiklai (3 / 5) + PVC borteliai (4 / 6)
+    iw, ih = Wd - 2 * (ov + tb), Hd - 2 * (ov + tb)
+    for sgn in (1, -1):
+        zf = sgn * (D / 2 + e_face)
+        za = min(zf, zf + sgn * tf)
+        sc.box((0, 0, za), (Wd, 0, 0), (0, Hd, 0), (0, 0, tf), COL_FACE, edge=EDGE, amb=0.97)
+        zp = sgn * (D / 2 + e_pvc)
+        zpa = min(zp, zp - sgn * pd)
+        xi, yi = ov + tb, ov + tb
+        for (xa, ya, w_, h_) in ((xi, yi, iw, pw), (xi, yi + ih - pw, iw, pw), (xi, yi + pw, pw, ih - 2 * pw),
+                                 (xi + iw - pw, yi + pw, pw, ih - 2 * pw)):
+            sc.box((xa, Y(ya + h_), zpa), (w_, 0, 0), (0, h_, 0), (0, 0, pd), COL_PVC, edge=EDGE)
+        anc[3 if sgn > 0 else 5] = (Wd * 0.15, Hd * 0.85, zf + sgn * tf)
+        anc[4 if sgn > 0 else 6] = (xi + iw * 0.5, Y(yi + pw / 2), zp)
+    # varžtai (8) - viršutinė kraštinė, ištraukti į viršų
+    up = 0.1 * M
+    tops = [(u, z) for fn, u, z, k in g["scr_holes"] if fn == "top"]
+    for u, z in tops:
+        xx = ov + u
+        sh = Point(xx, z).buffer(1.1, 3); hd = Point(xx, z).buffer(3.5, 3)
+        sc.extrude_xy(sh, Hd + up, Hd + up + 12, COL_SCR, COL_SCR, xf=lambda a, b, c: (a, c, b))
+        _slab(sc, hd, Hd + up + 12, Hd + up + 13.6, COL_SCR, lambda a, b, c: (a, c, b))
+    if tops:
+        u, z = max(tops, key=lambda q: q[1])
+        anc[8] = (ov + u, Hd + up + 13.6, z)
+    # kojų uždengimas (10) - A / B, atitraukta virš kojų (kaip P10_lightbox v215)
+    if g["covers"]:
+        C = g["covers"][0]; ct = C["thk"]; hw = C["w"] / 2; Lc = C["L"]; xc0 = g["xb"] + C["gap"] / 2
+        lift = Hd + 0.12 * M - Y(C["y1"])                          # visas uždengimas VIRŠ dėžės (ne priglaustas)
+        yb_, yt_ = Y(C["y1"]) + lift, Y(C["y0"]) + lift
+        for sgn in (1, -1):
+            dz = sgn * 0.12 * M
+            zo = lambda z, sgn=sgn, dz=dz: sgn * z + dz
+            za, zb = sorted((zo(hw - ct), zo(hw)))
+            sc.box((xc0, yb_, za), (Lc, 0, 0), (0, yt_ - yb_, 0), (0, 0, zb - za), COL_BODY, edge=EDGE)
+            za, zb = sorted((zo(0), zo(hw)))
+            for yy in (yb_, yt_ - ct):
+                sc.box((xc0, yy, za), (Lc, 0, 0), (0, ct, 0), (0, 0, zb - za), COL_BODY, edge=EDGE)
+            za, zb = sorted((zo(hw - C["rib"]), zo(hw)))
+            for xx in (xc0, xc0 + Lc - ct):
+                sc.box((xx, yb_ + ct, za), (ct, 0, 0), (0, yt_ - yb_ - 2 * ct, 0), (0, 0, zb - za), COL_BODY, edge=EDGE)
+            anc["10" + ("A" if sgn > 0 else "B")] = (xc0 + Lc / 2, yt_ - (yt_ - yb_) * 0.3, zo(hw))
+    sc.render(box)
+    V = sc.V
+    return {k: (V.S(*p)[0], K.H - V.S(*p)[1]) for k, p in anc.items()}
+
+
+def exploded_view(g, box):
+    A = exploded(g, box)
+    ex0, ey0, ew, eh = box
+    reg = (ex0 - 20, ey0 - 10, ex0 + ew + 20, ey0 + eh + 10)
+    for key, lab in (("1", 1), (1, 1), ("1A", "1A"), ("1B", "1B"), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6), (7, 7), (8, 8),
+                     ("10A", 10), ("10B", 10)):
+        if key in A:
+            K.balloon_auto(A[key][0], A[key][1], lab, region=reg)
+    view_title(ex0 + ew / 2, ey0 + eh + 18, "ASSEMBLY - EXPLODED VIEW",          # pavadinimas apačioje - kaip 3D vaizdų
+               "not to scale; face A + PVC 4 - body 2 + frame 1 + LED 7 - PVC 6 + face B")
+
+
 def sheet1(g, out):
     Wd, Hd, D, tf, tb, ov = g["w"], g["h"], g["depth"], g["face_thk"], g["band_thk"], g["face_over"]
     fa, fb, ft = g["frame"]
@@ -549,9 +760,13 @@ def sheet1(g, out):
     # ---------------------------------------------------------------- 3D: A ir B pusės
     y3 = Yv(Hd) + 80
     h3 = K.VIEW_BOT - y3 - 34
-    w3 = 300
-    scene3d(g, -35, (K.IX0 + 60, y3, w3, h3), "3D VIEW - SIDE A")
-    scene3d(g, 145, (K.IX0 + 60 + w3 + 60, y3, w3, h3), "3D VIEW - SIDE B")
+    # v218: 3D A | 3D B | ASSEMBLY - EXPLODED VIEW (kaip P10_lightbox), dešinėje TOP VIEW
+    tx_l = K.IX1 - g["PROJ"] * MM / g["scale_ga"] - 90 - 50       # TOP VIEW kairys kraštas - tarpas
+    w3 = 190
+    scene3d(g, -35, (K.IX0 + 40, y3, w3, h3), "3D VIEW - SIDE A")
+    scene3d(g, 145, (K.IX0 + 40 + w3 + 40, y3, w3, h3), "3D VIEW - SIDE B")
+    exx = K.IX0 + 40 + 2 * (w3 + 40) + 10
+    exploded_view(g, (exx, y3, tx_l - exx, h3))
     # ---------------------------------------------------------------- TOP VIEW (varžtai 8)
     tx0 = K.IX1 - g["PROJ"] * s - 90
     tyc = K.VIEW_BOT - 70
@@ -584,38 +799,6 @@ def sheet1(g, out):
     view_title(Xt(g["PROJ"] / 2), Zt(-P0["w"] / 2) - 40, "TOP VIEW", sl)
     K.set_view(False)
 
-    def detail(X_P6, BY0, W_P6, BH):
-        K.header(X_P6, BY0, W_P6, "DETAIL B - EDGE (AS P6 / 3 mm)  2:1")
-        K.AUTO["region"] = (X_P6 + 3, BY0 + 15, X_P6 + W_P6 - 3, BY0 + BH - 3)
-        rect(X_P6, BY0 + 12, W_P6, BH - 12, lw=0.6)
-        K.set_view(True)
-        s3 = 2 * MM
-        zend = D / 2 - pd - 9                                       # lūžis: rodomas tik kraštas (rėmas - pjūvyje A-A)
-        ox, oy = X_P6 + 56, BY0 + 30
-        Zx = lambda z: ox + (TOT / 2 - z) * s3
-        Yb = lambda y: oy + y * s3
-        ymax = (BH - 30) / s3 - 9
-        wpx = lambda z0, z1: (z0 - z1) * s3
-        rect(Zx(TOT / 2), Yb(0), tf * s3, ymax * s3, fill=COL_FACE, lw=0.1)
-        rect(Zx(D / 2), Yb(ov), wpx(D / 2, zend), tb * s3, fill=COL_BODY, lw=0.1)
-        rect(Zx(D / 2), Yb(ov + tb), pd * s3, pw * s3, fill=COL_PVC, lw=0.1)
-        line(Zx(zend), Yb(ov - 4), Zx(zend), Yb(ov + tb + pw + 4), 0.1, dash=([4, 1, 1, 1], 0))
-        zs = D / 2 - pd / 2
-        rect(Zx(zs) - 3.5 * s3, Yb(ov - 1.6), 7 * s3, 1.6 * s3, fill=HexColor("#B8B8B8"), lw=0.1)
-        rect(Zx(zs) - 1.1 * s3, Yb(ov), 2.2 * s3, (tb + pw + 4) * s3, fill=HexColor("#B8B8B8"), lw=0.1)
-        K.centerline(Zx(zs), Yb(ov - 5), Zx(zs), Yb(ov + tb + pw + 7))
-        K.set_view(False)
-        hchain(Yb(ymax) + 6, [Zx(TOT / 2), Zx(D / 2), Zx(zs), Zx(D / 2 - pd)], [Yb(ymax)] * 4,
-               [f"{tf:g}", f"{pd / 2:g}", f"{pd / 2:g}"], size=K.F_DIM_FRAME)
-        vchain(Zx(TOT / 2) - 10, [Yb(0), Yb(ov), Yb(ov + tb), Yb(ov + tb + pw)], [Zx(TOT / 2)] + [Zx(D / 2)] * 3,
-               [f"{ov:g}", f"{tb:g}", f"{pw:g}"], size=K.F_DIM_FRAME)
-        K.balloon_side([(Zx(zs) + 3.5 * s3, Yb(ov - 0.8), 8), (Zx(zend), Yb(ov + tb / 2), 2),
-                        (Zx(D / 2 - pd), Yb(ov + tb + pw * 0.5), 4)], Zx(zend) + 4, "right", up=False, d=14)
-        K.balloon_side([(Zx(TOT / 2 - tf), Yb(ymax * 0.8), 3)], Zx(TOT / 2 - tf) + 4, "right", up=False, d=14)
-        K.balloon_auto(Zx(zs) - 1.1 * s3, Yb(ov + tb + pw + 2), "D3.2", kind="tag", region=K.AUTO.get("region"), size=8)
-        T(X_P6 + W_P6 - 4, BY0 + BH - 6, "band welded to frame (1, A-A); side B mirror", 8, align="r", color=K.GREY)
-        K.AUTO["region"] = None
-
     md = [["Product", "double-sided lightbox, projecting"],
           ["Size (glass)", f"{Wd:g} x {Hd:g} x {TOT:g} mm"],
           ["Sides", (f"A + B: logo {g['logo_w']:g} x {g['logo_h']:.0f} (9)" if g.get("logo_r") else "A + B (graphics per side)")],
@@ -628,7 +811,7 @@ def sheet1(g, out):
                                    else "through bottom leg + flange:")],
           ["Qty", f"{g['qty']} pcs."],
           ["Weight (calc.)", f"≈ {g['kg']:.1f} kg / pcs, excl. PSU"]]
-    band(g, "1 / 2", " - GA", md, bom_rows(g), detail)
+    band(g, "1 / 2", " - GA", md, bom_rows(g), detail_b(g))
     K.save(out)
 
 
