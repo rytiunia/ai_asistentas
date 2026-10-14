@@ -1,6 +1,6 @@
 # P10_lightbox_singlesided - vienpusė šviesdėžė, priekis kaip P10_lightbox_doublesided, dugnas - folded plate (v227, Rytis 2026-10-14)
 
-Būklė: SUPRATIMAS PATVIRTINTAS (Rytis 2026-10-14 „teisingai"), generatorius DAR NESUKURTAS.
+Būklė: SUPRATIMAS PATVIRTINTAS (Rytis 2026-10-14 „teisingai"), parametrai atsakyti (3 sk.), generatorius DAR NESUKURTAS.
 Eskizas (patvirtintas): `assets/konstrukcijos/P10_lightbox_singlesided_eskizas.png` / `.pdf`.
 Raktažodžiai: P10_lightbox_singlesided, vienpusė P10 šviesdėžė, single-sided P10 lightbox. Dvipusė - `moduliai_p10_lightbox_doublesided.md`.
 
@@ -18,12 +18,13 @@ Raktažodžiai: P10_lightbox_singlesided, vienpusė P10 šviesdėžė, single-si
 - Gylyje - **kuo arčiau dugno galo (fasado)**: skylės centras **23 mm nuo dugno (atlanko) priekinio krašto** (30 gylyje -> 7 nuo dugno plokštės).
 - **Priekio** dešiniame atlanke - **atvira išpjova** nuo atlanko laisvo krašto iki tarpinės, kad priekį būtų galima užmauti ant dugno.
 
-## 3. Neišspręsta - KLAUSTI prieš generatorių (neišgalvoti)
-1. „3 mm mažesnė" - iš kiekvienos pusės (dugnas W-6 x H-6, tarpas ~1 mm su 2 mm priekiu) ar iš viso (W-3)?
-2. Priekio atlanko gylis - per visą dugno gylį (~30 + t) ar trumpesnis?
-3. LED - moduliai ir vieta (ant dugno plokštės?).
-4. Kabelio skylės Ø ir tarpinės tipas (pvz. Ø16 / PG9?).
-5. Dugno medžiaga / storis ir spalva (vidus - baltas, „Bendrinės taisyklės" 21).
+## 3. Atsakyta (Rytis 2026-10-14, Leapmotor PO 33577 poz. 30)
+1. „3 mm mažesnė" - **3 mm KIEKVIENAI kraštinei** (dugnas W-6 x H-6).
+2. **Bendras tūris 80 mm**: priekio atlankas = 80 (- t); **dugnas 30 mm įlenda į priekį** (bendras tūris vis tiek 80).
+3. **LED - ant dugno.**
+4. Laidas - pagal standartą (2 skyrius); skylės Ø / tarpinės tipas - kai paaiškės (neišgalvoti).
+5. **Dugnas - Alu 1,5 mm** (folded v173); priekis - Alu 2 mm.
+6. Stiklas: **įdėklas 8 mm** (su Alu 2 -> išsikišimas 6), 3 mm pagrindas - kaip doublesided.
 
 ## 4. Dokumentai (planas, pagal „Bendrinės taisyklės" 20-24)
 1 lapas - kaip P10_lightbox_doublesided etalonas (FRONT, VIEW FROM WALL / dugnas, SECTION A-A, 3D, EXPLODED, TOP VIEW, DETAIL B
