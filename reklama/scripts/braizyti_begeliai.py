@@ -2333,7 +2333,9 @@ def _wiggle(x0, y0, td, n=33):
 _ranks = {}
 _bottom = [CAB_Y[0]]
 if TB_ON and CEX:
-    _tbt = (TB or {}).get("label") or f"PWM, RAL {RAIL['ral']}"      # v50: "label" - pvz. be PWM (Joker)
+    # v205 (Rytis 2026-10-14): PWM naudojamas ne visur - ant dėžės rašomas TIK kai nurodyta (spec trafo_box.pwm: true)
+    _tbt = (TB or {}).get("label") or ", ".join(([ "PWM"] if (TB or {}).get("pwm") else [])
+                                                 + ([f"RAL {RAIL['ral']}"] if not K.unk(RAIL.get("ral", "")) else []))
     TBW = max(80, K.pdfmetrics.stringWidth("TRAFO BOX", "FB", K.F_INFO + 1) + 16,
               K.pdfmetrics.stringWidth(_tbt, "F", K.F_INFO) + 12)
     # laidų nuleidimo vietos - už grupės krašto, link dėžės; tarp dviejų artimų grupių - tarpo trečdaliuose
@@ -2442,7 +2444,8 @@ if TB_ON and CEX:
     _tc = white if (0.299 * RAILC.red + 0.587 * RAILC.green + 0.114 * RAILC.blue) < 0.55 else black
     T(bxc, by0 + 13, "TRAFO BOX", K.F_INFO + 1, font="FB", align="c", color=_tc, auto_red=False)
     T(bxc, by0 + 24, _tbt, K.F_INFO, align="c", color=_tc, auto_red=False)
-    _tbpos = next((str(r_[0]) for r_ in spec["bom"] if "trafo" in str(r_[1]).lower()), "")
+    _tbpos = next((str(r_[0]) for r_ in spec["bom"] if str(r_[1]).lower().startswith(("trafo", "transformer"))),
+                  next((str(r_[0]) for r_ in spec["bom"] if "trafo" in str(r_[1]).lower()), ""))   # v205: ne „... -> trafo box" laido eilutė
     if _tbpos:
         leader(bx0 + 4, by0 + TBH - 4, bx0 - 14, by0 + TBH + 10, _tbpos)
     # maitinimas 230 V - iš dėžės apačios

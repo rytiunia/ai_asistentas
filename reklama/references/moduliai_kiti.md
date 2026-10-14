@@ -51,7 +51,7 @@ pozicija), BOM: `Mounting ear, welded, Ø{EAR_HOLE} hole | Alu 3 mm | RAL rėmo 
   LPV-35, LPF-40-12, PWM-200-24 - Volvo, DSV, BN Skilte, Skyltkoncept sandėliui). Standartinis el. išvesties užrašas:
   „+1,5m ~230V El. Output" / „+1,5m 12V El. Output", „From letter / construction: 1.5m, 12V".
 - REAR VIEW: kiekviena šviečianti grupė (raidės, X) turi SAVO laidą; VISI laidai eina į vieną TRAFO BOX.
-  Dėžė - rėmo spalvos (RAL bėgelių), užrašas „TRAFO BOX / PWM, RAL ….", balionas = BOM „Trafo box" pozicija.
+  Dėžė - rėmo spalvos (RAL bėgelių), užrašas „TRAFO BOX / RAL ….", balionas = BOM „Trafo box" pozicija.
 - Prie kiekvieno laido: įtampa ir ilgis. Rytis 2026-10-08: VISI laidai 5 m („12V, 5.0 m"; spec
   `trafo_box.cable_len_m`, null - skaičiuoti |dx|+|dy| iki dėžės + 1 m atsargos). Iš dėžės - maitinimas „230V, ___ m".
 - Laido išėjimas (Rytis 2026-10-07): iš bėgelio galo / raidės kojelės kampo pagal kliento standartą
@@ -59,6 +59,8 @@ pozicija), BOM: `Mounting ear, welded, Ø{EAR_HOLE} hole | Alu 3 mm | RAL rėmo 
   Nuleidimai tarpe tarp grupių: iš kairės grupės ateinantys - kairėje, iš dešinės - dešinėje, žemesnis išėjimas
   arčiau savo grupės, tarpai >= 7 pt (tolygiai, jei tarpas siauras) - laidai nesikerta. Laisvas galas (kai nenurodytas) parenkamas perrinkus derinius: nuleidimas nekerta kitų grupių, jų matmenų ir ašių grandinių,
   laidai nesutampa. Laidai nesikerta (artimesnis dėžei - aukštesnė eilė).
+- v205 (Rytis 2026-10-14): PWM naudojamas ne visur - ant dėžės „PWM" rašomas TIK kai nurodyta (`"pwm": true` arba
+  užsakyme „+ PWM" / potenciometras), kitaip tik „RAL ...".
 - spec: `"trafo_box": {"voltage": "12V", "x": <mm>, "reserve_m": 1.0, "mains": "230V", "mains_len": "___ m"}`;
   `"trafo_box": false` - senas režimas (atskiri laidų išėjimai). BOM „Trafo box" eilutė užpildoma automatiškai
   (RAL rėmo spalva, laidų ilgiai).
