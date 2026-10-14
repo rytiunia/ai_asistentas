@@ -475,7 +475,7 @@ def sheet1(g, out):
     pl_e = Yv(pl_top) if PW2 * 2 >= TOT else Yv(ytop)
     hchain(Yv(ytop) - D1, [Xs(z_) for z_ in zz_], [pl_e if z_ in (-PW2, PW2) else Yv(hyv[0]) for z_ in zz_],
            [f"{b - a:g}" for a, b in zip(zz_, zz_[1:])], size=K.F_DIM_FRAME)
-    HM(Xs(-PW2), Xs(PW2), Yv(ytop) - D2, f"{2 * PW2:g}", pl_e, pl_e)
+    HM(Xs(-PW2), Xs(PW2), Yv(ytop) - D2 - 10, f"{2 * PW2:g}", pl_e, pl_e)
     HM(Xs(-TOT / 2), Xs(TOT / 2), Yv(ybot) + D1, f"{TOT:g}", Yv(Hd), Yv(Hd))     # apačioje: dėžės storis
     ex_ = max(PW2 * 2, TOT) / 2
     yr_ = sorted(set([pl_top, pl_bot] + hyv))                     # dešinėje: skylės nuo plokštės kraštų + plokštės aukštis
@@ -533,7 +533,7 @@ def sheet1(g, out):
     face_label(Xa(-TOT / 2) + 2, ya(0) - 10, "A", 9); face_label(Xa(TOT / 2) - 2, ya(0) - 10, "B", 9)
     hchain(ya(Hd) + D1, [Xa(-TOT / 2), Xa(-D / 2), Xa(-fb / 2), Xa(fb / 2), Xa(D / 2), Xa(TOT / 2)], [ya(Hd)] * 6,
            [f"{tf:g}", f"{(D - fb) / 2:g}", f"{fb:g}", f"{(D - fb) / 2:g}", f"{tf:g}"], size=K.F_DIM_FRAME)
-    HM(Xa(-TOT / 2), Xa(TOT / 2), ya(Hd) + D2, f"{TOT:g}", ya(Hd), ya(Hd))
+    HM(Xa(-TOT / 2), Xa(TOT / 2), ya(Hd) + D2 + 10, f"{TOT:g}", ya(Hd), ya(Hd))
     VM(Xa(-TOT / 2) - 24, ya(0), ya(Hd), Xa(-TOT / 2), f"{Hd:g}")
     K.balloon_side([(Xa(zs8) + 3.5 * s5, ya(ov - 0.8), 8), (Xa(fb / 2), ya(ov + tb + fa * 0.7), 1),
                     (Xa(TOT / 2), ya(Hd * 0.35), 5), (Xa(11), ya(yl - 4), 7),
