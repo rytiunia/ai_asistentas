@@ -1898,7 +1898,7 @@ if RAIL_ACR:
         F = _aun([_APoly(r_["poly"]) for r_ in g["rails"]]).buffer(0)
         # v232 (Rytis 2026-10-14): statmenys / įstrižai - ATSKIROS detalės (taupoma medžiaga), į bėgelius jungiami puzzle
         FH = _aun([_APoly(r_["poly"]) for r_ in hs_]).buffer(0)
-        vparts, vknobs = [], []
+        vparts, vknobs, vjoints = [], [], []
         for v_ in vs_:
             pq = v_["poly"]
             VP = _APoly(pq).buffer(0)
@@ -1908,6 +1908,7 @@ if RAIL_ACR:
             kn_ = []
             for (ex_, ey_), oy_ in ends_:
                 sg_ = -1 if ey_ < oy_ else 1                   # į bėgelį (nuo statmens vidaus)
+                vjoints.append((ex_, ey_, sg_, wv_, abs(pq[0][0] - pq[3][0]) > 1))
                 kn_.append(_aun([_abox(ex_ - nk_, min(ey_ - sg_, ey_ + sg_ * hr_ * 1.2), ex_ + nk_, max(ey_ - sg_, ey_ + sg_ * hr_ * 1.2)),
                                  _APt(ex_, ey_ + sg_ * hr_ * 1.6).buffer(hr_, 24)]))
             vparts.append(_aun([VP] + kn_).buffer(0)); vknobs += kn_
@@ -1972,7 +1973,8 @@ if RAIL_ACR:
         for v_ in vs_:
             pq = v_["poly"]
             grooves.append((((pq[0][0] + pq[1][0]) / 2, pq[0][1]), ((pq[2][0] + pq[3][0]) / 2, pq[2][1])))
-        ACR_GEO[g["name"]] = dict(F=F, parts=parts, vparts=vparts, cuts=cuts, holes=holes, grooves=grooves, knobs=knobs)
+        ACR_GEO[g["name"]] = dict(F=F, parts=parts, vparts=vparts, cuts=cuts, holes=holes, grooves=grooves, knobs=knobs,
+                                  vjoints=vjoints, hs=hs_, vs=vs_, krail=(0.25, 0.15), kvert=(0.2, 0.12))
         print(f"  akrilinis rėmas {g['name']}: {len(parts)} dalys ({', '.join(f'{p_.bounds[2] - p_.bounds[0]:.0f}' for p_ in parts)} mm), "
               f"puzzle x {', '.join(f'{c_['x']:.0f} (po raide {c_['under'] * 100:.0f} %)' for c_ in cuts)}, Ø{_hd:g} skylių {len(holes)}, "
               f"statmenų / įstrižų atskirų detalių {len(vparts)} (puzzle į bėgelius)")
@@ -2056,6 +2058,18 @@ for g in groups:
             _jy0, _jy1 = RV(0, AG["F"].bounds[1])[1] - 10, RV(0, AG["F"].bounds[3])[1] + 10
             line(_jx, _jy0, _jx, _jy1, 0.5, HexColor("#C00000"), dash=([6, 2, 1.5, 2], 0))
             K._Tbg(_jx + 3, _jy0 - 4, f"J{_ci + 1}", 7, align="c", font="FB", auto_red=False)
+        # v233: detalių nuorodos (2 lapas): C - bėgelių puzzle (J1), D - statmuo -> bėgelis
+        _refs = []
+        if AG["cuts"]:
+            _refs.append(("C", AG["cuts"][0]["x"], (AG["hs"][0]["y0"] + AG["hs"][0]["y1"]) / 2))
+        if AG["vjoints"]:
+            _vj = min(AG["vjoints"], key=lambda q: (q[4], q[1], abs(q[0] - (AG["F"].bounds[0] + AG["F"].bounds[2]) / 2)))
+            _refs.append(("D", _vj[0], _vj[1]))
+        for _rn, _rx, _ry in _refs:
+            _cc = RV(_rx, _ry)
+            K.circle(_cc[0], _cc[1], 7, stroke=HexColor("#C00000"), lw=0.5)
+            K.leader(_cc[0] + 5, _cc[1] - 5, _cc[0] + 16, _cc[1] - 26, _rn)
+            T(_cc[0] + 25, _cc[1] - 24, "sheet 2", 6, color=K.GREY)
         continue
     for r_ in g["rails"]:
         poly([RV(*q) for q in r_["poly"]], fill=RAILC, lw=0.4)
@@ -3017,7 +3031,7 @@ if not any(a.lower().startswith("weight") for a, _ in _md):
     _md.append(("Weight (calc.)", SUBS["{WEIGHT}"] + " / pcs, excl. PSU"))
 print("  svoris:", ", ".join(f"{k} {v / 1e6:.1f}" for k, v in _kg.items()), f"= {WEIGHT:.1f} kg")
 K.main_data(X_MD, BY0, W_MD, BH, _md, lab_w=58)
-if BRACKETS:
+if BRACKETS or ACR_GEO:
     spec["sheet"] = "1 / 2"
 K.title_block(X_TB, W_TB, spec, f"1:{SC1} / 1:{SC2}")
 
@@ -3119,8 +3133,182 @@ def draw_bracket_sheet():
     K.title_block(X_TB, W_TB, sp2, f"1:{n_sc:g} / 1:1")
 
 
+
+def draw_acrylic_sheet():
+    """v233 (Rytis 2026-10-14): 2 lapas - AKRILINIO RĖMO DALYS IR JUNGTYS: rėmo dalių vaizdas (iš galo), DETAIL C (bėgelių
+    puzzle jungtis pagal lakšto ilgį), DETAIL D (statmuo -> bėgelis puzzle), SECTION E (bėgelis, griovelis, Ø8);
+    juostoje - paaiškinimas kur ir kodėl jungiasi, dalių BOM, duomenys."""
+    from shapely.geometry import box as _b2
+    K.c.showPage()
+    K.frame()
+    gn_, AG = next(iter(ACR_GEO.items()))
+    F = AG["F"]
+    X0, Y0, X1, Y1 = F.bounds
+    GW = (ACRY.get("groove") or {})
+    blue = HexColor("#CFE6F5")
+
+    def subs_of(geo):
+        out = []
+        for gg in getattr(geo, "geoms", [geo]):
+            if not hasattr(gg, "exterior"):
+                continue
+            out += [[("M", rg[0])] + [("L", q) for q in rg[1:]] for rg in
+                    [list(gg.exterior.coords)] + [list(r.coords) for r in gg.interiors]]
+        return out
+    # dalys: bėgelių juostos R.., statmenys V..
+    rp = []
+    for P_ in AG["parts"]:
+        rp += [q for q in getattr(P_, "geoms", [P_]) if q.area > 1]
+    rp.sort(key=lambda q: (round(q.bounds[1]), -q.bounds[2]))          # iš galo (veidrodis): kairėje - dešinysis galas
+    vp = sorted(AG["vparts"], key=lambda q: -q.bounds[0])
+    # ---------------- rėmo dalys (iš galo)
+    aw = K.IX1 - K.IX0 - 120
+    n1 = next(n_ for n_ in (5, 10, 15, 20, 25, 30, 40, 50) if (X1 - X0) * MM / n_ <= aw)
+    s_ = MM / n1
+    ox, oy = K.IX0 + 60 + (aw - (X1 - X0) * s_) / 2, K.IY0 + 110
+    Fm = lambda x, y: (ox + (X1 - x) * s_, oy + (y - Y0) * s_)
+    Ftf = lambda x, y: (Fm(x, y)[0], K.Y(Fm(x, y)[1]))
+    K.set_view(True)
+    for q in rp + vp:
+        K.draw_shape(subs_of(q), Ftf, fill=blue, stroke=black, lw=0.3)
+    for hx_, hy_ in AG["holes"]:
+        cc_ = Fm(hx_, hy_)
+        K.circle(cc_[0], cc_[1], max(0.6, ACRY["hole_d"] / 2 * s_), fill=white, stroke=HexColor("#1F5FD0"), lw=0.3)
+    K.set_view(False)
+    for i_, q in enumerate(rp):
+        c_ = q.representative_point(); p_ = Fm(c_.x, c_.y)
+        L_ = q.bounds[2] - q.bounds[0]
+        K._Tbg(p_[0], p_[1] + 2.4, f"R{i_ + 1}  {L_:.0f}", 6.5, align="c", font="FB", auto_red=False)
+    for i_, q in enumerate(vp):
+        b_ = q.bounds; p_ = Fm((b_[0] + b_[2]) / 2, b_[3])
+        T(p_[0], p_[1] + 10, f"V{i_ + 1}", 6.5, align="c", font="FB")
+    for ci_, c_ in enumerate(AG["cuts"]):
+        jx_ = Fm(c_["x"], 0)[0]
+        line(jx_, Fm(0, Y0)[1] - 12, jx_, Fm(0, Y1)[1] + 12, 0.5, HexColor("#C00000"), dash=([6, 2, 1.5, 2], 0))
+        T(jx_ + 4, Fm(0, Y0)[1] - 6, f"J{ci_ + 1}", 7, font="FB")
+    xs_ = sorted(Fm(x_, 0)[0] for x_ in [X0, X1] + [c_["x"] for c_ in AG["cuts"]])
+    hchain(Fm(0, Y0)[1] - 30, xs_, [Fm(0, Y0)[1]] * len(xs_), [f"{abs(b - a) / s_:.0f}" for a, b in zip(xs_, xs_[1:])],
+           size=K.F_DIM_FRAME)
+    hdim(xs_[0], xs_[-1], Fm(0, Y0)[1] - 50, f"{X1 - X0:.0f}", Fm(0, Y0)[1], Fm(0, Y0)[1], size=K.F_DIM_FRAME)
+    vchain(Fm(X0, 0)[0] + 16, [Fm(0, Y0)[1], Fm(0, Y1)[1]], [Fm(X0, 0)[0]] * 2, [f"{Y1 - Y0:.0f}"], size=K.F_DIM_FRAME)
+    # detalių nuorodos
+    refs = []
+    if AG["cuts"]:
+        refs.append(("C", AG["cuts"][0]["x"], (AG["hs"][0]["y0"] + AG["hs"][0]["y1"]) / 2))
+    vj = min(AG["vjoints"], key=lambda q: (q[4], q[1], abs(q[0] - (X0 + X1) / 2))) if AG["vjoints"] else None
+    if vj:
+        refs.append(("D", vj[0], vj[1]))
+    if AG["holes"]:
+        hE = AG["holes"][0]
+        refs.append(("E", hE[0], hE[1]))
+    for rn_, rx_, ry_ in refs:
+        cc_ = Fm(rx_, ry_)
+        K.circle(cc_[0], cc_[1], 7, stroke=HexColor("#C00000"), lw=0.5)
+        K.leader(cc_[0] + 5, cc_[1] + 5, cc_[0] + 18, cc_[1] + 26, rn_)
+    view_title(ox + (X1 - X0) * s_ / 2, Fm(0, Y1)[1] + 52, "ACRYLIC FRAME - PARTS & JOINTS (VIEW FROM BACK)",
+               f"SCALE 1:{n1}  |  R - rail parts, V - verticals (separate), J - joint by sheet length")
+    # ---------------- detalės 1:1
+    dy0 = Fm(0, Y1)[1] + 110
+    dh = K.VIEW_BOT - dy0 - 40
+    dsc = 1.0 if dh >= 72 * MM else 0.5
+    sd = MM * dsc
+    dw_ = (K.IX1 - K.IX0) / 3
+
+    def detail(k_, cx_, cy_, win, title, sub):
+        x0d = K.IX0 + k_ * dw_ + (dw_ - win[0] * sd) / 2
+        y0d = dy0 + (dh - win[1] * sd) / 2
+        D_ = lambda x, y: (x0d + (cx_ + win[0] / 2 - x) * sd, y0d + (y - (cy_ - win[1] / 2)) * sd)
+        Dtf = lambda x, y: (D_(x, y)[0], K.Y(D_(x, y)[1]))
+        W_ = _b2(cx_ - win[0] / 2, cy_ - win[1] / 2, cx_ + win[0] / 2, cy_ + win[1] / 2)
+        K.set_view(True)
+        for iq_, q in enumerate(rp + vp):                 # gretimos dalys - skirtingi atspalviai (matosi jungtis)
+            qq = q.intersection(W_)
+            if not qq.is_empty:
+                K.draw_shape(subs_of(qq), Dtf, fill=(blue if iq_ % 2 == 0 else HexColor("#9CC8E6")), stroke=black, lw=0.4)
+        K.set_view(False)
+        rect(x0d, y0d, win[0] * sd, win[1] * sd, lw=0.3, dash=(3, 2))
+        view_title(x0d + win[0] * sd / 2, y0d + win[1] * sd + 30, title, sub)
+        return D_
+    if AG["cuts"]:
+        r0 = AG["hs"][0]; w_ = r0["y1"] - r0["y0"]; cy_ = (r0["y0"] + r0["y1"]) / 2; cx_ = AG["cuts"][0]["x"]
+        hr_, nk_ = AG["krail"][0] * w_, AG["krail"][1] * w_
+        D_ = detail(0, cx_ + 10, cy_, (90, 70), "DETAIL C - RAIL JOINT J1 (PUZZLE)", f"SCALE {'1:1' if dsc == 1 else '1:2'}")
+        a_, b_ = D_(cx_, r0["y0"]), D_(cx_, r0["y1"])
+        line(a_[0], a_[1] - 8, b_[0], b_[1] + 8, 0.3, HexColor("#C00000"), dash=([6, 2, 1.5, 2], 0))
+        vchain(D_(cx_ - 35, 0)[0] + 16, [D_(0, r0["y0"])[1], D_(0, r0["y1"])[1]], [D_(cx_ - 30, 0)[0]] * 2, [f"{w_:g}"], size=K.F_DIM_FRAME)
+        hc_ = D_(cx_ + hr_ * 1.6, cy_)
+        T(hc_[0], D_(0, r0["y0"])[1] - 8, f"head Ø{2 * hr_:g}, neck {2 * nk_:g}", 6.5, align="c")
+        T(hc_[0], D_(0, r0["y1"])[1] + 12, f"clearance {ACRY['joint_clear']:g} all round", 6.5, align="c", color=K.GREY)
+    if vj:
+        ex_, ey_, sg_, wv_, _dg = vj
+        hr_, nk_ = AG["kvert"][0] * wv_, AG["kvert"][1] * wv_
+        D_ = detail(1, ex_, ey_ - sg_ * 5, (90, 70), "DETAIL D - VERTICAL -> RAIL (PUZZLE)", f"SCALE {'1:1' if dsc == 1 else '1:2'}")
+        p_ = D_(ex_, ey_ + sg_ * hr_ * 1.6)
+        T(p_[0] + 30, p_[1] + 2, f"head Ø{2 * hr_:g}, neck {2 * nk_:g}", 6.5)
+        T(p_[0] + 30, p_[1] + 11, f"clearance {ACRY['joint_clear']:g}", 6.5, color=K.GREY)
+    # SECTION E - bėgelio pjūvis (20 storis, griovelis nugaroje, Ø8)
+    if AG["hs"]:
+        w_ = AG["hs"][0]["y1"] - AG["hs"][0]["y0"]; th_ = float(ACRY["thk"])
+        se = MM * 2
+        x0e = K.IX0 + 2 * dw_ + (dw_ - th_ * se) / 2
+        y0e = dy0 + 6
+        K.set_view(True)
+        rect(x0e, y0e, th_ * se, w_ * se, fill=blue, lw=0.4)
+        if GW:
+            rect(x0e, y0e + (w_ - GW.get("w", 8)) / 2 * se, GW.get("d", 10) * se, GW.get("w", 8) * se, fill=white, lw=0.4)
+        K.set_view(False)
+        line(x0e - 14, y0e - 6, x0e - 14, y0e + w_ * se + 6, 1.2, HexColor("#888888"))
+        T(x0e - 20, y0e + w_ * se / 2, "FACADE", 6.5, rot=90, align="c", color=K.GREY)
+        hdim(x0e, x0e + th_ * se, y0e - 14, f"{th_:g}", y0e, y0e, size=K.F_DIM_FRAME)
+        if GW:
+            hdim(x0e, x0e + GW.get("d", 10) * se, y0e + w_ * se + 16, f"{GW.get('d', 10):g} (groove)", y0e + w_ * se, y0e + w_ * se,
+                 size=K.F_DIM_FRAME)
+            vchain(x0e + th_ * se + 16, [y0e, y0e + (w_ - GW.get("w", 8)) / 2 * se, y0e + (w_ + GW.get("w", 8)) / 2 * se, y0e + w_ * se],
+                   [x0e + th_ * se] * 4, [f"{(w_ - GW.get('w', 8)) / 2:g}", f"{GW.get('w', 8):g}", f"{(w_ - GW.get('w', 8)) / 2:g}"],
+                   size=K.F_DIM_FRAME)
+        T(x0e + th_ * se / 2, y0e + w_ * se + 46, f"Ø{ACRY['hole_d']:g} fixing holes - through, between letters", 6.5, align="c",
+          color=K.GREY)
+        view_title(x0e + th_ * se / 2, y0e + w_ * se + 70, "SECTION E - RAIL (CABLE GROOVE)", "SCALE 2:1")
+    # ---------------- juosta: paaiškinimas, BOM, duomenys
+    K.header(X_P6, BY0, W_P6, "WHY / WHERE THE FRAME JOINS")
+    rect(X_P6, BY0 + 12, W_P6, BH - 12, lw=0.6)
+    smax = max(ACRY["sheet"]) - 30
+    nt_ = [f"1. Clear acrylic sheet {ACRY['sheet'][0]:g} x {ACRY['sheet'][1]:g} -",
+           f"   rail {X1 - X0:.0f} longer than sheet -> rails cut",
+           f"   in {len(AG['parts'])} parts (<= {smax:g}), joint J1 (detail C).",
+           "2. J1 placed UNDER LETTER (clear frame -",
+           "   joint hidden behind letter), >= 60 from verticals.",
+           "3. Verticals / diagonals - SEPARATE parts (V),",
+           "   nested from offcuts - saves material;",
+           "   puzzle into rails (detail D).",
+           f"4. Puzzle clearance {ACRY['joint_clear']:g}; cable groove on back",
+           f"   {GW.get('w', '?')} x {GW.get('d', '?')} deep (section E); Ø{ACRY['hole_d']:g} fixings."]
+    for i_, t_ in enumerate(nt_):
+        T(X_P6 + 5, BY0 + 25 + i_ * 9.6, t_, 7)
+    rows_ = []
+    for i_, q in enumerate(rp):
+        rows_.append([str(len(rows_) + 1), f"R{i_ + 1} rail part {q.bounds[2] - q.bounds[0]:.0f} x {RAIL_W:g}",
+                      f"Clear acrylic {ACRY['thk']:g} mm", "clear", "1 pc."])
+    vl_ = {}
+    for i_, q in enumerate(vp):
+        k_ = (round(q.bounds[2] - q.bounds[0]), round(q.bounds[3] - q.bounds[1]))
+        vl_.setdefault(k_, []).append(f"V{i_ + 1}")
+    for (w2, h2), nm_ in vl_.items():
+        rows_.append([str(len(rows_) + 1), f"{'Diagonal' if w2 > RAIL_W + 5 else 'Vertical'} {h2} incl. puzzle heads", f"Clear acrylic {ACRY['thk']:g} mm",
+                      "clear", f"{len(nm_)} pcs. ({', '.join(nm_)})"])
+    K.bom_table(X_BOM, BY0, W_BOM, BH, rows_, title="BILL OF MATERIALS - ACRYLIC FRAME PARTS  (per 1 sign, DXF)")
+    md_ = [("Material", f"clear acrylic {ACRY['thk']:g} mm"), ("Sheet", f"{ACRY['sheet'][0]:g} x {ACRY['sheet'][1]:g}"),
+           ("Rails", f"{RAIL_W:g} wide, {len(rp)} parts"), ("Verticals", f"{len(vp)} pcs., separate"),
+           ("Joints", f"puzzle, clearance {ACRY['joint_clear']:g}"), ("Groove", f"{GW.get('w', '?')} x {GW.get('d', '?')} (back)"),
+           ("Holes", f"{len(AG['holes'])} x Ø{ACRY['hole_d']:g}"), ("Quantity", f"{spec.get('qty', '?')} signs")]
+    K.main_data(X_MD, BY0, W_MD, BH, md_, lab_w=58)
+    sp2 = dict(spec, sheet="2 / 2", title=f"{spec.get('drawing_no', '')} Acrylic frame - parts & joints")
+    K.title_block(X_TB, W_TB, sp2, f"1:{n1} / 1:1 / 2:1")
+
 if BRACKETS:
     draw_bracket_sheet()
+elif ACR_GEO:
+    draw_acrylic_sheet()
 K.save(OUT)
 if K.AUTO["mode"] == "collect" and K.AUTO["reqs"]:           # v172: 2 praėjimas su rastomis balionų vietomis
     import subprocess as _sp
