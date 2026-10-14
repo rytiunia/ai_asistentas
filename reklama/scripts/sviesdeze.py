@@ -195,7 +195,7 @@ def bom_rows(g):
            if g["covers"] else [])
 
 
-def band(g, sheet, title_extra, md, bom, detail_fn):
+def band(g, sheet, title_extra, md, bom, detail_fn, scales="1:5 / 1:2 / 1:1"):
     BY0 = K.BAND_Y; BH = K.IY1 - BY0
     W_P6, W_MD, W_TB = 214, 214, 272
     X_P6 = K.IX0; X_TB = K.IX1 - W_TB; X_MD = X_TB - W_MD; X_BOM = X_P6 + W_P6; W_BOM = X_MD - X_BOM
@@ -204,7 +204,7 @@ def band(g, sheet, title_extra, md, bom, detail_fn):
     K.bom_table(X_BOM, BY0, W_BOM, BH, bom)
     spec = {"client": g["client"], "title": g["title"] + title_extra, "order_no": g["order_no"],
             "drawing_no": g["drawing_no"], "sheet": sheet, "rev": g["rev"], "date": g["date"]}
-    K.title_block(X_TB, W_TB, spec, "1:5 / 1:2 / 1:1")
+    K.title_block(X_TB, W_TB, spec, scales)
 
 
 D1, D2 = 16, 36                                                     # v145: 1 eilė (grandinė), 2 eilė (gabaritas)
@@ -811,7 +811,7 @@ def sheet1(g, out):
                                    else "through bottom leg + flange:")],
           ["Qty", f"{g['qty']} pcs."],
           ["Weight (calc.)", f"≈ {g['kg']:.1f} kg / pcs, excl. PSU"]]
-    band(g, "1 / 2", " - GA", md, bom_rows(g), detail_b(g))
+    band(g, "1 / 2", " - GA", md, bom_rows(g), detail_b(g), f"1:{g['scale_ga']:g} / 1:5")
     K.save(out)
 
 
@@ -866,6 +866,72 @@ def frame_inset(g, X, Yv, s, led_x, yrow):
                     (X(led_x[-1] + 11), Yv(yrow[0] - 4), 7)], X(g["PROJ"]) + 24, "right", up=True, r=7)
 
 
+def end_view(g, cx, Yv, s):
+    """v219 (Rytis 2026-10-14): rėmo VAIZDAS IŠ GALO (iš sienos) - tvirtinimo plokštės / padai su matmenimis, rėmo nariai,
+    kojos (punktyru po plokšte), korpusas punktyru; tame pačiame mastelyje ir aukštyje kaip FRAME vaizdas."""
+    D, ov, tb = g["depth"], g["face_over"], g["band_thk"]
+    fa, fb, ft = g["frame"]
+    x0, FH = g["x0"], g["FH"]
+    Zs = lambda z: cx + z * s
+    rect(Zs(-D / 2), Yv(ov), D * s, g["BH"] * s, stroke=HexColor("#9A9A9A"), lw=0.1, dash=(3, 2))          # korpusas
+    for y0 in (x0, x0 + FH - fa):                                   # skersinių galai
+        rect(Zs(-fb / 2), Yv(y0), fb * s, fa * s, fill=COL_FRAME, lw=0.1)
+        rect(Zs(-fb / 2 + ft), Yv(y0 + ft), (fb - 2 * ft) * s, (fa - 2 * ft) * s, fill=white, lw=0.1)
+    if not g["inset"]:                                              # galinis statmuo
+        rect(Zs(-fb / 2), Yv(x0 + fa), fb * s, g["L_v"] * s, fill=COL_FRAME, lw=0.1)
+    for P in g["plates"]:
+        y0p = P["yc"] - P["h"] / 2
+        rect(Zs(-P["w"] / 2), Yv(y0p), P["w"] * s, P["h"] * s, fill=COL_FL, lw=0.1)
+        for dz, y_ in P["holes"]:
+            circle(Zs(dz), Yv(y_), P["d"] / 2 * s, fill=white, lw=0.1)
+        if P["tube"]:
+            ci = P["tube"]
+            rect(Zs(-ci / 2), Yv(P["yc"] - ci / 2), ci * s, ci * s, fill=white, lw=0.1)
+        if P["cable"]:
+            circle(Zs(P["cable"][0]), Yv(P["cable"][1]), P["cable"][2] / 2 * s, fill=white, lw=0.1)
+    for L in g["legs"]:                                             # kojos po plokšte - punktyru
+        rect(Zs(-L["d"] / 2), Yv(L["y"] - L["h"] / 2), L["d"] * s, L["h"] * s, stroke=HexColor("#555555"), lw=0.25, dash=(2, 1.5))
+        K.centerline(Zs(-max(P["w"] for P in g["plates"]) / 2 - 6), Yv(L["y"]), Zs(max(P["w"] for P in g["plates"]) / 2 + 6), Yv(L["y"]))
+    PW2 = max(P["w"] for P in g["plates"]) / 2
+    pl_top = min(P["yc"] - P["h"] / 2 for P in g["plates"]); pl_bot = max(P["yc"] + P["h"] / 2 for P in g["plates"])
+    ytop, ybot = min(ov, pl_top), max(g["h"] - ov, pl_bot)
+    K.centerline(Zs(0), Yv(ytop) - 8, Zs(0), Yv(ybot) + 8)
+    hz = sorted(set(round(z_, 2) for P in g["plates"] for z_, _ in P["holes"]))
+    hyv = sorted(set(round(y_, 2) for P in g["plates"] for _, y_ in P["holes"]))
+    # viršuje: skylės z + plokštės plotis; apačioje: korpuso gylis
+    zz_ = sorted(set([-PW2, PW2] + hz))
+    hchain(Yv(ytop) - D1, [Zs(z_) for z_ in zz_], [Yv(pl_top) if z_ in (-PW2, PW2) else Yv(hyv[0]) for z_ in zz_],
+           [f"{b - a:g}" for a, b in zip(zz_, zz_[1:])], size=K.F_DIM_FRAME)
+    HM(Zs(-PW2), Zs(PW2), Yv(ytop) - D2, f"{2 * PW2:g}", Yv(pl_top), Yv(pl_top))
+    ex_ = max(PW2, D / 2)
+    HM(Zs(-D / 2), Zs(D / 2), Yv(ybot) + D1, f"{D:g} (body)", Yv(g["h"] - ov), Yv(g["h"] - ov))
+    # dešinėje: skylės y nuo plokštės kraštų + plokštės aukštis (kiekvienai plokštei)
+    yr_ = sorted(set([P["yc"] + sg * P["h"] / 2 for P in g["plates"] for sg in (-1, 1)] + hyv))
+    edges = {round(P["yc"] + sg * P["h"] / 2, 2) for P in g["plates"] for sg in (-1, 1)}
+    vchain(Zs(ex_) + D1, [Yv(v) for v in yr_], [Zs(PW2) if round(v, 2) in edges else Zs(hz[-1]) for v in yr_],
+           [f"{b - a:g}" for a, b in zip(yr_, yr_[1:])], size=K.F_DIM_FRAME)
+    VM(Zs(ex_) + D2, Yv(pl_top), Yv(pl_bot), Zs(PW2), f"{pl_bot - pl_top:g}")
+    # kairėje: plokštės nuo rėmo išorės + rėmo aukštis
+    yl_ = sorted(set([x0, x0 + FH, pl_top, pl_bot]))
+    vchain(Zs(-ex_) - D1, [Yv(v) for v in yl_], [Zs(-fb / 2) if v in (x0, x0 + FH) else Zs(-PW2) for v in yl_],
+           [f"{b - a:g}" for a, b in zip(yl_, yl_[1:])], size=K.F_DIM_FRAME)
+    VM(Zs(-ex_) - D2, Yv(x0), Yv(x0 + FH), Zs(-fb / 2), f"{FH:g} (frame)")
+    P0 = g["plates"][0]
+    nh = sum(len(P["holes"]) for P in g["plates"])
+    tags = [(Zs(hz[-1]), Yv(hyv[-1]), f"{nh} x Ø{P0['d']:g}"), (Zs(PW2), Yv(P0["yc"] - P0["h"] / 2 + 6), "1A")]
+    if P0["cable"]:
+        tags.append((Zs(P0["cable"][0]), Yv(P0["cable"][1]), f"cable Ø{P0['cable'][2]:g}"))
+    elif P0["tube"]:
+        tags.append((Zs(0), Yv(g["h"] - g["ax"]), f"cable □{P0['tube']:g}"))
+    K.balloon_side(tags, Zs(ex_) + D2 + 22, "right", up=True, tags=True)
+    if g["inset"]:
+        note = f"plate t = {P0['t']:g}, welded to legs 1B {prof(*g['leg'])} (dashed)"
+    else:
+        note = f"flanges t = {P0['t']:g}, R{g['flange_r']:g}, welded to legs {prof(fa, fb, ft)}"
+    T(Zs(0), Yv(ybot) + D1 + 30, note, 8, align="c", color=K.GREY)
+    return ex_
+
+
 # ===================================================================== 2 LAPAS - FRAME + LED
 def sheet2(g, out):
     D, tb, ov, tf = g["depth"], g["band_thk"], g["face_over"], g["face_thk"]
@@ -874,10 +940,34 @@ def sheet2(g, out):
     K.set_band(9)
     K.init(out + ".tmp", "sheet2")
     K.frame(); K.set_view(True)
-    s = MM / 5
-    top = K.IY0 + 112
-    fx = K.IX0 + 100
+    # v219 (Rytis 2026-10-14): SECTION C-C išimtas; rėmas DIDESNIS (mastelis pagal vietą) + VAIZDAS IŠ GALO su plokštėmis
     x0 = g["x0"]
+    top = K.IY0 + 112
+    pl_t = min([x0] + [P["yc"] - P["h"] / 2 for P in g["plates"]]); pl_b = max([x0 + g["FH"]] + [P["yc"] + P["h"] / 2 for P in g["plates"]])
+    PWm = max(P["w"] for P in g["plates"])
+    gw_mm = (g["PROJ"] - x0) + max(PWm, D)                          # geometrija horizontaliai (rėmas + galas)
+    fixed = 50 + 50 + 40 + 50 + 100                                 # matmenys / balionai / tarpai (kairė, rėmo dešinė, tarpas, galo kairė / dešinė)
+    hav = (K.VIEW_BOT - 96 - 66 - 8) - top - 50                    # iki BODY BAND pavadinimo (apačioje matmenys / pastaba 50)
+    wav = K.IX1 - K.IX0 - 20
+    SC = (2, 2.5, 3, 4, 5, 6, 8, 10)
+    nsc = next((n for n in SC if gw_mm * MM / n + fixed <= wav and (pl_b - pl_t) * MM / n <= hav), 10)
+    nb, layB = 10, False                                            # BODY BAND mastelis
+    # B išdėstymas: rėmas + galas per VISĄ aukštį kairėje, BODY BAND (smulkesnis) apačioje dešinėje
+    Lband = 2 * (g["BW"] + g["BH"])
+    havB = K.VIEW_BOT - top - (D2 + 22)
+    for n in SC:
+        if n >= nsc or (pl_b - pl_t) * MM / n > havB:
+            continue
+        blk = gw_mm * MM / n + fixed
+        nb_ = next((m for m in (10, 12, 15, 20) if blk + 40 + Lband * MM / m + 90 <= wav), None)
+        if nb_:
+            nsc, nb, layB = n, nb_, True
+            break
+    g["scale_fr"], g["scale_band"] = nsc, nb
+    print(f"  sheet2: hav {hav:.0f}/{havB:.0f}, h {(pl_b - pl_t):.0f} mm, w {gw_mm:.0f} mm -> 1:{nsc:g}, band 1:{nb:g}")
+    s = MM / nsc
+    wblk = (wav - (Lband * MM / nb + 90 + 40)) if layB else wav
+    fx = K.IX0 + 10 + (wblk - (gw_mm * MM / nsc + fixed)) / 2 + 50
     X = lambda x: fx + (x - x0) * s
     Yv = lambda y: top + (y - x0) * s
     FW, FH = g["FW"], g["FH"]
@@ -917,44 +1007,14 @@ def sheet2(g, out):
         K.balloon_side([(X(xr - fa), Yv(yrow[0] - 4), 7), (X(g["xb"] + 30), Yv(x0 + FH - fa), "1.2")],
                        X(g["xf"] + FLt) + 24, "right", up=True, r=7)
 
-    xc_ = led_x[len(led_x) // 2]
-    K.cut_plane(X(xc_), Yv(x0 + FH - fa) - 10, Yv(x0 + FH), "C", look="right")
-    view_title(X(x0 + g["L_h"] / 2), top - 96, "FRAME (1) + LED (7)", "1:5  (from side A, welded)")
-    # ---------------------------------------------------------------- SECTION C-C 1:2
-    s2 = MM / 2
-    cx0, cy0 = X(g["xf"] + FLt) + 170, top + 40
-    Zc = lambda z: cx0 + (z + D / 2) * s2
-    Yc = lambda y: cy0 + y * s2
-    up_ = 70
-    rect(Zc(-D / 2 - tf), Yc(-up_), tf * s2, (up_ + fa + tb + ov) * s2, fill=COL_FACE, lw=0.1)
-    rect(Zc(D / 2), Yc(-up_), tf * s2, (up_ + fa + tb + ov) * s2, fill=COL_FACE, lw=0.1)
-    rect(Zc(-D / 2), Yc(fa), D * s2, tb * s2, fill=COL_BODY, lw=0.1)
-    rect(Zc(-fb / 2), Yc(0), fb * s2, fa * s2, fill=COL_FRAME, lw=0.1)
-    rect(Zc(-fb / 2 + ft), Yc(ft), (fb - 2 * ft) * s2, (fa - 2 * ft) * s2, fill=white, lw=0.1)
-    rect(Zc(-11), Yc(-8), 22 * s2, 8 * s2, fill=COL_LED, lw=0.1)
-    for dz in (-1, 1):
-        hb_ = min(D / 2 / math.tan(math.radians(32.5)), up_ - 10)
-        line(Zc(0), Yc(-8), Zc(dz * hb_ * math.tan(math.radians(32.5))), Yc(-8 - hb_), 0.25, HexColor("#C9A000"), dash=(2, 1.5))
-    T(Zc(0), Yc(-up_) + 10, "65°", 8, align="c", color=HexColor("#8A6D00"))
-    hchain(Yc(fa + tb + ov) + D1, [Zc(-D / 2 - tf), Zc(-D / 2), Zc(-fb / 2), Zc(fb / 2), Zc(D / 2), Zc(D / 2 + tf)],
-           [Yc(fa + tb)] * 6, [f"{tf:g}", f"{(D - fb) / 2:g}", f"{fb:g}", f"{(D - fb) / 2:g}", f"{tf:g}"], size=K.F_DIM_FRAME)
-    HM(Zc(-D / 2 - tf), Zc(D / 2 + tf), Yc(fa + tb + ov) + D2, f"{D + 2 * tf:g}", Yc(fa + tb), Yc(fa + tb))
-    K.balloon_side([(Zc(D / 2 + tf), Yc(-up_ * 0.7), 5), (Zc(11), Yc(-6), 7), (Zc(D / 2), Yc(fa + tb / 2), 2)],
-                   Zc(D / 2 + tf) + 2, "right", up=True)
-    K.balloon_side([(Zc(-D / 2 - tf), Yc(-up_ * 0.7), 3), (Zc(-fb / 2), Yc(fa / 2), 1)], Zc(-D / 2 - tf) - 2, "left", up=True)
-    T(Zc(0), Yc(fa + tb) + 66, "LED on member centre - light to both faces", 8, align="c", color=K.GREY)
-    view_title(Zc(0), top - 96, "SECTION C-C (LED)", "1:2")
-    # ---------------------------------------------------------------- FLANGE 1:2
-    flx = Zc(D / 2 + tf) + 110
-    if g["inset"]:
-        s5p = MM / 5
-        plate_view(g, flx, top + 10, s5p)
-        view_title(flx + g["PLw"] * s5p / 2, top - 96, "MOUNTING PLATE 1A + LEGS 1B", "1:5  (from wall)")
-    else:
-        flange_view(g, flx, top + 20, s2)
-        view_title(flx + FLw * s2 / 2, top - 96, "FLANGE 1A (2 pcs.)", "1:2")
+    view_title(X(x0 + (g["PROJ"] - x0) / 2), top - 96, "FRAME (1) + LED (7)",
+               f"1:{nsc:g}  (from side A, welded; LED on member centre - light to both faces)")
+    # ---------------------------------------------------------------- VIEW FROM WALL (galas) - plokštės su matmenimis
+    cxe = X(g["PROJ"]) + 64 + 40 + 50 + max(PWm, D) / 2 * s
+    end_view(g, cxe, Yv, s)
+    view_title(cxe, top - 96, "FRAME - VIEW FROM WALL (END)", f"1:{nsc:g}  (mounting plates 1A)")
     # ---------------------------------------------------------------- BODY BAND (2) - išklotinė 1:10 su D3.2 skylėmis
-    s10 = MM / 10
+    s10 = MM / g["scale_band"]
     faces = [("top", g["BW"]), ("wall", g["BH"]), ("bottom", g["BW"]), ("front", g["BH"])]
     Ltot = sum(L for _, L in faces)
     bx0 = K.IX1 - Ltot * s10 - 70
@@ -995,7 +1055,7 @@ def sheet2(g, out):
                    kind="tag", size=8)
     T(BX(0) - 4, BY(0) + 6, "A", 8, font="FB", align="r", color=K.GREY)
     T(BX(0) - 4, BY(D) + 2, "B", 8, font="FB", align="r", color=K.GREY)
-    view_title(BX(Ltot / 2), by0 - 66, "BODY BAND (2) - FLAT PATTERN", "1:10")
+    view_title(BX(Ltot / 2), by0 - 66, "BODY BAND (2) - FLAT PATTERN", f"1:{g['scale_band']:g}")
     K.set_view(False)
 
     def detail(X_P6, BY0, W_P6, BH):
@@ -1045,7 +1105,7 @@ def sheet2(g, out):
            else "bottom leg tube -> flange □ hole"],
           ["Finish", g["frame_finish"]],
           ["Qty", f"{g['qty']} set"]]
-    band(g, "2 / 2", " - FRAME + LED", md, frame_cut, detail)
+    band(g, "2 / 2", " - FRAME + LED", md, frame_cut, detail, f"1:{g['scale_fr']:g} / 1:{g['scale_band']:g}")
     K.save(out)
 
 
