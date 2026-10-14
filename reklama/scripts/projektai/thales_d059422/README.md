@@ -14,3 +14,7 @@ Sujungimas: pymupdf `insert_pdf` eilės tvarka + `lapas_core.pdf_fix_fonts`.
 Parametrai - `Pyl(key, W, H, sides, legs "ext"|"int", qty, title)`; `TB` (mėlynos lovelės gylis) nustatomas globaliai
 prieš kiekvieno tipo generavimą (40 / 43). Kliento grafikos `clip` (pt) - pagal kliento PDF puslapį.
 Išklotinių funkcijos (`flat_blue`, `flat_white`) paliktos gamybai, į kliento dokumentą nededamos.
+
+v207-v208 (Rytis 2026-10-14): išklotinės pagal folded v173 (atlankas = gylis - t, be K / BD), skylės Ø3.2 7 mm nuo atlanko krašto
+(ir csk). Mėlynos lovelės - šonai įsilenkia (numatyta); BALTOS lovelės (visos projekte) - VIRŠUS / APAČIA lenkiasi Į VIDŲ tarp
+šonų (W - 2t), šonai ir ausės per visą aukštį. `PREFIX=ALT8879_10.13_RS THALES_OUT=... python3 thales_dxf.py`.

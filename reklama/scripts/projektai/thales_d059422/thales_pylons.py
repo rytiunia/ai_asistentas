@@ -1051,7 +1051,7 @@ def flat_white(p, sheet):
                f"- Holes Ø{HO_D:g} into L 25: sides / bottom {HO_EDGE} from return edge, from 50, sides {ns} x {ps:.0f}, bottom {nb} x {pb:.0f};",
                "  ears: 1 hole each into corner L 25x25x2 x 30 on blue top.",
                "- Front + back top returns meet at the pylon centre (butt joint)." if p.sides == 2 else "- Top return 70 ends at body centre; back half of blue top stays blue.",
-               "- Flat: bend lines = outside sizes, returns = depth - t, sides inside (folded rule v173)."]:
+               "- Flat: bend lines = outside sizes, returns = depth - t, top + bottom INSIDE between sides, sides full height (folded v173, v208)."]:
         T(nx, ny, s2, 8.5, fit=VX1 - nx - 4, fit_min=8); ny += 12
 
     def sec(x, y, w, h):

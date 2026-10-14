@@ -57,3 +57,6 @@ README ten. Naujam pilonui - kopijuoti, keisti `Pyl(...)` parametrus, kliento gr
 - **Nežinomi matmenys** - lape aiškus raudonas KLAUSIMŲ UŽSAKOVUI blokas (Q1, Q2 ...) + raudoni „?" vietose.
 - **Kliento grafikoje balti `re` stačiakampiai = maskavimo kvadratai** - nepiešti (`client_paths` filtras).
 - Stalinis PMMA planas: priekis pasviręs atgal ~10° (stabilumas + matomumas stovinčiam), pėda atgal 80, R10.
+
+- v208 (Rytis 2026-10-14, Thales D059422): pilonų lovelės - folded v173 išklotinė; lenkimo kryptis nurodoma pagal detalę
+  (Thales: mėlynos - šonai į vidų, baltos - viršus / apačia į vidų). Skylės Ø3.2, 7 mm nuo atlanko krašto (ir csk).
