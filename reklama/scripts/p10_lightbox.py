@@ -124,8 +124,14 @@ def geom(S):
         # v214 (Rytis 2026-10-14): uždengimas 10 mm platesnis už kojų profilį (30 -> 20 + 20); viršuje 2 x Ø3.2 prisukimui;
         #  priekyje ir gale (prie korpuso / plokštės) lenkiamos standumo briaunos 10 mm
         cw_ = S["cover_w"] or (fa + 10)
-        g["cover"] = dict(y0=yc_ - ph / 2, y1=yc_ + ph / 2, w=cw_, thk=S["cover_thk"], gap=S["cover_gap"],
+        # v215 (Rytis 2026-10-14): briaunos remiasi į kojas - briaunose IŠPJOVOS ties kojomis; atlankai guli ant kojų
+        #  (uždengimo aukštis = kojų matmuo + 2 x skardos storis)
+        ct_ = S["cover_thk"]
+        g["cover"] = dict(y0=yc_ - ph / 2 - ct_, y1=yc_ + ph / 2 + ct_, w=cw_, thk=ct_, gap=S["cover_gap"],
                           L=g["leg_len"] - S["cover_gap"], rib=10.0, holes_top=2)
+        _nd = fa / 2 + cl - (cw_ / 2 - 10.0)                        # išpjovos gylis nuo briaunos krašto
+        g["cover"]["notch_d"] = max(0.0, _nd)
+        g["cover"]["notches"] = [(y_ - fb / 2 - cl, y_ + fb / 2 + cl) for y_ in g["legs_y"]]   # y (dėžės koord.)
     else:
         g["legs_y"] = [g["ax"], H - g["ax"]]
         g["L_h"] = (W - (t + cl)) + g["leg_len"]                    # nuo rėmo laisvo krašto iki plokštės
@@ -892,15 +898,24 @@ def write_dxf(g, path):
         C = g["cover"]; tc = C["thk"]; Lc = C["L"]; Hc = C["y1"] - C["y0"]
         fl = C["w"] / 2 - tc; rb = C["rib"] - tc
         cx0, cy0 = ox + rb, fl
-        pts = [(cx0, 0), (cx0 + Lc, 0), (cx0 + Lc, cy0 + tc), (cx0 + Lc + rb, cy0 + tc), (cx0 + Lc + rb, cy0 + Hc - tc),
-               (cx0 + Lc, cy0 + Hc - tc), (cx0 + Lc, cy0 + Hc + fl), (cx0, cy0 + Hc + fl), (cx0, cy0 + Hc - tc),
-               (cx0 - rb, cy0 + Hc - tc), (cx0 - rb, cy0 + tc), (cx0, cy0 + tc)]
-        msp.add_lwpolyline(pts, close=True, dxfattribs={"layer": "CUT"})
+        flat_c = Polygon([(cx0, 0), (cx0 + Lc, 0), (cx0 + Lc, cy0 + tc), (cx0 + Lc + rb, cy0 + tc), (cx0 + Lc + rb, cy0 + Hc - tc),
+                          (cx0 + Lc, cy0 + Hc - tc), (cx0 + Lc, cy0 + Hc + fl), (cx0, cy0 + Hc + fl), (cx0, cy0 + Hc - tc),
+                          (cx0 - rb, cy0 + Hc - tc), (cx0 - rb, cy0 + tc), (cx0, cy0 + tc)])
+        nd_ = C["notch_d"]
+        if nd_ > 0:                                                 # v215: briaunų išpjovos ties kojomis
+            cuts_ = []
+            for ya_, yb_ in C["notches"]:
+                fa_, fb_ = cy0 + (C["y1"] - yb_), cy0 + (C["y1"] - ya_)   # DXF y aukštyn
+                cuts_.append(sbox(cx0 - rb - 1, fa_, cx0 - rb + nd_, fb_))
+                cuts_.append(sbox(cx0 + Lc + rb - nd_, fa_, cx0 + Lc + rb + 1, fb_))
+            flat_c = flat_c.difference(unary_union(cuts_))
+        for pg in getattr(flat_c, "geoms", [flat_c]):
+            msp.add_lwpolyline([(round(x, 3), round(y, 3)) for x, y in pg.exterior.coords], close=True, dxfattribs={"layer": "CUT"})
         msp.add_lwpolyline([(cx0, cy0), (cx0 + Lc, cy0), (cx0 + Lc, cy0 + Hc), (cx0, cy0 + Hc)], close=True,
                            dxfattribs={"layer": "BEND_UP_90"})
         for k in range(C["holes_top"]):
             msp.add_circle((cx0 + Lc * (k + 1) / (C["holes_top"] + 1), cy0 + Hc + fl - 7), 1.6, dxfattribs={"layer": "HOLES_D3.2"})
-        txt(f"LEG COVER {Lc:g}x{Hc:g}x{C['w'] / 2:g} Alu {tc:g} - x 2 (A + B mirror) - flanges {fl:g}, ribs {rb:g}, 2 x D3.2 top", ox, -30)
+        txt(f"LEG COVER {Lc:g}x{Hc:g}x{C['w'] / 2:g} Alu {tc:g} - x 2 (A + B mirror) - flanges {fl:g}, ribs {rb:g} (notched {C['notch_d']:g} at legs), 2 x D3.2 top", ox, -30)
         ox += Lc + 2 * rb + gap
     # plexi: pagrindai ir įdėklai (A ir B), po padėklais
     if g.get("logo") is not None:
@@ -1050,10 +1065,10 @@ def exploded(g, box, yaw=-58, pitch=11):
         for lx in led_x:
             sc.box((lx - 11, H - ys - 8, -11), (22, 0, 0), (0, 8, 0), (0, 0, 22), COL_LED, edge=EDGE)
     if g["cover"]:                                                  # v214: uždengimo dalys A / B - ištrauktos į šonus
-        C = g["cover"]; ct = C["thk"]; hw = C["w"] / 2; Lc = C["L"]; xc0 = W + C["gap"] / 2
-        yb_, yt_ = H - C["y1"], H - C["y0"]
+        C = g["cover"]; ct = C["thk"]; hw = C["w"] / 2; Lc = C["L"]; xc0 = W + C["gap"] / 2   # v215: atitraukta nuo rėmo - aukštyn virš kojų
+        yb_, yt_ = H - C["y1"] + 0.55 * H, H - C["y0"] + 0.55 * H
         for sgn in (1, -1):
-            dz = sgn * 0.11 * M
+            dz = sgn * 0.12 * M
             zo = lambda z, sgn=sgn, dz=dz: sgn * z + dz
             za, zb = sorted((zo(hw - ct), zo(hw)))
             sc.box((xc0, yb_, za), (Lc, 0, 0), (0, yt_ - yb_, 0), (0, 0, zb - za), COL_BODY, edge=EDGE)          # šonas
