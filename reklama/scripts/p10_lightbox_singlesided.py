@@ -265,44 +265,46 @@ def sheet1(g, out):
     K.set_view(True)
     for k_ in range(4):
         ym_ = off + g["BH"] * (k_ + 0.5) / 4
-        rect(U(tb), Ya(ym_ - 12), 6 * s5, 24 * s5, fill=HexColor("#F2E28C"), lw=0.1)
+        rect(U(tb), Ya(ym_ - 20), 10 * s5, 40 * s5, fill=HexColor("#F2E28C"), lw=0.3)
     K.set_view(False)
-    K.balloon_auto(U(tb + 3), Ya(off + g["BH"] * 0.625), 6)
+    K.balloon_auto(U(tb + 5), Ya(off + g["BH"] * 0.625), 6)
     T(U(DB) + 4, Ya(H / 2), "LED on back base: ?", 7, align="c", color=RED, rot=90)
     view_title(U(D / 2), top - 84, "SECTION A-A", f"1:{n5:g}")
-    # ---------------------------------------------------------------- TOP VIEW (varžtai)
-    tx0 = ax0 + (D + pr) * s5 + 150
-    Xt = lambda x: tx0 + x * s
-    Zt = lambda z: top + 40 + (D + pr - z) * s                      # z = D (priekis) viršuje
-    if tx0 + W * s + 60 < K.IX1:
-        K.set_view(True)
-        rect(Xt(0), Zt(D), W * s, D * s, fill=COL_BODY, lw=0.1)
-        if lg is not None and pr > 0:
-            for a_, b_ in [(g["logo_x"], g["logo_x"] + g["logo_w"])]:
-                rect(Xt(a_), Zt(D + pr), (b_ - a_) * s, pr * s, fill=COL_PLEX, lw=0.1)
-        for x_ in g["scr_x"]:
-            circle(Xt(x_), Zt(g["screw_edge"]), max(1.6 * s, 0.9), fill=white, lw=0.1)
-        K.set_view(False)
-        xs_ = [0] + g["scr_x"] + [W]
-        hchain(Zt(0) + D1, [Xt(v) for v in xs_], [Zt(g["screw_edge"])] * len(xs_), [f"{b - a:.0f}" for a, b in zip(xs_, xs_[1:])],
-               size=K.F_DIM_MAIN)
-        vchain(Xt(W) + D1, [Zt(g["screw_edge"]), Zt(0)], [Xt(W)] * 2, [f"{g['screw_edge']:g}"], size=K.F_DIM_MAIN)
-        T(Xt(W / 2), Zt(0) + D2 + 12, f"screws (8) on PERIMETER (all 4 flanges): {g['n_scr']} pcs., holes Ø3.2, front -> back flange, "
-          f"{g['screw_edge']:g} from edge",
-          7, align="c", color=K.GREY)
-        view_title(Xt(W / 2), top - 84, "TOP VIEW", sl)
-    # ---------------------------------------------------------------- 2 eilė: 3D + EXPLODED
+    # ---------------------------------------------------------------- v232 (Rytis): EXPLODED - kuo didesnis (dešinė kolona per
+    #  visą aukštį); TOP VIEW mažiau svarbus - 2 eilėje šalia 3D
+    ex0 = ax0 + (D + pr) * s5 + 120
+    exw, exh = K.IX1 - 30 - ex0, K.VIEW_BOT - 40 - (top - 50)
+    try:
+        exploded(g, (ex0, top - 50, exw, exh))
+        view_title(ex0 + exw / 2, K.VIEW_BOT - 22, "ASSEMBLY - EXPLODED VIEW",
+                   "back 2 (to facade) + LED 6 on back base - base 4 + insert 3 - front 1; screws 8 on perimeter; inside white")
+    except Exception as e:
+        print("  ! exploded:", e)
     y3 = max(Yv(H), Ya(H)) + D2 + 60
     h3 = K.VIEW_BOT - y3 - 30
     try:
         scene3d(g, (K.IX0 + 40, y3, 230, h3))
         view_title(K.IX0 + 40 + 115, y3 + h3 + 18, "3D VIEW", "ILLUSTRATIVE - NOT TO SCALE")
-        ex0 = K.IX0 + 40 + 230 + 60
-        exploded(g, (ex0, y3, K.IX1 - 40 - ex0, h3))
-        view_title(ex0 + (K.IX1 - 40 - ex0) / 2, y3 + h3 + 18, "ASSEMBLY - EXPLODED VIEW",
-                   "back 2 (to facade) - LED - base 4 + insert 3 - front 1; screws 8; inside white")
     except Exception as e:
         print("  ! 3D:", e)
+    # TOP VIEW (varžtai) - 2 eilė
+    tx0 = K.IX0 + 40 + 230 + 90
+    Xt = lambda x: tx0 + x * s
+    Zt = lambda z: y3 + 50 + (D + pr - z) * s                       # z = D (priekis) viršuje
+    K.set_view(True)
+    rect(Xt(0), Zt(D), W * s, D * s, fill=COL_BODY, lw=0.1)
+    if lg is not None and pr > 0:
+        rect(Xt(g["logo_x"]), Zt(D + pr), g["logo_w"] * s, pr * s, fill=COL_PLEX, lw=0.1)
+    for x_ in g["scr_x"]:
+        circle(Xt(x_), Zt(g["screw_edge"]), max(1.6 * s, 0.9), fill=white, lw=0.1)
+    K.set_view(False)
+    xs_ = [0] + g["scr_x"] + [W]
+    hchain(Zt(0) + D1, [Xt(v) for v in xs_], [Zt(g["screw_edge"])] * len(xs_), [f"{b - a:.0f}" for a, b in zip(xs_, xs_[1:])],
+           size=K.F_DIM_MAIN)
+    vchain(Xt(W) + D1, [Zt(g["screw_edge"]), Zt(0)], [Xt(W)] * 2, [f"{g['screw_edge']:g}"], size=K.F_DIM_MAIN)
+    T(Xt(W / 2), Zt(0) + D2 + 12, f"screws (8) on PERIMETER (all 4 flanges): {g['n_scr']} pcs., holes Ø3.2, "
+      f"{g['screw_edge']:g} from edge", 7, align="c", color=K.GREY)
+    view_title(Xt(W / 2), Zt(0) + D2 + 48, "TOP VIEW", sl)
     band(g, "1 / 2", "", main_data1(g), bom1(g), detail_b(g), f"{sl} / 1:{n5:g}")
     K.save(out)
 
@@ -395,6 +397,9 @@ def detail_b(g):
                 rect(U(D - t - bt - 6), Yz(ysd - 2), (bt + 6) * s3, 4 * s3, fill=COL_STUD, lw=0.1)         # ilgasriegis iš vidaus
                 rect(U(D - t - bt - 3), Yz(ysd - 3.5), 3 * s3, 7 * s3, fill=HexColor("#8C8C8C"), lw=0.1)   # veržlė
                 rect(U(0), Yz(a_), tb * s3, (b_ - a_) * s3, fill=COL_BACK, lw=0.1)
+                _lm = min(30.0, (b_ - a_) - 8)                                                      # v232: LED ant dugno
+                rect(U(tb), Yz(a_ + 4), 10 * s3, _lm * s3, fill=HexColor("#F2E28C"), lw=0.3)
+                bal.append((U(tb + 5), Yz(a_ + 4 + _lm / 2), 6))
                 bal += [(U(D - t + it_ / 2), Yz(b_ - 3), 3), (U(D - t - bt / 2), Yz(b_ - 3), 4), (U(D - t - bt - 4), Yz(ysd), 5),
                         (U(tb / 2), Yz(b_ - 6), 2)]
             K.set_view(False)

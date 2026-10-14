@@ -27,7 +27,7 @@ Raktažodžiai: P10_lightbox_singlesided, vienpusė P10 šviesdėžė, single-si
 ## 3. Atsakyta (Rytis 2026-10-14, Leapmotor PO 33577 poz. 30)
 1. „3 mm mažesnė" - **3 mm KIEKVIENAI kraštinei** (dugnas W-6 x H-6).
 2. **Bendras tūris 80 mm**: priekio atlankas = 80 (- t); **dugnas 30 mm įlenda į priekį** (bendras tūris vis tiek 80).
-3. **LED - ant dugno GALINĖS PLOKŠTUMOS** (vidinis dugno paviršius prie fasado), NE ant kraštinių (v231, Rytis).
+3. **LED - ant dugno GALINĖS PLOKŠTUMOS** (matomi pjūvyje A-A, DETAIL B ir exploded - v232) (vidinis dugno paviršius prie fasado), NE ant kraštinių (v231, Rytis).
 4. Laidas - pagal standartą (2 skyrius); skylės Ø / tarpinės tipas - kai paaiškės (neišgalvoti).
 5. **Dugnas - Alu 1,5 mm** (folded v173); priekis - Alu 2 mm.
 6. Stiklas: **įdėklas 8 mm** (su Alu 2 -> išsikišimas 6), 3 mm pagrindas - kaip doublesided.
@@ -36,6 +36,10 @@ Raktažodžiai: P10_lightbox_singlesided, vienpusė P10 šviesdėžė, single-si
 1 lapas - kaip P10_lightbox_doublesided etalonas (FRONT, VIEW FROM WALL / dugnas, SECTION A-A, 3D, EXPLODED, TOP VIEW, DETAIL B
 pjūvis su pozicijomis, BOM, MAIN DATA); 2 lapas - vietoj rėmo: DUGNAS (CAD) - vaizdai + kabelio skylė, priekio išpjova;
 gamybos DXF - priekio ir dugno išklotinės (folded v173), plexi pagrindas / įdėklas.
+
+## 4a. Lapo išdėstymas (v232, Rytis)
+1 eilė: FRONT, RIGHT SIDE (laidas), SECTION A-A; dešinė kolona per visą aukštį - **EXPLODED VIEW kuo didesnis**;
+2 eilė: 3D, TOP VIEW (mažiau svarbus).
 
 ## 5. Dar neatsakyta (Leapmotor poz. 30) - lape „?"
 - kabelio skylės aukštis nuo viršaus (y), skylės Ø ir tarpinės tipas, priekio išpjovos plotis (geometrija: centras 7 nuo

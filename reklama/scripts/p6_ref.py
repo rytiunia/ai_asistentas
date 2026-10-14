@@ -75,6 +75,7 @@ def _load(kind, front):
 
 
 RAIL_RATIO = 1.0   # v162: stačiakampio profilio gylis / aukštis pjūvyje (40x20 -> 0.5; Rytis: „turi matytis 40x20")
+ACRYLIC = False   # v232 (Rytis 2026-10-14): square variantas su SKAIDRIU AKRILINIU bėgeliu (pilnaviduris, melsvas)
 LABEL_MAP = {}     # v160: pjūvio balionų numeriai pagal originalo BOM (spec "section_labels")
 
 
@@ -145,6 +146,10 @@ def draw(cv, H, x, y, w, h, kind, front, depth, *, leader, balloon, T, hdim, hai
                and d["rect"].width < 14 and d["rect"].height > 30 and _kinds(d).count("l") >= 16]
         if _tb:
             _piv = _tb[0].x1                              # profilio plokštuma prie raidės galo
+    _tube_ids = set()
+    if kind == "square" and ACRYLIC:
+        _tube_ids = {i for i, d in enumerate(dr) if i not in skip and d.get("fill") and 0.6 < max(d["fill"]) < 0.75
+                     and d["rect"].width < 14 and d["rect"].height > 30 and _kinds(d).count("l") >= 16}
 
     def X(v):
         if _piv is not None and v < _piv:                 # sienos pusė (profilis, ausėlė) - gylis pagal RAIL_RATIO
@@ -186,6 +191,24 @@ def draw(cv, H, x, y, w, h, kind, front, depth, *, leader, balloon, T, hdim, hai
         if i in skip:
             continue
         fill, stroke = d.get("fill"), d.get("color")
+        if i in _tube_ids:                                # v232: akrilinis bėgelis - pilnaviduris (išorinių kontūrų dėžės)
+            subs, cur_ = [], []
+            for it in d["items"]:
+                if it[0] == "l":
+                    if cur_ and (abs(cur_[-1].x - it[1].x) > 1e-3 or abs(cur_[-1].y - it[1].y) > 1e-3):
+                        subs.append(cur_); cur_ = []
+                    if not cur_:
+                        cur_ = [it[1]]
+                    cur_.append(it[2])
+            if cur_:
+                subs.append(cur_)
+            bbs = [fitz.Rect(min(q.x for q in sb), min(q.y for q in sb), max(q.x for q in sb), max(q.y for q in sb)) for sb in subs]
+            outer = [b for b in bbs if not any(o is not b and o.contains(b) and o != b for o in bbs)]
+            for b in outer:
+                cv.saveState(); cv.setFillColorRGB(0xCF / 255, 0xE6 / 255, 0xF5 / 255); cv.setStrokeColorRGB(0, 0, 0)
+                cv.setLineWidth(LW_SEC)
+                cv.rect(X(b.x0), H - Yp(b.y1), X(b.x1) - X(b.x0), (b.y1 - b.y0) * k, stroke=1, fill=1); cv.restoreState()
+            continue
         path = build(d)
         cv.saveState()
         if fill is not None and not _dark(fill) and max(fill) < 0.75 and i not in pvc:

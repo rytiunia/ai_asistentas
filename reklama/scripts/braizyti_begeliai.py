@@ -1896,6 +1896,21 @@ if RAIL_ACR:
         hs_ = sorted([r_ for r_ in g["rails"] if r_["kind"] == "h"], key=lambda r_: r_["y0"])
         vs_ = [r_ for r_ in g["rails"] if r_["kind"] != "h"]
         F = _aun([_APoly(r_["poly"]) for r_ in g["rails"]]).buffer(0)
+        # v232 (Rytis 2026-10-14): statmenys / įstrižai - ATSKIROS detalės (taupoma medžiaga), į bėgelius jungiami puzzle
+        FH = _aun([_APoly(r_["poly"]) for r_ in hs_]).buffer(0)
+        vparts, vknobs = [], []
+        for v_ in vs_:
+            pq = v_["poly"]
+            VP = _APoly(pq).buffer(0)
+            ends_ = [(((pq[0][0] + pq[1][0]) / 2, pq[0][1]), pq[2][1]), (((pq[2][0] + pq[3][0]) / 2, pq[2][1]), pq[0][1])]
+            wv_ = min(math.hypot(pq[1][0] - pq[0][0], pq[1][1] - pq[0][1]), RAIL_W)
+            hr_, nk_ = 0.2 * wv_, 0.12 * wv_
+            kn_ = []
+            for (ex_, ey_), oy_ in ends_:
+                sg_ = -1 if ey_ < oy_ else 1                   # į bėgelį (nuo statmens vidaus)
+                kn_.append(_aun([_abox(ex_ - nk_, min(ey_ - sg_, ey_ + sg_ * hr_ * 1.2), ex_ + nk_, max(ey_ - sg_, ey_ + sg_ * hr_ * 1.2)),
+                                 _APt(ex_, ey_ + sg_ * hr_ * 1.6).buffer(hr_, 24)]))
+            vparts.append(_aun([VP] + kn_).buffer(0)); vknobs += kn_
         LETG = unary_union([o["geom"] for o in g["letters"]])
         X0, _, X1, _ = F.bounds
         # pjūvio vietos: dalys <= lakšto ilgis; pjūvis KUO LABIAU PO RAIDĖMIS (abiejų bėgelių juosta ±30 raidėje),
@@ -1929,11 +1944,13 @@ if RAIL_ACR:
             kn_by.append(_aun(kk)); knobs += kk
         parts = []
         for i in range(len(parts_b) - 1):
-            P_ = F.intersection(_abox(parts_b[i], -1e5, parts_b[i + 1], 1e5))
+            P_ = FH.intersection(_abox(parts_b[i], -1e5, parts_b[i + 1], 1e5))
             if i < len(cuts):                                  # dešinysis pjūvis - galvutė prie šios dalies
                 P_ = _aun([P_, kn_by[i]])
             if i > 0:                                          # kairysis pjūvis - išpjova galvutei
                 P_ = P_.difference(kn_by[i - 1].buffer(_cl, 24))
+            if vknobs:
+                P_ = P_.difference(_aun(vknobs).buffer(_cl, 24))
             parts.append(P_.buffer(0))
         # Ø8 skylės - tarpuose tarp raidžių ant horizontalių bėgelių, kas antrame tarpe (Rytis: dvigubai mažiau)
         xs_ = sorted((o["bb"][0], o["bb"][2]) for o in g["letters"])
@@ -1955,9 +1972,10 @@ if RAIL_ACR:
         for v_ in vs_:
             pq = v_["poly"]
             grooves.append((((pq[0][0] + pq[1][0]) / 2, pq[0][1]), ((pq[2][0] + pq[3][0]) / 2, pq[2][1])))
-        ACR_GEO[g["name"]] = dict(F=F, parts=parts, cuts=cuts, holes=holes, grooves=grooves, knobs=knobs)
+        ACR_GEO[g["name"]] = dict(F=F, parts=parts, vparts=vparts, cuts=cuts, holes=holes, grooves=grooves, knobs=knobs)
         print(f"  akrilinis rėmas {g['name']}: {len(parts)} dalys ({', '.join(f'{p_.bounds[2] - p_.bounds[0]:.0f}' for p_ in parts)} mm), "
-              f"puzzle x {', '.join(f'{c_['x']:.0f} (po raide {c_['under'] * 100:.0f} %)' for c_ in cuts)}, Ø{_hd:g} skylių {len(holes)}")
+              f"puzzle x {', '.join(f'{c_['x']:.0f} (po raide {c_['under'] * 100:.0f} %)' for c_ in cuts)}, Ø{_hd:g} skylių {len(holes)}, "
+              f"statmenų / įstrižų atskirų detalių {len(vparts)} (puzzle į bėgelius)")
 
 
 # ============================================================ REAR VIEW (MIRRORED)
@@ -2013,7 +2031,7 @@ for g in sorted(groups, key=lambda g: bool(g["spec"].get("behind"))):   # v10: i
 for g in groups:
     if g["name"] in ACR_GEO:                            # v229: akrilinis rėmas - dalys, puzzle, Ø8, griovelis
         AG = ACR_GEO[g["name"]]
-        for P_ in AG["parts"]:
+        for P_ in AG["parts"] + AG["vparts"]:
             for gg in getattr(P_, "geoms", [P_]):
                 _sub = [[("M", rg[0])] + [("L", q) for q in rg[1:]] for rg in
                         [list(gg.exterior.coords)] + [list(r.coords) for r in gg.interiors]]
@@ -2728,7 +2746,8 @@ if _rty + 4 + K.F_SCALE * 1.25 > K.VIEW_BOT:      # v157: netelpa po vaizdu (lai
 view_title(_rtx, _rty, "REAR VIEW (MIRRORED)", f"SCALE 1:{SC2}  |  true view from the back")
 for _gi, (_gn, AG) in enumerate(ACR_GEO.items()):      # v229: akrilinio rėmo pastaba
     T(_rtx, _rty + 26 + 10 * _gi, f"frame: clear acrylic {ACRY['thk']:g} mm, {len(AG['parts'])} parts "
-      f"({' + '.join(f'{p_.bounds[2] - p_.bounds[0]:.0f}' for p_ in AG['parts'])}), puzzle joint (o, clearance {ACRY['joint_clear']:g}) "
+      f"({' + '.join(f'{p_.bounds[2] - p_.bounds[0]:.0f}' for p_ in AG['parts'])}) + {len(AG['vparts'])} verticals (separate, puzzle into rails), "
+      f"puzzle joints (clearance {ACRY['joint_clear']:g}) "
       f"under letter (J1..), {len(AG['holes'])} x Ø{ACRY['hole_d']:g} between letters, "
       f"cable groove {(ACRY.get('groove') or {}).get('w', '?')} x {(ACRY.get('groove') or {}).get('d', '?')} deep (back), DXF", 7, align="c", color=K.GREY)
 
@@ -2932,9 +2951,11 @@ if FRONT == "P1":
     K.p1_typical(X_P6, BY0, W_P6, BH, depth, variant="rail", title="PROFILE P1 ON RAILS - TYPICAL SECTION",
                  numbers={"fit": _EAR_POS or 6, "mount": _rail_pos()}, ears=_HAS_EARS,
                  bracket=(next((str(r_[0]) for r_ in _BOM_ROWS if re.search(r"bracket|hanger", str(r_[1]), re.I)), "") if BRACKETS else None))
-elif RAIL_ACR:                                           # v229: P6 ant skaidraus akrilinio rėmo (plokščia juosta 20 mm)
-    K.p6_typical(X_P6, BY0, W_P6, BH, depth, variant="folded", front=FRONT,
-                 title=f"PROFILE {_PNAME} ON CLEAR ACRYLIC FRAME {RAIL['size']}", numbers={"mount": _rail_pos()})
+elif RAIL_ACR:                                           # v232 (Rytis: „kodėl senas pjūvis?"): etaloninis P6 pjūvis
+    _P6REF.ACRYLIC = True                                #  (square wallframe) su skaidriu pilnaviduriu akrilo bėgeliu 40x20
+    _P6REF.RAIL_RATIO = float(ACRY["thk"]) / RAIL_W
+    K.p6_reference(X_P6, BY0, W_P6, BH, depth, kind="square", front=FRONT,
+                   title=f"PROFILE {_PNAME} ON CLEAR ACRYLIC FRAME {RAIL['size']}")
 else:
     K.p6_reference(X_P6, BY0, W_P6, BH, depth, kind=("folded" if MOUNTING == "none" else _P6R.kind_of("rail", spec.get("rail", {}).get("type"))), front=FRONT,
                    title=(f"PROFILE {_PNAME} - FIXED TO FACADE (SEPARATE LETTERS)" if MOUNTING == "none" else f"PROFILE {_PNAME} ON RAILS - TYPICAL SECTION"), ears=(_EAR_POS if _HAS_EARS else None),
@@ -3194,7 +3215,7 @@ def export_1to1(path):
     sh = pg.new_shape()
     if ACR_GEO:                                         # v229: akrilinio rėmo dalys su puzzle, Ø8, griovelio ašys
         for AG in ACR_GEO.values():
-            for P_ in AG["parts"]:
+            for P_ in AG["parts"] + AG["vparts"]:
                 for gg in getattr(P_, "geoms", [P_]):
                     for ring in [gg.exterior] + list(gg.interiors):
                         sh.draw_polyline([P(c_) for c_ in ring.coords])
@@ -3226,7 +3247,7 @@ if ACR_GEO:                                             # v229: akrilinio rėmo 
     for _gn, AG in ACR_GEO.items():
         _ymax = AG["F"].bounds[3]
         Q = lambda q, _y=_ymax, _o=_oy: (round(q[0], 3), round(_y - q[1] + _o, 3))       # y aukštyn
-        for P_ in AG["parts"]:
+        for P_ in AG["parts"] + AG["vparts"]:
             for gg in getattr(P_, "geoms", [P_]):
                 for ring in [gg.exterior] + list(gg.interiors):
                     _m.add_lwpolyline([Q(c_) for c_ in ring.coords], close=True, dxfattribs={"layer": "ACRYLIC_20_CUT"})
