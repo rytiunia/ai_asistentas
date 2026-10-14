@@ -1,7 +1,7 @@
 {
  "client": "TEST",
- "title": "P10_lightbox 600x600x80 - push-through (etalon)",
- "drawing_no": "TEST P10_lightbox",
+ "title": "P10_lightbox_doublesided 600x600x80 - push-through (etalon)",
+ "drawing_no": "TEST P10_lightbox_doublesided",
  "w": 600,
  "h": 600,
  "depth": 80,

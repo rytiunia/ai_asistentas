@@ -1,6 +1,6 @@
 """KOJŲ UŽDENGIMAS - bendra visiems generatoriams („Bendrinės taisyklės" 19; Rytis 2026-10-14, v212-v217).
 
-Galioja VISOSE situacijose, kur yra kojų uždengimas (sviesdeze inset, P10_lightbox B, ...):
+Galioja VISOSE situacijose, kur yra kojų uždengimas (sviesdeze inset, P10_lightbox_doublesided B, ...):
 - 2 dalys A + B (veidrodinės), Alu 2 mm, korpuso spalva, lankstinys pagal folded v173 (atlankas = gylis - t);
 - ilgis = kojų tarpas (korpusas - plokštė) - 5 mm (po 2.5 iš abiejų galų);
 - plotis = kojos profilis (skersai) + 10 (□30 -> 40 = 20 + 20);

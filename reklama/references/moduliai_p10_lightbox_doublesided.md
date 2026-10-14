@@ -1,11 +1,11 @@
-# P10_lightbox - dvipusė šviesdėžė, Alu korpusas su IŠKIŠTU stiklu (push-through) (v196-v197, Rytis 2026-10-13)
+# P10_lightbox_doublesided - dvipusė šviesdėžė, Alu korpusas su IŠKIŠTU stiklu (push-through) (v196-v197, Rytis 2026-10-13)
 
-**Pavadinimas `P10_lightbox`** (Rytis: „yra ir P10 raidės" - NEPAINIOTI su P10 raidžių profiliu). Generatorius `scripts/p10_lightbox.py`
-(`python3 scripts/p10_lightbox.py spec.json out.pdf` -> A3 lapas + `out_gamyba.dxf`), testas `scripts/projektai/p10_lightbox_test/`.
+**Pavadinimas `P10_lightbox_doublesided`** (Rytis: „yra ir P10 raidės" - NEPAINIOTI su P10 raidžių profiliu). Generatorius `scripts/p10_lightbox_doublesided.py`
+(`python3 scripts/p10_lightbox_doublesided.py spec.json out.pdf` -> A3 lapas + `out_gamyba.dxf`), testas `scripts/projektai/p10_lightbox_doublesided_test/`.
 
 Etalonas (kliento brėžinys): `assets/etalonai/P10_lightbox_dvipuse_600x600x80_kliento.pdf` - 600 x 600 x 80, 100 nuo sienos,
 Parts List: 1 Frame, 2 Front 2 mm Alu, 3 Back 2 mm Alu, 4 / 5 10 mm white plexi (iškištas), 6 / 7 3 mm white plexi (pagrindas), 8 LED.
-Raktažodžiai: P10_lightbox, P10 lightbox, push-through, iškištas stiklas, dvipusė šviesdėžė Alu korpusu su išpjova.
+Raktažodžiai: P10_lightbox_doublesided, P10 lightbox, push-through, iškištas stiklas, dvipusė šviesdėžė Alu korpusu su išpjova.
 
 ## 1. Korpusas - priekis ir galas = FOLDED PLATE principas
 - Priekis ir galas - 2 mm Alu lankstyti padėklai (kaip folded plate, `references/moduliai_folded.md`): kiekvieno flanšas =
@@ -38,7 +38,7 @@ Raktažodžiai: P10_lightbox, P10 lightbox, push-through, iškištas stiklas, dv
     kojos įvirintos tarp jų (dalių ilgiai lape ir BOM pjaustymo sąraše); montavimo plokštė VIENTISA, aukštis = kojų matmuo
     (spacing + kojos profilis), privirinta prie abiejų kojų galų. Plokštės skylės: MIN 4, kiekis pagal dydį (laisva zona tarp
     kojų, ~120 žingsnis, lyginis); plati plokštė (>= 7 Ø) - 2 stulpeliai, SIAURA - ŠACHMATINE TVARKA (kaip CEOS mažo pilono
-    padas, Thales D059422). Lape PLATE 1A gulsčiai. Testas `scripts/projektai/p10_lightbox_test/spec_B.json`.
+    padas, Thales D059422). Lape PLATE 1A gulsčiai. Testas `scripts/projektai/p10_lightbox_doublesided_test/spec_B.json`.
     **KOJŲ UŽDENGIMAS (v212, Rytis 2026-10-14; kaip sviesdeze v144):** 2 dalys A + B (veidrodinės), Alu 2 mm, korpuso spalva,
     aukštis = kojų matmuo, ilgis 5 mm MAŽESNIS už kojų tarpą (korpusas - plokštė): PO 2.5 mm iš abiejų galų; kojos po juo -
     punktyru; BOM 11. **v214:** plotis 10 mm DIDESNIS už kojų profilį (30 -> 40 = 20 + 20, kiekviena dalis 20; `cover_w`);
@@ -81,7 +81,7 @@ VIENAS A3 lapas (buv. 2-3 lapai - v198 GA + FRAME/LED/PARTS, v199 ASSEMBLY):
   `"screws": "countersunk"`.
 - DUOLITE ant viršutinio ir apatinio skersinio; gylis < 100 (lentelės min) - perspėjimas, ryškumą tikrinti.
 
-## 5c. 2 lapas - CAD rėmas (v224); 1 lape be rėmo / plokštės (v225); PATVIRTINTA v226 - etalonas TEST_P10_lightbox_B.pdf
+## 5c. 2 lapas - CAD rėmas (v224); 1 lape be rėmo / plokštės (v225); PATVIRTINTA v226 - etalonas TEST_P10_lightbox_doublesided_B.pdf
 2 lapas „FRAME (CAD)": SIDE VIEW (pozicijos 1.1-1.5), END VIEW (iš sienos, plokštė su matmenimis), ISOMETRIC, PLATE 1A
 (jei didesnis mastelis); juosta - LED, rėmo pjaustymo BOM, MAIN DATA. SKILL „Bendrinės taisyklės" 24.
 

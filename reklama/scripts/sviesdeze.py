@@ -592,7 +592,7 @@ def exploded(g, box, yaw=-54, pitch=17):
     if tops:
         u, z = max(tops, key=lambda q: q[1])
         anc[8] = (ov + u, Hd + up + 13.6, z)
-    # kojų uždengimas (10) - A / B, atitraukta virš kojų (kaip P10_lightbox v215)
+    # kojų uždengimas (10) - A / B, atitraukta virš kojų (kaip P10_lightbox_doublesided v215)
     if g["covers"]:
         C = g["covers"][0]; ct = C["thk"]; hw = C["w"] / 2; Lc = C["L"]; xc0 = g["xb"] + C["gap"] / 2
         lift = Hd + 0.12 * M - Y(C["y1"])                          # visas uždengimas VIRŠ dėžės (ne priglaustas)
@@ -622,7 +622,7 @@ def exploded_view(g, box):
                      ("10A", 10), ("10B", 10)):
         if key in A:
             K.balloon_auto(A[key][0], A[key][1], lab, region=reg)
-    view_title(ex0 + ew / 2, ey0 - 26, "ASSEMBLY - EXPLODED VIEW",                # kaip P10_lightbox - viršuje
+    view_title(ex0 + ew / 2, ey0 - 26, "ASSEMBLY - EXPLODED VIEW",                # kaip P10_lightbox_doublesided - viršuje
                "not to scale; face A + PVC 4 - body 2 + frame 1 + LED 7 - PVC 6 + face B; inside white")
 
 
@@ -634,7 +634,7 @@ def sheet1(g, out):
     K.set_band(max(len(bom_rows(g)), 10) + 1)
     K.init(out + ".tmp", "sheet1")
     K.frame(); K.set_view(True)
-    # v223: VIENAS lapas kaip TEST_P10_lightbox_B - mastelis pagal vietą (spec scale_ga - jei nurodytas)
+    # v223: VIENAS lapas kaip TEST_P10_lightbox_doublesided_B - mastelis pagal vietą (spec scale_ga - jei nurodytas)
     # v225 (Rytis 2026-10-14: „sheet 1 nereikia rėmo ir plate matmenų, kadangi tam sukurtas sheet 2"): 1 eilė - FRONT A | WALL |
     #  FRONT B | SECTION A-A per visą plotį; mastelis - didžiausias telpantis (plotis + aukštis 2 eilei), eilė centruojama
     def _row1(n):
@@ -773,7 +773,7 @@ def sheet1(g, out):
     K.balloon_side([(XB(Wd * 0.05), Yv(Hd * 0.1), 5)], XB(0) + 22, "right", up=True)
     view_title((XB(0) + XB(g["PROJ"])) / 2, top - 84, "FRONT VIEW - SIDE B", sl + "  (mirrored)")
     # ---------------------------------------------------------------- SECTION A-A 1:5
-    n5 = nice_scale(min(Hd * s * 1.6, 0.36 * (K.VIEW_BOT - K.IY0 - 112)), Hd, (4, 5, 6, 8, 10, 12, 15, 20, 25, 30))     # v223: kaip P10_lightbox
+    n5 = nice_scale(min(Hd * s * 1.6, 0.36 * (K.VIEW_BOT - K.IY0 - 112)), Hd, (4, 5, 6, 8, 10, 12, 15, 20, 25, 30))     # v223: kaip P10_lightbox_doublesided
     g["scale_aa"] = n5
     s5 = MM / n5
     ya = lambda y: top + y * s5
@@ -818,7 +818,7 @@ def sheet1(g, out):
     circle(Xa(TOT / 2 - 10), ya(Hd - 12), 16, lw=0.3, dash=(3, 1.5))
     T(Xa(TOT / 2) + 14, ya(Hd - 30), "B", 10, font="FB")
     view_title(Xa(0), top - 84, "SECTION A-A", f"1:{n5:g}")
-    # ---------------------------------------------------------------- 2 eilė: 3D A, 3D B, EXPLODED (kaip P10_lightbox)
+    # ---------------------------------------------------------------- 2 eilė: 3D A, 3D B, EXPLODED (kaip P10_lightbox_doublesided)
     y3 = max(Yv(Hd), ya(Hd)) + D2 + 22 + 56
     h3 = K.VIEW_BOT - y3 - 30
     tx_l = K.IX1 - g["PROJ"] * s - 90 - 60
@@ -1004,8 +1004,8 @@ def nice_scale(avail_pt, size_mm, opts=(2, 2.5, 4, 5, 6, 8, 10, 12, 15, 20, 25, 
 
 
 def frame_view(g, fx, ytop, n, sub=False):
-    """v223 (Rytis 2026-10-14: „visų šviesdėžių dokumentus daryti pagal TEST_P10_lightbox_B 1 lapo dokumentą"):
-    FRAME (1) + LED (7) 1 lape (kaip P10_lightbox), mastelis n; ytop - rėmo viršaus y lape. Grąžina dešinį kraštą."""
+    """v223 (Rytis 2026-10-14: „visų šviesdėžių dokumentus daryti pagal TEST_P10_lightbox_doublesided_B 1 lapo dokumentą"):
+    FRAME (1) + LED (7) 1 lape (kaip P10_lightbox_doublesided), mastelis n; ytop - rėmo viršaus y lape. Grąžina dešinį kraštą."""
     D, ov = g["depth"], g["face_over"]
     fa, fb, ft = g["frame"]
     LL = g["leg_len"]; FLw, FLh, FLt = g["flange"]
@@ -1250,7 +1250,7 @@ def main(spec_path, out):
     g = geom(S)
     g["scale_ga_spec"] = S.get("scale_ga")
     p1, p2 = out + ".1.pdf", out + ".2.pdf"
-    for fn, pp in ((sheet1, p1), (sheet2, p2)):                    # v224: 1 lapas (kaip P10_lightbox) + 2 lapas CAD rėmas
+    for fn, pp in ((sheet1, p1), (sheet2, p2)):                    # v224: 1 lapas (kaip P10_lightbox_doublesided) + 2 lapas CAD rėmas
         K.auto_begin("collect"); K.AUTO["region"] = None
         fn(g, pp)
         pl = K.auto_place(pp)

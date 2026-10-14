@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""P10_lightbox - dvipusė šviesdėžė Alu korpusu su IŠKIŠTU stiklu (push-through) (v197, Rytis 2026-10-13).
+"""P10_lightbox_doublesided - dvipusė šviesdėžė Alu korpusu su IŠKIŠTU stiklu (push-through) (v197, Rytis 2026-10-13).
 
-Taisyklės - references/moduliai_p10_lightbox.md. Etalonas assets/etalonai/P10_lightbox_dvipuse_600x600x80_kliento.pdf.
+Taisyklės - references/moduliai_p10_lightbox_doublesided.md. Etalonas assets/etalonai/P10_lightbox_dvipuse_600x600x80_kliento.pdf.
 - korpusas: priekis (A) ir galas (B) - 2 mm Alu lankstyti padėklai FOLDED principu, flanšas = pusė gylio, sandūra gylio viduryje;
   prisukami prie rėmo per viršutinį / apatinį flanšą (folded standartas: Ø3.2, 7 mm nuo flanšo krašto, 50 nuo galų, ~300);
   sienos pusės flanšuose - išpjovos kojoms (rėmo skersiniai = kojos);
@@ -10,7 +10,7 @@ Taisyklės - references/moduliai_p10_lightbox.md. Etalonas assets/etalonai/P10_l
 - rėmas □30x30x2 ... □60x60x3 pagal dydį (□20x20x2 - tik papildomas), kojos - pratęsti skersiniai, plokštės "separate" / "single";
 - LED - Kaisen DUOLITE ant rėmo skersinių (viršus + apačia).
 Išvestis: A3 lapas (GA) + gamybinis DXF (padėklų išklotinės su išpjova, skylėmis, D6 žymėmis; 3 mm pagrindai su Ø8; įdėklai).
-Naudojimas: python3 p10_lightbox.py spec.json out.pdf   (DXF - out.pdf -> out_gamyba.dxf)
+Naudojimas: python3 p10_lightbox_doublesided.py spec.json out.pdf   (DXF - out.pdf -> out_gamyba.dxf)
 """
 import json
 import math
@@ -651,7 +651,7 @@ def bom1(g):
 
 
 def main_data1(g):
-    md = [["Product", "P10 lightbox, 2-sided"],
+    md = [["Product", "P10_lightbox_doublesided"],
           ["Size", f"{g['w']:g} x {g['h']:g} x {g['depth']:g} (+ 2 x {g['prot']:g})"],
           ["From wall", f"{g['proj']:g} mm (legs {g['leg_len']:g} + plate {g['plate'][2]:g})"],
           ["Body", f"Alu {g['t']:g}, 2 trays A + B, inside white"],
