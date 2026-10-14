@@ -81,7 +81,7 @@ VIENAS A3 lapas (buv. 2-3 lapai - v198 GA + FRAME/LED/PARTS, v199 ASSEMBLY):
   `"screws": "countersunk"`.
 - DUOLITE ant viršutinio ir apatinio skersinio; gylis < 100 (lentelės min) - perspėjimas, ryškumą tikrinti.
 
-## 5c. 2 lapas - CAD rėmas (v224)
+## 5c. 2 lapas - CAD rėmas (v224); 1 lape be rėmo / plokštės (v225); PATVIRTINTA v226 - etalonas TEST_P10_lightbox_B.pdf
 2 lapas „FRAME (CAD)": SIDE VIEW (pozicijos 1.1-1.5), END VIEW (iš sienos, plokštė su matmenimis), ISOMETRIC, PLATE 1A
 (jei didesnis mastelis); juosta - LED, rėmo pjaustymo BOM, MAIN DATA. SKILL „Bendrinės taisyklės" 24.
 
