@@ -1,0 +1,129 @@
+{
+ "client_pdf": "Nordre_Strandvej_1_6_Facade_LENA.pdf",
+ "scale": 40.0,
+ "crop_pt": [
+  60,
+  120,
+  205,
+  165
+ ],
+ "ignore_fills": [],
+ "qty": "1",
+ "client": "BN Skilte A/S / danbolig Hornbæk",
+ "company": "BN Skilte A/S",
+ "title": "DB-0002 danbolig 1800 x 352 - P10 letters, threaded rods to facade",
+ "project": "BN Skilte PO 3295 / Sales order 425221",
+ "drawing_no": "PO 3295 / DB-0002",
+ "order_no": "ALT0000_00.00_RS",
+ "file_code": "DB-0002",
+ "rev": "A",
+ "date": "2026-10-15",
+ "depth_mm": 30,
+ "front": "P10",
+ "auto_frame": true,
+ "merge_rows": true,
+ "mounting": "none",
+ "wall": "concrete",
+ "p10_groove": {
+  "w": 8,
+  "d": null
+ },
+ "p10_rod": {
+  "d": 6,
+  "label": "M?"
+ },
+ "groups": [
+  {
+   "name": "danbolig",
+   "profile": "6",
+   "on_plate": false,
+   "return_hex": "#F4F4EF",
+   "face_hex": "#1B1C1B",
+   "client_fill": [
+    0.8006,
+    0.6682,
+    0.4028
+   ],
+   "frame": "verticals"
+  }
+ ],
+ "bom": [
+  [
+   1,
+   "Letter block (LED groove from back, DXF)",
+   "Acrylic 30 mm white (opal)",
+   "front white+black",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   2,
+   "LED strip in groove",
+   "?",
+   "-",
+   "?"
+  ],
+  [
+   3,
+   "Letter back (recessed into block)",
+   "Alu 1.5 mm",
+   "-",
+   "{A_ALL} m²"
+  ],
+  [
+   4,
+   "Threaded rod welded to back -> facade",
+   "M? (?)",
+   "-",
+   "{STUDS} pcs."
+  ],
+  [
+   5,
+   "Paper mounting template 1:1",
+   "paper",
+   "-",
+   "1 pc."
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "1 pcs."
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profile",
+   "P10 block letters 30 mm"
+  ],
+  [
+   "Depth",
+   "30"
+  ],
+  [
+   "Front",
+   "painted white, then black"
+  ],
+  [
+   "Gold leaf",
+   "by client (BN)"
+  ],
+  [
+   "Sides",
+   "unpainted, illuminated"
+  ],
+  [
+   "Illumination",
+   "?"
+  ],
+  [
+   "Power",
+   "?"
+  ],
+  [
+   "Fixing",
+   "threaded rods + paper template"
+  ]
+ ]
+}

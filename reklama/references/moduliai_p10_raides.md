@@ -17,6 +17,12 @@ Gylis 30 mm (raidė), vidaus (Interior); šonai RAL; priekiui gali būti plėvel
   ant vieno bėgelio - kuo labiau viena horizontali linija** (Rytis 2026-10-15). Mažų reklamų bėgelis gali būti 55 mm.
   Panašios raidės tvirtinamos vienodai (P kaip R); maža raidė (pvz. M ~170 mm) - užtenka 3 taškų.
 
+- **P10 BE BĖGIO (blokinė reklama, `"mounting": "none"`)** (Rytis 2026-10-15, BN danbolig PO 3295): blokas tiesiai prie fasado,
+  **Alu dugnelyje privirinti ilgasriegiai** (`"p10_rod": {"d": 6, "label": "M?"}`) + **popierinis montavimo šablonas**;
+  ilgasriegiai išdėstomi kaip smeigės (forma, centerline), dviem horizontaliomis linijomis (x aukščio viršutinė / apatinė pusė),
+  **ne ant laidų išvesčių** (raudoni taškai SEP linijoje); 1:1 sluoksnis `4_THREADED_RODS_<label>`. Šonai gali šviesti
+  (nedažyti, `return_hex`), priekis dažytas (`face_hex`, pvz. baltai + juodai, klientas vėliau auksuoja).
+
 ## LED griovelis raidėje (lapas „30mm plexi", mėlyna linija)
 - Raidėse - **viena linija per štricho vidurį**, tiesios atkarpos, **aštrios sankirtos** (A skersinis iki kojų ašių, A viršūnė -
   linija iki pat viršūnės, k šakos sujungtos su stiebu), **linijos eina beveik iki raidės galų**.

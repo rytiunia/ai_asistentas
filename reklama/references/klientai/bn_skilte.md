@@ -159,3 +159,9 @@ aluminium profile. 7. Suport, 5mm aluminium (Coop - 3mm). 8. LED modules. 9. Han
    o B1 PC lieka tik Normal ir B1 klasės gaminiams?
 4. Normal logo dėžės return: BN brėžinyje front return 1,5 mm, QC reikalauja 2 mm - koks galutinis standartas (1,5 ar 2 mm)?
 5. Flexface atrama „Suport 5mm" vs „3mm" (Coop/SuperBrugsen) - ar 3 mm tik Coop standartas?
+
+## PO 3295 danbolig, Nordre Strandvej (Hornbæk) - ALT0000_00.00_RS (Rytis 2026-10-15)
+- Kainų PO nevertinti („į kainas nekreipti dėmesio").
+- Poz. 01 DB-0001: dvipusė iškabinama šviesdėžė 850x300x100 su lipduku **3M 100-54** (auksas); korpusas RAL 9010, padas NCS S 8010-R90B.
+- Poz. 02 DB-0002: „danbolig" 1800x352 - **P10 blokinė reklama**, šonai šviečia, **be bėgio**, dugnelyje ilgasriegiai + šablonas;
+  priekis dažytas dviem sluoksniais: pirma baltai, paskui juodai (auksuos klientas). Spec `scripts/projektai/bnskilte_3295_danbolig/spec_DB-0002.json`.

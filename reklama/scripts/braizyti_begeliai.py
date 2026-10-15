@@ -106,7 +106,7 @@ def _acr_studs(letters, hs_, ST, g_off, gw, cuts=(), holes=(), vjoints=(), grid=
                 if q.is_empty or not hasattr(q, "coords"):
                     continue
                 a_, b_ = sorted((q.coords[0][0], q.coords[-1][0]))
-                if b_ - a_ < 40:                                  # kertamas štrichas - jo vidurys (centerline)
+                if b_ - a_ < max(40, 2.2 * rr_ + 30):             # kertamas štrichas - jo vidurys (centerline)
                     pts.append((a_ + b_) / 2)
                 else:                                             # v246: išilginis štrichas - GALUOSE (ten stiebai / kampai,
                     n_ = int((b_ - a_) // 400)                    #  P kaip R), ilgame + kas ~400
@@ -149,7 +149,8 @@ def _acr_studs(letters, hs_, ST, g_off, gw, cuts=(), holes=(), vjoints=(), grid=
                     continue
                 c_ = [q for q in cands_on(y, r_).get(id(o), []) if all(abs(q[0] - p_[0]) > 20 or abs(q[1] - p_[1]) > 20
                                                                     for p_ in per[id(o)])]
-                sc = (min(len(c_), 2 - len(per[id(o)])), -abs(y - (y0_ if y0_ is not None else ax)))
+                # v249: antra linija - kuo TOLIAU nuo jau esančių taškų (siaura raidė l / i - stiebo kitame gale)
+                sc = (min(len(c_), 2 - len(per[id(o)])), abs(y - y0_) if y0_ is not None else -abs(y - ax))
                 if c_ and (best is None or sc > best[0]):
                     best = (sc, c_)
         if best:
@@ -184,7 +185,7 @@ def _acr_studs(letters, hs_, ST, g_off, gw, cuts=(), holes=(), vjoints=(), grid=
         sel = [max(pts, key=lambda q: (q[0] - cx) ** 2 + (q[1] - cy) ** 2)]   # toliausiai nuo centro, toliau - FPS
         while len(sel) < min(n_t, len(pts)):
             q_ = max(pts, key=lambda q: min((q[0] - s_[0]) ** 2 + (q[1] - s_[1]) ** 2 for s_ in sel))
-            if min((q_[0] - s_[0]) ** 2 + (q_[1] - s_[1]) ** 2 for s_ in sel) < 20 ** 2:
+            if min((q_[0] - s_[0]) ** 2 + (q_[1] - s_[1]) ** 2 for s_ in sel) < max(20, 0.25 * min(o["bb"][2] - o["bb"][0], o["bb"][3] - o["bb"][1])) ** 2:
                 break
             sel.append(q_)
         out += [(x, y, id(o)) for x, y in sel]
@@ -1780,6 +1781,8 @@ def facecol(g):
 
 
 def retcol(g):
+    if g["spec"].get("return_hex"):                      # v249: nedažyti šviečiantys šonai (P10 balta plexi)
+        return HexColor(g["spec"]["return_hex"])
     return HexColor(K.ralhex(g["spec"]["return_ral"]))
 
 
@@ -2170,6 +2173,9 @@ if RAIL_ACR:
 
 
 SUBS["{STUDS}"] = str(sum(len(AG_["studs"]) for AG_ in ACR_GEO.values())) if ACR_GEO else "?"     # v241
+P10N_STUDS = []
+P10_ROD = dict({"d": 6, "label": "M6"}, **(spec.get("p10_rod") or {}))
+SEP_PTS = []
 
 
 # ============================================================ REAR VIEW (MIRRORED)
@@ -2323,6 +2329,7 @@ if MOUNTING == "none":                                  # v90: atskiros raidės 
             line(a_[0], a_[1], b_[0], b_[1], 0.4, HexColor("#D0021B"), dash=([4, 2], 0))
             for sg in _best[2]:
                 xm = (sg.coords[0][0] + sg.coords[-1][0]) / 2
+                SEP_PTS.append((xm, SEP_LINE))
                 cc_ = RV(xm, SEP_LINE)
                 K.c.saveState(); K.c.setFillColor(HexColor("#D0021B")); K.c.circle(cc_[0], K.Y(cc_[1]), 1.6, stroke=0, fill=1); K.c.restoreState()
             _pw = str(spec.get("letters_power", "per_letter")).lower()
@@ -2333,6 +2340,26 @@ if MOUNTING == "none":                                  # v90: atskiros raidės 
             print(f"  atskiros raidės: laidų linija y{SEP_LINE:.0f} (nuo viršaus), {len(_main)} išvestys; {_lbl}")
         else:
             print("  ! atskiros raidės: bendros horizontalios laidų linijos nėra - dėti ranka")
+# v249 (Rytis 2026-10-15, BN danbolig): P10 BE BĖGIO (mounting "none") - Alu dugnelyje ilgasriegiai tvirtinimui į fasadą +
+#  popierinis šablonas; vietos - ta pati logika kaip akriliniame rėme (pagal formą, arti centerline, horizontali linija)
+if FRONT == "P10" and MOUNTING == "none":
+    _lets = [o for g in groups if not g["plate"] for o in g["letters"]]
+    _rim = float((spec.get("p10") or {}).get("rim", 5))
+    _STn = {"d": float(P10_ROD["d"]), "cb_d": 0.0, "cb_depth": 0, "edge": _rim + 1, "two_if": 400}
+    # dvi horizontalios linijos (viršutinė ir apatinė x aukščio pusė) - kvadratinei raidei 4 taškai (2 + 2)
+    _hs_ = sorted(o["bb"][3] - o["bb"][1] for o in _lets)
+    _mn = [o for o in _lets if (o["bb"][3] - o["bb"][1]) >= 0.6 * _hs_[len(_hs_) // 2]]
+    _yb = sorted(o["bb"][3] for o in _mn)[len(_mn) // 2]                     # bazinė linija (mediana)
+    _yt = sorted(o["bb"][1] for o in _mn)[len(_mn) // 2]                     # x aukščio viršus (mediana)
+    _ym = (_yt + _yb) / 2
+    _x0b, _x1b = min(o["bb"][0] for o in _lets) - 50, max(o["bb"][2] for o in _lets) + 50
+    _band = [{"x0": _x0b, "x1": _x1b, "y0": min(o["bb"][1] for o in _lets) - 50, "y1": _ym},
+             {"x0": _x0b, "x1": _x1b, "y0": _ym, "y1": max(o["bb"][3] for o in _lets) + 50}]
+    P10N_STUDS, _f = _acr_studs(_lets, _band, _STn, 1e5, 0.0, holes=SEP_PTS)   # ne ant laidų išvesčių
+    for _x in _f:
+        print(f"  ! P10 ilgasriegiai: raidė x{_x} - mažiau nei 2 taškai - PATIKRINTI")
+    SUBS["{STUDS}"] = str(len(P10N_STUDS))
+    print(f"  P10 ilgasriegiai (be bėgio): {len(P10N_STUDS)} vnt.")
 K.set_view(False)
 # bėgelių ilgiai (žymos) + vertikali grandinė (bėgelių ašys) kairėje
 def TL(x, y, txt, size, align="c", rot=0, color=None):
@@ -2893,6 +2920,10 @@ else:
         T(RVX, RVY - 34, spec.get("power_note", "Power / PSU / cable exits:"), K.F_INFO + 1)   # v29: pvz. „NO LIGHTS - no cable / PSU"
 for xj_, lj_ in JOINTS:
     _joint(RV(xj_, 0)[0], RVY - 8, RVY + rh + 8, lj_)
+for _sx, _sy, _ in P10N_STUDS:                           # v249: ilgasriegiai Alu dugnelyje
+    _cc = RV(_sx, _sy)
+    K.circle(_cc[0], _cc[1], max(1.2, P10_ROD["d"] / 2 * s2), fill=white, lw=0.3)
+    line(_cc[0] - 3, _cc[1], _cc[0] + 3, _cc[1], 0.2); line(_cc[0], _cc[1] - 3, _cc[0], _cc[1] + 3, 0.2)
 VIEW_BOX["rear"] = (RVX, RVY, RVX + rw, RVY + rh)
 _callouts("rear", RV)
 if LEDF:
@@ -3170,9 +3201,10 @@ elif FRONT == "P10":                                     # v242: P10 blokas ant 
     import p10_raides as _P10R
     import auto_remas as _ARs
     _strk = sorted(_ARs.stroke_t(o["geom"]) for g in groups for o in g["letters"])
-    _P10R.section(K, X_P6, BY0, W_P6, BH, spec, ACRY if RAIL_ACR else None, RAIL_W if RAIL_ACR else None,
+    _P10R.section(K, X_P6, BY0, W_P6, BH, spec, ACRY if RAIL_ACR else None, RAIL_W if RAIL_ACR else None, rod=P10_ROD,
                   stroke=_strk[len(_strk) // 2] if _strk else None,
-                  title=f"PROFILE P10 ON {'CLEAR ACRYLIC FRAME ' + RAIL['size'] if RAIL_ACR else 'FRAME'}")
+                  title=(f"PROFILE P10 ON {'CLEAR ACRYLIC FRAME ' + RAIL['size'] if RAIL_ACR else 'FRAME'}" if MOUNTING != "none"
+                         else "PROFILE P10 - THREADED RODS TO FACADE"))
 elif RAIL_ACR:                                           # v232 (Rytis: „kodėl senas pjūvis?"): etaloninis P6 pjūvis
     _P6REF.ACRYLIC = True                                #  (square wallframe) su skaidriu pilnaviduriu akrilo bėgeliu 40x20
     _P6REF.RAIL_RATIO = float(ACRY["thk"]) / RAIL_W
@@ -3622,7 +3654,7 @@ def export_1to1(path):
                 sh.draw_line(cur, start)
         sh.finish(width=HW, color=C_LET, fill=None, closePath=False, oc=L_LET); sh.commit()
     # 2 - dugnas: raidės kontūras 3 mm į vidų (smulkiai išlygintos kreivės)
-    inset = spec.get("back_inset_mm", 0.7 if FRONT == "P1" else 3)   # v116: P1 inside kontūras 0,7 mm
+    inset = spec.get("back_inset_mm", 0.7 if FRONT == "P1" else (float((spec.get("p10") or {}).get("rim", 5)) if FRONT == "P10" else 3))   # v116 / v249
     for o in uniq:
         ps = [Polygon(K.flatten(sp, 32)).buffer(0) for sp in o["sub"] if len(K.flatten(sp, 32)) >= 3]
         if not ps:
@@ -3658,6 +3690,13 @@ def export_1to1(path):
         sh.draw_rect(fitz.Rect(P((px_, py_)), P((px_ + g["fpl_sz"], py_ + ph_))))
         sh.draw_circle(P((px_ + g["fpl_sz"] / 2, hy_)), EARS.get("hole_d", 6) / 2 * k)
     sh.finish(width=HW, color=C_FRAME, fill=None, closePath=False, oc=L_FRAME); sh.commit()
+    if P10N_STUDS:                                      # v249: ilgasriegiai - montavimo šablonas (gręžimo taškai)
+        L_ST = doc.add_ocg(f"4_THREADED_RODS_{P10_ROD['label']}")
+        sh = pg.new_shape()
+        for _sx, _sy, _ in P10N_STUDS:
+            sh.draw_circle(P((_sx, _sy)), P10_ROD["d"] / 2 * k)
+            sh.draw_line(P((_sx - 8, _sy)), P((_sx + 8, _sy))); sh.draw_line(P((_sx, _sy - 8)), P((_sx, _sy + 8)))
+        sh.finish(width=HW, color=(0.85, 0, 0.6), fill=None, closePath=False, oc=L_ST); sh.commit()
     doc.save(path, garbage=3, deflate=True)
     print("OK 1:1", path, f"{bx1 - bx0:.0f} x {by1 - by0:.0f} mm, sluoksniai: raidės / dugnas -{inset} mm / rėmas")
 
