@@ -123,6 +123,10 @@ def geom(S):
                                w=S["cover_w"])]
         g["led_a"], g["led_b"] = g["x0"] + fa, g["leg_x0"] - 10    # LED skersinyje iki kojos
         g["x_tp"] = g["leg_x0"] + g["leg_dxc"] + 6                   # trafo plokštelė (y-z plokštumoje) tarp kojų
+        g["rear"] = S["leg_in"] <= 0                                 # v252 (Rytis): kojos ĮVIRINTOS Į GALINĘ rėmo dalį (galinis statmuo)
+        if g["rear"]:                                                #  - į dėžę nelenda, galas statmenas; trafo plokštelė dėžės viduje
+            g["leg_dxc"] = 0.0
+            g["x_tp"] = g["xr"] - fa - S["trafo_plate"][1] - 6
         g["tp_h"] = H_ - 2 * g["ax"] - lw_
     else:
         FLw, FLh, FLt = S["flange"]; hp_ = S["hole_pitch"] / 2
@@ -154,7 +158,7 @@ def geom(S):
     per_b = 2 * (g["BW"] + g["BH"])
     g["per_b"] = per_b
     g["pvc_len"] = 2 * (g["BW"] - 2 * tb + g["BH"] - 2 * tb)
-    g["prof_len"] = 2 * g["L_h"] + (1 if inset else 2) * g["L_v"]
+    g["prof_len"] = 2 * g["L_h"] + (1 if (inset and not g.get("rear")) else 2) * g["L_v"]
     rho = json.load(open(os.path.join(HERE, "..", "assets", "svoris.json")))["density_kg_dm3"]
     tube_a = fa * fb - (fa - 2 * ft) * (fb - 2 * ft)
     pl_v = sum(P["w"] * P["h"] * P["t"] for P in g["plates"])
@@ -210,12 +214,13 @@ def bom_rows(g):
         lw_, ld_, lt_ = g["leg"]
         P = g["plates"][0]
         head = [[1, f"Frame {prof(fa, fb, ft)} (cut list - sheet 2)", "Alu EN AW-6060", "white (inside)",
-                 f"2 x {g['L_h']:g} + 1 x {g['L_v']:g} = {g['prof_len']:g} mm"],
-                ["1B", f"Legs {prof(lw_, ld_, lt_)}, end {g['leg_chamfer']:g}°", "Alu, welded to frame", g["frame_finish"],
+                 f"2 x {g['L_h']:g} + {2 if g.get('rear') else 1} x {g['L_v']:g} = {g['prof_len']:g} mm"],
+                ["1B", f"Legs {prof(lw_, ld_, lt_)}" + (" to rear member" if g.get("rear") else f", end {g['leg_chamfer']:g}°"),
+                 "Alu, welded to frame", g["frame_finish"],
                  f"2 x {g['L_leg']:.0f} mm"],
                 ["1A", f"Mounting plate {P['w']:g}x{P['h']:g}x{P['t']:g}, 4 x Ø{P['d']:g} + Ø{g['cable_hole']:g}",
                  "Alu, welded to legs", g["frame_finish"], "1 pc."],
-                ["1C", f"Trafo plate {g['trafo_plate'][1]:g} mm (PSU)", "Alu, welded between legs", "-",
+                ["1C", f"Trafo plate {g['trafo_plate'][1]:g} mm (PSU)", "Alu, welded to rear member" if g.get("rear") else "Alu, welded between legs", "-",
                  f"{g['tp_h']:g} x {g['trafo_plate'][0]:g} mm"]]
     else:
         head = [[1, f"Frame + legs {prof(fa, fb, ft)}, in body white", "Alu EN AW-6060", f"{g['frame_finish']} legs",
@@ -542,6 +547,8 @@ def exploded(g, box, yaw=-54, pitch=17):
         for y0 in (x0, x0 + FH - fa):
             sc.box((x0, Y(y0 + fa), -fb / 2), (FW, 0, 0), (0, fa, 0), (0, 0, fb), COL_INWHITE, edge=EDGE)
         sc.box((x0, Y(x0 + FH - fa), -fb / 2), (fa, 0, 0), (0, FH - 2 * fa, 0), (0, 0, fb), COL_INWHITE, edge=EDGE)
+        if g.get("rear"):
+            sc.box((g["xr"] - fa, Y(x0 + FH - fa), -fb / 2), (fa, 0, 0), (0, FH - 2 * fa, 0), (0, 0, fb), COL_INWHITE, edge=EDGE)
         for L in g["legs"]:
             sc.box((g["leg_x0"], Y(L["y"] + lw_ / 2), -ld_ / 2), (g["xb"] - g["leg_x0"], 0, 0), (0, lw_, 0), (0, 0, ld_),
                    COL_INWHITE, edge=EDGE)                          # kojos dalis dėžės viduje - balta
@@ -887,6 +894,8 @@ def frame_inset(g, X, Yv, s, led_x, yrow, sub=False):
     for y0 in (x0, x0 + FH - fa):
         rect(X(x0), Yv(y0), FW * s, fa * s, fill=COL_FRAME, lw=0.1)
     rect(X(x0), Yv(x0 + fa), fa * s, g["L_v"] * s, fill=COL_FRAME, lw=0.1)
+    if g.get("rear"):                                               # v252: galinis statmuo (kojos įvirintos į jį)
+        rect(X(xr - fa), Yv(x0 + fa), fa * s, g["L_v"] * s, fill=COL_FRAME, lw=0.1)
     for L in g["legs"]:
         top_ = L["y"] < Hd / 2
         ya, yb = L["y"] - lw_ / 2, L["y"] + lw_ / 2                 # ya - prie skersinio (top) / yb - prie skersinio (bottom)
@@ -909,7 +918,8 @@ def frame_inset(g, X, Yv, s, led_x, yrow, sub=False):
         line(X(led_x[0]), Yv(yw), X(led_x[-1]), Yv(yw), 0.2, HexColor("#C00000"))
         line(X(led_x[-1]), Yv(yw), X(g["x_tp"]), Yv(yw), 0.2, HexColor("#C00000"))
     # matmenys (v145: viena linija - viena prasmė; grandinė arčiausiai, gabaritas už jos; tarp LED matmenų nėra)
-    hchain(Yv(x0) - D1, [X(x0), X(lx0), X(xr)], [Yv(x0)] * 3, [f"{lx0 - x0:g}", f"{xr - lx0:g} (leg in)"], size=K.F_DIM_FRAME)
+    if not g.get("rear"):
+        hchain(Yv(x0) - D1, [X(x0), X(lx0), X(xr)], [Yv(x0)] * 3, [f"{lx0 - x0:g}", f"{xr - lx0:g} (leg in)"], size=K.F_DIM_FRAME)
     HM(X(x0), X(xr), Yv(x0) - D2, f"{FW:g}", Yv(x0), Yv(x0))
     yb_ = Yv(max(x0 + FH, P["yc"] + P["h"] / 2))
     hchain(yb_ + D1, [X(xr), X(g["xf"]), X(g["PROJ"])], [Yv(x0 + FH), Yv(P["yc"] + P["h"] / 2), Yv(P["yc"] + P["h"] / 2)],
@@ -922,7 +932,8 @@ def frame_inset(g, X, Yv, s, led_x, yrow, sub=False):
     vchain(X(g["PROJ"]) + D1, [Yv(v) for v in ylg], [X(g["xf"])] * 4, [f"{lw_:g}", f"{ylg[2] - ylg[1]:g}", f"{lw_:g}"],
            size=K.F_DIM_FRAME)
     VM(X(g["PROJ"]) + D2, Yv(P["yc"] - P["h"] / 2), Yv(P["yc"] + P["h"] / 2), X(g["PROJ"]), f"{P['h']:g}")
-    T(X(lx0 + dxc / 2) + 8, Yv(g["ax"] + lw_ / 2) + 10, f"{g['leg_chamfer']:g}°", 8)
+    if not g.get("rear"):
+        T(X(lx0 + dxc / 2) + 8, Yv(g["ax"] + lw_ / 2) + 10, f"{g['leg_chamfer']:g}°", 8)
     K.balloon_side(([(X(x0 + FW * 0.3), Yv(x0 + fa / 2), "1.1"), (X(x0 + FW * 0.3), Yv(x0 + FH - fa / 2), "1.2"),
                      (X(x0 + fa / 2), Yv(x0 + FH * 0.35), "1.3")] if sub else [(X(x0 + FW * 0.3), Yv(x0 + fa / 2), 1)]) +
                    [(X(g["xf"] - 10), Yv(g["ax"]), "1B"),
@@ -941,7 +952,7 @@ def end_view(g, cx, Yv, s, holes=False):
     for y0 in (x0, x0 + FH - fa):                                   # skersinių galai
         rect(Zs(-fb / 2), Yv(y0), fb * s, fa * s, fill=COL_FRAME, lw=0.1)
         rect(Zs(-fb / 2 + ft), Yv(y0 + ft), (fb - 2 * ft) * s, (fa - 2 * ft) * s, fill=white, lw=0.1)
-    if not g["inset"]:                                              # galinis statmuo
+    if not g["inset"] or g.get("rear"):                             # galinis statmuo
         rect(Zs(-fb / 2), Yv(x0 + fa), fb * s, g["L_v"] * s, fill=COL_FRAME, lw=0.1)
     for P in g["plates"]:
         y0p = P["yc"] - P["h"] / 2
@@ -1085,6 +1096,8 @@ def frame_iso(g, box):
             sc.box((x0, Y(y0 + fa), -fb / 2), (FW, 0, 0), (0, fa, 0), (0, 0, fb), WH, edge=BK)
             anc[k] = (x0 + FW * 0.35, Y(y0), fb / 2 * 0.2)
         sc.box((x0, Y(x0 + FH - fa), -fb / 2), (fa, 0, 0), (0, FH - 2 * fa, 0), (0, 0, fb), WH, edge=BK)
+        if g.get("rear"):
+            sc.box((g["xr"] - fa, Y(x0 + FH - fa), -fb / 2), (fa, 0, 0), (0, FH - 2 * fa, 0), (0, 0, fb), WH, edge=BK)
         anc["1.3"] = (x0, Y(x0 + FH * 0.5), fb / 2 * 0.3)
         for L in g["legs"]:
             sc.box((g["leg_x0"], Y(L["y"] + lw_ / 2), -ld_ / 2), (g["xf"] - g["leg_x0"], 0, 0), (0, lw_, 0), (0, 0, ld_),
@@ -1219,7 +1232,10 @@ def _sheet2(g, out):
         frame_cut = [["1.1", f"Top member {prof(fa, fb, ft)}", "Alu EN AW-6060", "white", f"1 x {FW:g} mm"],
                      ["1.2", f"Bottom member {prof(fa, fb, ft)}", "Alu EN AW-6060", "white", f"1 x {FW:g} mm"],
                      ["1.3", f"Front vertical {prof(fa, fb, ft)}", "Alu EN AW-6060", "white", f"1 x {g['L_v']:g} mm"],
-                     ["1B", f"Leg {prof(lw_, ld_, lt_)}, end {g['leg_chamfer']:g}°", "Alu EN AW-6060", g["frame_finish"],
+                     *([["1.4", f"Rear vertical {prof(fa, fb, ft)} (legs)", "Alu EN AW-6060", "white", f"1 x {g['L_v']:g} mm"]]
+                       if g.get("rear") else []),
+                     ["1B", f"Leg {prof(lw_, ld_, lt_)}" + (", to rear member" if g.get("rear") else f", end {g['leg_chamfer']:g}°"),
+                      "Alu EN AW-6060", g["frame_finish"],
                       f"2 x {g['L_leg']:.0f} mm"],
                      ["1A", f"Mounting plate {P['w']:g}x{P['h']:g}x{P['t']:g}", "Alu", g["frame_finish"],
                       f"1 pc., 4 x Ø{P['d']:g} + Ø{g['cable_hole']:g}"],
@@ -1229,7 +1245,8 @@ def _sheet2(g, out):
                      ["7B", "Cable 2 x 0.75 (LED -> PSU)", "", "", "length:"]]
     md = [["Frame outer", f"{FW:g} x {FH:g} mm"],
           ["Profile", f"{prof(fa, fb, ft)} Alu, centre of depth"],
-          ["Legs", (f"{prof(*g['leg'])} under members, in {g['leg_in']:g}, out {g['xf'] - g['xb']:g}" if g["inset"]
+          ["Legs", (f"{prof(*g['leg'])} to rear member, gap {g['xf'] - g['xb']:g}" if g.get("rear") else
+                    f"{prof(*g['leg'])} under members, in {g['leg_in']:g}, out {g['xf'] - g['xb']:g}" if g["inset"]
                     else f"top + bottom members, +{g['xf'] - g['xb']:g} out of body")],
           ["Leg axes", f"{g['h'] - 2 * g['ax']:g} mm (from glass edge {g['ax']:g})"],
           ["Joints", "welded (TIG), ground"],

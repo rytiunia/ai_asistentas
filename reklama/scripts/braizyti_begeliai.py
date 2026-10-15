@@ -2362,6 +2362,12 @@ def _p10_rods(lets, rim, d, exits):
         g = o["geom"]; x0, y0, x1, y1 = o["bb"]; w, h = x1 - x0, y1 - y0
         n = 2 if (min(w, h) < 0.35 * max(w, h) or max(w, h) < 120) else 4
         inner = g.buffer(-(rim + 1 + d / 2))
+        if max(w, h) < 120 and min(w, h) > 0.6 * max(w, h) and not inner.is_empty:
+            # v252 (Rytis): smulki kvadratinė dalis (i taškas) - 2 taškai ĮSTRIŽAI (priešingi kampai), išvestis centre
+            cs_ = list(inner.exterior.coords) if hasattr(inner, "exterior") else list(max(inner.geoms, key=lambda q: q.area).exterior.coords)
+            a_, b_ = min(cs_, key=lambda q: q[0] + q[1]), max(cs_, key=lambda q: q[0] + q[1])
+            out += [(float(a_[0]), float(a_[1]), len(out)), (float(b_[0]), float(b_[1]), len(out) + 1)]
+            continue
         st = max(1.0, min(w, h) / 60)
         X, Y = np.meshgrid(np.arange(x0, x1, st), np.arange(y0, y1, st))
         X, Y = X.ravel(), Y.ravel()
@@ -2417,22 +2423,32 @@ def _p10_rods_lines(lets, rim, d, exits, sep_y):
         return sorted([g_ for g_ in getattr(q, "geoms", [q]) if not g_.is_empty and g_.length > 0], key=lambda g_: g_.bounds[0])
     strk = np.median([sg.length for o in main for sg in segs(o, yt + 0.5 * H)] or [30]) + 2 * cl
     def pick(o, y):
-        sg = [g_ for g_ in segs(o, y) if g_.length <= 2.2 * strk]
-        if not sg:
+        mids = []
+        hw = max((strk - 2 * cl) / 2, 0)
+        for g_ in segs(o, y):
+            x0_, x1_ = g_.bounds[0], g_.bounds[2]
+            if g_.length <= 2.2 * strk:                      # kertamas štrichas - vidurys
+                mids.append(((x0_ + x1_) / 2, y))
+            else:                                            # v252: linija eina išilgai lanko / skersinio - taškai GALUOSE
+                mids += [(x0_ + hw, y), (x1_ - hw, y)]       #  (štricho vidurio atstumu nuo krašto)
+        if not mids:
             return []
+        mids.sort()
         wide = (o["bb"][2] - o["bb"][0]) > 0.45 * H
-        mids = [((g_.bounds[0] + g_.bounds[2]) / 2, y) for g_ in sg]
         return [mids[0], mids[-1]] if (wide and len(mids) >= 2) else [mids[len(mids) // 2]]
     def best(lo, hi, tgt):
         res = None
         for y in np.arange(yt + lo * H, yt + hi * H, 2.0):
-            if sep_y is not None and abs(y - sep_y) < 20:
+            if sep_y is not None and abs(y - sep_y) < 15:
                 continue
             sc = sum(len(pick(o, y)) for o in main) - abs(y - (yt + tgt * H)) / H
             if res is None or sc > res[0]:
                 res = (sc, float(y))
         return res[1] if res else None
-    y1, y2 = best(0.15, 0.45, 0.3), best(0.55, 0.85, 0.7)
+    # v252 (Rytis 2026-10-15, sudėliota ranka DB-0002): viršutinė linija ~12 % x aukščio nuo viršaus, apatinė ~82 %
+    #  (~15-20 mm virš laidų išvesčių linijos) - arti raidės viršaus / apačios, bet štricho viduryje
+    y1, y2 = best(0.10, 0.14, 0.12), best(0.79, 0.86, 0.82)
+    print(f"  P10 ilgasriegių linijos: y{y1} / y{y2}; x aukštis {yt:.0f}-{yb:.0f} (H {H:.0f}), laidų linija {sep_y}")
     out, fail, rest = [], [], [o for o in lets if o not in main]
     for o in main:
         pts = [p for y in (y1, y2) if y is not None for p in pick(o, y)]
@@ -2440,7 +2456,8 @@ def _p10_rods_lines(lets, rim, d, exits, sep_y):
             rest.append(o); continue
         if o["bb"][3] > yb + 0.15 * H:                         # kojelė (g, p, y) - papildomas taškas
             from shapely.geometry import box as _box
-            lg = o["geom"].buffer(-cl).intersection(_box(o["bb"][0] - 1, yb + 0.05 * H, o["bb"][2] + 1, o["bb"][3] + 1))
+            lg = o["geom"].buffer(-cl).intersection(_box(o["bb"][0] - 1, yb - 0.02 * H, o["bb"][2] + 1,
+                                                         yb + 0.55 * (o["bb"][3] - yb)))   # v252: kojelės viršutinė dalis
             if not lg.is_empty:
                 lg = max(getattr(lg, "geoms", [lg]), key=lambda g_: g_.area)
                 c_ = _pl(lg, 0.5)

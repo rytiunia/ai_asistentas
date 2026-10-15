@@ -69,3 +69,9 @@ MENY Trekanten: dvipusis termoformuotas logotipas 700 x 320 x 118 (3 vnt.): Fram
 2. COOP SM20: lape „Acryl WN 070" ir XLG/HLG PSU - ar dabar keisti į XT WN770 ir Kaisen/BaltLED (šiandienos sprendimai)?
 3. Pendant kabinimo standartas (Norli 20 mm skaidrus plexi rėmas) - taikyti visiems pendant ar tik Norli?
 4. Ar IDP drapeau laikikliai turi savo stovą (D5 strypas - vėliavos ašis?) - kokia jų funkcija?
+
+## Kojos įvirintos į galinę rėmo dalį (Rytis 2026-10-15, BN danbolig DB-0001)
+`sviesdeze.py` `"legs_type": "inset", "leg_in": 0, "leg_chamfer": 90`: rėmas su GALINIU statmeniu (1.4), kojos □40x40x4
+įvirintos į jį (į dėžę nelenda, galas statmenas), trafo plokštelė dėžės viduje prie galinio statmens; **tarpas tarp šviesdėžės
+ir pado - 100 mm** (`"proj"` = stiklas + 100 + plokštė). Kojų uždengimai ir plokštė gali būti kitos spalvos (`cover_hex`,
+`cover_finish`, `frame_hex` - NCS).

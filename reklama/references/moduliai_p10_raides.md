@@ -19,9 +19,13 @@ Gylis 30 mm (raidė), vidaus (Interior); šonai RAL; priekiui gali būti plėvel
 
 - **P10 BE BĖGIO (blokinė reklama, `"mounting": "none"`)** (Rytis 2026-10-15, BN danbolig PO 3295): blokas tiesiai prie fasado,
   **Alu dugnelyje privirinti ilgasriegiai** (`"p10_rod": {"d": 6, "label": "M?"}`) + **popierinis montavimo šablonas**;
-  **ilgasriegiai VIENOJE LINIJOJE viršuje ir VIENOJE apačioje** (v251, bendros visoms x aukščio raidėms, ~30 % ir ~70 % x aukščio -
-  į ploto centrą, ne krašte; taškas - štricho sankirtos vidurys, ne laidų linijoje); **raidė 4 (ne 5)**, siaura dalis 1 + 1;
-  smulkios dalys - ploto centre (`_p10_rods`);
+  **ilgasriegiai VIENOJE LINIJOJE viršuje ir VIENOJE apačioje** - ETALONAS: Rytio ranka sudėliotas DB-0002
+  `assets/etalonai/P10_be_begio_ilgasriegiai_danbolig_Rytis.pdf` (v252): bendros visoms x aukščio raidėms; viršutinė ~12 % x aukščio
+  nuo viršaus, apatinė ~82 % (~15-20 mm virš laidų išvesčių linijos); taškas - kertamo štricho vidurys; jei linija eina išilgai
+  lanko / skersinio (o, n, a viršus) - taškai to ruožo GALUOSE (štricho vidurio atstumu nuo krašto); plati raidė - kairysis ir
+  dešinysis taškas linijoje (o, d, n, a, b = 4), siaura (i, l) 1 + 1; **g - 2 viršuje, 1 apačioje (stiebo pusėje) + 1 kojelėje
+  (jos viršutinėje dalyje, prie bazinės linijos)**; **i taškas - 2 ĮSTRIŽAI (priešingi kampai), laido išvestis centre**;
+  danbolig 1800 x 352 = 30 vnt.;
   **g kojelėje - papildomas tvirtinimas**; **i taške - 2 tvirtinimai + sava laido išvestis**; ne ant laidų išvesčių;
   maitinimas „12V per letter + trafo box" (trafo neaprašomas); 3D vaizde - aiški nuoroda angliškai apie dažymą
   (spec `"note_3d"`, pvz. „FRONT PAINTED IN 2 LAYERS: 1st WHITE, 2nd BLACK"); ilgasriegio dydis / ilgis - klausimas klientui (lape „M?"); 1:1 sluoksnis `4_THREADED_RODS_<label>`. Šonai gali šviesti
