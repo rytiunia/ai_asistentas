@@ -65,3 +65,5 @@ SIDE COLOR / LED / COLORS lentelė; 2 lapas - rėmo CAD (statmenų žingsnis, 35
 PRIEKIO: 1_LETTERS (bloko kontūras), 2_BACK_inset_<rim>mm (Alu dugnelio įleidimas), 4_THREADED_RODS_* (ilgasriegiai), 5_CABLE_EXITS_D11,
 GROOVE_8MM + CENTERLINE (LED griovelis `griovelis_b.py --groove=8 --wall=2` iš 1_LETTERS kontūrų; plačios dalys >= 40 - žiedas).
 Griovelio gylis - lape „?" (klausti). Pavyzdys: `scripts/projektai/bnskilte_3295_danbolig/cad/ALT0000_DB-0002_danbolig_CAD.dxf`.
+
+- v275 (Rytis 2026-10-15, DB-0002): gamybai pakako paprasto DXF - TIK kontūras + tvirtinimo skylės Ø4 + laido išvestis 4x7 gulsčia ovali skylė (`cad/ALT0000_DB-0002_danbolig_DXF.dxf`, sluoksniai OUTLINE / HOLES_D4 / CABLE_SLOT_4x7). Pilnas CAD (griovelis, įleidimas) - tik paprašius.
