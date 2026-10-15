@@ -1801,3 +1801,29 @@ def pdf_drop_unused_fonts(fn):
             doc.xref_set_key(owner, "Resources/Font", "null")
     doc.save(fn, incremental=True, encryption=fitz.PDF_ENCRYPT_KEEP)
     return True
+
+
+def side_label_3d(V, face_pt, obj_pts, txt, size=8, gap=10, ymax=None):
+    """v256 (Rytis 2026-10-15: „3D view SIDE A / SIDE B ant vaizdo - taip neturi būti, jie turi būti šalia objekto, bet
+    NIEKADA ant jo"): užrašas PO objekto projekcija (žemiau žemiausio taško), su trumpa nuorodos linija į matomo paviršiaus
+    apatinės briaunos vidurį. V - r3d vaizdas (V.S(x, y, z) -> reportlab), face_pt - taškas ant paviršiaus krašto (mm),
+    obj_pts - objekto gabarito taškai (mm). Galioja VISIEMS 3D vaizdams su paviršių žymomis."""
+    pts = [V.S(*p) for p in obj_pts]
+    ybot = max(H - p[1] for p in pts)                       # žemiausias objekto taškas (lapo y žemyn)
+    fx, fy = V.S(*face_pt)
+    fy = H - fy
+    ty = ybot + gap
+    if ymax is not None and ty + size * 0.6 > ymax:            # po objektu netelpa (pavadinimas) - ŠALIA, kairėje
+        w = pdfmetrics.stringWidth(txt, "FB", size)
+        xl = min(p[0] for p in pts) - 6
+        if xl - w < IX0 + 6:                                     # kairėje netelpa - dešinėje
+            xr_ = max(p[0] for p in pts) + 6
+            line(fx, fy - 1.5, xr_ - 2, fy - 1.5, 0.25, GREY); tx = xr_ + w / 2
+        else:
+            line(fx, fy - 1.5, xl + 2, fy - 1.5, 0.25, GREY); tx = xl - w / 2
+        c.saveState(); c.setFillColor(GREY); c.circle(fx, Y(fy - 1.5), 0.9, stroke=0, fill=1); c.restoreState()
+        T(tx, fy - 1.5 + size * 0.35, txt, size, font="FB", align="c", color=GREY)
+        return
+    line(fx, fy + 1.5, fx, ty - size * 0.9, 0.25, GREY)
+    c.saveState(); c.setFillColor(GREY); c.circle(fx, Y(fy + 1.5), 0.9, stroke=0, fill=1); c.restoreState()
+    T(fx, ty + size * 0.35, txt, size, font="FB", align="c", color=GREY)

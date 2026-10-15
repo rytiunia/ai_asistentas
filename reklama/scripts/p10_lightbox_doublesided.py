@@ -264,8 +264,8 @@ def scene3d(g, yaw, box, title):
     V = sc.V
     for zf, lab in ((D / 2, "SIDE A"), (-D / 2, "SIDE B")):
         if V.rot(0, 0, 1 if zf > 0 else -1)[2] > 0:
-            px, py = V.S(W / 2, H * 0.06, zf)
-            face_label(px, K.H - py, lab, 8)
+            _ob = [(x_, y_, z_) for x_ in (0, W, W + LL + PLt) for y_ in (0, H) for z_ in (-D / 2 - 12, D / 2 + 12)]
+            K.side_label_3d(V, (W / 2, 0, zf), _ob, lab, 8, ymax=box[1] + box[3] + 18 - K.F_VIEW - 2)     # v256: šalia objekto, niekada ant jo
     view_title(box[0] + box[2] / 2, box[1] + box[3] + 18, title, "ILLUSTRATIVE - NOT TO SCALE")
 
 

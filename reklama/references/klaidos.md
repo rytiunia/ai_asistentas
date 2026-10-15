@@ -23,3 +23,8 @@ Procesinės (paskyros kopija sena, lygiagretūs pokalbiai, ASCII vardai, auseles
 - Šoninis vaizdas - realus vaizdas, ne pjūvis. 3D - tikras 3D, ne pasvirusios kopijos.
 - Neįterpinėti paveikslų / renderių iš pavyzdžių - viską braižyti pačiam CAD stiliumi.
 - Didelės tuščios vietos lape ir nevienodo dydžio vaizdai - keisti išdėstymo vertinimą, ne pozicijas.
+
+- **3D žyma ant objekto** (2026-10-15, danbolig DB-0001): „SIDE A / SIDE B" buvo rašoma ant stiklo 3D vaizde. Žymos - tik šalia
+  objekto (`lapas_core.side_label_3d`, SKILL taisyklė 27).
+- **Senas generatorius be naujų taisyklių** (2026-10-15, danbolig DB-0001): `sviesdeze.py` naudotas neperskaičius naujesnių
+  šviesdėžių modulių (kojos per galinį statmenį, exploded > top view). Prieš šviesdėžę - SKILL taisyklė 26.

@@ -420,11 +420,10 @@ def scene3d(g, yaw, box, title):
                     px_, py_ = V.S(x, Hd - (g["logo_y"] + v), zf)
                     return px_, K.H - py_
                 vektorius.draw_rl(K.c, g["logo_r"], 0, 0, 1, K.H, g["logo_col"], xform=xf)
-                px, py = V.S(Wd / 2, Hd * 0.04, zf)
-                face_label(px, K.H - py - 2, lab, 8)
-            else:
-                px, py = V.S(Wd / 2, Hd / 2, zf)
-                face_label(px, K.H - py, lab, 11)
+            # v256: SIDE A / B - ŠALIA objekto (po juo), niekada ant jo
+            _zz = D / 2 + tf
+            _ob = [(x_, y_, z_) for x_ in (0, Wd, g["PROJ"]) for y_ in (0, Hd) for z_ in (-_zz, _zz)]
+            K.side_label_3d(V, (Wd / 2, 0, zf), _ob, lab, 8, ymax=box[1] + box[3] + 18 - K.F_VIEW - 2)
     view_title(box[0] + box[2] / 2, box[1] + box[3] + 18, title, "ILLUSTRATIVE - NOT TO SCALE")
 
 
@@ -855,7 +854,7 @@ def sheet1(g, out):
     tx0 = fxA
     tyc = y3 + 30 + max(P0["w"] / 2, D / 2 + tf) * s
     yb3 = tyc + (D / 2 + tf) * s + 62                                # 3D eilės viršus (po TOP VIEW užrašu)
-    wl = g["PROJ"] * s + 40                                         # kairės kolonos plotis
+    wl = max(g["PROJ"] * s + 40, 2 * 150 + 20)                      # kairės kolonos plotis (3D - ne siauresni už 150)
     h3 = K.VIEW_BOT - yb3 - 30
     w3 = (wl - 20) / 2
     scene3d(g, -35, (fxA - 30, yb3, w3, h3), "3D VIEW - SIDE A")
