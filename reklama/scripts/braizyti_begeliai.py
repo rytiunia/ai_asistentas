@@ -2332,30 +2332,75 @@ if MOUNTING == "none":                                  # v90: atskiros raidės 
                 SEP_PTS.append((xm, SEP_LINE))
                 cc_ = RV(xm, SEP_LINE)
                 K.c.saveState(); K.c.setFillColor(HexColor("#D0021B")); K.c.circle(cc_[0], K.Y(cc_[1]), 1.6, stroke=0, fill=1); K.c.restoreState()
+            _xtra = [o for o in _ls if o not in _main] if FRONT == "P10" else []
+            for o in _xtra:            # v250: smulkios dalys (i taškas) - irgi išvestis (centre)
+                from shapely.ops import polylabel as _pl
+                _g = max(getattr(o["geom"], "geoms", [o["geom"]]), key=lambda g_: g_.area)
+                _c = _pl(_g, 0.5)
+                SEP_PTS.append((_c.x, _c.y))
+                cc_ = RV(_c.x, _c.y)
+                K.c.saveState(); K.c.setFillColor(HexColor("#D0021B")); K.c.circle(cc_[0], K.Y(cc_[1]), 1.6, stroke=0, fill=1); K.c.restoreState()
+            _nx = len(_main) + len(_xtra)
             _pw = str(spec.get("letters_power", "per_letter")).lower()
             _lbl = ("WAGO inside letters, one supply cable" if _pw.startswith("wago")
-                    else f"12V cable 1.5 m from each letter, exits on one line ({len(_main)} pcs.)")
+                    else f"12V cable 1.5 m from each letter, exits on one line ({_nx} pcs."
+                    + (", small parts - exit in the part" if _xtra else "") + ")")
             _ty = RV(0, min(o["bb"][1] for o in _main))[1] - 8      # virš galinio vaizdo
             T(min(a_[0], b_[0]), _ty, "- - -  " + _lbl, 7.5, color=HexColor("#D0021B"))
-            print(f"  atskiros raidės: laidų linija y{SEP_LINE:.0f} (nuo viršaus), {len(_main)} išvestys; {_lbl}")
+            print(f"  atskiros raidės: laidų linija y{SEP_LINE:.0f} (nuo viršaus), {_nx} išvestys; {_lbl}")
         else:
             print("  ! atskiros raidės: bendros horizontalios laidų linijos nėra - dėti ranka")
-# v249 (Rytis 2026-10-15, BN danbolig): P10 BE BĖGIO (mounting "none") - Alu dugnelyje ilgasriegiai tvirtinimui į fasadą +
-#  popierinis šablonas; vietos - ta pati logika kaip akriliniame rėme (pagal formą, arti centerline, horizontali linija)
+# v249/v250 (Rytis 2026-10-15, BN danbolig): P10 BE BĖGIO (mounting "none") - Alu dugnelyje ilgasriegiai į fasadą +
+#  popierinis šablonas. Bėgio nėra -> horizontalios linijos nereikia; taškai LABIAU Į PLOTO CENTRĄ (ne krašte): raidės plotas
+#  dalijamas į n dalių (k-means), kiekvienos dalies centras pritraukiamas į štricho vidurį. n: raidė 4 (ne 5), siaura / smulki
+#  dalis (i stiebas, l, i taškas) 2; g kojelė gauna savo tašką; ne ant laidų išvesčių.
+def _p10_rods(lets, rim, d, exits):
+    import numpy as np
+    import shapely as _sh
+    out, fail = [], []
+    for o in lets:
+        g = o["geom"]; x0, y0, x1, y1 = o["bb"]; w, h = x1 - x0, y1 - y0
+        n = 2 if (min(w, h) < 0.35 * max(w, h) or max(w, h) < 120) else 4
+        inner = g.buffer(-(rim + 1 + d / 2))
+        st = max(1.0, min(w, h) / 60)
+        X, Y = np.meshgrid(np.arange(x0, x1, st), np.arange(y0, y1, st))
+        X, Y = X.ravel(), Y.ravel()
+        A = np.c_[X, Y][_sh.contains_xy(g, X, Y)]                    # raidės plotas
+        C = np.c_[X, Y][_sh.contains_xy(inner, X, Y)] if not inner.is_empty else np.zeros((0, 2))
+        if len(C) == 0:
+            fail.append(round(x0)); continue
+        bd = _sh.distance(g.boundary, _sh.points(C))                # atstumas iki krašto (štricho vidurys = max)
+        rng = np.random.default_rng(0)
+        cen = A[rng.choice(len(A), n, replace=False)] if len(A) >= n else A
+        for _ in range(60):                                         # k-means (ploto dalys)
+            lab = np.argmin(((A[:, None] - cen[None]) ** 2).sum(-1), 1)
+            new = np.array([A[lab == k].mean(0) if (lab == k).any() else cen[k] for k in range(len(cen))])
+            if np.allclose(new, cen): break
+            cen = new
+        sep = max(15.0, 0.25 * min(w, h))
+        exs = [e for e in exits if g.buffer(5).contains(_sh.points(e))]
+        exd = min(20.0, 0.3 * min(w, h)) if exs else 0
+        got = []
+        order = np.argsort([-(lab == k).sum() for k in range(len(cen))])
+        for k in order:
+            sc = np.hypot(*(C - cen[k]).T) - 1.5 * bd               # arti ploto dalies centro IR štricho vidurio
+            for e in exs:
+                sc = sc + np.where(np.hypot(*(C - e).T) < exd + d / 2, 1e6, 0)
+            for q in got:
+                sc = sc + np.where(np.hypot(*(C - q).T) < sep, 1e6, 0)
+            b_ = int(np.argmin(sc))
+            if sc[b_] < 1e5:
+                got.append(C[b_])
+        if len(got) < 2:
+            fail.append(round(x0))
+        out += [(float(q[0]), float(q[1]), len(out) + i_) for i_, q in enumerate(got)]
+    return out, fail
+
+
 if FRONT == "P10" and MOUNTING == "none":
     _lets = [o for g in groups if not g["plate"] for o in g["letters"]]
     _rim = float((spec.get("p10") or {}).get("rim", 5))
-    _STn = {"d": float(P10_ROD["d"]), "cb_d": 0.0, "cb_depth": 0, "edge": _rim + 1, "two_if": 400}
-    # dvi horizontalios linijos (viršutinė ir apatinė x aukščio pusė) - kvadratinei raidei 4 taškai (2 + 2)
-    _hs_ = sorted(o["bb"][3] - o["bb"][1] for o in _lets)
-    _mn = [o for o in _lets if (o["bb"][3] - o["bb"][1]) >= 0.6 * _hs_[len(_hs_) // 2]]
-    _yb = sorted(o["bb"][3] for o in _mn)[len(_mn) // 2]                     # bazinė linija (mediana)
-    _yt = sorted(o["bb"][1] for o in _mn)[len(_mn) // 2]                     # x aukščio viršus (mediana)
-    _ym = (_yt + _yb) / 2
-    _x0b, _x1b = min(o["bb"][0] for o in _lets) - 50, max(o["bb"][2] for o in _lets) + 50
-    _band = [{"x0": _x0b, "x1": _x1b, "y0": min(o["bb"][1] for o in _lets) - 50, "y1": _ym},
-             {"x0": _x0b, "x1": _x1b, "y0": _ym, "y1": max(o["bb"][3] for o in _lets) + 50}]
-    P10N_STUDS, _f = _acr_studs(_lets, _band, _STn, 1e5, 0.0, holes=SEP_PTS)   # ne ant laidų išvesčių
+    P10N_STUDS, _f = _p10_rods(_lets, _rim, float(P10_ROD["d"]), SEP_PTS)
     for _x in _f:
         print(f"  ! P10 ilgasriegiai: raidė x{_x} - mažiau nei 2 taškai - PATIKRINTI")
     SUBS["{STUDS}"] = str(len(P10N_STUDS))

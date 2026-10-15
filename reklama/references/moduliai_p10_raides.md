@@ -19,8 +19,10 @@ Gylis 30 mm (raidė), vidaus (Interior); šonai RAL; priekiui gali būti plėvel
 
 - **P10 BE BĖGIO (blokinė reklama, `"mounting": "none"`)** (Rytis 2026-10-15, BN danbolig PO 3295): blokas tiesiai prie fasado,
   **Alu dugnelyje privirinti ilgasriegiai** (`"p10_rod": {"d": 6, "label": "M?"}`) + **popierinis montavimo šablonas**;
-  ilgasriegiai išdėstomi kaip smeigės (forma, centerline), dviem horizontaliomis linijomis (x aukščio viršutinė / apatinė pusė),
-  **ne ant laidų išvesčių** (raudoni taškai SEP linijoje); 1:1 sluoksnis `4_THREADED_RODS_<label>`. Šonai gali šviesti
+  bėgio nėra, todėl horizontalios linijos nereikia - **ilgasriegiai LABIAU Į PLOTO CENTRĄ, ne krašte** (v250: raidės plotas
+  dalijamas į n dalių, taškas - dalies centras, pritrauktas į štricho vidurį); **raidė 4 (ne 5)**, siaura / smulki dalis 2;
+  **g kojelėje - papildomas tvirtinimas**; **i taške - 2 tvirtinimai + sava laido išvestis**; ne ant laidų išvesčių;
+  maitinimas „12V per letter + trafo box" (trafo neaprašomas); ilgasriegio dydis / ilgis - klausimas klientui (lape „M?"); 1:1 sluoksnis `4_THREADED_RODS_<label>`. Šonai gali šviesti
   (nedažyti, `return_hex`), priekis dažytas (`face_hex`, pvz. baltai + juodai, klientas vėliau auksuoja).
 
 ## LED griovelis raidėje (lapas „30mm plexi", mėlyna linija)

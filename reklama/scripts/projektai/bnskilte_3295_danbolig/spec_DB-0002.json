@@ -58,7 +58,7 @@
   [
    2,
    "LED strip in groove",
-   "?",
+   "LED 12V",
    "-",
    "?"
   ],
@@ -80,6 +80,13 @@
    5,
    "Paper mounting template 1:1",
    "paper",
+   "-",
+   "1 pc."
+  ],
+  [
+   6,
+   "Trafo box",
+   "12V",
    "-",
    "1 pc."
   ]
@@ -115,11 +122,11 @@
   ],
   [
    "Illumination",
-   "?"
+   "LED 12V"
   ],
   [
    "Power",
-   "?"
+   "12V per letter + trafo box"
   ],
   [
    "Fixing",
