@@ -98,8 +98,9 @@ def section(K, x, y, w, h, spec, acry, rail_w, title="PROFILE P10", stroke=None,
       6, color=K.GREY)
     bx = X(tot) + 14
     pts = [((X(TR + TP * 0.75), Y(s0 + S * 0.2)), "1"), ((X(TR + TB + gdd - 0.8), Y(yc)), "2"),
-           ((X(TR + TB / 2), Y(s1 - RIM - 1)), "3"), ((X(TR - 3), Y(yc + 1)), "4")]
+           ((X(TR + TB / 2), Y(s1 - RIM - 1)), "3"), ((X(TR - 3) if acry else X(-WE / 2), Y(yc + 1)), "4")]
     if acry:
         pts.append(((X(TR / 2), Y(ry1 - 3)), "5"))
+    pts.sort(key=lambda t: t[0][1])                      # v251: balionai pagal taško aukštį - linijos nesikerta
     for i, ((px, py), n) in enumerate(pts):
         K.leader(px, py, bx, Y(yt) + 4 + i * ((yb - yt) * k - 8) / max(len(pts) - 1, 1), n, 6)

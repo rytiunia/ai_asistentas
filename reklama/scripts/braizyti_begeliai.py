@@ -2397,10 +2397,63 @@ def _p10_rods(lets, rim, d, exits):
     return out, fail
 
 
+def _p10_rods_lines(lets, rim, d, exits, sep_y):
+    """v251 (Rytis 2026-10-15: „tvirtinimo taškus stengtis išlaikyti vienoje linijoje tiek viršuje, tiek apačioje"):
+    dvi BENDROS horizontalios linijos per x aukščio raides (viršutinė ~30 %, apatinė ~70 % x aukščio - į ploto centrą, ne krašte),
+    taškai - štrichų sankirtų viduriai (plati raidė - kairysis ir dešinysis štrichas = 4, siaura - 1 + 1 = 2);
+    kojelė žemiau bazinės linijos (g) - papildomas taškas; smulkios dalys (i taškas) ir raidės be 2 taškų - _p10_rods."""
+    import numpy as np
+    from shapely.geometry import LineString as _L
+    from shapely.ops import polylabel as _pl
+    hs = sorted(o["bb"][3] - o["bb"][1] for o in lets)
+    main = [o for o in lets if (o["bb"][3] - o["bb"][1]) >= 0.5 * hs[len(hs) // 2]]
+    yb = sorted(o["bb"][3] for o in main)[len(main) // 2]
+    yt = sorted(o["bb"][1] for o in main)[len(main) // 2]
+    H = yb - yt
+    cl = rim + 1 + d / 2
+    inn = {id(o): o["geom"].buffer(-cl) for o in main}
+    def segs(o, y):
+        q = inn[id(o)].intersection(_L([(o["bb"][0] - 1, y), (o["bb"][2] + 1, y)]))
+        return sorted([g_ for g_ in getattr(q, "geoms", [q]) if not g_.is_empty and g_.length > 0], key=lambda g_: g_.bounds[0])
+    strk = np.median([sg.length for o in main for sg in segs(o, yt + 0.5 * H)] or [30]) + 2 * cl
+    def pick(o, y):
+        sg = [g_ for g_ in segs(o, y) if g_.length <= 2.2 * strk]
+        if not sg:
+            return []
+        wide = (o["bb"][2] - o["bb"][0]) > 0.45 * H
+        mids = [((g_.bounds[0] + g_.bounds[2]) / 2, y) for g_ in sg]
+        return [mids[0], mids[-1]] if (wide and len(mids) >= 2) else [mids[len(mids) // 2]]
+    def best(lo, hi, tgt):
+        res = None
+        for y in np.arange(yt + lo * H, yt + hi * H, 2.0):
+            if sep_y is not None and abs(y - sep_y) < 20:
+                continue
+            sc = sum(len(pick(o, y)) for o in main) - abs(y - (yt + tgt * H)) / H
+            if res is None or sc > res[0]:
+                res = (sc, float(y))
+        return res[1] if res else None
+    y1, y2 = best(0.15, 0.45, 0.3), best(0.55, 0.85, 0.7)
+    out, fail, rest = [], [], [o for o in lets if o not in main]
+    for o in main:
+        pts = [p for y in (y1, y2) if y is not None for p in pick(o, y)]
+        if len(pts) < 2:
+            rest.append(o); continue
+        if o["bb"][3] > yb + 0.15 * H:                         # kojelė (g, p, y) - papildomas taškas
+            from shapely.geometry import box as _box
+            lg = o["geom"].buffer(-cl).intersection(_box(o["bb"][0] - 1, yb + 0.05 * H, o["bb"][2] + 1, o["bb"][3] + 1))
+            if not lg.is_empty:
+                lg = max(getattr(lg, "geoms", [lg]), key=lambda g_: g_.area)
+                c_ = _pl(lg, 0.5)
+                pts.append((c_.x, c_.y))
+        out += [(float(x), float(y), len(out) + i_) for i_, (x, y) in enumerate(pts)]
+    o2, f2 = _p10_rods(rest, rim, d, exits)
+    return out + [(x, y, len(out) + i_) for i_, (x, y, _) in enumerate(o2)], fail + f2
+
+
 if FRONT == "P10" and MOUNTING == "none":
     _lets = [o for g in groups if not g["plate"] for o in g["letters"]]
     _rim = float((spec.get("p10") or {}).get("rim", 5))
-    P10N_STUDS, _f = _p10_rods(_lets, _rim, float(P10_ROD["d"]), SEP_PTS)
+    P10N_STUDS, _f = _p10_rods_lines(_lets, _rim, float(P10_ROD["d"]), SEP_PTS, SEP_LINE)
     for _x in _f:
         print(f"  ! P10 ilgasriegiai: raidė x{_x} - mažiau nei 2 taškai - PATIKRINTI")
     SUBS["{STUDS}"] = str(len(P10N_STUDS))
@@ -3104,6 +3157,9 @@ if LEDF:                                                   # v162: po galinio va
     _d3 = max(0.0, _rty + 4 + K.F_SCALE * 1.25 + 8 - iy)
     iy, ih = iy + _d3, ih - _d3
 ih -= 30
+NOTE3D = spec.get("note_3d")                              # v251: aiški nuoroda 3D vaizde (pvz. dažymo sluoksniai)
+if NOTE3D:
+    iy, ih = iy + 26, ih - 26
 up = lambda geom: __import__("shapely.affinity", fromlist=["scale"]).scale(geom, 1, -1, origin=(0, PH / 2))
 fit = [(x, y, 0) for x in (-_WM, PW + _WM) for y in (-_WM * 0.8, PH + _WM * 0.8)] + \
       [(x, y, ZMAX) for x in (0, PW) for y in (0, PH)]
@@ -3164,6 +3220,22 @@ for ob_ in objs:
     else:
         V3.solid(*ob_)
 view_title(ix + iw / 2, iy + ih + 16, "3D VIEW", "ILLUSTRATIVE - NOT TO SCALE")
+if NOTE3D:
+    _lm = [o for g in groups if not g["plate"] for o in g["letters"]]
+    _o = min(_lm, key=lambda o: o["bb"][0]) if _lm else None
+    if NOTE3D.get("at"):
+        _ax, _ay = NOTE3D["at"]
+    else:                                                # pirmos raidės priekio vidus (štricho vidurys)
+        _c = _o["geom"].representative_point(); _ax, _ay = _c.x, _c.y
+    _gz = next((g for g in groups if not g["plate"]), None)
+    _zf = (_gz["spec"].get("z0", Z_RAIL_L) + _gz["spec"].get("depth_mm", depth)) if _gz else ZMAX
+    _px, _py = V3.S(_ax, PH - _ay, _zf); _py = K.Y(_py)      # S - reportlab (y aukštyn) -> lapo y
+    _tx, _ty = ix + 6, iy - 18
+    _lines = NOTE3D["text"] if isinstance(NOTE3D["text"], list) else [NOTE3D["text"]]
+    for _i, _t in enumerate(_lines):
+        T(_tx, _ty + _i * 10, _t, 8 if _i == 0 else 7.5, color=HexColor("#D0021B") if _i == 0 else HexColor("#000000"))
+    line(_px, _py, _tx + 2, _ty + 10 * len(_lines) - 6, 0.3)
+    K.c.saveState(); K.c.setFillColor(HexColor("#000000")); K.c.circle(_px, K.Y(_py), 1.1, stroke=0, fill=1); K.c.restoreState()
 
 # ============================================================ APATINĖ JUOSTA
 BY0 = K.BAND_Y

@@ -41,6 +41,7 @@ DEF = {"client": "", "title": "DOUBLE-SIDED LIGHTBOX, WALL MOUNTED (PROJECTING)"
 COL_BODY, COL_FRAME, COL_FACE, COL_PVC, COL_FL, COL_LED = (HexColor("#9C9C9C"), HexColor("#B4B4B4"), HexColor("#F4F4F2"),
                                                            HexColor("#C8C8C8"), HexColor("#8C8C8C"), HexColor("#F2C230"))
 EDGE = HexColor("#555555")
+COL_COVER = None                                                     # v251: kojų uždengimai (None = kaip korpusas)
 COL_INWHITE = HexColor("#F2F2F2")                                   # v220: rėmas viduje / korpuso vidus - balti
 
 # v220 (Rytis 2026-10-14): 2 lapas - kaip CAD brėžinys, BE SPALVŲ, tik linijos (_CAD = True tik sheet2)
@@ -192,6 +193,7 @@ def geom(S):
         g["logo_y"] = L_.get("top", (H_ - g["logo_h"]) / 2)
         g["logo_col"] = HexColor(L_.get("color", "#000000"))
         g["logo_mat"] = L_.get("material", "film:")
+        g["logo_finish"] = L_.get("finish", "-")
     return g
 
 
@@ -228,9 +230,9 @@ def bom_rows(g):
             [7, f"LED Kaisen {g['led_name']} + PSU", f"PSU {g['psu'][0].replace('-5Y', '')}", "6500 K",
              f"{g['led_n']} pcs. ({g['led_W']:.1f} W) + 1 PSU"],
             [8, "Tapping screw, D3.2 holes", "A2", "-", f"{g['n_scr']} pcs. (into PVC edge)"]] + (
-           [[9, "Logo, sides A + B", g["logo_mat"], "black", f"2 pcs., {g['logo_w']:g} x {g['logo_h']:.0f} mm"]]
+           [[9, "Logo, sides A + B", g["logo_mat"], g.get("logo_finish", "-"), f"2 pcs., {g['logo_w']:g} x {g['logo_h']:.0f} mm"]]
            if g.get("logo_r") else []) + (
-           [[10, *KU.bom_desc(g["covers"][0]), g["body_finish"], f"2 pcs., {KU.size_txt(g['covers'][0])}"]]
+           [[10, *KU.bom_desc(g["covers"][0]), g.get("cover_finish") or g["body_finish"], f"2 pcs., {KU.size_txt(g['covers'][0])}"]]
            if g["covers"] else [])
 
 
@@ -242,7 +244,7 @@ def band(g, sheet, title_extra, md, bom, detail_fn, scales="1:5 / 1:2 / 1:1"):
     K.main_data(X_MD, BY0, W_MD, BH, md, lab_w=64)
     K.bom_table(X_BOM, BY0, W_BOM, BH, bom)
     spec = {"client": g["client"], "title": g["title"] + title_extra, "order_no": g["order_no"],
-            "drawing_no": g["drawing_no"], "sheet": sheet, "rev": g["rev"], "date": g["date"]}
+            "drawing_no": g["drawing_no"], "sheet": sheet, "rev": g["rev"], "date": g["date"], "qty": g.get("qty", 1)}
     K.title_block(X_TB, W_TB, spec, scales)
 
 
@@ -373,7 +375,7 @@ def scene3d(g, yaw, box, title):
             sc.box((g["xb"], Hd - L["y"] - L["h"] / 2, -L["d"] / 2), (LL, 0, 0), (0, L["h"], 0), (0, 0, L["d"]), COL_FRAME,
                    edge=EDGE)
     for C in g["covers"]:                                         # v144: kojų uždengimas (korpuso spalva)
-        sc.box((g["xb"] + g["cover_gap"] / 2, Hd - C["y1"], -C["w"] / 2), (LL - g["cover_gap"], 0, 0), (0, C["y1"] - C["y0"], 0), (0, 0, C["w"]), COL_BODY, edge=EDGE)
+        sc.box((g["xb"] + g["cover_gap"] / 2, Hd - C["y1"], -C["w"] / 2), (LL - g["cover_gap"], 0, 0), (0, C["y1"] - C["y0"], 0), (0, 0, C["w"]), COL_COVER, edge=EDGE)
     for P in g["plates"]:
         _flange3d(sc, g, P)
     SCR = HexColor("#D0D0D0")
@@ -678,7 +680,7 @@ def sheet1(g, out):
         cg = g["cover_gap"]                                         # v145 / v212: uždengimas 5 mm trumpesnis - po 2.5 iš abiejų galų
         c_a, c_b = sorted((X(g["xb"] + cg / 2), X(g["xf"] - cg / 2)))
         for C in g["covers"]:                                       # v144: kojų uždengimas, kojos po juo - punktyru
-            rect(c_a, Yv(C["y0"]), (LL - cg) * s, (C["y1"] - C["y0"]) * s, fill=COL_BODY, lw=0.1)
+            rect(c_a, Yv(C["y0"]), (LL - cg) * s, (C["y1"] - C["y0"]) * s, fill=COL_COVER, lw=0.1)
             for L in g["legs"]:
                 rect(a_, Yv(L["y"] - L["h"] / 2), LL * s, L["h"] * s, stroke=HexColor("#D8D8D8"), lw=0.3, dash=(2, 1.5))
         for P in g["plates"]:
@@ -839,7 +841,7 @@ def sheet1(g, out):
     if g["covers"]:
         cw = g["covers"][0]["w"]
         rect(Xt(g["xb"]), Zt(-g["leg"][1] / 2), LL * s, g["leg"][1] * s, fill=COL_FRAME, lw=0.1)
-        rect(Xt(g["xb"] + g["cover_gap"] / 2), Zt(-cw / 2), (LL - g["cover_gap"]) * s, cw * s, fill=COL_BODY, lw=0.1)
+        rect(Xt(g["xb"] + g["cover_gap"] / 2), Zt(-cw / 2), (LL - g["cover_gap"]) * s, cw * s, fill=COL_COVER, lw=0.1)
     else:
         rect(Xt(g["xb"]), Zt(-fb / 2), LL * s, fb * s, fill=COL_FRAME, lw=0.1)
     P0 = g["plates"][0]
@@ -871,8 +873,8 @@ def sheet1(g, out):
                                    else "through bottom leg + flange:")],
           ["Qty", f"{g['qty']} pcs."],
           ["Weight (calc.)", f"≈ {g['kg']:.1f} kg / pcs, excl. PSU"]]
-    md.insert(6, ["Finish", f"legs + plates {g['frame_finish']}; inside white"])
-    band(g, "1 / 2", "", md, bom_rows(g), detail_b(g), f"1:{g['scale_ga']:g} / 1:{g['scale_aa']:g}")
+    md.insert(6, ["Finish", f"legs + plates {g['frame_finish']}" if len(g['frame_finish']) > 10 else f"legs + plates {g['frame_finish']}; inside white"])
+    band(g, (g.get("sheets") or ["1 / 2", "2 / 2"])[0], "", md, bom_rows(g), detail_b(g), f"1:{g['scale_ga']:g} / 1:{g['scale_aa']:g}")
     K.save(out)
 
 
@@ -983,9 +985,10 @@ def end_view(g, cx, Yv, s, holes=False):
     cab_txt = ""
     # kairėje: plokštės nuo rėmo išorės + rėmo aukštis
     yl_ = sorted(set([x0, x0 + FH, pl_top, pl_bot]))
-    vchain(Zs(-ex_) - D1, [Yv(v) for v in yl_], [Zs(-fb / 2) if v in (x0, x0 + FH) else Zs(-PW2) for v in yl_],
+    # v251: grandinė (su mažais 3 mm tarpais) - IŠORĖJE, rėmo matmuo - viduje (kitaip rėmo iškeliamosios kerta „3")
+    vchain(Zs(-ex_) - D2, [Yv(v) for v in yl_], [Zs(-fb / 2) if v in (x0, x0 + FH) else Zs(-PW2) for v in yl_],
            [f"{b - a:g}" for a, b in zip(yl_, yl_[1:])], size=K.F_DIM_FRAME)
-    VM(Zs(-ex_) - D2, Yv(x0), Yv(x0 + FH), Zs(-fb / 2), f"{FH:g} (frame)")
+    VM(Zs(-ex_) - D1, Yv(x0), Yv(x0 + FH), Zs(-fb / 2), f"{FH:g} (frame)")
     P0 = g["plates"][0]
     nh = sum(len(P["holes"]) for P in g["plates"])
     tags = [(Zs(PW2), Yv(P0["yc"] - P0["h"] / 2 + 6), "1A")]
@@ -1233,19 +1236,23 @@ def _sheet2(g, out):
           ["Body", f"band {g['BW']:g} x {g['BH']:g}, welded to frame"],
           ["Cable", ("PSU on 1C -> inside cover -> plate Ø" + f"{g['cable_hole']:g}") if g["inset"]
            else "bottom leg tube -> flange □ hole"],
-          ["Finish", f"legs + plates {g['frame_finish']}; inside white"],
+          ["Finish", f"legs + plates {g['frame_finish']}" if len(g['frame_finish']) > 10 else f"legs + plates {g['frame_finish']}; inside white"],
           ["Qty", f"{g['qty']} set"]]
-    band(g, "2 / 2", " - FRAME (CAD)", md, frame_cut, detail, f"1:{g['scale_fr2']:g} / 1:{g['scale_pl2']:g}")
+    band(g, (g.get("sheets") or ["1 / 2", "2 / 2"])[1], " - FRAME (CAD)", md, frame_cut, detail, f"1:{g['scale_fr2']:g} / 1:{g['scale_pl2']:g}")
     K.save(out)
 
 
 def main(spec_path, out):
     S = dict(DEF); S.update(json.load(open(spec_path, encoding="utf-8")))
-    global COL_BODY, COL_FRAME, COL_FL                                 # v141: spalvos pagal RAL (pvz. 7024)
+    global COL_BODY, COL_FRAME, COL_FL, COL_COVER                                 # v141: spalvos pagal RAL (pvz. 7024)
     if str(S.get("body_finish", "")).upper().startswith("RAL") and "_" not in S["body_finish"]:
         COL_BODY = HexColor(K.ralhex(S["body_finish"]))
     if str(S.get("frame_finish", "")).upper().startswith("RAL") and "_" not in S["frame_finish"]:
         COL_FRAME = COL_FL = HexColor(K.ralhex(S["frame_finish"]))
+    COL_COVER = HexColor(S["cover_hex"]) if S.get("cover_hex") else None
+    if S.get("frame_hex"):                                          # v251: ne RAL (pvz. NCS) - spalva hex
+        COL_FRAME = COL_FL = HexColor(S["frame_hex"])
+    COL_COVER = COL_COVER or COL_BODY
     K.F_DIM_FRAME = K.F_DIM_MAIN                                    # v145 (Rytis): visi matmenys vienodo dydžio
     g = geom(S)
     g["scale_ga_spec"] = S.get("scale_ga")

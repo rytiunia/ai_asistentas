@@ -165,3 +165,7 @@ aluminium profile. 7. Suport, 5mm aluminium (Coop - 3mm). 8. LED modules. 9. Han
 - Poz. 01 DB-0001: dvipusė iškabinama šviesdėžė 850x300x100 su lipduku **3M 100-54** (auksas); korpusas RAL 9010, padas NCS S 8010-R90B.
 - Poz. 02 DB-0002: „danbolig" 1800x352 - **P10 blokinė reklama**, šonai šviečia, **be bėgio**, dugnelyje ilgasriegiai + šablonas;
   priekis dažytas dviem sluoksniais: pirma baltai, paskui juodai (auksuos klientas). Spec `scripts/projektai/bnskilte_3295_danbolig/spec_DB-0002.json`.
+- Visas užsakymas - VIENAS dokumentas `ALT0000_00.00_RS_danbolig_PO3295.pdf` (Sheet 1-2 / 3 - poz. 01 šviesdėžė `sviesdeze.py`,
+  Sheet 3 / 3 - poz. 02 raidės); 1:1 šablonas - atskiras failas. Šviesdėžė: 800 x 300 x 100, nuo sienos 850 (iš fasado brėžinio
+  „850 / 800"), kojos inset + plokštė 140 x 300, kojų uždengimai ir plokštė NCS S 8010-R90B, korpusas RAL 9010, logotipas
+  693 x 157 (iš fasado PDF, 85 nuo viršaus) 3M 100-54 abiejose pusėse.

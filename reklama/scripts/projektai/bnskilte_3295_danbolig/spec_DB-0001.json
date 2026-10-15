@@ -1,0 +1,35 @@
+{
+ "client": "BN Skilte A/S / danbolig Hornbæk",
+ "title": "DB-0001 DOUBLE-SIDED LIGHTBOX 850 x 300, PROJECTING",
+ "order_no": "ALT0000_00.00_RS",
+ "drawing_no": "PO 3295 / DB-0001",
+ "date": "2026-10-15",
+ "qty": 1,
+ "w": 800,
+ "h": 300,
+ "depth": 100,
+ "proj": 850,
+ "legs_type": "inset",
+ "plate": [
+  140,
+  300,
+  5
+ ],
+ "logo": {
+  "file": "logo_DB-0001.png",
+  "width": 693,
+  "top": 85,
+  "color": "#CCAA67",
+  "material": "3M 100-54 gold",
+  "finish": "Pantone 872C"
+ },
+ "body_finish": "RAL 9010",
+ "frame_finish": "NCS S 8010-R90B",
+ "frame_hex": "#1D2533",
+ "cover_hex": "#1D2533",
+ "cover_finish": "NCS S 8010-R90B",
+ "sheets": [
+  "1 / 3",
+  "2 / 3"
+ ]
+}
