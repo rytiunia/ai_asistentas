@@ -34,7 +34,12 @@ if P6F.parse(spec.get("front", "5S"))["warn"]:
     print(P6F.parse(spec.get("front", "5S"))["warn"])
 RAIL = {"size": "30x30x2", "depth": 30, "ral": "7035"}; RAIL.update(spec.get("rail", {}))
 # v183: rėmo RAL nežinomas („?") - FINISH langelis tuščias (ne „RAL ? matt")
-RAIL_FIN = "" if str(RAIL.get("ral", "")).strip() in ("", "?") else f"RAL {RAIL['ral']} matt"
+def _ral_txt(v):                                          # v281: NCS / PMS / kitas kodas - be „RAL" priešdėlio
+    v = str(v).strip()
+    return v if re.match(r"(NCS|PMS|RAL|3M|ORACAL|AVERY)\b", v, re.I) else f"RAL {v}"
+
+
+RAIL_FIN = "" if str(RAIL.get("ral", "")).strip() in ("", "?") else (_ral_txt(RAIL['ral']) + (" matt" if _ral_txt(RAIL['ral']).startswith("RAL") else ""))
 
 
 def _rail_pos():
@@ -2974,7 +2979,7 @@ _bottom = [CAB_Y[0]]
 if TB_ON and CEX:
     # v205 (Rytis 2026-10-14): PWM naudojamas ne visur - ant dėžės rašomas TIK kai nurodyta (spec trafo_box.pwm: true)
     _tbt = (TB or {}).get("label") or ", ".join(([ "PWM"] if (TB or {}).get("pwm") else [])
-                                                 + ([f"RAL {RAIL['ral']}"] if not K.unk(RAIL.get("ral", "")) else []))
+                                                 + ([_ral_txt(RAIL['ral'])] if not K.unk(RAIL.get("ral", "")) else []))
     TBW = max(80, K.pdfmetrics.stringWidth("TRAFO BOX", "FB", K.F_INFO + 1) + 16,
               K.pdfmetrics.stringWidth(_tbt, "F", K.F_INFO) + 12)
     # laidų nuleidimo vietos - už grupės krašto, link dėžės; tarp dviejų artimų grupių - tarpo trečdaliuose

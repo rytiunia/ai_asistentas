@@ -42,7 +42,7 @@
  "rail": {
   "size": "30x30x2",
   "depth": 30,
-  "ral": "?"
+  "ral": "NCS S 6005-R80B"
  },
  "groups": [
   {
@@ -57,7 +57,7 @@
     0.227,
     0.302
    ],
-   "rail_ral": "?",
+   "rail_ral": "NCS S 6005-R80B",
    "frame": "verticals",
    "ears": false
   },
@@ -85,21 +85,21 @@
    "Face 5S color (circles)",
    "Plexiglas GS 3H67 red, 3 mm",
    "-",
-   "{A_CIRCLES} m² / use 2050x588 = 1.21 m²"
+   "{PER_CIRCLES} m / 1.21 m²"
   ],
   [
    1,
    "Face P6+foil (Securitas)",
    "Acrylic 8 mm white",
    "-",
-   "{A_Securitas} m² / use 2050x327 = 0.67 m²"
+   "{PER_Securitas} m / 0.67 m²"
   ],
   [
    "",
-   "Front film day/night (Securitas)",
-   "day/night film black/white ?",
+   "Front foil (Securitas)",
+   "Perf. foil Gel'UV D/N, black",
    "-",
-   "{A_Securitas} m² / use 1190x532 = 0.63 m²"
+   "0.63 m²"
   ],
   [
    "A",
@@ -120,28 +120,28 @@
    "Return circles",
    "Alu 1 mm",
    "RAL 3028",
-   "{PER_CIRCLES} m, strips 80 (2000x1000)"
+   "{PER_CIRCLES} m / 0.48 m²"
   ],
   [
    2,
    "Return Securitas",
    "Alu 1 mm",
    "PMS 2965 C",
-   "{PER_Securitas} m, strips 80 (2000x1000)"
+   "{PER_Securitas} m / 1.12 m²"
   ],
   [
    3,
    "Back circles",
    "Alu 1.5 mm",
    "RAL 3028",
-   "{A_CIRCLES} m² (sheet 3000x1500, common)"
+   "1.62 m²"
   ],
   [
    3,
    "Back Securitas",
    "Alu 1.5 mm",
    "PMS 2965 C",
-   "{A_Securitas} m² (sheet 3000x1500, common)"
+   "0.50 m²"
   ],
   [
    4,
@@ -154,15 +154,15 @@
    5,
    "Rail U {RAIL_SIZE} (circles)",
    "Aluminium",
-   "? (1080-M230 matt)",
-   "{RAILS_M_CIRCLES} m (bars 2 x 6 m, common)"
+   "NCS S 6005-R80B",
+   "{RAILS_M_CIRCLES} m"
   ],
   [
    5,
    "Rail U {RAIL_SIZE} (Securitas)",
    "Aluminium",
    "NCS S 6005-R80B",
-   "{RAILS_M_Securitas} m (bars 2 x 6 m, common)"
+   "{RAILS_M_Securitas} m"
   ],
   [
    7,
@@ -202,7 +202,7 @@
   ],
   [
    "Face Securitas",
-   "Acrylic 8 white + day/night film"
+   "Acrylic 8 white + D/N foil"
   ],
   [
    "Returns",
@@ -214,7 +214,7 @@
   ],
   [
    "Rails",
-   "U 30x30x2 Alu"
+   "U 30x30x2, NCS S 6005-R80B"
   ],
   [
    "Illumination",
@@ -254,6 +254,5 @@
   "cable_len_m": 1.5,
   "mains": "230V"
  },
- "power_note": "Power: 12V, trafo box",
- "bom_title": "BILL OF MATERIALS  (per 1 pcs., net / use incl. waste)"
+ "power_note": "Power: 12V, trafo box"
 }
