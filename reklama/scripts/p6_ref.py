@@ -80,7 +80,7 @@ LABEL_MAP = {}     # v160: pjūvio balionų numeriai pagal originalo BOM (spec "
 
 
 def draw(cv, H, x, y, w, h, kind, front, depth, *, leader, balloon, T, hdim, hair=0.1, top=26, pad=8,
-         line=None, ears=None, ear_hole=0.15, bracket=None):
+         line=None, ears=None, ear_hole=0.15, bracket=None, no_rail=False, extra_left=0.0, after=None):
     """Nubraižo pjūvį į sritį (x, y, w, h - bloko vidus be antraštės; lapo koord., y žemyn)."""
     front, dr, spans = _load(kind, front)
     F8 = front == "8mm"
@@ -126,6 +126,12 @@ def draw(cv, H, x, y, w, h, kind, front, depth, *, leader, balloon, T, hdim, hai
     pvc = [i for i, d in enumerate(dr) if i not in skip and d.get("fill") and not _dark(d["fill"])
            and max(d["fill"]) < 0.95 and d["rect"].height < 2 and d["rect"].width < 7
            and any(b.intersects(d["rect"]) for b, _ in bolts)]
+    _bk = None
+    if no_rail:                                        # v270: be bėgelio (L profiliai ir pan. braižomi `after`)
+        _bk = max((d["rect"] for i, d in enumerate(dr) if i not in skip and d.get("fill") and 0.6 < max(d["fill"]) < 0.75
+                   and d["rect"].height > 40 and d["rect"].width < 4), key=lambda r: r.height)
+        skip.update(i for i, d in enumerate(dr) if d["rect"].x1 <= _bk.x0 + 0.05)
+        leads = [(j, tp) for j, tp in leads if dr[j]["rect"].x1 > _bk.x0]
     plex = max((i for i, d in enumerate(dr) if i not in skip and d.get("fill") == (1.0, 1.0, 1.0)
                 and d["rect"].height > 40), key=lambda i: dr[i]["rect"].x1)
 
@@ -134,7 +140,7 @@ def draw(cv, H, x, y, w, h, kind, front, depth, *, leader, balloon, T, hdim, hai
     for i, d in enumerate(dr):
         if i not in skip or i in boxes:
             clip = d["rect"] if clip is None else clip | d["rect"]
-    clip = fitz.Rect(clip.x0 - 3, clip.y0 - 2, clip.x1 + (18 if not F8 else 6), clip.y1 + 2)
+    clip = fitz.Rect(clip.x0 - 3 - extra_left, clip.y0 - 2, clip.x1 + (18 if not F8 else 6), clip.y1 + 2)
     aw, ah = w - 2 * pad, h - top - pad
     k = min(aw / clip.width, ah / clip.height)
     tx = x + pad + (aw - clip.width * k) / 2
@@ -419,3 +425,8 @@ def draw(cv, H, x, y, w, h, kind, front, depth, *, leader, balloon, T, hdim, hai
     ret = min((d["rect"] for d in dr if grey(d.get("fill")) and d["rect"].width > 20), key=lambda r: r.y0)
     pl = dr[plex]["rect"]
     hdim(X(ret.x0), X(pl.x1), Yp(min(ret.y0, pl.y0)) - 10, f"{depth:.0f}", Yp(ret.y0), Yp(pl.y0))
+    if after is not None:                              # v270: papildomi elementai tame pačiame mastelyje
+        bk_ = _bk or max((d["rect"] for i, d in enumerate(dr) if d.get("fill") and 0.6 < max(d["fill"]) < 0.75
+                          and d["rect"].height > 40), key=lambda r: r.height)
+        after(dict(X=X, Yp=Yp, k=k, back_x=bk_.x0, top=ret.y0, bottom=max(d["rect"].y1 for d in dr if grey(d.get("fill"))),
+                   front_x=pl.x1, upm=float(depth) / max(pl.x1 - ret.x0, 1e-6), x0=x, y0=y, w=w, h=h))

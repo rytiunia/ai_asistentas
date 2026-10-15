@@ -916,14 +916,14 @@ def title_block(x, w, spec, scales):
 
 
 # ------------------------------------------------------------------ P6 tipinis pjūvis (juostai)
-def p6_reference(x, y, w, h, depth, kind="u", front="3mm", title=None, ears=None, ear_hole=0.15, bracket=None):
+def p6_reference(x, y, w, h, depth, kind="u", front="3mm", title=None, ears=None, ear_hole=0.15, bracket=None, **kw):
     """P6 pjūvis iš Rytio etaloninio brėžinio (vektorinis įterpimas, scripts/p6_ref.py) + gylio matmuo.
     kind: 'folded' / 'u' / 'square'. Variantui 'plate' (6+3) etalono nėra - naudoti p6_typical."""
     import p6_ref
     header(x, y, w, title or "PROFILE P6 - TYPICAL SECTION")
     rect(x, y + 12, w, h - 12, lw=0.6)
     p6_ref.draw(c, H, x, y + 12, w, h - 12, kind, front, depth, leader=leader, balloon=balloon, T=T, hdim=hdim,
-                hair=HAIR, ears=ears, ear_hole=ear_hole, bracket=bracket)
+                hair=HAIR, ears=ears, ear_hole=ear_hole, bracket=bracket, **kw)
 
 
 def rail_section(x, y, w, h, t, kind="u", opening="left", fill=None, lw=0.4):

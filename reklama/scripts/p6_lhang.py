@@ -1,75 +1,67 @@
-"""P6 raidės ant L profilių (Alfa Neon / Volvo BILB26-01001 būdas) - tipinis pjūvis lapo juostoje (v269, Rytis 2026-10-15).
+"""P6 raidės ant L profilių (Alfa Neon / Volvo BILB26-01001 būdas) - tipinis pjūvis lapo juostoje (v269-v270, Rytis 2026-10-15).
 
-Etalonas: assets/etalonai/BILB26-01001_P6_ant_L_profiliu.pdf (Ryčio „pavyzdys iš jau daryto"):
-  5 Frame - Al L 40x40x2 (x2, raidžių pusėje: vertikali lentyna prie raidžių nugaros, horizontali - į fasadą),
-  6 Wire frame - Al U 15x15x2 (x1, laidams, prie rėmo),
-  7 Wall side frame - Al L 40x40x2 (x2, ant fasado: vertikali lentyna prie fasado, horizontali - į raides);
-  rėmo L horizontali lentyna UŽSIKABINA / guli ant fasado L horizontalios lentynos (montuojama užkabinant).
-Pjūvis - vertikalus per viršutinį L: kairėje raidė (priekis, šonas, nugara, LED), dešinėje fasadas.
-Balionai: 1 priekis, 2 šonas, 3 nugara, 4 LED, 5 rėmo L, 6 laidų U, 7 fasado L (BOM numeriai - spec `lhang.balloons`)."""
-from reportlab.lib.colors import HexColor, white
+v270 (Rytis: „P6 turi atitikti standartą, įkeltas brėžinys buvo išskirtinai rėmo - brėžinyje P6 patvirtintas profilis + naujo
+tipo montavimo rėmas"): raidė - ETALONINIS P6 pjūvis (`p6_ref`, Rytio `assets/p6_profiliai.pdf`, U wallframe variantas BE
+bėgelio), prie jo tame pačiame mastelyje pridedamas L rėmas iš etalono assets/etalonai/BILB26-01001_P6_ant_L_profiliu.pdf:
+  5 Frame - Al L 40x40x2 (x2, ties bėgelių ašimis: vertikali lentyna AUKŠTYN prie raidžių nugaros, horizontali - į fasadą),
+  6 Wire frame - Al U 15x15x2 (x1, laidams, viršutinio L kampe, anga į fasadą),
+  7 Wall side frame - Al L 40x40x2 (x2, ant fasado: horizontali lentyna PO rėmo L, vertikali - žemyn prie fasado);
+  raidžių rėmas užkabinamas ant fasado L. Nugara -> fasadas ~ L + gap (etalone ~48 mm su L 40).
+Balionai: 1-4 - kaip etalone (priekis, šonas, nugara, LED), 5 / 6 / 7 - spec `lhang.balloons` (= BOM poz.)."""
+from reportlab.lib.colors import HexColor
 
-PLEX = HexColor("#F7F7F2")
 ALU = HexColor("#B4B4B4")
-LED = HexColor("#F2E28C")
+U8_DEPTH_UNITS = 42.3                                        # p6_profiliai.pdf U 8 mm skydelis: galas -> priekis
 
 
 def section(K, x, y, w, h, depth, spec, title="PROFILE P6 ON L-PROFILES - TYPICAL SECTION"):
-    from lapas_core import rect, poly, T, hdim
-    L = dict({"l": 40.0, "t": 2.0, "u": 15.0, "ut": 2.0, "balloons": {}}, **(spec.get("lhang") or {}))
+    from lapas_core import poly, rect, T, hdim
+    L = dict({"l": 40.0, "t": 2.0, "u": 15.0, "ut": 2.0, "gap": 8.0, "balloons": {}}, **(spec.get("lhang") or {}))
     ral = (spec.get("rail") or {}).get("ral")
     COL = HexColor(K.ralhex(str(ral))) if ral and str(ral).strip("?") else ALU
-    side_ral = next((g.get("return_ral") for g in spec.get("groups", []) if g.get("return_ral")), None)
-    SIDE = HexColor(K.ralhex(side_ral)) if side_ral else HexColor("#DADADA")
-    K.header(x, y, w, title)
-    rect(x, y + 12, w, h - 12, lw=0.6)
-    D, l, t, u, ut = float(depth), L["l"], L["t"], L["u"], L["ut"]
-    gap = float(L.get("gap", 8))                                  # nugara -> fasadas = L + gap (etalone ~ 48 su L 40)
-    zb, zw = D, D + l + gap                                       # raidės nugaros išorė, fasadas
-    HV = 170.0                                                    # rodomas raidės viršaus ruožas
-    W_ = zw + 10
-    k = min((w - 90) / W_, (h - 12 - 34) / HV)
-    ox, oy = x + 40, y + 12 + 16
-    X = lambda z: ox + z * k
-    Y = lambda v: oy + v * k
-    K.set_view(True)
-    rect(X(zw), Y(-4), 8 * k, (HV + 6) * k, fill=HexColor("#DCEBF5"), lw=0.3)          # fasadas (stiklas)
-    rect(X(0), Y(0), 8 * k, HV * k, fill=PLEX, lw=0.3)                               # 1 priekis
-    rect(X(8), Y(0), (D - 8) * k, 1.0 * k, fill=SIDE, lw=0.2)                       # 2 šonas (viršus)
-    rect(X(D - 1.5), Y(0), 1.5 * k, HV * k, fill=SIDE, lw=0.2)                      # 3 nugara
-    rect(X(D - 1.5 - 3), Y(HV * 0.45), 3 * k, 14 * k, fill=LED, lw=0.2)            # 4 LED ant nugaros
-    yh = 95.0                                                     # rėmo L horizontali lentyna (apačioje)
-    # 5 rėmo L: vertikali lentyna AUKŠTYN prie nugaros, horizontali - į fasadą (kaip etalone)
-    poly([(X(zb), Y(yh - l)), (X(zb + t), Y(yh - l)), (X(zb + t), Y(yh - t)), (X(zb + l), Y(yh - t)),
-          (X(zb + l), Y(yh)), (X(zb), Y(yh))], fill=COL, lw=0.3)
-    # 7 fasado L: horizontali lentyna PO rėmo L, vertikali - ŽEMYN prie fasado; rėmas užkabinamas ant jos
-    yw = yh + 1.0
-    poly([(X(zw - l), Y(yw)), (X(zw), Y(yw)), (X(zw), Y(yw + l)), (X(zw - t), Y(yw + l)), (X(zw - t), Y(yw + t)),
-          (X(zw - l), Y(yw + t))], fill=COL, lw=0.3)
-    # 6 laidų U 15x15 - ant rėmo L vertikalios lentynos, anga į fasadą
-    yu = yh - l + 4
-    poly([(X(zb + t), Y(yu)), (X(zb + t + u), Y(yu)), (X(zb + t + u), Y(yu + ut)), (X(zb + t + ut), Y(yu + ut)),
-          (X(zb + t + ut), Y(yu + u - ut)), (X(zb + t + u), Y(yu + u - ut)), (X(zb + t + u), Y(yu + u)),
-          (X(zb + t), Y(yu + u))], fill=COL, lw=0.3)
-    K.circle(X(zb + t + u / 2 + 1), Y(yu + u * 0.33), 2.0 * k, fill=HexColor("#2050E0"), lw=0.1)
-    K.circle(X(zb + t + u / 2 + 1), Y(yu + u * 0.68), 2.0 * k, fill=HexColor("#333320"), lw=0.1)
-    K.set_view(False)
-    hdim(X(0), X(D), Y(0) - 8, f"{D:g}", Y(0), Y(0), size=7)
-    hdim(X(zb), X(zw), Y(yh - l) - 10, f"~{l + gap:g}", Y(yh - l), Y(-4), size=7)
-    T(X(zw + 4), Y(-4) - 3, "FACADE", 5.5, align="c", color=K.GREY)
-    T(x + 5, y + h - 5, f"L {l:g}x{l:g}x{t:g} (letters) hooks onto L {l:g}x{l:g}x{t:g} (facade); U {u:g}x{u:g}x{ut:g} - wires",
-      5.5, color=K.GREY)
-    B = {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7}
+    l, t, u, ut, gap = (float(L[k_]) for k_ in ("l", "t", "u", "ut", "gap"))
+    B = {"5": 5, "6": 6, "7": 7}
     B.update({str(a): b for a, b in (L["balloons"] or {}).items()})
-    left = [((X(4), Y(HV * 0.55)), B["1"]), ((X(D * 0.45), Y(0.5)), B["2"])]
-    right = [((X(D - 0.8), Y(HV * 0.8)), B["3"]), ((X(D - 3), Y(HV * 0.45 + 7)), B["4"]),
-             ((X(zb + l * 0.6), Y(yh - t / 2)), B["5"]), ((X(zb + t + u), Y(yu + u / 2)), B["6"]),
-             ((X(zw - t / 2), Y(yw + l * 0.7)), B["7"])]
-    for side, pts in (("l", left), ("r", right)):         # v269: balionai anchor'o aukštyje (horizontalios nuorodos nesikerta)
-        pts = sorted([p for p in pts if p[1]], key=lambda q: q[0][1])
-        bx = (x + 14) if side == "l" else (X(zw + 8) + 16)
+    upm0 = float(depth) / U8_DEPTH_UNITS
+    extra = (l + gap + 10) / upm0 + 18
+
+    def after(G):
+        X, Yp, upm, k = G["X"], G["Yp"], G["upm"], G["k"]
+        bx = G["back_x"]
+        mm = lambda v: v / upm                                 # mm -> etalono vienetai
+        wx = bx - mm(l + gap)                                  # fasadas
+        top, bot = G["top"], G["bottom"]
+        hgt = bot - top
+        cys = [top + hgt * 0.3]          # kaip etalone - pjūvis per VIENĄ (viršutinį) L porą; BOM - x2
+        P = lambda pts: poly([(X(a), Yp(b)) for a, b in pts], fill=COL, lw=0.3)
+        rect(X(wx - mm(8)), Yp(top - mm(10)), mm(8) * k, (hgt + mm(20)) * k, fill=HexColor("#DCEBF5"), lw=0.3)
+        anchors = []
+        for n_, cy in enumerate(cys):
+            yh = cy + mm(l) / 2                                # rėmo L horizontalios lentynos apačia
+            P([(bx, yh - mm(l)), (bx - mm(t), yh - mm(l)), (bx - mm(t), yh - mm(t)), (bx - mm(l), yh - mm(t)),
+               (bx - mm(l), yh), (bx, yh)])                    # 5 rėmo L
+            yw = yh + mm(1)
+            P([(wx + mm(l), yw), (wx, yw), (wx, yw + mm(l)), (wx + mm(t), yw + mm(l)), (wx + mm(t), yw + mm(t)),
+               (wx + mm(l), yw + mm(t))])                      # 7 fasado L
+            if n_ == 0:                                        # 6 laidų U - viršutinio L kampe, anga į fasadą
+                yu0, xu1 = yh - mm(t) - mm(u) - mm(1), bx - mm(t)
+                P([(xu1, yu0), (xu1 - mm(u), yu0), (xu1 - mm(u), yu0 + mm(ut)), (xu1 - mm(ut), yu0 + mm(ut)),
+                   (xu1 - mm(ut), yu0 + mm(u) - mm(ut)), (xu1 - mm(u), yu0 + mm(u) - mm(ut)), (xu1 - mm(u), yu0 + mm(u)),
+                   (xu1, yu0 + mm(u))])
+                anchors += [((X(bx - mm(l) * 0.6), Yp(yh - mm(t) / 2)), B["5"]),
+                            ((X(xu1 - mm(u)), Yp(yu0 + mm(u) / 2)), B["6"]),
+                            ((X(wx + mm(t) / 2), Yp(yw + mm(l) * 0.7)), B["7"])]
+        anchors = sorted([a for a in anchors if a[1]], key=lambda q: q[0][1])
+        bxl = X(wx - mm(8)) - 14
         prev = -1e9
-        for (px, py), n in pts:
+        for (px, py), n in anchors:                            # balionai kairėje, horizontaliai (nesikerta)
             by = max(py, prev + 15)
             prev = by
-            K.leader(px, py, bx, by, n, 6)
+            K.leader(px, py, bxl, by, n, 6)
+        hdim(X(wx), X(bx), Yp(top - mm(10)) - 6, f"~{l + gap:g}", Yp(top - mm(10)), Yp(top), size=7)
+        T(G["x0"] + 4, G["y0"] + 9,
+          f"L {l:g}x{l:g}x{t:g} (letters) hooks onto L {l:g}x{l:g}x{t:g} (facade); U {u:g}x{u:g}x{ut:g} - wires", 5.5,
+          color=K.GREY)
+
+    K.p6_reference(x, y, w, h, depth, kind="u", front=spec.get("front", "P6"), title=title, no_rail=True,
+                   extra_left=extra, after=after)

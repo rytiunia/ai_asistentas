@@ -97,6 +97,8 @@ Etalonas `assets/etalonai/BILB26-01001_P6_ant_L_profiliu.pdf` (pjūvis + 5-7 poz
 - **7 Wall side frame** - Al L 40x40x2 x2 (ant fasado: vertikali lentyna ŽEMYN prie fasado, horizontali - į raides);
   raidžių rėmas UŽKABINAMAS ant fasado L. Atstumas nugara -> fasadas etalone ~48 (L 40 + ~8, `lhang.gap`).
 - Spalva - kliento (BILB RAL 9007 70 % gloss, EXLANTIX RAL 5008). Statmenų NĖRA (tik 2 horizontalūs L, `auto_frame` bėgelių ašys).
+- **v270 (Rytis): pjūvyje P6 - PATVIRTINTAS standartinis profilis (`p6_ref`, U variantas be bėgelio) + naujas L montavimo rėmas**
+  (BILB26-01001 brėžinys - TIK rėmo pavyzdys, ne raidės); pjūvis per vieną (viršutinę) L porą, kaip etalone.
 - Kodas: `braizyti_begeliai.py` `"rail": {"type": "L", "size": "40x40x2", "depth": 40}`, `"mounting": "l_hang"`, `"lhang": {...}`;
   pjūvis `scripts/p6_lhang.py` (balionai `lhang.balloons` = BOM poz.). Pirmas atvejis - Alfa Neon EXLA26-01001 (PO 33580).
 - Fasado L tvirtinimas prie fasado (pvz. stiklo) - KLAUSTI („?").
