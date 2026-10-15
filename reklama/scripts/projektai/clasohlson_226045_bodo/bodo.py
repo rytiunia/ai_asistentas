@@ -42,9 +42,24 @@ FLT = PD - TS
 FLAT = (PW + 2 * FLT, PH + 2 * FLT)              # v173: flanšai = gylis - t
 
 begin(16)
-SC = 15
+# ---- TAISYKLĖ 33: adaptyvus išdėstymas - masteliai, stulpeliai ir tarpai skaičiuojami iš geometrijos + anotacijų
+import layout_engine as LE
+from reportlab.pdfbase.pdfmetrics import stringWidth as _sw
+A_TOP, A_BOT = 58, 44                                             # viršutiniai matmenys | pavadinimas + mastelis
+YT = K.IY0 + A_TOP
+SC = LE.pick_scale((PW, PH), (K.IX1 - K.IX0, K.VIEW_BOT - YT - A_BOT))    # FRONT / SIDE / REAR - BENDRAS
 s = MM / SC
-X0, YT = K.IX0 + 92, K.IY0 + 58
+_side_txt = max(_sw("40 + 20 + 23", "F", 8), _sw("(DETAIL A)", "F", 8))
+TR_W = 40 + _sw("12V, 5 m, white", "F", 8)                        # trafo box + laido užrašas
+DET_W = 222                                                       # DETAIL A 1:2 su pozicijomis (stulpelis su LOGO DETAIL)
+ASP3 = LE.proj_aspect(LE.box_corners(PW, PH, PD + 43), 30, 14)
+P3_W = ASP3 * PH * s                                              # 3D - tokio pat aukščio kaip projekcijos
+COLS = [58 + PW * s + 29,                                         # FRONT: 2380 grandinė | pozicijos
+        (PD + 43) * s + 10 + _side_txt,                           # SIDE + užrašas
+        24 + PW * s + 29,                                         # REAR: D11 grandinė | pozicijos
+        TR_W, DET_W, P3_W]
+CX, G_ = LE.distribute(K.IX0, K.IX1, COLS)
+X0 = CX[0] + 58
 fx = lambda x: X0 + x * s
 fy = lambda y: YT + y * s
 YB = fy(PH)
@@ -67,7 +82,7 @@ leader(fx(LET[0]["geom"].representative_point().x), fy(LET[0]["geom"].representa
 view_title(X0 + PW * s / 2, YB + 30, "FRONT VIEW", f"SCALE 1:{SC}")
 
 # ================================================================ SIDE VIEW (RIGHT)
-SX = fx(PW) + 70
+SX = CX[1]
 sx = lambda d: SX + d * s
 K.set_view(True)
 rect(sx(0), YT, PD * s, PH * s, fill=NCS, lw=0.4)
@@ -85,7 +100,7 @@ T(sx(PD / 2), YT - 26, "A", 9, font="FB", align="c")
 view_title(sx(PD + 43) / 2 + SX / 2, YB + 30, "SIDE VIEW", f"SCALE 1:{SC}")
 
 # ================================================================ REAR VIEW (MIRRORED)
-RX = SX + 150
+RX = CX[2] + 24
 rx = lambda x: RX + (PW - x) * s
 ry = fy
 K.set_view(True)
@@ -112,10 +127,7 @@ hx = rx(dx_)
 circle(hx, ry(dy_), 1.6, fill=K.CABLE, stroke=None)
 T(hx - 4, ry(dy_) - 4, "D11", 8, color=K.CABLE, align="r", auto_red=False)
 # v288 išdėstymas (Rytis 2026-10-15): po galo vaizdo - TRAFO BOX | [DETAIL A virš LOGO DETAIL] | 3D; vienodi tarpai g
-REAR_R = RX + PW * s + 29                                          # su pozicijų žymomis
-TR_W, DET_W, P3_W = 100, 222, 100                                  # trafo + užrašas, DETAIL A stulpelis, 3D plokštė
-G_ = (K.IX1 - REAR_R - TR_W - DET_W - P3_W) / 4
-bxL = REAR_R + G_
+bxL = CX[3]
 K.cable_line([(hx, ry(dy_)), (rx(0), ry(dy_)), (bxL + 35, ry(dy_)), (bxL + 35, ry(dy_) + 40)])
 K.set_view(True); circle(rx(0), ry(dy_), 1.8, stroke=K.CABLE, lw=0.6); K.set_view(False)
 by_ = ry(dy_) + 40
@@ -129,13 +141,14 @@ view_title(RX + PW * s / 2, YB + 30, "REAR VIEW (MIRRORED)", f"SCALE 1:{SC}")
 
 # ================================================================ DETAIL A - SECTION 1:2 (lūžęs)
 LY = round(LBB[1])
-ax0 = bxL + TR_W + G_ + 52
+ax0 = CX[4] + 52
 ya = detail_a(ax0, YT + 4, LY)
 view_title(ax0 + 20 * MM / 2, ya + 16, "DETAIL A - SECTION", "SCALE 1:2  |  top edge + letter, broken view")
 
 # ================================================================ LOGO DETAIL 1:10 (Rytis 2026-10-15: „trūksta detalesnių logotipo matmenų")
 #  ženklas (lankas + žiedas), eilutės „Clas" / „Ohlson" - aukščiai, tarpai, pločiai; matmenys nuo logotipo gabarito kampo
-SCL = 10
+_lh = (YB + 30 - 43) - (ya + 16 + 18 + 22)                      # nuo DETAIL A mastelio eilutės iki pavadinimų eilės
+SCL = LE.pick_scale((LBB[2] - LBB[0], LBB[3] - LBB[1]), (DET_W, _lh), annot=(12, 52, 0, 0), inter=())   # TAISYKLĖ 33: didžiausias ISO
 sl = MM / SCL
 _sym = [L for L in LET if L["bb"][1] < LBB[1] + 0.75 * (LBB[3] - LBB[1]) and L["bb"][3] - L["bb"][1] > 200]
 _txt = [L for L in LET if L not in _sym]
@@ -145,7 +158,7 @@ _r2 = [L for L in _txt if L not in _r1]
 bbox = lambda Ls: (min(L["bb"][0] for L in Ls), min(L["bb"][1] for L in Ls), max(L["bb"][2] for L in Ls), max(L["bb"][3] for L in Ls))
 SB, R1, R2 = bbox(_sym), bbox(_r1), bbox(_r2)
 _arc = max(_sym, key=lambda L: L["bb"][3] - L["bb"][1]); _ring = min(_sym, key=lambda L: L["bb"][3] - L["bb"][1])
-x3 = ax0 + 170 + G_                                                # 3D - dešinėje, siauras aukštas
+x3 = CX[5]                                                # 3D - dešinėje, siauras aukštas
 LXL = ax0 + 59 - (LBB[2] - LBB[0] + 60 / sl) * sl / 2 + 10     # logotipo detalė - PO DETAIL A, stulpelio centre
 lx = lambda x: LXL + (x - LBB[0]) * sl
 ly = lambda y: YB + 30 - 43 + (y - LBB[3]) * sl              # pavadinimas - vienoje eilėje su kitais
@@ -176,7 +189,7 @@ import r3d
 S3 = r3d.Scene(30, 14)
 # Rytis 2026-10-15: 3D - DEŠINĖJE, praktiškai tokio pat dydžio kaip priekio / galo projekcijos (tas pats aukštis YT..YB)
 y3 = YT
-w3, h3 = K.IX1 - G_ - x3, YB - YT
+w3, h3 = P3_W, YB - YT
 S3.box((0, 0, 0), (PW, 0, 0), (0, PH, 0), (0, 0, PD), NCS, HexColor("#5D8EA6"))
 for L in LET:
     g = sscale(L["geom"], 1, -1, origin=(0, 0)); g = stranslate(g, 0, PH)
@@ -211,4 +224,6 @@ band("P8 SPECIAL - SECTION A-A (1:2)", p8_band, bom, md, "Order 226045 Clas Ohls
      f"1:{SC} / 1:2", qty=QTY)
 K.save(OUT)
 K.pdf_fix_fonts(OUT)
+LE.report("Bodø 226045", SC, G_, {"ortho H": (PH * s, K.VIEW_BOT - YT - A_BOT), "3D H": (h3, YB - YT),
+          f"logo 1:{SCL} H": ((LBB[3] - LBB[1]) * sl, _lh)})
 print("logo", [round(v) for v in LBB], "letters", len(LET), "spacers", N_SP, "flat", FLAT, "W", round(WT, 1), "overflow", K.OVERFLOW)
