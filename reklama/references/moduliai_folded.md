@@ -36,6 +36,8 @@ v37-v172 - NEBENAUDOTI; seni projektų skriptai jo nepakeisti.) max ilgis - lak�
     „gamybai reikalingi tikslūs fasado kampai". Kai kampai žinomi - kampo dalies priekis trumpinamas
     gylis·tan(α/2).
 - **Kelios dalys vienoje plokštumoje (back plate didesnis už lakštą, pvz. OKQ8 3200x2400, Rytis 2026-10-09):**
+  * v284 (Rytis 2026-10-15, Joker 226057): dalys skaidomos taip, kad kiekvienos išklotinė tilptų MAŽIAUSIAME lakšte -
+    pirmiausia 3000x1500 (paraštės 10), tik jei negalima - 4000x2000; sandūra tarpe, bet ne arčiau 50 mm nuo grafikos.
   * Sandūra - GRAFIKOS / RAIDŽIŲ TARPE: didžiausio tarpo viduryje (apvalinti 5 mm), grafika ir raidės sandūros
     nekerta; kryptį (horizontali / vertikali) rinktis pagal tarpą ir lakštą, klientui nurodžius - jo vieta.
   * L 30x30x2 TIK viso skydo viršuje ir apačioje (kaip SPAR back plate etalone), ne kiekvienai daliai.

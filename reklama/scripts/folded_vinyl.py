@@ -84,17 +84,29 @@ def objects_of(G):
     return parts
 
 
-def split_rows(P, G, depth, t, sheet):
-    """v283: plokštė netelpa lakšte -> horizontali sandūra didžiausio grafikos tarpo viduryje (abi dalys telpa)"""
+def split_rows(P, G, depth, t, sheets):
+    """v283: plokštė netelpa lakšte -> horizontali sandūra grafikos tarpe (abi dalys telpa).
+    v284 (Rytis 2026-10-15: „didelė skarda: viršutinės dalies išklotinė turi tilpti į 3000x1500 lapą"): lakštai renkami nuo
+    MAŽIAUSIO (`sheets_mm`, numatyta 3000x1500, 4000x2000); sandūra - tarpo viduryje, bet ne aukščiau / žemiau, nei leidžia
+    mažesnis lakštas (>= 50 nuo grafikos), apvalinta 5 (žemyn)."""
     FL = depth - t
-    mx, mn = max(sheet) - 20, min(sheet) - 20
-    fits = lambda w, h: max(w + 2 * FL, h + 2 * FL) <= mx and min(w + 2 * FL, h + 2 * FL) <= mn
     W, H = P["w"], P["h"]
     if P.get("joints_y") is not None:
         ys = [0] + list(P["joints_y"]) + [H]
         return [b - a for a, b in zip(ys, ys[1:])]
-    if fits(W, H):
-        return [H]
+    sheets = sorted([tuple(q) for q in sheets], key=lambda q: q[0] * q[1])
+
+    def hmax(sh):                                      # didžiausias dalies aukštis lakšte (plotis W telpa?)
+        mx, mn = max(sh) - 20, min(sh) - 20
+        fw = W + 2 * FL
+        if fw <= mn:
+            return mx - 2 * FL
+        if fw <= mx:
+            return mn - 2 * FL
+        return -1
+    for sh in sheets:
+        if H <= hmax(sh):
+            return [H]
     iv = sorted((g.bounds[1], g.bounds[3]) for g in objects_of(G))
     m = []
     for a, b in iv:
@@ -102,15 +114,28 @@ def split_rows(P, G, depth, t, sheet):
             m[-1][1] = max(m[-1][1], b)
         else:
             m.append([a, b])
-    cands = [(m[0][0] / 2, 0, m[0][0])] if m and m[0][0] > 0 else []
-    cands += [((b1[1] + b2[0]) / 2, b1[1], b2[0]) for b1, b2 in zip(m, m[1:])]
-    cands += [((m[-1][1] + H) / 2, m[-1][1], H)] if m else []
-    ok = [(g1 - g0, round(y / 5) * 5) for y, g0, g1 in cands if fits(W, round(y / 5) * 5) and fits(W, H - round(y / 5) * 5)]
-    if not ok:
-        print(f"  ! {P['name']}: sandūros grafikos tarpe, kad abi dalys tilptų lakšte, nerasta - PATIKRINTI ranka")
-        return [round(H / 2 / 5) * 5, H - round(H / 2 / 5) * 5]
-    yj = max(ok)[1]
-    return [yj, H - yj]
+    gaps = ([(0.0, m[0][0])] if m and m[0][0] > 0 else []) + [(b1[1], b2[0]) for b1, b2 in zip(m, m[1:])] + \
+           ([(m[-1][1], H)] if m else [(0.0, H)])
+    for sh in sheets:                                  # mažiausias lakštas, kuriame telpa abi dalys
+        hm = hmax(sh)
+        if hm <= 0:
+            continue
+        best = None
+        for g0, g1 in gaps:
+            lo, hi = max(g0 + 50, H - hm), min(g1 - 50, hm)
+            if lo > hi:
+                continue
+            y = min(max((g0 + g1) / 2, lo), hi)
+            y = math.floor(y / 5) * 5
+            if y < lo:
+                y += 5
+            if lo <= y <= hi and (best is None or g1 - g0 > best[0]):
+                best = (g1 - g0, y)
+        if best:
+            print(f"  {P['name']}: sandūra y{best[1]:g} - abi dalys telpa lakšte {sh[0]}x{sh[1]}")
+            return [best[1], H - best[1]]
+    print(f"  ! {P['name']}: sandūros grafikos tarpe, kad abi dalys tilptų lakšte, nerasta - PATIKRINTI ranka")
+    return [round(H / 2 / 5) * 5, H - round(H / 2 / 5) * 5]
 
 
 # ------------------------------------------------------------------ smulkūs piešiniai
@@ -186,7 +211,7 @@ def build(S, P, out, sheet_no, n_sheets):
     depth, t = float(S["depth"]), float(S.get("t", 2))
     W, H = float(P["w"]), float(P["h"])
     G = load_panel(S, P)
-    hp = split_rows(P, G, depth, t, S.get("sheet_mm", (4000, 2000)))
+    hp = split_rows(P, G, depth, t, S.get("sheets_mm", [(3000, 1500), (4000, 2000)]))
     joint = len(hp) > 1
     PLATE = HexColor(S.get("plate_hex") or K.ralhex(str(S["plate_ral"])))
     FL = depth - t
