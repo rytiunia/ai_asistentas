@@ -1,4 +1,4 @@
-# P10 raidės (30 mm plexi) ant skaidraus akrilinio rėmo - etalonas (v236, Rytis 2026-10-15)
+# P10 raidės (30 mm plexi) ant skaidraus akrilinio rėmo - etalonas (Rytis 2026-10-15)
 
 **NEPAINIOTI su P10_lightbox_doublesided / singlesided (šviesdėžės).** Etalonas: `assets/etalonai/P10_Boots_ALT6739_akriliniai_begeliai.pdf`
 (Boots apotek Åsane, BrandFactory, ALT6739_01.14_rycka, 2 lapai + gamybos detalės; Rytio pavyzdys „P10 jau darytos ant akrilinių bėgelių").
