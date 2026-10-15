@@ -90,6 +90,17 @@ formulę (ribų prieaugis didėja po 1,5 m: 11,5 m - 5, 17,5 m - 6 ... - tęsiny
   - MAIN DATA be „Rails", su „Mounting: separate letters, no frame".
   - Šoniniame vaizde - tik raidės gylis (rėmo 30 nėra).
 
+## 4. P6 ant L profilių - kaip VOLVO BILB26-01001 (`"mounting": "l_hang"`, v269, Rytis 2026-10-15)
+Etalonas `assets/etalonai/BILB26-01001_P6_ant_L_profiliu.pdf` (pjūvis + 5-7 pozicijos):
+- **5 Frame** - Al L 40x40x2 x2 (raidžių pusėje: vertikali lentyna AUKŠTYN prie raidžių nugaros, horizontali - į fasadą), ilgis = bėgelio;
+- **6 Wire frame** - Al U 15x15x2 x1 (laidams, ant rėmo L vertikalios lentynos, anga į fasadą);
+- **7 Wall side frame** - Al L 40x40x2 x2 (ant fasado: vertikali lentyna ŽEMYN prie fasado, horizontali - į raides);
+  raidžių rėmas UŽKABINAMAS ant fasado L. Atstumas nugara -> fasadas etalone ~48 (L 40 + ~8, `lhang.gap`).
+- Spalva - kliento (BILB RAL 9007 70 % gloss, EXLANTIX RAL 5008). Statmenų NĖRA (tik 2 horizontalūs L, `auto_frame` bėgelių ašys).
+- Kodas: `braizyti_begeliai.py` `"rail": {"type": "L", "size": "40x40x2", "depth": 40}`, `"mounting": "l_hang"`, `"lhang": {...}`;
+  pjūvis `scripts/p6_lhang.py` (balionai `lhang.balloons` = BOM poz.). Pirmas atvejis - Alfa Neon EXLA26-01001 (PO 33580).
+- Fasado L tvirtinimas prie fasado (pvz. stiklo) - KLAUSTI („?").
+
 ## Bendros taisyklės (v90)
 - **Fasadas** nenurodytas = BETONAS: į jį galima tvirtinti bet kurioje vietoje (`wall` numatyta `concrete`).
   Fasado niuansai nurodomi užklausoje papildomai.

@@ -1,17 +1,17 @@
 {
- "client_pdf": "EXLA26-01001.pdf",
- "scale": 27.7727,
+ "client_pdf": "EXLA26-01001_v2.pdf",
+ "scale": 1.0,
  "crop_pt": [
-  90,
-  303,
-  631,
-  351
+  1520,
+  950,
+  16360,
+  2060
  ],
  "ignore_fills": [],
  "qty": "1",
  "client": "Alfa Neon AB / EXLANTIX",
  "company": "Alfa Neon AB",
- "title": "EXLA26-01001 EXLANTIX 5205 x 375 - P6 on rails",
+ "title": "EXLA26-01001 EXLANTIX 5205 x 375 - P6 on L-profiles",
  "project": "Alfa Neon PO 33580 / RSA HK Drammen",
  "drawing_no": "EXLA26-01001",
  "order_no": "ALT0000_00.00_RS",
@@ -21,16 +21,17 @@
  "depth_mm": 80,
  "front": "P6",
  "auto_frame": true,
- "mounting": "ears",
- "wall": "unknown",
+ "mounting": "l_hang",
+ "wall": "glass facade",
  "trafo_box": {
   "voltage": "12V",
   "cable_len_m": 1.5,
   "mains": "230V"
  },
  "rail": {
-  "size": "30x30x2",
-  "depth": 30,
+  "type": "L",
+  "size": "40x40x2",
+  "depth": 40,
   "ral": "5008"
  },
  "groups": [
@@ -41,12 +42,12 @@
    "return_ral": "9003",
    "face_hex": "#FFFFFF",
    "client_fill": [
-    0.9,
-    0.9,
-    0.9
+    0.943,
+    0.943,
+    0.943
    ],
-   "frame": "verticals",
-   "led": "White LED modules, 6500K"
+   "frame": "rails",
+   "led": "LED"
   }
  ],
  "bom": [
@@ -73,45 +74,45 @@
   ],
   [
    4,
-   "LED modules white",
-   "",
-   "",
+   "LED",
+   "LED",
+   "-",
    ""
   ],
   [
    5,
-   "Rail U {RAIL_SIZE}",
-   "Aluminium",
+   "Frame, L-profile 40x40x2 (letter side)",
+   "Alu",
    "RAL 5008",
-   "{RAIL_LIST_M} = {RAIL_TOTAL_M} m"
+   "{RAIL_LIST_M}"
   ],
   [
    6,
-   "Mounting L-profile {RAIL_SIZE}, Ø{EAR_HOLE} hole",
-   "Aluminium",
+   "Wire frame, U-profile 15x15x2",
+   "Alu",
    "RAL 5008",
-   "{PLATES_N} pcs."
+   "1 pc. (= frame L)"
   ],
   [
    7,
-   "El. output 12V -> trafo box",
-   "cable 1.5 m",
-   "-",
-   "1 pcs."
+   "Wall side frame, L-profile 40x40x2",
+   "Alu",
+   "RAL 5008",
+   "{RAIL_LIST_M}"
   ],
   [
    8,
-   "Trafo box + PSU",
-   "",
-   "RAL 5008",
-   ""
+   "Fixing wall side frame to glass facade",
+   "?",
+   "-",
+   "?"
   ],
   [
    9,
-   "Fixing to glass facade",
-   "",
-   "-",
-   ""
+   "Trafo box (PSU, dimmable)",
+   "PSU",
+   "RAL 5008",
+   "1 pcs."
   ]
  ],
  "main_data": [
@@ -125,7 +126,7 @@
   ],
   [
    "Profile",
-   "P6 on rails, front illuminated"
+   "P6, front illuminated"
   ],
   [
    "Letter depth",
@@ -140,24 +141,39 @@
    "RAL 9003"
   ],
   [
-   "Rails",
-   "U 30x30x2 + ears, RAL 5008"
+   "Illumination",
+   "LED"
   ],
   [
-   "Illumination",
-   "white LED modules"
+   "Mounting",
+   "L 40x40x2 on wall L 40x40x2"
+  ],
+  [
+   "Frame colour",
+   "RAL 5008"
+  ],
+  [
+   "Facade",
+   "glass"
   ],
   [
    "Power",
-   "12V -> TRAFO BOX, 230V"
-  ],
-  [
-   "Wall",
-   "glass facade"
-  ],
-  [
-   "Wind qp",
-   "{WIND_QP} kN/m²"
+   "12V + trafo box RAL 5008"
   ]
- ]
+ ],
+ "lhang": {
+  "l": 40,
+  "t": 2,
+  "u": 15,
+  "ut": 2,
+  "balloons": {
+   "1": 1,
+   "2": 2,
+   "3": 3,
+   "4": 4,
+   "5": 5,
+   "6": 6,
+   "7": 7
+  }
+ }
 }

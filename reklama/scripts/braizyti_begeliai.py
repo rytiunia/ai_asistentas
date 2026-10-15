@@ -905,6 +905,8 @@ for g in groups:
                 RAIL["size"] = f"{_W1:g}x{ACRY['thk']:g}"
         else:
             hs, vs = AR.build(g, t_, RAIL_EDGE)
+            if MOUNTING == "l_hang":                  # v269: L profiliai (BILB26-01001) - tik horizontalūs, statmenų nėra
+                vs = []
         g["rails"] = hs + vs
         g["_geoms"] = [o["geom"] for o in g["letters"]]
         g["_vframe"], g["_vframes"], g["_vfi"] = None, [], []
@@ -2684,7 +2686,7 @@ ROW = [16, 36, 56]
 DIM_ROWS = []                                           # v172: galinio vaizdo matmenų eilės (side, row, x0, x1)
 TAG_BOXES = []                                          # v157: padėtų galinio vaizdo žymų dėžutės (x0, x1, y)
 UPR = [0]                                               # v13: matmenų eilių virš galinio vaizdo skaičius
-_PFX = "□" if str(spec.get("rail", {}).get("type", "u")).lower().startswith(("sq", "box", "kv")) else ("acrylic " if RAIL_ACR else "U")
+_PFX = "□" if str(spec.get("rail", {}).get("type", "u")).lower().startswith(("sq", "box", "kv")) else ("acrylic " if RAIL_ACR else ("L" if str(spec.get("rail", {}).get("type", "u")).upper() == "L" else "U"))
 _vt, _vb = RVY, RVY + rh                                # vaizdo viršus / apačia (lapo koord.)
 
 
@@ -3362,6 +3364,9 @@ elif FRONT == "P10":                                     # v242: P10 blokas ant 
                   stroke=_strk[len(_strk) // 2] if _strk else None,
                   title=(f"PROFILE P10 ON {'CLEAR ACRYLIC FRAME ' + RAIL['size'] if RAIL_ACR else 'FRAME'}" if MOUNTING != "none"
                          else "PROFILE P10 - THREADED RODS TO FACADE"))
+elif MOUNTING == "l_hang":                               # v269 (Rytis 2026-10-15): P6 ant L profilių kaip VOLVO BILB26-01001
+    import p6_lhang as _LH
+    _LH.section(K, X_P6, BY0, W_P6, BH, depth, spec, title=f"PROFILE {_PNAME} ON L-PROFILES - TYPICAL SECTION")
 elif RAIL_ACR:                                           # v232 (Rytis: „kodėl senas pjūvis?"): etaloninis P6 pjūvis
     _P6REF.ACRYLIC = True                                #  (square wallframe) su skaidriu pilnaviduriu akrilo bėgeliu 40x20
     _P6REF.RAIL_RATIO = float(ACRY["thk"]) / RAIL_W

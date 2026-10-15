@@ -33,6 +33,8 @@ Klientų etalonai (kliento raktažodis + produktas): **SPAR / BrandFactory** - `
 | `P10_lightbox_singlesided` | `scripts/p10_lightbox_singlesided.py`, `references/moduliai_p10_lightbox_singlesided.md` | laido anga (y, Ø, įvorė), LED (gamyboje) |
 | `pylonas / pilonas` | `references/moduliai_pilonai.md`, projekto kodas `thales_d059422` | konstrukcija, pamatas, statika - kiekvienam atskirai |
 | `PVC banner / tentinė šviesdėžė`, `termoformavimas`, `flag sign / pendant` | tik aprašai (`moduliai_pvc_banner.md`, `moduliai_termoformavimas.md`, `moduliai_pendant.md`) | generatoriaus nėra - konstrukciją klausti |
+| `P6 ant L profilių` (kaip VOLVO BILB26-01001) | `braizyti_begeliai.py` `"mounting": "l_hang"`, `p6_lhang.py`, etalonas `BILB26-01001_P6_ant_L_profiliu.pdf` | fasado L tvirtinimas prie fasado; pirmas atvejis EXLA26-01001 - laukia Ryčio patvirtinimo |
+| `P6 palaidos raidės` (atskiros, skylės dugne + šablonas) | `braizyti_begeliai.py` `"mounting": "none"` + `p6_dxf.py --rails-json` | gylis, maitinimas; skylės lape = DXF = šablonas (v268) |
 | `P1 nešviečiančios`, `stogo iškaba`, `□ profilis` | `references/moduliai_kiti.md` | po 1 atvejį - klausti |
 
 ## C. SENI / KLAIDINGI PAVADINIMAI - NENAUDOTI (užklausoje pasitaikius - versti į naują)
