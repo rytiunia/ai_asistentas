@@ -64,7 +64,7 @@ def section(K, x, y, w, h, spec, acry, rail_w, title="PROFILE P10"):
     hdim(X(0), X(TR), Y(-2) - 8, f"{TR:g}", Y(ry0), Y(ry0), size=7)
     hdim(X(TR), X(TR + TB + TP), Y(-2) - 8, f"{TB + TP:g}", Y(0), Y(0), size=7)
     hdim(X(0), X(tot), Y(HL) + 14, f"{TR + TB + TP:g}", Y(HL), Y(HL), size=7)
-    T(X(tot / 2), Y(HL) + 26, f"LED groove {gw:g} x {gd if gd else '?'} deep (from back), strip on groove bottom", 6, align="c",
+    T(x + 5, Y(HL) + 26, f"LED groove {gw:g} x {gd if gd else '?'} deep (from back), strip on groove bottom", 6,
       color=K.GREY)
     bx = X(tot) + 14
     pts = [((X(TR + TB + TP * 0.7), Y(HL * 0.15)), "1"), ((X(TR + TB + gdd - 0.8), Y(yc)), "2"),

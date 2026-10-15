@@ -23,6 +23,8 @@ Gylis 30 mm (raidė), vidaus (Interior); šonai RAL; priekiui gali būti plėvel
   (veržlė neliečia fasado); smeigės privirintos raidės nugaroje. NE ištisinis T griovelis.
   Generatorius: `braizyti_begeliai.py` `"acrylic": {"stud": {"d": 5, "cb_d": 12, "cb_depth": 15, "edge": 8, "two_if": 400}}` -
   1 smeigė raidei bėgelyje (2 - kai raidė >= 400), ne arčiau jungčių / Ø8 / statmenų; DXF STUD_HOLE_D5_THROUGH, COUNTERBORE_D12_DEPTH15_BACK.
+- **Mažos raidės - VIENAS bėgelis 60 mm** (platesnis, jei trukdo tvirtinimui ar laidams), kai dviem bėgeliams nelieka
+  tarpo bent bėgelio pločio (Rytis 2026-10-15, Leapmotor poz. 20: raidės 113 mm).
 - **Laidų griovelis - kaip etalone: 6 mm pločio, 3,5 mm gylio** (mėlyna centerline palei bėgelį, ne ašyje - šalia
   tvirtinimo skylių eilės: poslinkis = Ø12 / 2 + griovelis / 2 + 2); prie raidžių - **ovalios skylės kiaurai** laidams
   (CABLE_SLOT_THROUGH, po 1 raidei) (Rytis 2026-10-15: „laidui griovelis kaip pavyzdyje").

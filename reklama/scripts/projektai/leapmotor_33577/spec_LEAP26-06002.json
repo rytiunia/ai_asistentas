@@ -61,6 +61,13 @@
   "groove": {
    "w": 6,
    "d": 3.5
+  },
+  "stud": {
+   "d": 5,
+   "cb_d": 12,
+   "cb_depth": 15,
+   "edge": 5,
+   "two_if": 400
   }
  },
  "bom": [
@@ -148,7 +155,7 @@
   ],
   [
    "Rails",
-   "clear acrylic 40x20, puzzle"
+   "clear acrylic {RAIL_SIZE}, single rail"
   ],
   [
    "Illumination",

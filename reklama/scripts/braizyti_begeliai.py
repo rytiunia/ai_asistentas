@@ -62,7 +62,7 @@ RAIL_SQ = str(RAIL.get("type", "u")).lower().startswith(("sq", "box", "kv"))
 #  statmuo po KIEKVIENA raide; ausėlių / 6 m strypų nėra (lakštas spec "acrylic": {"sheet": [3050, 2050]})
 RAIL_ACR = str(RAIL.get("type", "")).lower().startswith("acr")
 ACRY = {"thk": 20, "sheet": [3050, 2050], "joint_clear": 0.2, "hole_d": 8, "holes_every_gap": 2, "groove": None, "v_edge": 3,
-        "v_pitch": 1000, "stud": {"d": 5, "cb_d": 12, "cb_depth": 15, "edge": 8, "two_if": 400}, "cable_slot": None}
+        "v_pitch": 1000, "single_w": 60, "stud": {"d": 5, "cb_d": 12, "cb_depth": 15, "edge": 8, "two_if": 400}, "cable_slot": None}
 # v241 (Rytis 2026-10-15, etalonas P10 Boots): raidės prisukamos per ATSKIRAS ĮLEISTAS SKYLES bėgelyje (iš priekio Ø5, iš galo
 #  Ø12 x 15 - veržlė nesitrukdo), smeigės privirintos raidės nugaroje; laidų griovelis nugaroje PASLINKTAS nuo ašies (šalia skylių
 #  eilės), prie kiekvienos raidės ovali skylė kiaurai laidui
@@ -760,6 +760,21 @@ for g in groups:
         if RAIL_ACR:                                  # v229: akrilinis - bėgelio plotis (ne gylis), statmuo po kiekviena raide
             hs, vs = AR.build(g, RAIL_W, RAIL_EDGE, pitch=ACRY["v_pitch"], pitch_heavy=ACRY["v_pitch"],
                               every_letter=bool(ACRY.get("every_letter")), v_edge=ACRY["v_edge"])
+            # v243 (Rytis 2026-10-15: „kai raidės tokios mažos - bėgelis paplatinamas iki 60 mm (galimas ir platesnis, jei trukdo
+            #  tvirtinimui ar laidams) ir naudojamas VIENAS"): jei tarp dviejų bėgelių lieka < bėgelio pločio - vienas platus
+            #  bėgelis per abiejų ašių vidurį, statmenų nėra
+            _hs2 = sorted(hs, key=lambda r_: r_["y0"])
+            if len(_hs2) == 2 and _hs2[1]["y0"] - _hs2[0]["y1"] < RAIL_W:
+                _W1 = float(ACRY.get("single_w", 60))
+                _cy = ((_hs2[0]["y0"] + _hs2[0]["y1"]) / 2 + (_hs2[1]["y0"] + _hs2[1]["y1"]) / 2) / 2
+                _x0, _x1 = min(r_["x0"] for r_ in _hs2), max(r_["x1"] for r_ in _hs2)
+                hs = [{"x0": _x0, "x1": _x1, "y0": _cy - _W1 / 2, "y1": _cy + _W1 / 2, "kind": "h", "auto": True, "len": _x1 - _x0,
+                       "poly": [(_x0, _cy - _W1 / 2), (_x1, _cy - _W1 / 2), (_x1, _cy + _W1 / 2), (_x0, _cy + _W1 / 2)]}]
+                vs = []
+                print(f"  akrilinis rėmas {g['name']}: mažos raidės (tarpas tarp bėgelių {_hs2[1]['y0'] - _hs2[0]['y1']:.0f} < "
+                      f"{RAIL_W:g}) - VIENAS bėgelis {_W1:g} mm, ašis y{_cy:.0f}")
+                RAIL_W = _W1
+                RAIL["size"] = f"{_W1:g}x{ACRY['thk']:g}"
         else:
             hs, vs = AR.build(g, t_, RAIL_EDGE)
         g["rails"] = hs + vs
@@ -3258,6 +3273,10 @@ def draw_acrylic_sheet():
     for a_, b_ in AG["grooves"]:
         pa_, pb_ = Fm(*a_), Fm(*b_)
         line(pa_[0], pa_[1], pb_[0], pb_[1], 0.25, HexColor("#3B3BB0"))
+    for ox_, oy_ in AG["slots"]:
+        cc_ = Fm(ox_, oy_)
+        rect(cc_[0] - max(1.2, AG["cslot"][0] / 2 * s_), cc_[1] - max(0.6, AG["cslot"][1] / 2 * s_),
+             2 * max(1.2, AG["cslot"][0] / 2 * s_), 2 * max(0.6, AG["cslot"][1] / 2 * s_), fill=white, lw=0.25)
     K.set_view(False)
     for i_, q in enumerate(rp):
         c_ = q.representative_point(); p_ = Fm(c_.x, c_.y)
@@ -3271,8 +3290,9 @@ def draw_acrylic_sheet():
         line(jx_, Fm(0, Y0)[1] - 12, jx_, Fm(0, Y1)[1] + 12, 0.5, HexColor("#C00000"), dash=([6, 2, 1.5, 2], 0))
         T(jx_ + 4, Fm(0, Y0)[1] - 6, f"J{ci_ + 1}", 7, font="FB")
     xs_ = sorted(Fm(x_, 0)[0] for x_ in [X0, X1] + [c_["x"] for c_ in AG["cuts"]])
-    hchain(Fm(0, Y0)[1] - 30, xs_, [Fm(0, Y0)[1]] * len(xs_), [f"{abs(b - a) / s_:.0f}" for a, b in zip(xs_, xs_[1:])],
-           size=K.F_DIM_FRAME)
+    if AG["cuts"]:
+        hchain(Fm(0, Y0)[1] - 30, xs_, [Fm(0, Y0)[1]] * len(xs_), [f"{abs(b - a) / s_:.0f}" for a, b in zip(xs_, xs_[1:])],
+               size=K.F_DIM_FRAME)
     hdim(xs_[0], xs_[-1], Fm(0, Y0)[1] - 50, f"{X1 - X0:.0f}", Fm(0, Y0)[1], Fm(0, Y0)[1], size=K.F_DIM_FRAME)
     vchain(Fm(X0, 0)[0] + 16, [Fm(0, Y0)[1], Fm(0, Y1)[1]], [Fm(X0, 0)[0]] * 2, [f"{Y1 - Y0:.0f}"], size=K.F_DIM_FRAME)
     # detalių nuorodos
@@ -3335,7 +3355,8 @@ def draw_acrylic_sheet():
     if AG["hs"]:
         w_ = AG["hs"][0]["y1"] - AG["hs"][0]["y0"]; th_ = float(ACRY["thk"])
         ST = ACRY["stud"]; gw_, gd_ = float(GW.get("w", 6)), float(GW.get("d", 3.5)); go_ = AG["g_off"]
-        se = MM * 2
+        _sc = 2 if w_ * MM * 2 + 100 <= dh else 1           # v243: platus bėgelis (60) - 1:1
+        se = MM * _sc
         x0e = K.IX0 + 2 * dw_ + (dw_ - th_ * se) / 2
         y0e = dy0 + 6
         yc_ = y0e + w_ / 2 * se
@@ -3360,23 +3381,32 @@ def draw_acrylic_sheet():
         T(x0e + th_ * se + 60, yc_ + 3, f"Ø{ST['d']:g} / Ø{ST['cb_d']:g} x {ST['cb_depth']:g}", 6.5)
         T(x0e + th_ * se / 2, y0e + w_ * se + 58, f"stud holes under letters (nut in counterbore), cable slots {AG['cslot'][0]:g} x "
           f"{AG['cslot'][1]:g} through, Ø{ACRY['hole_d']:g} fixing holes between letters", 6.5, align="c", color=K.GREY)
-        view_title(x0e + th_ * se / 2, y0e + w_ * se + 82, "SECTION E - RAIL AT LETTER STUD", "SCALE 2:1")
+        view_title(x0e + th_ * se / 2, y0e + w_ * se + 82, "SECTION E - RAIL AT LETTER STUD", f"SCALE {_sc}:1")
     # ---------------- juosta: paaiškinimas, BOM, duomenys
     K.header(X_P6, BY0, W_P6, "WHY / WHERE THE FRAME JOINS")
     rect(X_P6, BY0 + 12, W_P6, BH - 12, lw=0.6)
     smax = max(ACRY["sheet"]) - 30
-    nt_ = [f"1. Clear acrylic sheet {ACRY['sheet'][0]:g} x {ACRY['sheet'][1]:g} -",
-           f"   rail {X1 - X0:.0f} longer than sheet -> rails cut",
-           f"   in {len(AG['parts'])} parts (<= {smax:g}), joint J1 (detail C).",
-           "2. J1 placed UNDER LETTER (clear frame -",
-           "   joint hidden behind letter), >= 60 from verticals.",
-           "3. Verticals / diagonals - SEPARATE parts (V),",
-           "   nested from offcuts - saves material;",
-           "   puzzle into rails (detail D).",
-           f"4. Puzzle clearance {ACRY['joint_clear']:g}; cable groove on back",
-           f"   {GW.get('w', '?')} x {GW.get('d', '?')} deep (section E); Ø{ACRY['hole_d']:g} fixings.",
-           f"5. Letters: welded studs through Ø{ACRY['stud']['d']:g}, nut in Ø{ACRY['stud']['cb_d']:g} x {ACRY['stud']['cb_depth']:g}",
-           "   counterbore from back - nut does not touch facade."]
+    if AG["cuts"]:
+        nt_ = [f"1. Clear acrylic sheet {ACRY['sheet'][0]:g} x {ACRY['sheet'][1]:g} -",
+               f"   rail {X1 - X0:.0f} longer than sheet -> rails cut",
+               f"   in {len(AG['parts'])} parts (<= {smax:g}), joint J1 (detail C).",
+               "2. J1 placed UNDER LETTER (clear frame -",
+               "   joint hidden behind letter), >= 60 from verticals."]
+    else:
+        nt_ = [f"1. Rail {X1 - X0:.0f} fits in sheet {ACRY['sheet'][0]:g} x {ACRY['sheet'][1]:g} -",
+               "   one part, no joints."]
+    if AG["vparts"]:
+        nt_ += ["3. Verticals / diagonals - SEPARATE parts (V),",
+                "   nested from offcuts - saves material;",
+                "   puzzle into rails (detail D)."]
+    elif len(AG["hs"]) == 1:
+        nt_ += [f"2. Small letters - ONE rail {RAIL_W:g} wide, no verticals."]
+    nt_ += [f"{len([q for q in nt_ if q[:1].isdigit()]) + 1}. Puzzle clearance {ACRY['joint_clear']:g}; cable groove on back"
+            if AG["cuts"] or AG["vparts"] else f"{len([q for q in nt_ if q[:1].isdigit()]) + 1}. Cable groove on back",
+            f"   {GW.get('w', '?')} x {GW.get('d', '?')} deep (section E); Ø{ACRY['hole_d']:g} fixings.",
+            f"{len([q for q in nt_ if q[:1].isdigit()]) + 2}. Letters: welded studs through Ø{ACRY['stud']['d']:g}, nut in "
+            f"Ø{ACRY['stud']['cb_d']:g} x {ACRY['stud']['cb_depth']:g}",
+            "   counterbore from back - nut does not touch facade."]
     for i_, t_ in enumerate(nt_):
         T(X_P6 + 5, BY0 + 25 + i_ * 9.6, t_, 7)
     rows_ = []
@@ -3393,7 +3423,7 @@ def draw_acrylic_sheet():
     K.bom_table(X_BOM, BY0, W_BOM, BH, rows_, title="BILL OF MATERIALS - ACRYLIC FRAME PARTS  (per 1 sign, DXF)")
     md_ = [("Material", f"clear acrylic {ACRY['thk']:g} mm"), ("Sheet", f"{ACRY['sheet'][0]:g} x {ACRY['sheet'][1]:g}"),
            ("Rails", f"{RAIL_W:g} wide, {len(rp)} parts"), ("Verticals", f"{len(vp)} pcs., separate"),
-           ("Joints", f"puzzle, clearance {ACRY['joint_clear']:g}"), ("Groove", f"{GW.get('w', '?')} x {GW.get('d', '?')} (back)"),
+           ("Joints", f"puzzle, clearance {ACRY['joint_clear']:g}" if (AG["cuts"] or AG["vparts"]) else "none (1 part)"), ("Groove", f"{GW.get('w', '?')} x {GW.get('d', '?')} (back)"),
            ("Holes", f"{len(AG['holes'])} x Ø{ACRY['hole_d']:g}; studs {len(AG['studs'])} x Ø{ACRY['stud']['d']:g}/{ACRY['stud']['cb_d']:g}"),
            ("Quantity", f"{spec.get('qty', '?')} signs")]
     K.main_data(X_MD, BY0, W_MD, BH, md_, lab_w=58)
