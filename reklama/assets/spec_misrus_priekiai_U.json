@@ -1,0 +1,259 @@
+{
+ "client_pdf": "../scripts/projektai/brandfactory_226030_securitas/Securitas_Sarp_Produksjon_ute_skilt.pdf",
+ "scale": 10,
+ "crop_pt": [
+  8,
+  130,
+  600,
+  450
+ ],
+ "ignore_fills": [
+  [
+   1.0,
+   1.0,
+   1.0
+  ],
+  [
+   0.961,
+   0.961,
+   0.961
+  ],
+  [
+   0.4,
+   0.416,
+   0.443
+  ],
+  [
+   0.494,
+   0.514,
+   0.549
+  ]
+ ],
+ "qty": "1",
+ "client": "BrandFactory",
+ "title": "Order 226030 Securitas Sarpsborg 2000 x 1062 - 5S color + P6+foil on U rails",
+ "order_no": "ALT0000_00.00_RS",
+ "drawing_no": "Order 226030",
+ "file_code": "Order_226030",
+ "rev": "A",
+ "date": "2026-10-15",
+ "depth_mm": 80,
+ "front": "P6+foil",
+ "rail": {
+  "size": "30x30x2",
+  "depth": 30,
+  "ral": "NCS S 6005-R80B"
+ },
+ "groups": [
+  {
+   "name": "CIRCLES",
+   "profile": "6",
+   "on_plate": false,
+   "front": "5S color",
+   "return_ral": "3028",
+   "face_hex": "#E73A4D",
+   "client_fill": [
+    0.906,
+    0.227,
+    0.302
+   ],
+   "rail_ral": "NCS S 6005-R80B",
+   "frame": "verticals",
+   "ears": false
+  },
+  {
+   "name": "Securitas",
+   "profile": "6",
+   "on_plate": false,
+   "front": "P6+foil",
+   "return_ral": "?",
+   "return_hex": "#00263E",
+   "face_hex": "#2E2D2C",
+   "client_fill": [
+    0.18,
+    0.176,
+    0.173
+   ],
+   "rail_ral": "NCS S 6005-R80B",
+   "frame": "verticals",
+   "ears": false
+  }
+ ],
+ "bom": [
+  [
+   1,
+   "Face 5S color (circles)",
+   "Plexiglas GS 3H67 red, 3 mm",
+   "-",
+   "{PER_CIRCLES} m / 1.21 m²"
+  ],
+  [
+   1,
+   "Face P6+foil (Securitas)",
+   "Acrylic 8 mm white",
+   "-",
+   "{PER_Securitas} m / 0.67 m²"
+  ],
+  [
+   "",
+   "Front foil (Securitas)",
+   "Perf. foil Gel'UV D/N, black",
+   "-",
+   "0.63 m²"
+  ],
+  [
+   "A",
+   "Fitting PVC edge (circles)",
+   "PVC 3 mm",
+   "-",
+   "{PER_CIRCLES} m"
+  ],
+  [
+   "B",
+   "Bolt, return to PVC edge",
+   "?",
+   "-",
+   "?"
+  ],
+  [
+   2,
+   "Return circles",
+   "Alu 1 mm",
+   "RAL 3028",
+   "{PER_CIRCLES} m / 0.48 m²"
+  ],
+  [
+   2,
+   "Return Securitas",
+   "Alu 1 mm",
+   "PMS 2965 C",
+   "{PER_Securitas} m / 1.12 m²"
+  ],
+  [
+   3,
+   "Back circles",
+   "Alu 1.5 mm",
+   "RAL 3028",
+   "1.62 m²"
+  ],
+  [
+   3,
+   "Back Securitas",
+   "Alu 1.5 mm",
+   "PMS 2965 C",
+   "0.50 m²"
+  ],
+  [
+   4,
+   "LED",
+   "LED",
+   "-",
+   ""
+  ],
+  [
+   5,
+   "Rail U {RAIL_SIZE} (circles)",
+   "Aluminium",
+   "NCS S 6005-R80B",
+   "{RAILS_M_CIRCLES} m"
+  ],
+  [
+   5,
+   "Rail U {RAIL_SIZE} (Securitas)",
+   "Aluminium",
+   "NCS S 6005-R80B",
+   "{RAILS_M_Securitas} m"
+  ],
+  [
+   7,
+   "Trafo box (PSU)",
+   "PSU",
+   "",
+   "1 pcs."
+  ],
+  [
+   8,
+   "Wall fixing through U rails",
+   "?",
+   "-",
+   "?"
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "1 pcs."
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profiles",
+   "5S color / P6+foil"
+  ],
+  [
+   "Depth",
+   "80"
+  ],
+  [
+   "Face circles",
+   "Plexiglas GS 3H67 red, 3 mm"
+  ],
+  [
+   "Face Securitas",
+   "Acrylic 8 white + D/N foil"
+  ],
+  [
+   "Returns",
+   "RAL 3028 / PMS 2965 C"
+  ],
+  [
+   "Finish",
+   "semi matt / matt"
+  ],
+  [
+   "Rails",
+   "U 30x30x2, NCS S 6005-R80B"
+  ],
+  [
+   "Illumination",
+   "LED, 12V + trafo box"
+  ],
+  [
+   "Environment",
+   "Exterior"
+  ]
+ ],
+ "layout": "rows",
+ "auto_frame": true,
+ "company": "BrandFactory",
+ "view_yaw": 22,
+ "view_pitch": 12,
+ "view_scale": 20,
+ "cable_exits": [
+  {
+   "pt": [
+    298.8,
+    255.7
+   ],
+   "voltage": "12V",
+   "label": "1.5 m (circles, bottom rail)"
+  },
+  {
+   "pt": [
+    298.8,
+    379.6
+   ],
+   "voltage": "12V",
+   "label": "1.5 m (Securitas, top rail)"
+  }
+ ],
+ "trafo_box": {
+  "voltage": "12V",
+  "cable_len_m": 1.5,
+  "mains": "230V"
+ },
+ "power_note": "Power: 12V, trafo box",
+ "_pastaba": "v282 šablonas (BF Order 226030 Securitas): client_pdf / crop / client_fill / spalvos / cable_exits pt - keisti pagal užsakymą; BOM sunaudojimo skaičiai perskaičiuoti (plevele.plan separate)"
+}
