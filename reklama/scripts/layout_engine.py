@@ -16,13 +16,17 @@ ISO = (1, 2, 5, 10, 20, 50, 100, 200)        # ISO 5455 rekomenduojami (mažinim
 INTER = (15, 25)                              # tarpiniai - tik aiškiai nurodant mastelį (SCALE 1:15)
 
 
-def pick_scale(size_mm, avail_pt, annot=(0, 0, 0, 0), iso=ISO, inter=INTER):
+def pick_scale(size_mm, avail_pt, annot=(0, 0, 0, 0), iso=ISO, inter=INTER, cap_pt=None):
     """Didžiausias mastelis (mažiausias vardiklis), kuriam geometrija + anotacijos telpa zonoje.
-    annot = (kairė, dešinė, viršus, apačia) pt - matmenų / pozicijų / pavadinimo juostos (nemastelinamos)."""
+    annot = (kairė, dešinė, viršus, apačia) pt - matmenų / pozicijų / pavadinimo juostos (nemastelinamos).
+    cap_pt = (w, h) - vizualinė hierarchija: DETAIL negali būti didesnė už pagrindines projekcijas
+    (nedidinti detalės vien dėl tuščios vietos - TAISYKLĖ 33 p.6); siūloma 0,6 x ortogonalių aukščio."""
     w, h = size_mm
     aw, ah = avail_pt
     for d in sorted(set(iso) | set(inter or ())):
         k = MM / d
+        if cap_pt and (w * k > cap_pt[0] + 1e-6 or h * k > cap_pt[1] + 1e-6):
+            continue
         if w * k + annot[0] + annot[1] <= aw + 1e-6 and h * k + annot[2] + annot[3] <= ah + 1e-6:
             return d
     raise ValueError(f"netelpa net 1:{max(iso)} - siūlyti papildomą lapą / didesnį formatą (TAISYKLĖ 33 p.9)")

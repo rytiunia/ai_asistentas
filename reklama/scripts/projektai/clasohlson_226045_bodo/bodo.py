@@ -51,13 +51,22 @@ SC = LE.pick_scale((PW, PH), (K.IX1 - K.IX0, K.VIEW_BOT - YT - A_BOT))    # FRON
 s = MM / SC
 _side_txt = max(_sw("40 + 20 + 23", "F", 8), _sw("(DETAIL A)", "F", 8))
 TR_W = 40 + _sw("12V, 5 m, white", "F", 8)                        # trafo box + laido užrašas
-DET_W = 222                                                       # DETAIL A 1:2 su pozicijomis (stulpelis su LOGO DETAIL)
+DET_W = 222                                                       # DETAIL A 1:2 su pozicijomis
+H_A = (40 + 6 + 55) * MM / 2                                      # DETAIL A (lūžęs) geometrijos aukštis
+# zona C (tarp galo ir 3D) - du stulpeliai: [TRAFO BOX viršuje (prie laido) + DETAIL A apačioje] | [LOGO DETAIL per visą aukštį]
+LG_W, LG_H = LBB[2] - LBB[0], LBB[3] - LBB[1]
+L_TOP, L_BOT = 22, 57                                             # viršutinė grandinė | apatinės grandinės + pavadinimas
+_lh = K.VIEW_BOT - (YT - 36)
+SCL = LE.pick_scale((LG_W, LG_H), (400, _lh), annot=(12, 52, L_TOP, L_BOT), inter=(),
+                    cap_pt=(1e9, 0.6 * PH * s))                    # didžiausias ISO, bet ne didesnė už projekcijas
+sl = MM / SCL
+LOGO_W = 12 + LG_W * sl + 52
 ASP3 = LE.proj_aspect(LE.box_corners(PW, PH, PD + 43), 30, 14)
 P3_W = ASP3 * PH * s                                              # 3D - tokio pat aukščio kaip projekcijos
 COLS = [58 + PW * s + 29,                                         # FRONT: 2380 grandinė | pozicijos
         (PD + 43) * s + 10 + _side_txt,                           # SIDE + užrašas
         24 + PW * s + 29,                                         # REAR: D11 grandinė | pozicijos
-        TR_W, DET_W, P3_W]
+        max(TR_W, DET_W), LOGO_W, P3_W]
 CX, G_ = LE.distribute(K.IX0, K.IX1, COLS)
 X0 = CX[0] + 58
 fx = lambda x: X0 + x * s
@@ -141,15 +150,12 @@ view_title(RX + PW * s / 2, YB + 30, "REAR VIEW (MIRRORED)", f"SCALE 1:{SC}")
 
 # ================================================================ DETAIL A - SECTION 1:2 (lūžęs)
 LY = round(LBB[1])
-ax0 = CX[4] + 52
-ya = detail_a(ax0, YT + 4, LY)
+ax0 = CX[3] + 52
+ya = detail_a(ax0, YB + 30 - 16 - H_A, LY)          # pavadinimas - pavadinimų eilėje
 view_title(ax0 + 20 * MM / 2, ya + 16, "DETAIL A - SECTION", "SCALE 1:2  |  top edge + letter, broken view")
 
 # ================================================================ LOGO DETAIL 1:10 (Rytis 2026-10-15: „trūksta detalesnių logotipo matmenų")
 #  ženklas (lankas + žiedas), eilutės „Clas" / „Ohlson" - aukščiai, tarpai, pločiai; matmenys nuo logotipo gabarito kampo
-_lh = (YB + 30 - 43) - (ya + 16 + 18 + 22)                      # nuo DETAIL A mastelio eilutės iki pavadinimų eilės
-SCL = LE.pick_scale((LBB[2] - LBB[0], LBB[3] - LBB[1]), (DET_W, _lh), annot=(12, 52, 0, 0), inter=())   # TAISYKLĖ 33: didžiausias ISO
-sl = MM / SCL
 _sym = [L for L in LET if L["bb"][1] < LBB[1] + 0.75 * (LBB[3] - LBB[1]) and L["bb"][3] - L["bb"][1] > 200]
 _txt = [L for L in LET if L not in _sym]
 _r1 = [L for L in _txt if L["bb"][1] < min(L_["bb"][3] for L_ in _txt) - 1]
@@ -159,9 +165,10 @@ bbox = lambda Ls: (min(L["bb"][0] for L in Ls), min(L["bb"][1] for L in Ls), max
 SB, R1, R2 = bbox(_sym), bbox(_r1), bbox(_r2)
 _arc = max(_sym, key=lambda L: L["bb"][3] - L["bb"][1]); _ring = min(_sym, key=lambda L: L["bb"][3] - L["bb"][1])
 x3 = CX[5]                                                # 3D - dešinėje, siauras aukštas
-LXL = ax0 + 59 - (LBB[2] - LBB[0] + 60 / sl) * sl / 2 + 10     # logotipo detalė - PO DETAIL A, stulpelio centre
+LXL = CX[4] + 12                                                # LOGO DETAIL - savas stulpelis
 lx = lambda x: LXL + (x - LBB[0]) * sl
-ly = lambda y: YB + 30 - 43 + (y - LBB[3]) * sl              # pavadinimas - vienoje eilėje su kitais
+_lt = (YT - 36) + (_lh - (L_TOP + LG_H * sl + L_BOT)) / 2 + L_TOP   # centruota vertikaliai zonoje
+ly = lambda y: _lt + (y - LBB[1]) * sl
 K.set_view(True)
 for L in LET:
     draw_sub(L["sub"], lambda x, y: (lx(x), K.Y(ly(y))), fill=BLK, stroke=None)
@@ -225,5 +232,5 @@ band("P8 SPECIAL - SECTION A-A (1:2)", p8_band, bom, md, "Order 226045 Clas Ohls
 K.save(OUT)
 K.pdf_fix_fonts(OUT)
 LE.report("Bodø 226045", SC, G_, {"ortho H": (PH * s, K.VIEW_BOT - YT - A_BOT), "3D H": (h3, YB - YT),
-          f"logo 1:{SCL} H": ((LBB[3] - LBB[1]) * sl, _lh)})
+          f"logo 1:{SCL} H": (L_TOP + LG_H * sl + L_BOT, _lh)})
 print("logo", [round(v) for v in LBB], "letters", len(LET), "spacers", N_SP, "flat", FLAT, "W", round(WT, 1), "overflow", K.OVERFLOW)
