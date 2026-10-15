@@ -1,0 +1,42 @@
+{
+ "origin_pt": [
+  1562.828125,
+  1009.5908203125
+ ],
+ "scale": 0.35277777777777775,
+ "separate": true,
+ "rails": [
+  {
+   "x0": 10.0,
+   "y0": 33.0,
+   "x1": 6702.0,
+   "y1": 63.0,
+   "kind": "h",
+   "acc": false,
+   "end": false,
+   "poly": null
+  },
+  {
+   "x0": 10.0,
+   "y0": 313.0,
+   "x1": 6702.0,
+   "y1": 343.0,
+   "kind": "h",
+   "acc": false,
+   "end": false,
+   "poly": null
+  },
+  {
+   "x0": 4787.0,
+   "y0": 173.0,
+   "x1": 5074.0,
+   "y1": 203.0,
+   "kind": "h",
+   "acc": false,
+   "end": false,
+   "poly": null
+  }
+ ],
+ "ears": [],
+ "brackets": []
+}

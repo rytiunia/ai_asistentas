@@ -1,0 +1,208 @@
+{
+ "client_pdf": "OMJE26-01001.pdf",
+ "scale": 1.0,
+ "crop_pt": [
+  1520,
+  980,
+  20630,
+  2100
+ ],
+ "ignore_fills": [],
+ "qty": "1",
+ "client": "Alfa Neon AB / OMODA JAECOO",
+ "company": "Alfa Neon AB",
+ "title": "OMJE26-01001 OMODA | JAECOO 6712 x 375 - P6 separate letters",
+ "project": "Alfa Neon PO 33580",
+ "drawing_no": "OMJE26-01001",
+ "order_no": "ALT0000_00.00_RS",
+ "file_code": "OMJE26-01001",
+ "rev": "A",
+ "date": "2026-10-15",
+ "depth_mm": 80,
+ "front": "P6",
+ "auto_frame": false,
+ "mounting": "none",
+ "letters_power": "wago",
+ "wall": "facade_panel",
+ "trafo_box": {
+  "voltage": "12V",
+  "cable_len_m": 1.5,
+  "mains": "230V",
+  "pwm": true
+ },
+ "rail": {
+  "size": "30x30x2",
+  "depth": 30,
+  "ral": "5008"
+ },
+ "groups": [
+  {
+   "name": "OMODA | JAECOO",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "9003",
+   "face_hex": "#FFFFFF",
+   "client_fill": [
+    0.9427,
+    0.943,
+    0.9425
+   ],
+   "frame": "verticals",
+   "led": "White LED modules, 6500K",
+   "rails": [
+    {
+     "kind": "h",
+     "poly": [
+      [
+       10,
+       33
+      ],
+      [
+       6702,
+       33
+      ],
+      [
+       6702,
+       63
+      ],
+      [
+       10,
+       63
+      ]
+     ]
+    },
+    {
+     "kind": "h",
+     "poly": [
+      [
+       10,
+       313
+      ],
+      [
+       6702,
+       313
+      ],
+      [
+       6702,
+       343
+      ],
+      [
+       10,
+       343
+      ]
+     ]
+    },
+    {
+     "kind": "h",
+     "poly": [
+      [
+       4787,
+       173
+      ],
+      [
+       5074,
+       173
+      ],
+      [
+       5074,
+       203
+      ],
+      [
+       4787,
+       203
+      ]
+     ]
+    }
+   ]
+  }
+ ],
+ "bom": [
+  [
+   1,
+   "Letter face",
+   "Acrylic 8 mm white",
+   "-",
+   "{PER_6} m / {A_6} m²"
+  ],
+  [
+   2,
+   "Letter return",
+   "Alu 1 mm",
+   "RAL 9003",
+   "{PER_6} m / {RET_6} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "Alu 1.5 mm",
+   "RAL 9003",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   4,
+   "LED modules white",
+   "",
+   "",
+   ""
+  ],
+  [
+   5,
+   "Fixing angle, small L-profile",
+   "Aluminium",
+   "RAL 9003",
+   ""
+  ],
+  [
+   6,
+   "Mounting template 1:1",
+   "paper",
+   "-",
+   "1 pcs."
+  ],
+  [
+   7,
+   "Dimmable LED driver in power supply box",
+   "",
+   "RAL 5008",
+   "1 pcs."
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "1 pcs."
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profile",
+   "P6, front illuminated"
+  ],
+  [
+   "Letter depth",
+   "80"
+  ],
+  [
+   "Face",
+   "Acrylic 8 mm white"
+  ],
+  [
+   "Returns / back",
+   "RAL 9003"
+  ],
+  [
+   "Illumination",
+   "white LED modules"
+  ],
+  [
+   "Power",
+   "dimmable driver, box RAL 5008"
+  ],
+  [
+   "Wind qp",
+   "{WIND_QP} kN/m²"
+  ]
+ ]
+}

@@ -771,6 +771,7 @@ def sheet(spec, res, out):
     _ya, _yb = H - 10 * mm - 8 * mm, 36 * mm + 8 * mm
     top = _yb + (_ya - _yb + _cont) / 2
     T = lambda x, y: (ox + x * s, top - (y - y0) * s)
+    LBL_BELOW = [False]
     for r in res:
         col = RED if r["gr"].get("led") == "red" else black
         for x in r["letters"]:
@@ -814,19 +815,27 @@ def sheet(spec, res, out):
             bx0, by0, bx1, by1 = g.bounds
             ymax = min(q[1] for q in x["pts"]) - r["pitch"] / 2 if x["pts"] else by0
             ybot = max(q[1] for q in x["pts"]) + r["pitch"] / 2 if x["pts"] else by1
-            above = any(o is not x and o["g"].bounds[0] < bx1 and o["g"].bounds[2] > bx0 and o["g"].bounds[3] <= by0 + 1
-                        for rr_ in res for o in rr_["letters"])
+            # v236 (OMODA 33580, trafaretinis šriftas): kitos formos su ta pačia x juosta, prasidedančios aukščiau / žemiau
+            # (O iš 2 dalių, E iš 3 juostų) - užrašas ne ant raidės: virš -> po -> dešinėje (raidės centro aukštyje)
+            _ox = [o["g"].bounds for rr_ in res for o in rr_["letters"]
+                   if o is not x and o["g"].bounds[0] < bx1 and o["g"].bounds[2] > bx0]
+            above = any(ob[1] < by0 - 1 for ob in _ox)
+            below = any(ob[3] > by1 + 1 for ob in _ox)
             c.setFillColor(black); c.setFont("Helvetica-Bold", 13)
-            if above:
-                tx, ty = T((bx0 + bx1) / 2, max(by1, ybot))
-                c.drawCentredString(tx, ty - 18, str(len(x["pts"])))
-            else:
+            if not above:
                 tx, ty = T((bx0 + bx1) / 2, min(by0, ymax))
                 c.drawCentredString(tx, ty + 8, str(len(x["pts"])))
+            elif not below:
+                tx, ty = T((bx0 + bx1) / 2, max(by1, ybot))
+                c.drawCentredString(tx, ty - 18, str(len(x["pts"])))
+                LBL_BELOW[0] = True
+            else:
+                tx, ty = T(bx1, (by0 + by1) / 2)
+                c.drawString(tx + 4, ty - 4.5, str(len(x["pts"])))
     # matmenys
     c.setStrokeColor(black); c.setFillColor(black); c.setLineWidth(0.25)
     xa, yb = T(x0, y1); xb, _ = T(x1, y1)
-    yd = yb - 14
+    yd = yb - (34 if LBL_BELOW[0] else 14)        # v236: kiekiai po raidėmis - matmens linija žemiau, nekerta jų
     c.line(xa, yd, xb, yd); c.line(xa, yd - 4, xa, yd + 4); c.line(xb, yd - 4, xb, yd + 4)
     c.setFont("Helvetica", 9); c.drawCentredString((xa + xb) / 2, yd - 11, f"{PW_:.0f} mm")
     xl = xa - 14; _, yt = T(x0, y0)
