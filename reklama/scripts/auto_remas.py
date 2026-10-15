@@ -237,6 +237,13 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
             lx, rx = r["x0"] + r["t"] / 2, r["x1"] - r["t"] / 2
             def okx(x):
                 return any(i.covers(Point(x, y0)) and i.covers(Point(x, y1)) for i in inner)
+            if r["t"] > 0.35 * (r["xt"] - r["xb"]):
+                # v276 (Rytis 2026-10-15, Securitas apskritimai: „rėmas nesivadovauja taisykle, per trumpas"): PILNAVIDURIAI
+                #  elementai (apskritimai, blokai - štrichas >= 0,35 aukščio) - galai kuo arčiau krašto: nuo išorės į vidų,
+                #  kol abu bėgelio kampai >= edge elemento viduje
+                lx, rx = r["x0"] + edge, r["x1"] - edge
+                while not okx(lx) and lx < r["x1"]: lx += 1
+                while not okx(rx) and rx > r["x0"]: rx -= 1
             while not okx(lx) and lx < r["x0"] + r["t"] * 2: lx += 2
             while not okx(rx) and rx > r["x1"] - r["t"] * 2: rx -= 2
             # v83: galinis elementas be stiebo prie krašto (apskritimas) - ieškoti toliau, kol abu kampai raidėje

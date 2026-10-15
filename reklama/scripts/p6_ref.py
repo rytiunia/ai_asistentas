@@ -79,6 +79,28 @@ ACRYLIC = False   # v232 (Rytis 2026-10-14): square variantas su SKAIDRIU AKRILI
 LABEL_MAP = {}     # v160: pjūvio balionų numeriai pagal originalo BOM (spec "section_labels")
 
 
+K_FIX = None
+LAST_K = None
+PROBE = False
+
+
+class _Null:
+    def __getattr__(self, _n):
+        return lambda *a, **k: self
+
+
+def fit_k(H, x, y, w, h, kind, front, depth, **kw):
+    """v276: pjūvio mastelis be braižymo (keliems pjūviams - bendras min)"""
+    global PROBE
+    PROBE = True
+    try:
+        nop = lambda *a, **k: None
+        draw(_Null(), H, x, y, w, h, kind, front, depth, leader=nop, balloon=nop, T=nop, hdim=nop, **kw)
+    finally:
+        PROBE = False
+    return LAST_K
+
+
 def draw(cv, H, x, y, w, h, kind, front, depth, *, leader, balloon, T, hdim, hair=0.1, top=26, pad=8,
          line=None, ears=None, ear_hole=0.15, bracket=None, no_rail=False, extra_left=0.0, after=None):
     """Nubraižo pjūvį į sritį (x, y, w, h - bloko vidus be antraštės; lapo koord., y žemyn)."""
@@ -143,6 +165,12 @@ def draw(cv, H, x, y, w, h, kind, front, depth, *, leader, balloon, T, hdim, hai
     clip = fitz.Rect(clip.x0 - 3 - extra_left, clip.y0 - 2, clip.x1 + (18 if not F8 else 6), clip.y1 + 2)
     aw, ah = w - 2 * pad, h - top - pad
     k = min(aw / clip.width, ah / clip.height)
+    global LAST_K
+    LAST_K = k
+    if K_FIX is not None:                              # v276 (Rytis: „pjūviai turi būti identiškų proporcijų"): bendras
+        k = min(k, K_FIX)                              #  mastelis keliems pjūviams viename lape (min iš visų)
+    if PROBE:
+        return
     tx = x + pad + (aw - clip.width * k) / 2
     ty = y + top + (ah - clip.height * k) / 2
 

@@ -27,6 +27,8 @@ depth = spec["depth_mm"]
 # priekis: "5S+foil" (buv. P6_3mm+foil: polikarbonatas 3 FR + plėvelė, PVC bortelis), "5S color" (spalvotas 3, PVC), "8mm+foil" (balta 8, frezuota briauna)
 import p6_front as P6F   # v90: visi priekio variantai (3/8/10/15/20/30 mm, +foil, color)
 FRONT = P6F.kind(spec.get("front", "5S"))
+# v276: PVC bortelio (A) / varžto (B) eilutės - jei BENT VIENA grupė 5S (mišrūs priekiai vienoje iškaboje)
+_NO3 = all(P6F.kind(sg.get("front") or spec.get("front", "5S")) == "8mm" for sg in spec.get("groups", [{}])) if spec.get("groups") else FRONT == "8mm"
 _PNAME = "5S" if FRONT == "3mm" else ("P10" if FRONT == "P10" else "P6")   # v210: P6_3mm -> 5S; v242: P10 blokas   # "3mm" (PVC) / "8mm" (frezuota, >= 8 mm) / "P1"
 if P6F.parse(spec.get("front", "5S"))["warn"]:
     print(P6F.parse(spec.get("front", "5S"))["warn"])
@@ -37,7 +39,7 @@ RAIL_FIN = "" if str(RAIL.get("ral", "")).strip() in ("", "?") else f"RAL {RAIL[
 
 def _rail_pos():
     """v184: galutinė bėgelio (rėmo) BOM pozicija - brackets / none režime pozicijos pernumeruojamos (buvo fiksuota 5)"""
-    rows_ = [r_ for r_ in spec.get("bom", []) if not (FRONT == "8mm" and str(r_[0]).upper() in ("A", "B"))]
+    rows_ = [r_ for r_ in spec.get("bom", []) if not (_NO3 and str(r_[0]).upper() in ("A", "B"))]
     if MOUNTING in ("none", "brackets"):
         drop_ = r"\bear\b|ears\b|mounting ear|ausėl"
         rows_ = [r_ for r_ in rows_ if re.match(r"\s*rail", str(r_[1]), re.I) or re.search(r"bracket|hanger", str(r_[1]), re.I)
@@ -1586,7 +1588,7 @@ def subst(v):
 # ============================================================ išdėstymas (kaip folded modulyje)
 STD = [2, 5, 10, 15, 20, 25, 50, 100]
 # Rytis 2026-10-07: apatinės juostos aukštis - pagal eilučių kiekį (BOM / MAIN DATA), kad nebūtų sugrūsta
-_nb = len([row for row in spec["bom"] if not (FRONT == "8mm" and str(row[0]).upper() in ("A", "B"))])
+_nb = len([row for row in spec["bom"] if not (_NO3 and str(row[0]).upper() in ("A", "B"))])
 _nm = len(spec["main_data"]) + (0 if any(str(a).lower().startswith("weight") for a, _ in spec["main_data"]) else 1)
 K.set_band(max(_nb, _nm))
 VX0, VY0 = K.IX0 + 8, K.IY0 + 6
@@ -1729,6 +1731,29 @@ for r, rh_r in zip(LAY, ROWS_H):
         POS[b] = (xx_, yy_ + (rh_r - h_) / 2, w_, h_)
         xx_ += w_ + hg
     yy_ += rh_r + vg
+# v276 (Rytis 2026-10-15, Securitas: „kairėje viršuje Front view, po juo rear view, dešinėje padidintas 3D view"):
+#  spec "layout": "columns" - kairysis stulpelis FRONT (+ šoninis) / REAR tame pačiame mastelyje, dešinėje - visas aukštis 3D
+if spec.get("layout") == "columns" and not HAS_D and not LEDF and not GZ:
+    _bestc = None
+    for n_ in STD:
+        _fs, _rb = fs_box(n_), r_box(n_)
+        _lw = max(_fs[0], _rb[0]); _lh = _fs[1] + _rb[1] + 14
+        _iw = W_AV - _lw - 14
+        if _lh > H_AV or _iw < 0.30 * W_AV:
+            continue
+        _kk = min(_iw / ISO_EW, (H_AV - 30) / ISO_EH)
+        _sc = 2 * (PW * MM / n_) * (PH * MM / n_) + 0.5 * min(_kk * _kk * ISO_EW * ISO_EH, 2.5 * (PW * MM / n_) * (PH * MM / n_))
+        if not _bestc or _sc > _bestc[0]:
+            _bestc = (_sc, n_, _fs, _rb, _lw, _iw)
+    if _bestc:
+        _, SC1, _fs, _rb, _lw, _iw = _bestc
+        SC2 = SC1
+        LAY = [["FS", "I"], ["R"]]
+        _vg = (H_AV - _fs[1] - _rb[1]) / 3
+        _xl = VX0 + (_lw - _fs[0]) / 2
+        POS = {"FS": (_xl, VY0 + _vg, _fs[0], _fs[1]),
+               "R": (VX0 + (_lw - _rb[0]) / 2, VY0 + 2 * _vg + _fs[1], _rb[0], _rb[1]),
+               "I": (VX0 + _lw + 24, VY0 + 24, _iw - 34, H_AV - 24)}
 if LEDF:                                                   # v167 (Rytis): objektai centruojami savo ketvirtyje, simetriškai
     _hw = W_AV / 2
     for (b1, b2), rh_r in zip(LAY, ROWS_H):
@@ -2755,7 +2780,7 @@ for g in groups:
     hs_ = sorted([r_ for r_ in g["rails"] if r_["kind"] == "h"], key=lambda r_: r_["y0"])
     car_ = [hs_[0], hs_[-1]] if len(hs_) >= 2 else hs_
     AV_ = [RV((r_["x0"] + r_["x1"]) / 2, 0)[0] + d_ for r_ in g["rails"] if not any(r_ is q for q in car_)
-           for d_ in range(-24, 25, 4)]                   # v276: įstriža žymos išvadinė (±0,36·dy) - tekstas laisvas visoje juostoje
+           for d_ in (range(-32, 33, 4) if (r_["kind"] != "v" or spec.get("vert_labels")) else (0,))]                   # v276: įstriža žymos išvadinė (±0,36·dy) - tekstas laisvas visoje juostoje
     blk_top, blk_bot, gap_ = _stack(g)
     used = {"up": 0, "dn": 0}
     # v276 (ISO 129-1, Rytis „linija ant linijos"): vienodi nešantieji bėgeliai (tas pats x ruožas) - VIENAS matmuo „n× L";
@@ -3361,7 +3386,7 @@ def _hang(t_):
 
 import p6_ref as _P6R                                 # Rytio etaloninis pjūvis (U / square wallframe)
 # Rytis 2026-10-07: A (PVC bortelis) ir B (varžtas 2.9) žymėjimas - tik 5S (buv. P6_3mm); P6_8mm BOM jų NĖRA
-_BOM_ROWS = [row for row in spec["bom"] if not (FRONT == "8mm" and str(row[0]).upper() in ("A", "B"))]
+_BOM_ROWS = [row for row in spec["bom"] if not (_NO3 and str(row[0]).upper() in ("A", "B"))]
 # v100 (Rytis 2026-10-11): „Letter back" visada su spalva - standartas = šonų (return) spalva; kitokia - tik nurodžius
 #  (spec "back_ral" / grupės "back_ral")
 _g0 = next((g for g in groups if not g["plate"]), None)
@@ -3446,6 +3471,11 @@ else:
     if len(_fr_list) < 2:
         _fr_list = [(FRONT, _PNAME, None)]
     _wq = W_P6 / len(_fr_list)
+    _P6REF.K_FIX = None
+    if len(_fr_list) > 1:                               # v276: vienodas mastelis visiems pjūviams
+        _kind_r = ("folded" if MOUNTING == "none" else _P6R.kind_of("rail", spec.get("rail", {}).get("type")))
+        _P6REF.K_FIX = min(K.p6_reference(X_P6, BY0, _wq, BH, depth, kind=_kind_r, front=_k, probe=True,
+                                          ears=(_EAR_POS if _HAS_EARS else None)) for _k, _, _ in _fr_list)
     for _iq, (_k, _code, _names) in enumerate(_fr_list):
         _pn = _code.split()[0].split("+")[0] if _names else _PNAME
         _who = f" ({', '.join(_names)})" if _names else ""
@@ -3455,6 +3485,7 @@ else:
                        ears=(_EAR_POS if _HAS_EARS else None),
                        ear_hole=EAR_HOLE / float(RAIL.get("depth", 30)),
                        bracket=(next((str(r_[0]) for r_ in _BOM_ROWS if re.search(r"bracket|hanger", str(r_[1]), re.I)), "") if BRACKETS else None))
+    _P6REF.K_FIX = None
 if spec.get("bom_cols"):                                   # v160: originalo lentelės stulpeliai (perkeliama iš org. dokumento)
     K.bom_table(X_BOM, BY0, W_BOM, BH, [[subst(x) for x in row] for row in spec["bom"]],
                 title=spec.get("bom_title", "BILL OF MATERIALS  (per 1 pcs.)"),
