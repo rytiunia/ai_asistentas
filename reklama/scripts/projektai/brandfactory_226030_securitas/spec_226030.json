@@ -85,21 +85,21 @@
    "Face 5S color (circles)",
    "Plexiglas GS 3H67 red, 3 mm",
    "-",
-   "{PER_CIRCLES} m / {A_CIRCLES} m²"
+   "{A_CIRCLES} m² / use 2050x588 = 1.21 m²"
   ],
   [
    1,
    "Face P6+foil (Securitas)",
    "Acrylic 8 mm white",
    "-",
-   "{PER_Securitas} m / {A_Securitas} m²"
+   "{A_Securitas} m² / use 2050x327 = 0.67 m²"
   ],
   [
    "",
    "Front film day/night (Securitas)",
    "day/night film black/white ?",
    "-",
-   "{A_Securitas} m²"
+   "{A_Securitas} m² / use 1190x532 = 0.63 m²"
   ],
   [
    "A",
@@ -120,28 +120,28 @@
    "Return circles",
    "Alu 1 mm",
    "RAL 3028",
-   "{PER_CIRCLES} m / {RET_CIRCLES} m²"
+   "{PER_CIRCLES} m, strips 80 (2000x1000)"
   ],
   [
    2,
    "Return Securitas",
    "Alu 1 mm",
    "PMS 2965 C",
-   "{PER_Securitas} m / {RET_Securitas} m²"
+   "{PER_Securitas} m, strips 80 (2000x1000)"
   ],
   [
    3,
    "Back circles",
    "Alu 1.5 mm",
    "RAL 3028",
-   "{PER_CIRCLES} m / {A_CIRCLES} m²"
+   "{A_CIRCLES} m² (sheet 3000x1500, common)"
   ],
   [
    3,
    "Back Securitas",
    "Alu 1.5 mm",
    "PMS 2965 C",
-   "{PER_Securitas} m / {A_Securitas} m²"
+   "{A_Securitas} m² (sheet 3000x1500, common)"
   ],
   [
    4,
@@ -155,14 +155,14 @@
    "Rail U {RAIL_SIZE} (circles)",
    "Aluminium",
    "? (1080-M230 matt)",
-   "{RAILS_M_CIRCLES} m"
+   "{RAILS_M_CIRCLES} m (bars 2 x 6 m, common)"
   ],
   [
    5,
    "Rail U {RAIL_SIZE} (Securitas)",
    "Aluminium",
    "NCS S 6005-R80B",
-   "{RAILS_M_Securitas} m"
+   "{RAILS_M_Securitas} m (bars 2 x 6 m, common)"
   ],
   [
    7,
@@ -254,5 +254,6 @@
   "cable_len_m": 1.5,
   "mains": "230V"
  },
- "power_note": "Power: 12V, trafo box"
+ "power_note": "Power: 12V, trafo box",
+ "bom_title": "BILL OF MATERIALS  (per 1 pcs., net / use incl. waste)"
 }
