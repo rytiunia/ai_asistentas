@@ -1,0 +1,291 @@
+{
+ "client_pdf": "EXLA26-01001.pdf",
+ "scale": 27.7727,
+ "crop_pt": [
+  90,
+  303,
+  631,
+  351
+ ],
+ "ignore_fills": [],
+ "qty": "1",
+ "client": "Alfa Neon AB / EXLANTIX",
+ "company": "Alfa Neon AB",
+ "title": "EXLA26-01001 EXLANTIX 5205 x 375 - P6 on rails",
+ "project": "Alfa Neon PO 33580 / RSA HK Drammen",
+ "drawing_no": "EXLA26-01001",
+ "order_no": "ALT0000_00.00_RS",
+ "file_code": "EXLA26-01001",
+ "rev": "A",
+ "date": "2026-10-15",
+ "depth_mm": 80,
+ "front": "P6",
+ "auto_frame": false,
+ "mounting": "ears",
+ "wall": "unknown",
+ "trafo_box": {
+  "voltage": "12V",
+  "cable_len_m": 1.5,
+  "mains": "230V"
+ },
+ "rail": {
+  "size": "30x30x2",
+  "depth": 30,
+  "ral": "5008"
+ },
+ "groups": [
+  {
+   "name": "EXLANTIX",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "9003",
+   "face_hex": "#FFFFFF",
+   "client_fill": [
+    0.9,
+    0.9,
+    0.9
+   ],
+   "frame": "verticals",
+   "led": "White LED modules, 6500K",
+   "rails": [
+    {
+     "kind": "h",
+     "poly": [
+      [
+       285,
+       29.5
+      ],
+      [
+       4894,
+       29.5
+      ],
+      [
+       4894,
+       59.5
+      ],
+      [
+       285,
+       59.5
+      ]
+     ]
+    },
+    {
+     "kind": "h",
+     "poly": [
+      [
+       285,
+       315
+      ],
+      [
+       4894,
+       315
+      ],
+      [
+       4894,
+       345
+      ],
+      [
+       285,
+       345
+      ]
+     ]
+    },
+    {
+     "kind": "v",
+     "poly": [
+      [
+       285,
+       59.5
+      ],
+      [
+       315,
+       59.5
+      ],
+      [
+       315,
+       315
+      ],
+      [
+       285,
+       315
+      ]
+     ]
+    },
+    {
+     "kind": "v",
+     "poly": [
+      [
+       1465,
+       59.5
+      ],
+      [
+       1495,
+       59.5
+      ],
+      [
+       1495,
+       315
+      ],
+      [
+       1465,
+       315
+      ]
+     ]
+    },
+    {
+     "kind": "v",
+     "poly": [
+      [
+       3893,
+       59.5
+      ],
+      [
+       3923,
+       59.5
+      ],
+      [
+       3923,
+       315
+      ],
+      [
+       3893,
+       315
+      ]
+     ]
+    },
+    {
+     "kind": "v",
+     "poly": [
+      [
+       4864,
+       59.5
+      ],
+      [
+       4894,
+       59.5
+      ],
+      [
+       4894,
+       315
+      ],
+      [
+       4864,
+       315
+      ]
+     ]
+    }
+   ]
+  }
+ ],
+ "bom": [
+  [
+   1,
+   "Letter face",
+   "Acrylic 8 mm white",
+   "-",
+   "{PER_6} m / {A_6} m²"
+  ],
+  [
+   2,
+   "Letter return",
+   "Alu 1 mm",
+   "RAL 9003",
+   "{PER_6} m / {RET_6} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "Alu 1.5 mm",
+   "RAL 9003",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   4,
+   "LED modules white",
+   "",
+   "",
+   ""
+  ],
+  [
+   5,
+   "Rail U {RAIL_SIZE}",
+   "Aluminium",
+   "RAL 5008",
+   "{RAIL_LIST_M} = {RAIL_TOTAL_M} m"
+  ],
+  [
+   6,
+   "Mounting L-profile {RAIL_SIZE}, Ø{EAR_HOLE} hole",
+   "Aluminium",
+   "RAL 5008",
+   "{PLATES_N} pcs."
+  ],
+  [
+   7,
+   "El. output 12V -> trafo box",
+   "cable 1.5 m",
+   "-",
+   "1 pcs."
+  ],
+  [
+   8,
+   "Trafo box + PSU",
+   "",
+   "RAL 5008",
+   ""
+  ],
+  [
+   9,
+   "Fixing to glass facade",
+   "",
+   "-",
+   ""
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "1 pcs."
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profile",
+   "P6 on rails, front illuminated"
+  ],
+  [
+   "Letter depth",
+   "80"
+  ],
+  [
+   "Face",
+   "Acrylic 8 mm white"
+  ],
+  [
+   "Returns / back",
+   "RAL 9003"
+  ],
+  [
+   "Rails",
+   "U 30x30x2 + ears, RAL 5008"
+  ],
+  [
+   "Illumination",
+   "white LED modules"
+  ],
+  [
+   "Power",
+   "12V -> TRAFO BOX, 230V"
+  ],
+  [
+   "Wall",
+   "glass facade"
+  ],
+  [
+   "Wind qp",
+   "{WIND_QP} kN/m²"
+  ]
+ ]
+}
