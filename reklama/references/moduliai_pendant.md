@@ -81,3 +81,5 @@ ir pado - 100 mm** (`"proj"` = stiklas + 100 + plokštė). Kojų uždengimai ir 
 `cover_finish`, `frame_hex` - NCS).
 - v258 (Rytis 2026-10-15): stiklo varžtai per perimetrą pagal folded plate formulę (50 nuo kraštų, ~300); laido išvestis ~230 V 1,5 m;
   trafas ant pado (plokštė 1A) po kojų uždengimais - `"psu": "plate"`.
+- v274 (Rytis 2026-10-15): šviesdėžės rėmas PAGAL DYDĮ - danbolig 1550 x 470 x 100 -> □40x40x2 (800 x 300 buvo □30x30x2);
+  kojos - kaip rėmas (□40x40x2). Spec `"frame": [40, 40, 2], "leg": [40, 40, 2]`. Ribas tarp dydžių - klausti, kol nepatvirtintos.
