@@ -43,8 +43,9 @@ RAL = {"6039": "#8FB03E", "8001": "#9D622B", "4010": "#BC4077", "2008": "#F75E25
 GREY = HexColor("#6E6E6E")
 EXT = HexColor("#7A7A7A")
 SECTION_C = HexColor("#111111")
-VINYL = {"3630-33": "#C8102E", "3630-125": "#FFC20E"}
-PMS = {"297": "#71C5E8", "185": "#E4002B"}          # Pantone C - BOM FINISH langelio užpildui; naują kodą įrašyti čia
+VINYL = {"3630-33": "#C8102E", "3630-125": "#FFC20E",
+         "100-54": "#85714D"}                            # v260: 3M 100-54 gold (~ Pantone 872C, ekrano artinys)
+PMS = {"297": "#71C5E8", "185": "#E4002B", "872": "#85714D"}          # Pantone C - BOM FINISH langelio užpildui; naują kodą įrašyti čia
 # v17 (Rytis 2026-10-08): VISI plėvelių kodai BOM lentelėje - spalvotas langelis (FINISH ir MATERIAL stulpeliai)
 FOIL = {"8500 614": "#00A859", "8500-614": "#00A859", "8500 034": "#EB690F", "8500-034": "#EB690F", "551 010": "#FFFFFF", "551-010": "#FFFFFF",
         "551-035": "#F75E25", "551 035": "#F75E25", "777-002": "#E4002B", "SANDBLAST": "#C4C5C9",
@@ -94,10 +95,35 @@ def film_lookup(v):
     return None
 
 
+def ncs_hex(code):
+    """v260 (Rytis 2026-10-15: „vėl nėra spalvų ant spalvų kodų lentelėje" - NCS): NCS S ssCC-HUE -> sRGB ARTINYS
+    (juodumas ss, chromatiškumas CC, atspalvis tarp elementarių Y / R / B / G; baltumas = 100 - ss - CC). Ne spalvų atitikimui."""
+    import re as _re
+    m = _re.search(r"S?\s*(\d{2})(\d{2})-([YRBGN])(\d{0,2})([YRBG]?)", str(code).upper())
+    if not m:
+        return None
+    s_, c_ = int(m.group(1)) / 100, int(m.group(2)) / 100
+    E = {"Y": (255, 211, 0), "R": (196, 2, 51), "B": (0, 136, 191), "G": (0, 159, 107)}
+    if m.group(3) == "N":
+        hue = (128, 128, 128); c_ = 0
+    else:
+        a = E[m.group(3)]
+        if m.group(5):
+            t = int(m.group(4) or 0) / 100; b = E[m.group(5)]
+            hue = tuple(a[i] * (1 - t) + b[i] * t for i in range(3))
+        else:
+            hue = a
+    w_ = max(0.0, 1 - s_ - c_)
+    rgb = [min(255, round(255 * w_ + hue[i] * c_)) for i in range(3)]
+    return "#%02X%02X%02X" % tuple(rgb)
+
+
 def code_hex(v, ral=True):
-    """langelio spalva pagal kodą: RAL / 3M / PMS / ORACAL / Avery / sandblast; None - nežinoma"""
+    """langelio spalva pagal kodą: RAL / NCS / 3M / PMS / ORACAL / Avery / sandblast; None - nežinoma"""
     v0 = str(v).split("\n")[0].strip()
     u = v0.upper()
+    if u.startswith("NCS"):
+        return ncs_hex(v0)
     if ral and u.startswith("RAL") and len(v0.split()) > 1:
         return ralhex(v0.split()[1].rstrip(","))
     f_ = film_lookup(v0)

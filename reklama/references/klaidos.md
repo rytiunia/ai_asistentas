@@ -28,3 +28,5 @@ Procesinės (paskyros kopija sena, lygiagretūs pokalbiai, ASCII vardai, auseles
   objekto (`lapas_core.side_label_3d`, SKILL taisyklė 27).
 - **Senas generatorius be naujų taisyklių** (2026-10-15, danbolig DB-0001): `sviesdeze.py` naudotas neperskaičius naujesnių
   šviesdėžių modulių (kojos per galinį statmenį, exploded > top view). Prieš šviesdėžę - SKILL taisyklė 26.
+- **Spalvos kodas be spalvos BOM** (2026-10-15, danbolig): NCS S 8010-R90B ir 3M 100-54 langeliai buvo balti (nebuvo NCS / 3M
+  kodų bibliotekoje). Dabar `ncs_hex` + `VINYL` / `PMS`; naują kodą - įrašyti. SKILL taisyklė 28.
