@@ -184,7 +184,8 @@ antraštė, P6 tipiniai pjūviai `p6_typical(variant=rail|folded|plate)`, 3D `Vi
 ## (iš SKILL.md v83) Bėgelių lapas - vaizdai ir antraštė
 - **Antraštės lentelė (Rytio pavyzdys 2026-10-07):** CLIENT - užsakovas (pvz. BrandFactory, 14 pt bold), TITLE,
   ORDER NO. (14 pt bold, formatas pvz. ALT0000_00.00_RS) | FILE / DRAWING NO. (`drawing_no`), SCALE (DIM. mm) |
-  FORMAT | SHEET | REV. | PROJECTION, DRAWN | CHECKED | DATE | tuščias; įmonės pavadinimo apačioje nėra.
+  FORMAT | REV. | PROJECTION, DATE | JUODAS kiekio blokas („N pcs.“) | didelė „Sheet x / y“ (v248, Rytis 2026-10-15; DRAWN /
+  CHECKED nebėra); įmonės pavadinimo apačioje nėra. Tuščias blankas - `assets/blankas_A3.pdf`.
 - **Galinis vaizdas - tikras vaizdas iš nugaros:** raidės ir bėgeliai originaliomis spalvomis (raidės - šonų
   RAL, bėgeliai - RAL 7035), už plokštės esančios raidės - punktyru; užrašai su baltu fonu.
 - Lapas: FRONT (raidžių priekis vinilo spalva), SIDE (plokštė, bėgeliai, raidės), REAR (TIK bėgelių ilgiai,
