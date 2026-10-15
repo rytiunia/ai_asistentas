@@ -32,6 +32,9 @@ def parse(front):
         u = "3MM" + u[2:]
     if u.startswith("P6") and not re.match(r"P6\d", u):   # v233: „P6" / „P6+foil" / „P6 color" = buv. P6_8mm
         u = "8MM" + u[2:]
+    if u.startswith("P10"):                         # v242: P10 - 30 mm balta plexi BLOKAS (ne P6 su šonais), LED griovelyje
+        return {"code": "P10" + ("+foil" if "FOIL" in u else ""), "thk": 30.0, "milled": False, "foil": "FOIL" in u,
+                "color": False, "kind": "P10", "warn": None}
     if u == "P1":
         return {"code": "P1", "thk": 2.0, "milled": False, "foil": False, "color": False, "kind": "P1", "warn": None}
     m = re.match(r"(\d+(?:[.,]\d+)?)", u)

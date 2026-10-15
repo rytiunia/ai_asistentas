@@ -27,7 +27,7 @@ depth = spec["depth_mm"]
 # priekis: "5S+foil" (buv. P6_3mm+foil: polikarbonatas 3 FR + plėvelė, PVC bortelis), "5S color" (spalvotas 3, PVC), "8mm+foil" (balta 8, frezuota briauna)
 import p6_front as P6F   # v90: visi priekio variantai (3/8/10/15/20/30 mm, +foil, color)
 FRONT = P6F.kind(spec.get("front", "5S"))
-_PNAME = "5S" if FRONT == "3mm" else "P6"                 # v210: P6_3mm -> 5S   # "3mm" (PVC) / "8mm" (frezuota, >= 8 mm) / "P1"
+_PNAME = "5S" if FRONT == "3mm" else ("P10" if FRONT == "P10" else "P6")   # v210: P6_3mm -> 5S; v242: P10 blokas   # "3mm" (PVC) / "8mm" (frezuota, >= 8 mm) / "P1"
 if P6F.parse(spec.get("front", "5S"))["warn"]:
     print(P6F.parse(spec.get("front", "5S"))["warn"])
 RAIL = {"size": "30x30x2", "depth": 30, "ral": "7035"}; RAIL.update(spec.get("rail", {}))
@@ -1654,7 +1654,7 @@ def backcol(g):
 
 def P6_REAL(g):
     """v59: realus P6 vaizdavimas (stiklas 3 mm kraštas, korpusas -1,5) - visoms šviečiančioms P6 / P6+3 raidėms"""
-    return FRONT != "P1" and not g["spec"].get("behind") and g["spec"].get("lit", True) is not False \
+    return FRONT not in ("P1", "P10") and not g["spec"].get("behind") and g["spec"].get("lit", True) is not False \
         and g["spec"].get("depth_mm", depth) >= 20
 
 
@@ -3038,6 +3038,10 @@ if FRONT == "P1":
     K.p1_typical(X_P6, BY0, W_P6, BH, depth, variant="rail", title="PROFILE P1 ON RAILS - TYPICAL SECTION",
                  numbers={"fit": _EAR_POS or 6, "mount": _rail_pos()}, ears=_HAS_EARS,
                  bracket=(next((str(r_[0]) for r_ in _BOM_ROWS if re.search(r"bracket|hanger", str(r_[1]), re.I)), "") if BRACKETS else None))
+elif FRONT == "P10":                                     # v242: P10 blokas ant akrilinio rėmo (etalonas Boots ALT6739)
+    import p10_raides as _P10R
+    _P10R.section(K, X_P6, BY0, W_P6, BH, spec, ACRY if RAIL_ACR else None, RAIL_W if RAIL_ACR else None,
+                  title=f"PROFILE P10 ON {'CLEAR ACRYLIC FRAME ' + RAIL['size'] if RAIL_ACR else 'FRAME'}")
 elif RAIL_ACR:                                           # v232 (Rytis: „kodėl senas pjūvis?"): etaloninis P6 pjūvis
     _P6REF.ACRYLIC = True                                #  (square wallframe) su skaidriu pilnaviduriu akrilo bėgeliu 40x20
     _P6REF.RAIL_RATIO = float(ACRY["thk"]) / RAIL_W
@@ -3074,7 +3078,7 @@ _A_all = sum(g["area"] for g in groups) * 1e6              # mm2
 _P_all = sum(g["per"] for g in groups) * 1000              # mm
 _kg = {
     "face": (_A_all * 2.0 * _rho["al"]) if FRONT == "P1" else _A_all * spec.get("face_thk", P6F.thk(spec.get("front", "5S"))) * _rho["pmma"],
-    "return": _P_all * depth * _t["return"] * _rho["al"],
+    "return": 0.0 if FRONT == "P10" else _P_all * depth * _t["return"] * _rho["al"],
     "back": (_A_all * 10.0 * _rho["pvc"]) if FRONT == "P1" else _A_all * _t["back"] * _rho["al"],
     "pvc": (_P_all * _SV["pvc_edge_section_mm2"] * _rho["pvc"]) if FRONT == "3mm" else 0.0,
     "rails": (sum(r_["len"] * RAIL_W * ACRY["thk"] for g in groups for r_ in g["rails"]) * _rho["pmma"] if RAIL_ACR else
