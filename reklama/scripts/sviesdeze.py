@@ -162,6 +162,8 @@ def geom(S):
     import led_km
     g["psu"] = led_km.psu_for(g["led_W"], 12)
     g["no_psu"] = S.get("psu") is False                              # v253 (Rytis): trafo NEREIKIA - 12 V tiekia klientas
+    g["psu_plate"] = S.get("psu") == "plate"                         # v258 (Rytis): trafas ANT PADO po kojų uždengimais
+    g["no_tp"] = g["no_psu"] or g["psu_plate"]                       #  -> trafo plokštelės 1C nėra
     # kiekiai, svoris
     per_b = 2 * (g["BW"] + g["BH"])
     g["per_b"] = per_b
@@ -187,12 +189,18 @@ def geom(S):
     faces = [("top", g["BW"]), ("wall", g["BH"]), ("bottom", g["BW"]), ("front", g["BH"])]
     holes = []
     for fn, L in faces:
-        n = S["screws_per_edge"] or math.ceil(L / S["screw_step"])     # v254 Rytis: PAGAL DYDĮ (žingsnis), po 1 tašką A ir B stiklui
-        for i in range(n):
+        # v258 (Rytis 2026-10-15): FOLDED PLATE formulė - 50 nuo kraštų, žingsnis ~300, n = round((L - 100) / 300) tarpų,
+        #  per perimetrą (visos 4 kraštinės), kiekvienoje vietoje po 1 tašką A ir B stiklui
+        if S["screws_per_edge"]:
+            us_ = [L * (i + 0.5) / S["screws_per_edge"] for i in range(S["screws_per_edge"])]
+        else:
+            n_ = max(1, round((L - 100) / 300))
+            us_ = [50 + (L - 100) * i / n_ for i in range(n_ + 1)]
+        for u_ in us_:
             for z in (-zs, zs):
-                holes.append((fn, L * (i + 0.5) / n, z, "pvc"))
+                holes.append((fn, u_, z, "pvc"))
     g["scr_holes"] = holes
-    g["scr_n_face"] = S["screws_per_edge"] or math.ceil(g["BW"] / S["screw_step"])
+    g["scr_n_face"] = S["screws_per_edge"] or (max(1, round((g["BW"] - 100) / 300)) + 1)
     g["scr_wall"] = [(ov + u, z, k) for fn, u, z, k in holes if fn == "wall"]
     g["n_scr"] = len(holes)
     # v140: logotipas (kliento PNG -> vektorius), abiejose pusėse, centre
@@ -231,7 +239,7 @@ def bom_rows(g):
                  "Alu, welded to legs", g["frame_finish"], "1 pc."],
                 ["1C", f"Trafo plate {g['trafo_plate'][1]:g} mm (PSU)", "Alu, welded to rear member" if g.get("rear") else "Alu, welded between legs", "-",
                  f"{g['tp_h']:g} x {g['trafo_plate'][0]:g} mm"]]
-        if g.get("no_psu"):
+        if g.get("no_tp"):
             head = head[:-1]
     else:
         head = [[1, f"Frame + legs {prof(fa, fb, ft)}, in body white", "Alu EN AW-6060", f"{g['frame_finish']} legs",
@@ -245,7 +253,7 @@ def bom_rows(g):
             [6, f"PVC edge {pw:g} x {pd:g} (face B)", "PVC, glued to face", "white", f"{g['pvc_len']:g} mm"],
             ([7, f"LED Kaisen {g['led_name']}, 12 V", "no PSU (12 V by client)", "6500 K", f"{g['led_n']} pcs. ({g['led_W']:.1f} W)"]
              if g.get("no_psu") else
-             [7, f"LED Kaisen {g['led_name']} + PSU", f"PSU {g['psu'][0].replace('-5Y', '')}", "6500 K",
+             [7, f"LED Kaisen {g['led_name']} + PSU" + (" (on 1A)" if g.get("psu_plate") else ""), f"PSU {g['psu'][0].replace('-5Y', '')}", "6500 K",
               f"{g['led_n']} pcs. ({g['led_W']:.1f} W) + 1 PSU"]),
             [8, "Tapping screw, D3.2 holes", "A2", "-", f"{g['n_scr']} pcs. (into PVC edge)"]] + (
            [[9, "Logo, sides A + B", g["logo_mat"], g.get("logo_finish", "-"), f"2 pcs., {g['logo_w']:g} x {g['logo_h']:.0f} mm"]]
@@ -568,7 +576,7 @@ def exploded(g, box, yaw=-54, pitch=17):
                    COL_FRAME, edge=EDGE)                            # koja lauke - spalva
         L0 = g["legs"][0]
         anc["1B"] = (g["xb"] + (g["xf"] - g["xb"]) * 0.45, Y(L0["y"] - lw_ / 2), ld_ / 4)
-        if not g.get("no_psu"):
+        if not g.get("no_tp"):
             sc.box((g["x_tp"], Y(g["ax"] + lw_ / 2 + g["tp_h"]), -g["trafo_plate"][0] / 2), (g["trafo_plate"][1], 0, 0),
                    (0, g["tp_h"], 0), (0, 0, g["trafo_plate"][0]), HexColor("#7A7A7A"), edge=EDGE)
     else:
@@ -788,9 +796,12 @@ def sheet1(g, out):
     K.balloon_side([(Xs(yw[1]), Yv(yw[0]), "screw 8 (D3.2)"), (Xs(hz[-1]), Yv(hyv[-1]), f"{nh} x Ø{P0['d']:g}"), cab],
                    Xs(ex_) + 36, "right", up=True, tags=True)
     T(Xs(0), Yv(Hd) + 38, "= WALL DRILLING", 8, align="c", color=K.GREY)
-    if P0["cable"] and (g.get("no_psu") or g.get("cable_note")):    # v253 (Rytis): pastaba klientui - kur išeina laidas
-        _cn = g.get("cable_note") or [f"CABLE EXIT: 12 V cable through plate Ø{P0['cable'][2]:g} into wall,",
-                                      f"on axis, {P0['cable'][1]:g} mm from top of sign. 12 V supply by client (no PSU)."]
+    if P0["cable"] and (g.get("no_psu") or g.get("psu_plate") or g.get("cable_note")):    # v253 (Rytis): pastaba klientui - kur išeina laidas
+        _cn = g.get("cable_note") or ([f"CABLE EXIT: ~230 V cable 1.5 m through plate Ø{P0['cable'][2]:g} into wall,",
+                                       f"on axis, {P0['cable'][1]:g} mm from top of sign. PSU on plate, under leg covers."]
+                                      if g.get("psu_plate") else
+                                      [f"CABLE EXIT: 12 V cable through plate Ø{P0['cable'][2]:g} into wall,",
+                                       f"on axis, {P0['cable'][1]:g} mm from top of sign. 12 V supply by client (no PSU)."])
         for _i, _t in enumerate(_cn if isinstance(_cn, list) else [_cn]):
             T(Xs(0), Yv(Hd) + 50 + _i * 10, _t, 7.5, align="c", color=HexColor("#D0021B"))
     view_title(Xs(0), top - 84, "VIEW FROM WALL", sl)
@@ -898,7 +909,8 @@ def sheet1(g, out):
                       if g["inset"] else
                       f"2 flanges, 8 x Ø{g['hole_d']:g}, {g['hole_pitch']:g} x {g['hole_pitch']:g} {g['anchors']}").strip()],
           ["LED / PSU", f"{g['led_n']} x {g['led_name']}, " + ("no PSU" if g.get("no_psu") else g['psu'][0].replace('-5Y', ''))],
-          ["Cable", g["cable"] or ("inside leg cover -> plate Ø" + f"{g['cable_hole']:g}" if g["inset"]
+          ["Cable", g["cable"] or (f"~230V 1.5 m via plate Ø{g['cable_hole']:g}" if g.get("psu_plate") else
+                                   "inside leg cover -> plate Ø" + f"{g['cable_hole']:g}" if g["inset"]
                                    else "through bottom leg + flange:")],
           ["Qty", f"{g['qty']} pcs."],
           ["Weight (calc.)", f"≈ {g['kg']:.1f} kg / pcs" + ("" if g.get("no_psu") else ", excl. PSU")]]
@@ -927,7 +939,11 @@ def frame_inset(g, X, Yv, s, led_x, yrow, sub=False):
             pts = [(lx0 + dxc, ya), (g["xf"], ya), (g["xf"], yb), (lx0, yb)]
         poly([(X(a), Yv(b)) for a, b in pts], fill=COL_FRAME, lw=0.1)
         poly([(X(a), Yv(b)) for a, b in pts], lw=0.25)
-    if not g.get("no_psu"):
+    if g.get("psu_plate"):                                          # v258: PSU ant pado tarp kojų, po uždengimais (dydis - pagal tiekėją)
+        psu_h = min(120, g["tp_h"] - 20)
+        rect(X(g["xf"] - 32), Yv(Hd / 2 - psu_h / 2), 30 * s, psu_h * s, fill=HexColor("#5A5A5A"), lw=0.1)
+        T(X(g["xf"] - 17), Yv(Hd / 2) + 3, "PSU", 6, align="c", color=white)
+    if not g.get("no_tp"):
         rect(X(g["x_tp"]), Yv(g["ax"] + lw_ / 2), g["trafo_plate"][1] * s, g["tp_h"] * s, fill=HexColor("#7A7A7A"), lw=0.1)
         psu_h = min(150, g["tp_h"] - 40)
         rect(X(g["x_tp"] + g["trafo_plate"][1]), Yv(Hd / 2 - psu_h / 2), 30 * s, psu_h * s, fill=HexColor("#5A5A5A"), lw=0.1)
@@ -939,7 +955,8 @@ def frame_inset(g, X, Yv, s, led_x, yrow, sub=False):
             rect(X(lx - 11), Yv(yr - 8 if up else yr), 22 * s, 8 * s, fill=COL_LED, lw=0.1)
         yw = yr - 4 if up else yr + 4
         line(X(led_x[0]), Yv(yw), X(led_x[-1]), Yv(yw), 0.2, HexColor("#C00000"))
-        line(X(led_x[-1]), Yv(yw), X(xr if g.get("no_psu") else g["x_tp"]), Yv(yw), 0.2, HexColor("#C00000"))
+        line(X(led_x[-1]), Yv(yw), X(xr if g.get("no_psu") else (g["xf"] - 32) if g.get("psu_plate") else g["x_tp"]), Yv(yw), 0.2,
+             HexColor("#C00000"))
     # matmenys (v145: viena linija - viena prasmė; grandinė arčiausiai, gabaritas už jos; tarp LED matmenų nėra)
     if not g.get("rear"):
         hchain(Yv(x0) - D1, [X(x0), X(lx0), X(xr)], [Yv(x0)] * 3, [f"{lx0 - x0:g}", f"{xr - lx0:g} (leg in)"], size=K.F_DIM_FRAME)
@@ -969,7 +986,7 @@ def frame_inset(g, X, Yv, s, led_x, yrow, sub=False):
                      (X(x0 + fa / 2), Yv(x0 + FH * 0.35), "1.3")] + ([(X(xr - fa / 2), Yv(x0 + FH * 0.65), "1.4")] if g.get("rear") else [])
                     if sub else [(X(x0 + FW * 0.3), Yv(x0 + fa / 2), 1)]) +
                    [(X(g["xf"] - 10), Yv(g["ax"]), "1B"),
-                    (X(g["xf"] + P["t"]), Yv(P["yc"] - P["h"] / 2 + 10), "1A"), *([] if g.get("no_psu") else [(X(g["x_tp"]), Yv(Hd / 2 + 60), "1C")]),
+                    (X(g["xf"] + P["t"]), Yv(P["yc"] - P["h"] / 2 + 10), "1A"), *([] if g.get("no_tp") else [(X(g["x_tp"]), Yv(Hd / 2 + 60), "1C")]),
                     (X(led_x[-1] + 11), Yv(yrow[0] - 4), 7)], X(g["PROJ"]) + 24, "right", up=True, r=7)
 
 
@@ -1138,7 +1155,7 @@ def frame_iso(g, box):
             sc.box((g["leg_x0"], Y(L["y"] + lw_ / 2), -ld_ / 2), (g["xf"] - g["leg_x0"], 0, 0), (0, lw_, 0), (0, 0, ld_),
                    WH, edge=BK)
         anc["1B"] = (g["xb"] + (g["xf"] - g["xb"]) * 0.4, Y(g["legs"][0]["y"] - lw_ / 2), 0)
-        if not g.get("no_psu"):
+        if not g.get("no_tp"):
             sc.box((g["x_tp"], Y(g["ax"] + lw_ / 2 + g["tp_h"]), -g["trafo_plate"][0] / 2), (g["trafo_plate"][1], 0, 0),
                    (0, g["tp_h"], 0), (0, 0, g["trafo_plate"][0]), WH, edge=BK)
             anc["1C"] = (g["x_tp"], Y(Hd / 2), g["trafo_plate"][0] / 2)
@@ -1251,7 +1268,9 @@ def _sheet2(g, out):
             ["Qty / pitch", f"{g['led_n']} pcs., {g['led_step']:.1f} mm (table {g['led_p']:g})"],
             ["Kaisen table", f"box 1000x{g['led_box']}, depth {g['led_dep']}: {g['led_lux']} lx"],
             ["Power total", f"{g['led_W']:.1f} W"],
-            ["PSU", "not included - 12 V by client" if g.get("no_psu") else f"{g['psu'][0].replace('-5Y', '')} ({g['psu'][1]} W), place:"],
+            ["PSU", "not included - 12 V by client" if g.get("no_psu") else
+             f"{g['psu'][0].replace('-5Y', '')} ({g['psu'][1]} W), on plate 1A" if g.get("psu_plate") else
+             f"{g['psu'][0].replace('-5Y', '')} ({g['psu'][1]} W), place:"],
             ["Supply", "not in Alt Reklama price list - check:"]], title="LED (7)", lab_w=64)
 
     ci = fa - 2 * ft
@@ -1284,6 +1303,10 @@ def _sheet2(g, out):
         if g.get("no_psu"):
             frame_cut = [r for r in frame_cut if r[0] not in ("1C", "7A", "7B")] + [
                 ["7B", "Cable 2 x 0.75, 12 V (LED -> wall)", "", "", "length:"]]
+        elif g.get("psu_plate"):
+            frame_cut = [r for r in frame_cut if r[0] not in ("1C", "7A", "7B")] + [
+                ["7A", "PSU on plate 1A, under covers", g["psu"][0], "IP67", "1 pc."],
+                ["7B", "Cable ~230 V from PSU, out via plate", "", "", "1.5 m"]]
     md = [["Frame outer", f"{FW:g} x {FH:g} mm"],
           ["Profile", f"{prof(fa, fb, ft)} Alu, centre of depth"],
           ["Legs", (f"{prof(*g['leg'])} through rear vert., gap {g['xf'] - g['xb']:g}" if g.get("rear") else
@@ -1293,6 +1316,7 @@ def _sheet2(g, out):
           ["Joints", "welded (TIG), ground"],
           ["Body", f"band {g['BW']:g} x {g['BH']:g}, welded to frame"],
           ["Cable", ("12V: rear vert. -> cover -> plate Ø" + f"{g['cable_hole']:g}") if g.get("no_psu") else
+           (f"~230V 1.5 m: PSU on 1A -> Ø{g['cable_hole']:g}") if g.get("psu_plate") else
            ("PSU on 1C -> inside cover -> plate Ø" + f"{g['cable_hole']:g}") if g["inset"]
            else "bottom leg tube -> flange □ hole"],
           ["Finish", f"legs + plates {g['frame_finish']}" if len(g['frame_finish']) > 10 else f"legs + plates {g['frame_finish']}; inside white"],

@@ -34,7 +34,7 @@
  ],
  "leg_in": 0,
  "leg_chamfer": 90,
- "psu": false,
+ "psu": "plate",
  "leg": [
   30,
   30,

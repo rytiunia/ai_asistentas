@@ -79,3 +79,5 @@ galinis statmuo 1.4 įvirintas TARP kojų (v254, Rytis eskizas; kaip P10_lightbo
 (raudona po „WALL DRILLING": laidas per plokštės Ø11 į sieną, atstumas nuo viršaus; `"cable_note"` - savas tekstas); **tarpas tarp šviesdėžės
 ir pado - 100 mm** (`"proj"` = stiklas + 100 + plokštė). Kojų uždengimai ir plokštė gali būti kitos spalvos (`cover_hex`,
 `cover_finish`, `frame_hex` - NCS).
+- v258 (Rytis 2026-10-15): stiklo varžtai per perimetrą pagal folded plate formulę (50 nuo kraštų, ~300); laido išvestis ~230 V 1,5 m;
+  trafas ant pado (plokštė 1A) po kojų uždengimais - `"psu": "plate"`.

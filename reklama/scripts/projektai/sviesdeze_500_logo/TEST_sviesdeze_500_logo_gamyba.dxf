@@ -489,7 +489,7 @@ $SKPOLY
   9
 $TDCREATE
  40
-2461329.4877546295
+2461329.491423611
   9
 $TDUCREATE
  40
@@ -497,7 +497,7 @@ $TDUCREATE
   9
 $TDUPDATE
  40
-2461329.4877546295
+2461329.491423611
   9
 $TDUUPDATE
  40
@@ -549,7 +549,7 @@ $SPLINESEGS
   9
 $HANDSEED
   5
-5D
+4D
   9
 $SURFTAB1
  70
@@ -929,11 +929,11 @@ $PSTYLEMODE
   9
 $FINGERPRINTGUID
   2
-{B0D210AE-53D1-4F2C-8F3D-24E5107808C7}
+{7CE500DE-37B4-4829-9B8F-EC3E342011CA}
   9
 $VERSIONGUID
   2
-{719A6A23-EF78-4095-BA0C-F58147021923}
+{70037287-D117-4B70-B87B-E40D2B1ED81D}
   9
 $EXTNAMES
 290
@@ -1797,7 +1797,7 @@ ACAD
   0
 APPID
   5
-5A
+4A
 330
 3
 100
@@ -1811,7 +1811,7 @@ HATCHBACKGROUNDCOLOR
   0
 APPID
   5
-5B
+4B
 330
 3
 100
@@ -2235,7 +2235,7 @@ HOLES_D3.2
 100
 AcDbCircle
  10
-62.125
+50.0
  20
 7.5
  30
@@ -2255,7 +2255,7 @@ HOLES_D3.2
 100
 AcDbCircle
  10
-62.125
+50.0
  20
 132.5
  30
@@ -2275,7 +2275,7 @@ HOLES_D3.2
 100
 AcDbCircle
  10
-186.375
+447.0
  20
 7.5
  30
@@ -2295,7 +2295,7 @@ HOLES_D3.2
 100
 AcDbCircle
  10
-186.375
+447.0
  20
 132.5
  30
@@ -2315,7 +2315,7 @@ HOLES_D3.2
 100
 AcDbCircle
  10
-310.625
+547.0
  20
 7.5
  30
@@ -2335,7 +2335,7 @@ HOLES_D3.2
 100
 AcDbCircle
  10
-310.625
+547.0
  20
 132.5
  30
@@ -2355,7 +2355,7 @@ HOLES_D3.2
 100
 AcDbCircle
  10
-434.875
+944.0
  20
 7.5
  30
@@ -2375,7 +2375,7 @@ HOLES_D3.2
 100
 AcDbCircle
  10
-434.875
+944.0
  20
 132.5
  30
@@ -2395,7 +2395,7 @@ HOLES_D3.2
 100
 AcDbCircle
  10
-559.125
+1044.0
  20
 7.5
  30
@@ -2415,7 +2415,7 @@ HOLES_D3.2
 100
 AcDbCircle
  10
-559.125
+1044.0
  20
 132.5
  30
@@ -2435,7 +2435,7 @@ HOLES_D3.2
 100
 AcDbCircle
  10
-683.375
+1441.0
  20
 7.5
  30
@@ -2455,7 +2455,7 @@ HOLES_D3.2
 100
 AcDbCircle
  10
-683.375
+1441.0
  20
 132.5
  30
@@ -2475,7 +2475,7 @@ HOLES_D3.2
 100
 AcDbCircle
  10
-807.625
+1541.0
  20
 7.5
  30
@@ -2495,7 +2495,7 @@ HOLES_D3.2
 100
 AcDbCircle
  10
-807.625
+1541.0
  20
 132.5
  30
@@ -2515,7 +2515,7 @@ HOLES_D3.2
 100
 AcDbCircle
  10
-931.875
+1938.0
  20
 7.5
  30
@@ -2535,327 +2535,7 @@ HOLES_D3.2
 100
 AcDbCircle
  10
-931.875
- 20
-132.5
- 30
-0.0
- 40
-1.6
-  0
-CIRCLE
-  5
-47
-330
-17
-100
-AcDbEntity
-  8
-HOLES_D3.2
-100
-AcDbCircle
- 10
-1056.125
- 20
-7.5
- 30
-0.0
- 40
-1.6
-  0
-CIRCLE
-  5
-48
-330
-17
-100
-AcDbEntity
-  8
-HOLES_D3.2
-100
-AcDbCircle
- 10
-1056.125
- 20
-132.5
- 30
-0.0
- 40
-1.6
-  0
-CIRCLE
-  5
-49
-330
-17
-100
-AcDbEntity
-  8
-HOLES_D3.2
-100
-AcDbCircle
- 10
-1180.375
- 20
-7.5
- 30
-0.0
- 40
-1.6
-  0
-CIRCLE
-  5
-4A
-330
-17
-100
-AcDbEntity
-  8
-HOLES_D3.2
-100
-AcDbCircle
- 10
-1180.375
- 20
-132.5
- 30
-0.0
- 40
-1.6
-  0
-CIRCLE
-  5
-4B
-330
-17
-100
-AcDbEntity
-  8
-HOLES_D3.2
-100
-AcDbCircle
- 10
-1304.625
- 20
-7.5
- 30
-0.0
- 40
-1.6
-  0
-CIRCLE
-  5
-4C
-330
-17
-100
-AcDbEntity
-  8
-HOLES_D3.2
-100
-AcDbCircle
- 10
-1304.625
- 20
-132.5
- 30
-0.0
- 40
-1.6
-  0
-CIRCLE
-  5
-4D
-330
-17
-100
-AcDbEntity
-  8
-HOLES_D3.2
-100
-AcDbCircle
- 10
-1428.875
- 20
-7.5
- 30
-0.0
- 40
-1.6
-  0
-CIRCLE
-  5
-4E
-330
-17
-100
-AcDbEntity
-  8
-HOLES_D3.2
-100
-AcDbCircle
- 10
-1428.875
- 20
-132.5
- 30
-0.0
- 40
-1.6
-  0
-CIRCLE
-  5
-4F
-330
-17
-100
-AcDbEntity
-  8
-HOLES_D3.2
-100
-AcDbCircle
- 10
-1553.125
- 20
-7.5
- 30
-0.0
- 40
-1.6
-  0
-CIRCLE
-  5
-50
-330
-17
-100
-AcDbEntity
-  8
-HOLES_D3.2
-100
-AcDbCircle
- 10
-1553.125
- 20
-132.5
- 30
-0.0
- 40
-1.6
-  0
-CIRCLE
-  5
-51
-330
-17
-100
-AcDbEntity
-  8
-HOLES_D3.2
-100
-AcDbCircle
- 10
-1677.375
- 20
-7.5
- 30
-0.0
- 40
-1.6
-  0
-CIRCLE
-  5
-52
-330
-17
-100
-AcDbEntity
-  8
-HOLES_D3.2
-100
-AcDbCircle
- 10
-1677.375
- 20
-132.5
- 30
-0.0
- 40
-1.6
-  0
-CIRCLE
-  5
-53
-330
-17
-100
-AcDbEntity
-  8
-HOLES_D3.2
-100
-AcDbCircle
- 10
-1801.625
- 20
-7.5
- 30
-0.0
- 40
-1.6
-  0
-CIRCLE
-  5
-54
-330
-17
-100
-AcDbEntity
-  8
-HOLES_D3.2
-100
-AcDbCircle
- 10
-1801.625
- 20
-132.5
- 30
-0.0
- 40
-1.6
-  0
-CIRCLE
-  5
-55
-330
-17
-100
-AcDbEntity
-  8
-HOLES_D3.2
-100
-AcDbCircle
- 10
-1925.875
- 20
-7.5
- 30
-0.0
- 40
-1.6
-  0
-CIRCLE
-  5
-56
-330
-17
-100
-AcDbEntity
-  8
-HOLES_D3.2
-100
-AcDbCircle
- 10
-1925.875
+1938.0
  20
 132.5
  30
@@ -2865,7 +2545,7 @@ AcDbCircle
   0
 LWPOLYLINE
   5
-57
+47
 330
 17
 100
@@ -2897,7 +2577,7 @@ AcDbPolyline
   0
 LWPOLYLINE
   5
-58
+48
 330
 17
 100
@@ -2929,7 +2609,7 @@ AcDbPolyline
   0
 TEXT
   5
-59
+49
 330
 17
 100
@@ -2947,7 +2627,7 @@ AcDbText
  40
 8.0
   1
-BODY BAND 1.5 mm Alu 1988 x 140 - 3 x 90 + seam, 32 x D3.2, 2 leg holes 32x32 - FACE OUT (A edge y = 0)
+BODY BAND 1.5 mm Alu 1988 x 140 - 3 x 90 + seam, 16 x D3.2, 2 leg holes 32x32 - FACE OUT (A edge y = 0)
  11
 0.0
  21
@@ -3947,7 +3627,7 @@ CREATED_BY_EZDXF
   3
 WRITTEN_BY_EZDXF
 350
-5C
+4C
   0
 DICTIONARYVAR
   5
@@ -3959,11 +3639,11 @@ DictionaryVariables
 280
 0
   1
-1.4.4 @ 2026-10-15T08:42:22.337799+00:00
+1.4.4 @ 2026-10-15T08:47:39.805139+00:00
   0
 DICTIONARYVAR
   5
-5C
+4C
 330
 2D
 100
@@ -3971,7 +3651,7 @@ DictionaryVariables
 280
 0
   1
-1.4.4 @ 2026-10-15T08:42:22.340331+00:00
+1.4.4 @ 2026-10-15T08:47:39.807488+00:00
   0
 ENDSEC
   0
