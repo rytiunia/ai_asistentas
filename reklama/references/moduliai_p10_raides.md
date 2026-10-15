@@ -17,9 +17,13 @@ Gylis 30 mm (raidė), vidaus (Interior); šonai RAL; priekiui gali būti plėvel
   kerta viena kitą, baigiasi ~ prieš galą. -> `scripts/griovelis_b.py` (B) ir `griovelis_sim.py` (simuliacija).
 
 ## Akrilinis rėmas (20 mm skaidrus plexi)
-- Bėgelio pjūvis („PRIEKIS / galas", detalės iš galo taip ir frezuoti): **iš priekio išilginis plyšys 5 mm pločio, 5 mm gylio;
-  iš galo kišenė 12 mm pločio, 15 mm gylio** (T-griovelis privirintoms smeigėms / veržlėms - raidės slankiojamos išilgai).
-- **Laidų griovelis - mėlyna centerline, 6 mm pločio, 3,5 mm gylio**; tvirtinimo skylės - ovalios, kiaurai.
+- **P10 VISADA = 30 mm blokas + rėmas; bendras gylis = 30 + rėmo storis** (Rytis 2026-10-15).
+- Etalono bėgelyje raidžių tvirtinimui - ATSKIROS skylės su įleidimu (dvigubi apskritimai): pjūvis „PRIEKIS / galas" -
+  iš priekio Ø5 (5 mm gylio), iš galo Ø12 įleidimas 15 mm gylio (smeigei / veržlei).
+  **Rytis 2026-10-15: „jei rėmas akrilinis - T griovelis"** (išilginis: priekyje 5 pločio x 5, gale 12 pločio x 15) -
+  PATIKSLINTI, ar T griovelis ištisinis, ar kaip etalone - atskiros įleistos skylės (klausta 2026-10-15).
+- **Laidų griovelis - kaip etalone: 6 mm pločio, 3,5 mm gylio** (mėlyna centerline palei bėgelį, ne ašyje - šalia
+  tvirtinimo skylių eilės); prie raidžių - **ovalios skylės kiaurai** laidams (Rytis 2026-10-15: „laidui griovelis kaip pavyzdyje").
 - Dalys jungiamos **puzzle (interlocking) jungtimis, klijuojamos** („Bonding acrylic frame parts together with interlocking joints",
   DETAIL A 1:5); statmenų galuose - puzzle galvutės (detalės iš galo).
 - Vidaus pakabinimas (Boots): stovai iš rėmo statmenų iki lubų, Alu tvirtinimo detalė - plokštelė 100 x 100 Alu 5 mm (Ø11 x 4,
