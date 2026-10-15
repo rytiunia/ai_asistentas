@@ -10,5 +10,4 @@ Bendri Alfa Neon dalykai - `alfaneon_volvo.md` 2 skyrius. Šaltiniai: `OMJE26-01
 | 10 | OMJE26-01001 | OMODA \| JAECOO 6712 x 375 | P6, balti akrilo priekiai, šonai / nugara RAL 9003, ATSKIROS raidės („separatmonteras på befintlig fasadplåt" - tamsi esama fasado plokštė) ant mažų L profilių, šablonas 1:1, pritemdomas LED driveris dėžėje RAL 5008. Trafaretinis šriftas - 24 atskiros dalys (O iš 2, E iš 3) |
 | 20 | EXLA26-01001 | EXLANTIX 5205 x 375 | P6 kaip 10, „förmonterade på ram lackerad i RAL 5008" - rėmas U 30x30x2 RAL 5008 su L profiliais (ausėlės) ant STIKLO fasado |
 
-Projektas `scripts/projektai/omoda_33580/` (spec, LED spec, rails JSON). Rėmo / skylių ašys - RANKA (`groups[].rails`): auto rėmas E juostas
-laiko atskira eilute. ATVIRA: gylis (lape 80 - prielaida), L kampo profilis ir kiekis poz. 10, pritemdomo driverio modelis, EXLANTIX maitinimas (lape 12V + TRAFO BOX - prielaida), tvirtinimas į stiklo fasadą.
+Projektas `scripts/projektai/omoda_33580/` (spec, LED spec, rails JSON). Rėmas - AUTO (v238; rankinis rėmas v236-v237 buvo klaida). E vidurinė juosta (atskira dalis tarp bėgelių) be tvirtinimo - KLAUSTI Ryčio. ATVIRA: gylis (lape 80 - prielaida), L kampo profilis ir kiekis poz. 10, pritemdomo driverio modelis, EXLANTIX maitinimas (lape 12V + TRAFO BOX - prielaida), tvirtinimas į stiklo fasadą.
