@@ -47,6 +47,7 @@ VINYL = {"3630-33": "#C8102E", "3630-125": "#FFC20E",
          "100-54": "#85714D"}                            # v260: 3M 100-54 gold (~ Pantone 872C, ekrano artinys)
 PMS = {"2965": "#00263E", "297": "#71C5E8", "185": "#E4002B", "872": "#85714D"}          # Pantone C - BOM FINISH langelio užpildui; naują kodą įrašyti čia
 # v17 (Rytis 2026-10-08): VISI plėvelių kodai BOM lentelėje - spalvotas langelis (FINISH ir MATERIAL stulpeliai)
+PLEXI = {"PLEXIGLAS GS 3H67": "#E73A4D"}                # v280: spalvota plexi (kliento kodas -> hex artinys)
 FOIL = {"8500 614": "#00A859", "8500-614": "#00A859", "8500 034": "#EB690F", "8500-034": "#EB690F", "551 010": "#FFFFFF", "551-010": "#FFFFFF",
         "551-035": "#F75E25", "551 035": "#F75E25", "777-002": "#E4002B", "SANDBLAST": "#C4C5C9",
         "DAY/NIGHT": "#1C1C1C"}     # v57: Day/Night perforuota plėvelė, juoda spauda (SPAR 226004)
@@ -134,6 +135,9 @@ def code_hex(v, ral=True):
     if u.startswith("PMS") and len(v0.split()) > 1:
         return PMS.get(v0.split()[1].rstrip("C").strip())
     for k_, h_ in FOIL.items():
+        if k_ in u:
+            return h_
+    for k_, h_ in PLEXI.items():                         # v280: spalvotas stiklas (plexi) - langelis su spalva
         if k_ in u:
             return h_
     return None

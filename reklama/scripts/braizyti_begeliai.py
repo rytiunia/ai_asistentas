@@ -1616,7 +1616,7 @@ if GZ:
 
 
 def fs_box(n):
-    s_ = MM / n; fw_ = PW * s_; fh_ = PH * s_; g_ = max(56, 0.11 * fw_)
+    s_ = MM / n; fw_ = PW * s_; fh_ = PH * s_; g_ = max(90, 0.13 * fw_)   # v280 (Rytis: labai sugrusta) priekis - sonas
     return 70 + fw_ + g_ + ZMAX * s_ + 50, 46 + fh_ + 58
 
 
@@ -2049,7 +2049,7 @@ _callouts("front", FV)
 view_title(FVX + fw / 2, FVY + fh + 52, "FRONT VIEW", f"SCALE 1:{SC1}")
 
 # ============================================================ SIDE VIEW (RIGHT)
-GAPV = max(56, 0.11 * fw)
+GAPV = max(90, 0.13 * fw)                                   # v280: = fs_box tarpas
 SVW = FVX + fw + GAPV + ZMAX * s1          # sienos plokštuma
 
 
@@ -3438,7 +3438,7 @@ if MOUNTING in ("none", "brackets"):
         if str(row[0]).strip().isdigit():
             _n += 1; row[0] = str(_n)
     _BOM_ROWS = _kept
-_BOM_ROWS = [([r_[0], r_[1], r_[2] or "Alu box", RAIL_FIN, ((f"1 pcs. ({len(CEX)} cables x {TB_LEN:.0f} m, {TB_V})" if TB_LEN else f"1 pcs. (cables {', '.join(f'{c_[0]['len_m']:.1f}' for c_ in CEX)} m, {TB_V})") if TB_ON and CEX else r_[4])]
+_BOM_ROWS = [([r_[0], r_[1], r_[2] or "Alu box", RAIL_FIN, ((f"1 pcs. ({len(CEX)} cables x {TB_LEN:g} m, {TB_V})" if TB_LEN else f"1 pcs. (cables {', '.join(f'{c_[0]['len_m']:.1f}' for c_ in CEX)} m, {TB_V})") if TB_ON and CEX else r_[4])]
               if "trafo" in str(r_[1]).lower() and not str(r_[3]).strip() else r_) for r_ in _BOM_ROWS]
 _BOM_ROWS = [[_hang(c_) for c_ in r_] for r_ in _BOM_ROWS]
 _EAR_POS = next((str(r_[0]) for r_ in _BOM_ROWS if "ear" in str(r_[1]).lower() and not str(r_[1]).lower().startswith("rail")), "")

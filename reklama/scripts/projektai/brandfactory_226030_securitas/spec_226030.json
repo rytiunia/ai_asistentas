@@ -29,7 +29,7 @@
    0.549
   ]
  ],
- "qty": "?",
+ "qty": "1",
  "client": "BrandFactory",
  "title": "Order 226030 Securitas Sarpsborg 2000 x 1062 - 5S color + P6+foil on U rails",
  "order_no": "ALT0000_00.00_RS",
@@ -166,10 +166,10 @@
   ],
   [
    7,
-   "PSU",
+   "Trafo box (PSU)",
    "PSU",
    "",
-   "?"
+   "1 pcs."
   ],
   [
    8,
@@ -182,7 +182,7 @@
  "main_data": [
   [
    "Quantity",
-   "?"
+   "1 pcs."
   ],
   [
    "Overall size",
@@ -218,7 +218,7 @@
   ],
   [
    "Illumination",
-   "LED"
+   "LED, 12V + trafo box"
   ],
   [
    "Environment",
@@ -230,5 +230,29 @@
  "company": "BrandFactory",
  "view_yaw": 22,
  "view_pitch": 12,
- "view_scale": 20
+ "view_scale": 20,
+ "cable_exits": [
+  {
+   "pt": [
+    298.8,
+    255.7
+   ],
+   "voltage": "12V",
+   "label": "1.5 m (circles, bottom rail)"
+  },
+  {
+   "pt": [
+    298.8,
+    379.6
+   ],
+   "voltage": "12V",
+   "label": "1.5 m (Securitas, top rail)"
+  }
+ ],
+ "trafo_box": {
+  "voltage": "12V",
+  "cable_len_m": 1.5,
+  "mains": "230V"
+ },
+ "power_note": "Power: 12V, trafo box"
 }
