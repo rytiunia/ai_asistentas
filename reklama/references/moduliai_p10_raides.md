@@ -13,7 +13,8 @@ Gylis 30 mm (raidė), vidaus (Interior); šonai RAL; priekiui gali būti plėvel
 - **Alu 1,5 dugnelis ĮSILEIDŽIA į bloką** (Rytis 2026-10-15): bloko gale įleidimas 1,5 mm, aplink plexi kraštas
   (etalone ~5 mm - vidinis kontūras „30mm plexi" lape); bendras raidės gylis 30. Smeigės privirintos prie dugnelio ->
   nuo raidės krašto >= kraštas + 1 + Ø/2. Pjūvis `scripts/p10_raides.py`.
-- **Kiekviena raidė / dalis - >= 2 smeigės** (Rytis 2026-10-15).
+- **Kiekviena raidė / dalis - >= 2 smeigės; kiekis pagal formą (kvadratas 4, trikampis 3), taškai arti štricho centerline,
+  ant vieno bėgelio - kuo labiau viena horizontali linija** (Rytis 2026-10-15). Mažų reklamų bėgelis gali būti 55 mm.
 
 ## LED griovelis raidėje (lapas „30mm plexi", mėlyna linija)
 - Raidėse - **viena linija per štricho vidurį**, tiesios atkarpos, **aštrios sankirtos** (A skersinis iki kojų ašių, A viršūnė -

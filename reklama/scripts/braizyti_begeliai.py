@@ -62,7 +62,7 @@ RAIL_SQ = str(RAIL.get("type", "u")).lower().startswith(("sq", "box", "kv"))
 #  statmuo po KIEKVIENA raide; ausėlių / 6 m strypų nėra (lakštas spec "acrylic": {"sheet": [3050, 2050]})
 RAIL_ACR = str(RAIL.get("type", "")).lower().startswith("acr")
 ACRY = {"thk": 20, "sheet": [3050, 2050], "joint_clear": 0.2, "hole_d": 8, "holes_every_gap": 2, "groove": None, "v_edge": 3,
-        "v_pitch": 1000, "single_w": 60, "stud": {"d": 5, "cb_d": 12, "cb_depth": 15, "edge": 8, "two_if": 400}, "cable_slot": None}
+        "v_pitch": 1000, "single_w": 55, "stud": {"d": 5, "cb_d": 12, "cb_depth": 15, "edge": 8, "two_if": 400}, "cable_slot": None}
 # v241 (Rytis 2026-10-15, etalonas P10 Boots): raidės prisukamos per ATSKIRAS ĮLEISTAS SKYLES bėgelyje (iš priekio Ø5, iš galo
 #  Ø12 x 15 - veržlė nesitrukdo), smeigės privirintos raidės nugaroje; laidų griovelis nugaroje PASLINKTAS nuo ašies (šalia skylių
 #  eilės), prie kiekvienos raidės ovali skylė kiaurai laidui
@@ -74,41 +74,91 @@ if P6F.kind(spec.get("front", "5S")) == "P10":            # v244: P10 - smeigė 
 RAIL_W = float(str(RAIL["size"]).lower().split("x")[0]) if RAIL_ACR else None
 
 
-def _acr_studs(letters, hs_, ST, g_off, gw, cuts=(), holes=(), vjoints=(), grid=2.0):
-    """v244: smeigių vietos - kiekvienai raidei >= 2 (ilgai - kas ~two_if); grąžina (studs [(x, y, id)], nepavykę [x])"""
-    from shapely.geometry import box as _b, Point as _P
-    from shapely.ops import unary_union as _u
-    from shapely.prepared import prep as _prep
+def _acr_studs(letters, hs_, ST, g_off, gw, cuts=(), holes=(), vjoints=(), grid=None):
+    """v245 (Rytis 2026-10-15): smeigės pagal RAIDĖS FORMĄ - kvadratas 4, trikampis 3 ... (supaprastinto gaubto kampų sk.,
+    2..6, ilgoms + kas 500); taškai ARTI RAIDĖS CENTERLINE (štricho, kertančio bėgelio liniją, vidurys), ne prie krašto;
+    ant vieno bėgelio - VIENA HORIZONTALI LINIJA (y parenkamas bendras visoms raidėms, ne griovelio zonoje).
+    Grąžina (studs [(x, y, id)], nepavykę [x])."""
+    from shapely.geometry import Point as _P, LineString as _L
     cbr = ST["cb_d"] / 2
-    band = _u([_b(r_["x0"] + 15, r_["y0"] + cbr + 2, r_["x1"] - 15, r_["y1"] - cbr - 2) for r_ in hs_])
-    gz = _u([_b(r_["x0"], (r_["y0"] + r_["y1"]) / 2 - g_off - gw / 2 - cbr - 1, r_["x1"],
-                (r_["y0"] + r_["y1"]) / 2 - g_off + gw / 2 + cbr + 1) for r_ in hs_])
-    av = _u([_b(c_["x"] - 30, -1e5, c_["x"] + 30, 1e5) for c_ in cuts] + [_P(h_[0], h_[1]).buffer(15) for h_ in holes]
-            + [_P(v_[0], v_[1]).buffer(24) for v_ in vjoints])
-    zone = band.difference(gz).difference(av)
+    rr_ = ST["edge"] + ST["d"] / 2
+    ins = [o["geom"].buffer(-rr_) for o in letters]
+
+    def cands_on(y, r_):
+        """raidžių kandidatai linijoje y: kiekvieno kertančio štricho vidurys (ilgame - kas ~150)"""
+        out_ = {}
+        for o, inn in zip(letters, ins):
+            if inn.is_empty or not (o["bb"][1] < y < o["bb"][3]):
+                continue
+            ix = inn.intersection(_L([(max(o["bb"][0], r_["x0"] + 15) - 1, y), (min(o["bb"][2], r_["x1"] - 15) + 1, y)]))
+            pts = []
+            for q in getattr(ix, "geoms", [ix]):
+                if q.is_empty or not hasattr(q, "coords"):
+                    continue
+                a_, b_ = sorted((q.coords[0][0], q.coords[-1][0]))
+                n_ = max(1, int((b_ - a_) // 150) + (1 if b_ - a_ >= 150 else 0))
+                pts += [a_ + (b_ - a_) * (k + 0.5) / n_ for k in range(n_)] if n_ > 1 else [(a_ + b_) / 2]
+            pts = [x for x in pts if all(abs(x - c_["x"]) > 30 for c_ in cuts)
+                   and all((x - h_[0]) ** 2 + (y - h_[1]) ** 2 > 15 ** 2 for h_ in holes)
+                   and all((x - v_[0]) ** 2 + (y - v_[1]) ** 2 > 24 ** 2 for v_ in vjoints)]
+            if pts:
+                out_[id(o)] = [(x, y) for x in pts]
+        return out_
+
+    # kiekvienam bėgeliui - viena linija y (leistina juosta be griovelio zonos), daugiausiai raidžių su >= 2 taškais
+    per = {id(o): [] for o in letters}
+    for r_ in hs_:
+        ax = (r_["y0"] + r_["y1"]) / 2
+        gy = ax - g_off
+        ys = [y_ / 2 for y_ in range(int(2 * (r_["y0"] + cbr + 2)), int(2 * (r_["y1"] - cbr - 2)) + 1)
+              if not (gy - gw / 2 - cbr - 1 < y_ / 2 < gy + gw / 2 + cbr + 1)]
+        best = None
+        for y in ys:
+            c_ = cands_on(y, r_)
+            sc = (sum(1 for v in c_.values() if len(v) >= 2), sum(len(v) for v in c_.values()), -abs(y - ax))
+            if best is None or sc > best[0]:
+                best = (sc, c_)
+        if best:
+            for k_, v in best[1].items():
+                per[k_] += v
+    # raidė, kuriai bendroje linijoje < 2 taškų (pvz. L - tik stiebas) - papildoma linija TIK jai (artimiausia bendrai)
+    for o in letters:
+        if len(per[id(o)]) >= 2:
+            continue
+        y0_ = per[id(o)][0][1] if per[id(o)] else None
+        best = None
+        for r_ in hs_:
+            ax = (r_["y0"] + r_["y1"]) / 2
+            gy = ax - g_off
+            for y2 in range(int(2 * (r_["y0"] + cbr + 2)), int(2 * (r_["y1"] - cbr - 2)) + 1):
+                y = y2 / 2
+                if gy - gw / 2 - cbr - 1 < y < gy + gw / 2 + cbr + 1:
+                    continue
+                c_ = [q for q in cands_on(y, r_).get(id(o), []) if all(abs(q[0] - p_[0]) > 20 or abs(q[1] - p_[1]) > 20
+                                                                    for p_ in per[id(o)])]
+                sc = (min(len(c_), 2 - len(per[id(o)])), -abs(y - (y0_ if y0_ is not None else ax)))
+                if c_ and (best is None or sc > best[0]):
+                    best = (sc, c_)
+        if best:
+            per[id(o)] += best[1]
     out, fail = [], []
     for o in letters:
-        inn = o["geom"].buffer(-(ST["edge"] + ST["d"] / 2)).intersection(zone)
-        if inn.is_empty:
-            fail.append(round(o["bb"][0])); continue
-        x0, y0, x1, y1 = inn.bounds
-        P_ = _prep(inn)
-        pts = [(x0 + i * grid, y0 + j * grid) for i in range(int((x1 - x0) / grid) + 1) for j in range(int((y1 - y0) / grid) + 1)]
-        pts = [q for q in pts if P_.contains(_P(q))] or [tuple(inn.representative_point().coords[0])]
-        a_ = min(pts, key=lambda q: (q[0], q[1])); b_ = max(pts, key=lambda q: (q[0], -q[1]))
-        for _ in range(2):                                   # toliausia pora (2 iteracijos)
-            b_ = max(pts, key=lambda q: (q[0] - a_[0]) ** 2 + (q[1] - a_[1]) ** 2)
-            a_ = max(pts, key=lambda q: (q[0] - b_[0]) ** 2 + (q[1] - b_[1]) ** 2)
-        d_ = ((a_[0] - b_[0]) ** 2 + (a_[1] - b_[1]) ** 2) ** 0.5
-        if d_ < 25:
-            out.append((a_[0], a_[1], id(o))); fail.append(round(o["bb"][0])); continue
-        n_ = 2 + int(d_ // ST.get("two_if", 400))
-        sel = [a_]
-        for k in range(1, n_ - 1):
-            t_ = (a_[0] + (b_[0] - a_[0]) * k / (n_ - 1), a_[1] + (b_[1] - a_[1]) * k / (n_ - 1))
-            sel.append(min(pts, key=lambda q: (q[0] - t_[0]) ** 2 + (q[1] - t_[1]) ** 2))
-        sel.append(b_)
-        out += [(q[0], q[1], id(o)) for q in sel]
+        pts = per[id(o)]
+        if len(pts) < 2:
+            fail.append(round(o["bb"][0]))
+            out += [(x, y, id(o)) for x, y in pts]
+            continue
+        hull = o["geom"].convex_hull.simplify(0.12 * max(o["bb"][2] - o["bb"][0], o["bb"][3] - o["bb"][1]))
+        nh = len(hull.exterior.coords) - 1 if hasattr(hull, "exterior") else 2
+        n_t = max(min(max(nh, 2), 6), 2 + int((o["bb"][2] - o["bb"][0]) // 500))
+        cx, cy = o["geom"].centroid.x, o["geom"].centroid.y
+        sel = [max(pts, key=lambda q: (q[0] - cx) ** 2 + (q[1] - cy) ** 2)]   # toliausiai nuo centro, toliau - FPS
+        while len(sel) < min(n_t, len(pts)):
+            q_ = max(pts, key=lambda q: min((q[0] - s_[0]) ** 2 + (q[1] - s_[1]) ** 2 for s_ in sel))
+            if min((q_[0] - s_[0]) ** 2 + (q_[1] - s_[1]) ** 2 for s_ in sel) < 20 ** 2:
+                break
+            sel.append(q_)
+        out += [(x, y, id(o)) for x, y in sel]
     return out, fail
 
 
@@ -811,7 +861,7 @@ for g in groups:
                 _x0, _x1 = min(r_["x0"] for r_ in _hs2), max(r_["x1"] for r_ in _hs2)
                 _ST, _gw0 = ACRY["stud"], float((ACRY.get("groove") or {}).get("w", 6) or 6)
                 _go0 = _ST["cb_d"] / 2 + _gw0 / 2 + 2
-                for _W1 in range(int(ACRY.get("single_w", 60)), 141, 10):   # v244: platinti, kol visos dalys gauna >= 2 smeiges
+                for _W1 in range(int(ACRY.get("single_w", 55)), 141, 5):    # v244/v245: platinti, kol visos dalys gauna >= 2 smeiges
                     _tr = [{"x0": _x0, "x1": _x1, "y0": _cy - _W1 / 2, "y1": _cy + _W1 / 2}]
                     if not _acr_studs(g["letters"], _tr, _ST, _go0, _gw0)[1]:
                         break
