@@ -20,6 +20,11 @@ import sys
 
 import pymupdf as fitz
 
+import re
+_DEC = re.compile(r"(?<![A-Za-z0-9_.,/])(\d+)\.(\d+)(?![\d.]*\.\d)(?=[^\d]|$)")
+_DIMG = re.compile(r"(?:(?<=[^\w][LU])|(?<=^[LU])|(?<![\w,]))[Ø⌀]?\d+(?:,\d+)?(?:(?:\s*x\s*|\s+×\s+|(?<=\d)×\s*)[Ø⌀]?\d+(?:,\d+)?)+(?!\w|,\d)|[Ø⌀]\d+(?:,\d+)?(?!\w|,\d)")
+_UNIT = re.compile(r"\s*(mm|m²|m\b|cm|°|˚)")
+_LABEL = re.compile(r"[Ø⌀~≈(]?\d+(?:,\d+)?[)]?")          # vienas matmens skaičius brėžinyje (be x) - ne lentelės laukas
 HAIR_OK = (0.0, 0.12)
 ALLOWED = [(0.18, 0.31), (0.49, 0.51), (0.79, 0.81), (0.89, 0.91)]
 
@@ -73,10 +78,12 @@ def _cross(a, b):
 
 def check(pdf, band_y=None, skips=(), verbose=True):
     doc = fitz.open(pdf)
-    arts = []
+    arts, blocks = [], []
     import json, os
     if os.path.exists(pdf + ".art.json"):                                          # v182: K.place_pdf kliento grafikos sritys
-        arts = json.load(open(pdf + ".art.json"))["art"]
+        _j = json.load(open(pdf + ".art.json"))
+        arts = _j.get("art", [])
+        blocks = _j.get("blocks", [])
     total = 0
     for pno, pg in enumerate(doc):
         errs = []
@@ -290,6 +297,55 @@ def check(pdf, band_y=None, skips=(), verbose=True):
                 if not ia.is_empty and ia.width * ia.height > 0.4 * min(a_.width * a_.height, b_.width * b_.height) \
                         and not (abs(a_.x0 - b_.x0) < 0.05 and abs(a_.y0 - b_.y0) < 0.05) and not inskip(a_):
                     errs.append(f"RODYKLĖS PERSIDENGIA: ({a_.x0:.0f}, {a_.y0:.0f})")
+        # 9. v291 (Rytis 2026-10-15: „numeracijos skaičiai negali persidengti vienas su kitu") - BALIONAI PERSIDENGIA (visas lapas)
+        bal = [fitz.Rect(d["rect"]) for d in pg.get_drawings() if 9 < d["rect"].width < 20
+               and abs(d["rect"].width - d["rect"].height) < 0.6 and sum(1 for it in d["items"] if it[0] == "c") >= 4
+               and d.get("fill") and min(d["fill"]) > 0.95 and d.get("color") is not None and max(d["color"]) < 0.2]
+        for i in range(len(bal)):
+            for j in range(i + 1, len(bal)):
+                a_, b_ = bal[i], bal[j]
+                dist = math.hypot((a_.x0 + a_.x1 - b_.x0 - b_.x1) / 2, (a_.y0 + a_.y1 - b_.y0 - b_.y1) / 2)
+                if dist < (a_.width + b_.width) / 2 + 0.5:
+                    errs.append(f"BALIONAI PERSIDENGIA: ({a_.x0:.0f}, {a_.y0:.0f}) x ({b_.x0:.0f}, {b_.y0:.0f})")
+        # 10.-11. v291 (Rytis: „lentelėje nesuprasi kas kaip pažymėta - m ar mm? buvo įdėta taisyklė dėl matmenų ir informacijos")
+        #  10 DEŠIMTAINIS TAŠKAS - visur kablelis (TAISYKLĖ 30); 11 VIENETAS NENURODYTAS - apatinėje juostoje (BOM / MAIN DATA /
+        #  antraštė) matmenų grupė („515 x 2380", „Ø3,2", „30x30x2") privalo turėti vienetą (mm / m), kitaip neaišku m ar mm
+        allsp = []
+        for b in pg.get_text("dict")["blocks"]:
+            for l in b.get("lines", []):
+                for s_ in l["spans"]:
+                    if s_["text"].strip() and not any(fitz.Rect(a_).contains(fitz.Rect(s_["bbox"])) for a_ in ART):
+                        allsp.append((fitz.Rect(s_["bbox"]), s_["text"].strip()))
+        for r_, t_ in allsp:
+            if _DEC.search(t_):
+                errs.append(f"DEŠIMTAINIS TAŠKAS (turi būti kablelis): '{t_}' ({r_.x0:.0f}, {r_.y0:.0f})")
+            if r_.y0 > by and re.fullmatch(r"\d+(?:,\d+)?", t_):
+                lab_ = [t2 for r2, t2 in allsp if abs(r2.y0 - r_.y0) < 2 and r2.x1 <= r_.x0 + 1 and r_.x0 - r2.x1 < 40]
+                if lab_ and re.search(r"depth|size|width|height|length|thick", lab_[-1], re.I):
+                    errs.append(f"VIENETAS NENURODYTAS (mm / m?): '{lab_[-1]}' = '{t_}' ({r_.x0:.0f}, {r_.y0:.0f})")
+            if r_.y0 > by and not _LABEL.fullmatch(t_):
+                for m_ in _DIMG.finditer(t_):
+                    if not _UNIT.match(t_[m_.end():]):
+                        errs.append(f"VIENETAS NENURODYTAS (mm / m?): '{m_.group(0)}' laukelyje '{t_}' ({r_.x0:.0f}, {r_.y0:.0f})")
+        # 12. v291 TAISYKLĖ 5 (Rytis: „profilio pjūvis visada centruojamas savo bloke") - CENTRAVIMAS: lapas_core.centered blokai
+        for bx, by_, bw, bh, bp, bn in blocks:
+            if bp != pno:
+                continue
+            B = fitz.Rect(bx, by_, bx + bw, by_ + bh)
+            Bi = fitz.Rect(bx + 1, by_ + 1, bx + bw - 1, by_ + bh - 1)
+            rs = [fitz.Rect(d["rect"]) for d in pg.get_drawings() if Bi.contains(d["rect"]) and not d["rect"].is_empty]
+            rs += [r_ for r_, t_ in allsp if Bi.contains(r_)]
+            for r_, t_ in allsp:                                                   # tekstas per bloko kraštą - netelpa
+                if r_.intersects(B) and not Bi.contains(r_) and r_.y0 > B.y0 + 1:
+                    errs.append(f"NETELPA BLOKE '{bn}': '{t_}' ({r_.x0:.0f}, {r_.y0:.0f})")
+            if not rs:
+                continue
+            bb = rs[0]
+            for r_ in rs[1:]:
+                bb |= r_
+            ddx, ddy = (bb.x0 + bb.x1 - B.x0 - B.x1) / 2, (bb.y0 + bb.y1 - B.y0 - B.y1) / 2
+            if abs(ddx) > max(3, 0.03 * bw) or abs(ddy) > max(3, 0.03 * bh):
+                errs.append(f"NECENTRUOTA BLOKE '{bn}': poslinkis x {ddx:+.0f}, y {ddy:+.0f} pt")
         errs = sorted(set(errs))
         total += len(errs)
         if verbose:

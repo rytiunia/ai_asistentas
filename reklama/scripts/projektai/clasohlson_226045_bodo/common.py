@@ -31,7 +31,7 @@ def band(first_title, first_fn, bom, md, title, sheet, scales, w_first=214, md_l
     X_BOM = X0 + w_first; W_BOM = X_MD - X_BOM
     K.header(X0, BY0, w_first, first_title)
     rect(X0, BY0 + 12, w_first, BH - 12, lw=0.6)
-    first_fn(X0, BY0 + 12, w_first, BH - 12)
+    K.centered(X0, BY0 + 12, w_first, BH - 12, first_fn, first_title)      # v291 TAISYKLĖ 5: pjūvis - bloko centre
     K.bom_table(X_BOM, BY0, W_BOM, BH, bom, title="BILL OF MATERIALS  (per 1 pcs.)")
     K.main_data(X_MD, BY0, W_MD, BH, md, lab_w=md_lab)
     sp = {"client": CLIENT, "title": title, "drawing_no": PROJECT, "date": DATE,
@@ -122,7 +122,7 @@ def detail_a(ax0, ay0, LY, PD=40, t=2.0):
     hchain(Yd(0) - 26, [X(0), X(PD), X(PD + 20), X(PD + 27), X(PD + 40), X(PD + 43)],
            [Yd(0), Yd(0), Yd(LY), Yd(LY), Yd(LY), Yd(LY)], ["40", "20", "7", "13", "3"], size=8)
     hdim(X(0), X(7), Yd(0) - 44, "7", Yd(0), Yd(0) - 9, size=8, small_side="l")   # v285: iškeltinė - ašinės tęsinys
-    T(X(7) + 8, Yd(0) - 41.5, "Ø3.2 hole", 8)
+    T(X(7) + 8, Yd(0) - 41.5, "Ø3,2 hole", 8)
     vchain(X(PD + 43) + 26, [Yd(0), Yd(LY)], [X(PD), X(PD + 43)], [f"{LY}"], size=8)
     vchain(X(PD + 43) + 12, [Yd(LY), Yd(LY + P8["ov"]), Yd(LY + P8["ov"] + P8["tw"])], [X(PD + 43), X(PD + 40), X(PD + 40)],
            ["?", "7.5"], size=8)
@@ -161,5 +161,7 @@ def p8_band(x, y, w, h):
     leader(Xp(-1), yt + W_ * sP * 0.9, Xp(-2) - 16, yt + W_ * sP * 0.98, 5)
     leader(Xp(-3) - 3, yc, Xp(-2) - 16, yt + 14, 8)
     T(Xp(23.5), yc + 14, "Ø4", 8, align="c")
-    T(x + w / 2, y + h - 16, "plexi 20: back 7 + cavity 13, walls 7.5; Al 3 face", 8, color=K.GREY, align="c", auto_red=False)
-    T(x + w / 2, y + h - 5, "larger (overhang ?); LED on face; Ø4 holes = spacers", 8, color=K.GREY, align="c", auto_red=False)
+    yn = yt + W_ * sP + 20                                        # pastabos - po pjūviu (centruojama kartu su juo)
+    for i_, t_ in enumerate(("plexi 20 mm: back 7 mm + cavity 13 mm, walls 7,5 mm",
+                             "Al 3 mm face larger (overhang ?); LED on face", "Ø4 mm holes = spacers")):
+        T(x + w / 2, yn + 10 * i_, t_, 8, color=K.GREY, align="c", auto_red=False, fit=w - 8)

@@ -12,6 +12,7 @@ antraštė, 3D. Naudojimas:
 import math
 import re
 import os
+import tempfile
 from functools import reduce
 
 import pymupdf as fitz
@@ -158,7 +159,7 @@ F_DIM_MAIN, F_DIM_FRAME, F_INFO, F_VIEW, F_SCALE = 12, 8, 8, 13, 9
 def init(tmp_pdf, title=""):
     global c, _tmp
     _tmp = tmp_pdf
-    TEXT_BOXES.clear(); EXT_REG.clear()
+    TEXT_BOXES.clear(); EXT_REG.clear(); BALLOONS.clear(); BLOCKS.clear()
     c = canvas.Canvas(tmp_pdf, pagesize=(W, H))
     c.setTitle(title)
     return c
@@ -220,12 +221,13 @@ def art_json(out_pdf, pages_offset=0):
     """v182: kliento grafikos sritys šalia lapo (`<lapas>.pdf.art.json`) - patikra_lapas.py jų netikrina (kliento grafika
     neliečiama, v162); sąrašas išvalomas."""
     import json
-    if ART:
+    if ART or BLOCKS:                                     # v291: + centruojami blokai (TAISYKLĖ 5) - patikra 12 CENTRAVIMAS
         with open(out_pdf + ".art.json", "w") as fh:
-            json.dump({"art": [a[:4] + [a[4] + pages_offset] for a in ART]}, fh)
+            json.dump({"art": [list(a[:4]) + [a[4] + pages_offset] for a in ART],
+                       "blocks": [list(b[:4]) + [b[4] + pages_offset, b[5]] for b in BLOCKS]}, fh)
     elif os.path.exists(out_pdf + ".art.json"):
         os.remove(out_pdf + ".art.json")
-    ART.clear()
+    ART.clear(); BLOCKS.clear()
 
 
 def set_view(on):
@@ -258,9 +260,13 @@ def _lw(w):
 OVERFLOW = []
 
 
+import re as _re
+_DEC = _re.compile(r"(?<![A-Za-z0-9_.,/])(\d+)\.(\d+)(?![\d.]*\.\d)(?=[^\d]|$)")   # 4.2x16 -> 4,2x16; ne 00.00_RS, ne 1.2.3
+
+
 def T(x, y, s, size=7.5, font="F", color=black, align="l", rot=0, auto_red=True, fit=None, fit_min=None):
     """Tekstas. Nežinoma reikšmė (?) - tuščia vieta; jei baigiasi ':' - rašymo linija."""
-    s = str(s)
+    s = _DEC.sub(r"\1,\2", str(s))      # v291 TAISYKLĖ 30: dešimtainis KABLELIS visur (lentelės, pastabos), ne tik matmenyse
     if any(ch in s for ch in "ÅåÆæøÄäÖö") and os.path.exists(_ISO) and font in ("F", "FB"):
         # v11: GOST Common neturi Å/Æ/Ø (norvegų pavadinimai) - visa eilutė osifont šriftu
         # v146: Ä / Ö (švedų, pvz. OKQ8 „Biltvätt", „FRI HÖJD") GOST faile sumaišyti glifai - taip pat osifont
@@ -639,12 +645,32 @@ def _ang(dx, dy):
 
 
 def balloon(x, y, n, r=6.5):
+    BALLOONS.append((c.getPageNumber(), x, y, r))
     c.saveState(); c.setFillColor(white); c.setStrokeColor(black); c.setLineWidth(0.5)
     c.circle(x, Y(y), r, stroke=1, fill=1); c.restoreState()
     T(x, y + F_INFO * 0.36, n, F_INFO, font="FB", align="c")
 
 
+BALLOONS = []          # v291: (psl., x, y, r) - nubrėžti balionai; nauji automatiškai atitraukiami (Rytis: „numeracijos skaičiai
+                       #  negali persidengti vienas su kitu"), patikra 9 BALIONAI PERSIDENGIA
+
+
+def _free_balloon(x, y, r):
+    """baliono vieta be persidengimo su jau nubrėžtais (>= 2 pt tarpas): slenkama vertikaliai į artimiausią laisvą vietą"""
+    pg = c.getPageNumber()
+    near = [(bx, by_, br) for p_, bx, by_, br in BALLOONS if p_ == pg]
+    hit = lambda yy: any(math.hypot(x - bx, yy - by_) < r + br + 2 for bx, by_, br in near)
+    if not hit(y):
+        return y
+    for k in range(1, 80):
+        for yy in (y + k, y - k):
+            if not hit(yy):
+                return yy
+    return y
+
+
 def leader(x1, y1, x2, y2, n, r=6.5):
+    y2 = _free_balloon(x2, y2, r)
     line(x1, y1, x2, y2, 0.3)
     c.saveState(); c.setFillColor(black); c.circle(x1, Y(y1), 0.9 if r < 5 else 1.1, stroke=0, fill=1); c.restoreState()
     balloon(x2, y2, n, r)
@@ -840,6 +866,42 @@ def frame():
     pass                                                  # juostos viršų formuoja patys blokai (vientisas blokas)
 
 
+BLOCKS = []            # v291: (x, y, w, h, psl., pavadinimas) - turinys centruojamas savo bloke (TAISYKLĖ 5)
+
+
+def centered(x, y, w, h, fn, name=""):
+    """v291 TAISYKLĖ 5 (Rytis 2026-10-15: „profilio pjūvis visada centruojamas savo bloke, tai galioja visiems profiliams ir
+    pjūviams, kurie turi savo bloką"): fn(x, y, w, h) nubraižoma bandomajame PDF, išmatuojamas tikras turinio gabaritas
+    (geometrija + tekstai), tada braižoma su poslinkiu, kad gabarito centras = bloko centras. Blokas įrašomas į
+    `<lapas>.pdf.art.json` - patikra_lapas.py 12 CENTRAVIMAS tikrina rezultatą."""
+    global c
+    import copy
+    snap = (copy.deepcopy(EXT_REG), list(TEXT_BOXES), list(OVERFLOW), list(_PLACE), list(ART), list(BALLOONS), VIEW_MODE)
+    real, tmp = c, tempfile.mktemp(suffix=".pdf")
+    c = canvas.Canvas(tmp, pagesize=(W, H))
+    try:
+        fn(x, y, w, h)
+        c.showPage(); c.save()
+    finally:
+        c = real
+        EXT_REG.clear(); EXT_REG.update(snap[0]); TEXT_BOXES[:] = snap[1]; OVERFLOW[:] = snap[2]
+        _PLACE[:] = snap[3]; ART[:] = snap[4]; BALLOONS[:] = snap[5]; set_view(snap[6])
+    d = fitz.open(tmp)
+    rs = [fitz.Rect(dr["rect"]) for dr in d[0].get_drawings() if dr["rect"].width < W * 0.9]
+    rs += [fitz.Rect(b[:4]) for b in d[0].get_text("blocks")]
+    d.close(); os.remove(tmp)
+    dx = dy = 0.0
+    if rs:
+        bb = rs[0]
+        for r_ in rs[1:]:
+            bb |= r_
+        dx = x + w / 2 - (bb.x0 + bb.x1) / 2
+        dy = y + h / 2 - (bb.y0 + bb.y1) / 2
+    fn(x + dx, y + dy, w, h)
+    BLOCKS.append((x, y, w, h, c.getPageNumber() - 1, name))
+    return dx, dy
+
+
 def header(x, y, w, title):
     rect(x, y, w, 12, fill=HexColor("#EDEDED"), stroke=black, lw=0.7)
     T(x + 4, y + 9.0, title, 8.5, font="FB", auto_red=False)
@@ -852,6 +914,24 @@ def cell(x, y, w, h, label, val, size=8.5, font="F"):
     T(x + 4, y + h - 4, val, max(size, F_INFO), font=font, fit=w - 7, fit_min=F_INFO)
 
 
+_SEP = r"(?:\s*x\s*|\s+×\s+)"                                  # matmenų skirtukas; „2× 465" (be tarpo prieš ×) - kartotinumas
+_DIMN = re.compile(r"(?<![\w,.Ø⌀/-])\d+(?:[.,]\d+)?(?:" + _SEP + r"\d+(?:[.,]\d+)?)+(?![\w]|[.,]\d|\s*[x×]|\s*(?:mm|m²|m\b|cm|°|˚|%))")
+_CODEW = re.compile(r"(RAL|NCS|PMS|ORACAL|Oracal|Avery|3M|GS|Order|ID|No\.?)\s*$")
+
+
+def cell_units(s):
+    """v291 (Rytis 2026-10-15: „lentelėje nesuprasi kas kaip pažymėta - m ar mm?"): lentelių laukuose matmenų grupė be vieneto
+    gauna „mm" („30x30x2" -> „30 x 30 x 2 mm", „2000 x 1063" -> „2000 x 1063 mm", „Ø6" -> „Ø6 mm"). Ø grupės su „x"
+    („Ø4 x 41" - matmuo ar kiekis?) NEkeičiamos - jas privalo aiškiai užrašyti generatorius (patikra 11 VIENETAS NENURODYTAS)."""
+    s = re.sub(r"\b([LU])(\d)", r"\1 \2", str(s))                     # „L30x30x2" -> „L 30 x 30 x 2 mm"
+    def rep(m):
+        if _CODEW.search(s[:m.start()]):
+            return m.group(0)
+        return " x ".join(re.split(_SEP, m.group(0))) + " mm"
+    s = _DIMN.sub(rep, s)
+    return re.sub(r"([Ø⌀]\d+(?:[.,]\d+)?)(?!\d|[.,]\d|\s*[x×]|\s*(?:mm|m²|m\b|cm))", r"\1 mm", s)
+
+
 def main_data(x, y, w, h, rows_, title="MAIN DATA", lab_w=56):
     header(x, y, w, title)
     rh = max(ROW_H, (h - 12) / len(rows_))              # eilutės užpildo visą bloko aukštį
@@ -860,7 +940,10 @@ def main_data(x, y, w, h, rows_, title="MAIN DATA", lab_w=56):
         rect(x, ry, w, rh, lw=0.3)
         line(x + lab_w, ry, x + lab_w, ry + rh, 0.3)
         T(x + 3, ry + rh / 2 + 2.9, lab, F_INFO, color=GREY, auto_red=False)
-        T(x + lab_w + 3, ry + rh / 2 + 2.9, val, F_INFO, fit=w - lab_w - 5, fit_min=F_INFO)
+        if re.fullmatch(r"\d+(?:[.,]\d+)?", str(val).strip()) and re.search(r"depth|size|width|height|length|thick|gyl|aukš|plot|ilg",
+                                                                          str(lab), re.I):
+            val = f"{str(val).strip()} mm"                     # v291: vienas skaičius matmens laukelyje - su vienetu
+        T(x + lab_w + 3, ry + rh / 2 + 2.9, cell_units(val), F_INFO, fit=w - lab_w - 5, fit_min=F_INFO)
         ry += rh
     rect(x, y + 12, w, h - 12, lw=0.6)
 
@@ -902,7 +985,7 @@ def bom_table(x, y, w, h, rows_, title="BILL OF MATERIALS",
             rect(cx_, by, w_, rh, fill=HexColor(cf_) if cf_ else None, lw=0.3)
             if n_ == "POS":
                 if str(val).strip():
-                    balloon(cx_ + w_ / 2, by + rh / 2, val, max(5.0, min(5.6, lh / 2 - 0.4)))
+                    balloon(cx_ + w_ / 2, by + rh / 2, val, max(4.4, min(5.6, lh / 2 - 1.0)))   # v291: >= 1 pt tarpas tarp balionų
             else:
                 parts = str(val).split("\n")
                 for li, pv in enumerate(parts):
@@ -912,7 +995,7 @@ def bom_table(x, y, w, h, rows_, title="BILL OF MATERIALS",
                         hc_ = HexColor(cf_)
                         if 0.299 * hc_.red + 0.587 * hc_.green + 0.114 * hc_.blue < 0.55:
                             tc_ = white
-                    T(cx_ + 3, yy, pv, F_INFO, color=tc_, fit=w_ - 5, fit_min=F_INFO)
+                    T(cx_ + 3, yy, cell_units(pv), F_INFO, color=tc_, fit=w_ - 5, fit_min=F_INFO)
             cx_ += w_
         by += rh
     rect(x, y + 12, w, h - 12, lw=0.6)
@@ -933,7 +1016,7 @@ def title_body(x, ty, w, spec, scales, rows_h=TB_ROWS):
     tbh = sum(rows_h)
     y0 = ty
     cell(x, y0, w, rows_h[0], "CLIENT", spec.get("client", ""), 14, "FB"); y0 += rows_h[0]
-    cell(x, y0, w, rows_h[1], "TITLE", spec.get("title", ""), 9.5); y0 += rows_h[1]
+    cell(x, y0, w, rows_h[1], "TITLE", cell_units(spec.get("title", "")), 9.5); y0 += rows_h[1]
     _on = spec.get("order_no", "")                      # Rytis 2026-10-07: formatas ALT0000_00.00_RS, paryškintas
     if (unk(_on) or not str(_on).strip()) and not spec.get("blank"):
         _on = "ALT0000_00.00_RS"
@@ -983,7 +1066,7 @@ def title_block(x, w, spec, scales):
         xx = x
         for (n, cw_), v in zip(rc, rowv):
             rect(xx, yy, cw_, 10 if i == 0 else 11, fill=HexColor("#F6F6F6") if i == 0 else None, lw=0.35)
-            T(xx + 2.5, yy + 7.8 if i == 0 else yy + 8.2, v, F_INFO, font="FB" if i == 0 else "F")
+            T(xx + 2.5, yy + 7.8 if i == 0 else yy + 8.2, cell_units(v) if i else v, F_INFO, font="FB" if i == 0 else "F")
             xx += cw_
         yy += 10 if i == 0 else 11
     # Rytis 2026-10-07: tuščios revizijų eilutės iki antraštės lentelės - be tuščių plotų

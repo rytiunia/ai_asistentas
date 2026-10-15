@@ -319,7 +319,7 @@ def build(S, P, out, sheet_no, n_sheets):
     if joint:
         leader(rx(50 + pj), fy(hp[0]), RX + W * s + 22, fy(hp[0]) + 26, 6)
         T(RX + W * s / 2, fy(hp[0]) - 6, f"joint: {nj + 1}× Ø6 (~500)", 8, align="c")
-    view_title(RX + W * s / 2, YB + 58, "REAR VIEW (MIRRORED)", f"{sc_txt}  |  Ø3.2, 7 from edge")
+    view_title(RX + W * s / 2, YB + 58, "REAR VIEW (MIRRORED)", f"{sc_txt}  |  Ø3,2 mm, 7 mm from edge")
     # ================= DETAILS + 3D
     DY = K.VIEW_BOT - ROW2 + 34
     vin_main = VIN[0][0]["hex"] if VIN else "#FFFFFF"
@@ -373,11 +373,11 @@ def build(S, P, out, sheet_no, n_sheets):
     kg = A_flat * t * 2.70 + L_tot * 0.000116 * 2700
     n_scr = 2 * (n + 1)
     part_txt = " + ".join(f"{W:g} x {h:g}" for h in hp)
-    bom = [["1", f"Folded plate {W:g} x {H:g}, {depth:g} deep" + (f" ({len(hp)} parts)" if joint else ""), f"Alu {t:g} mm folded",
-            S.get("finish_short", f"RAL {S['plate_ral']}"), (f"{len(hp)} pcs. ({part_txt})" if joint else "1 pcs.")]]
+    bom = [["1", f"Folded plate {W:g} x {H:g} x {depth:g} mm" + (f" ({len(hp)} parts)" if joint else ""), f"Alu {t:g} mm folded",
+            S.get("finish_short", f"RAL {S['plate_ral']}"), (f"{len(hp)} pcs." if joint else "1 pcs.")]]
     for i, (v, p_, a_) in enumerate(VIN):
         bom.append(["2" if i == 0 else "", f"Vinyl {v['name']}", v["code"], "-", f"{p_['m2']:.2f} m²"])
-    bom += [["3", "L profile 30x30x2 (top + bottom)", "Aluminium", "-", f"2× {(W - 50) / 1000:.2f} = {L_tot:.2f} m"],
+    bom += [["3", "L profile 30x30x2 (top + bottom)", "Aluminium", "-", f"{L_tot:.2f} m"],
             ["4", "Screw plate -> L, DIN 7504 N 4.2x16", "Steel, hardened", "-", f"{n_scr} pcs."],
             ["5", "Wall fixing", "?", "-", "?"]]
     if joint:
@@ -386,7 +386,7 @@ def build(S, P, out, sheet_no, n_sheets):
           ["Parts", part_txt if joint else "1"], ["Plate", f"Alu {t:g} mm, folded 4 x 90°"],
           ["Plate finish", S.get("finish", f"RAL {S['plate_ral']}")],
           ["Graphic", f"cut vinyl, {len(VIN)} colours"],
-          ["Fixing holes", "Ø3.2, 7 from edge, 50 / ~300"], ["Mounting", "L30x30x2 top + bottom"],
+          ["Fixing holes", "Ø3,2 mm, 7 mm from edge, ~300 mm"], ["Mounting", "L30x30x2 top + bottom"],
           ["Illumination", "none"], ["Weight (calc.)", f"≈ {kg:.0f} kg / pcs"]]
     K.main_data(X_MD, BY0, W_MD, BH, md, lab_w=64)
     K.bom_table(X_BOM, BY0, W_BOM, BH, bom)

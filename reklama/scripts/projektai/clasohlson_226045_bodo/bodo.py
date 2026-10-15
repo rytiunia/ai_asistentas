@@ -145,7 +145,7 @@ T(bxL + 35, by_ + 10, "TRAFO BOX", 8, font="FB", align="c"); T(bxL + 35, by_ + 1
 T(bxL + 40, ry(dy_) + 22, "12V, 5 m, white", 8, color=K.CABLE, auto_red=False)
 K.cable_line([(bxL + 35, by_ + 24), (bxL + 35, by_ + 38)]); T(bxL + 35, by_ + 47, "230V", 8, color=K.CABLE, align="c", auto_red=False)
 vchain(RX - 14, [YT, ry(dy_)], [rx(PW), rx(PW)], [f"{dy_:.0f}"], size=8)
-T(RX + PW * s / 2, YB + 66, f"Ø3.2, 7 from edge; letter fixings Ø4 x {N_SP} (dots); Ø11 in left side edge", 7, color=K.GREY, align="c")
+T(RX + PW * s / 2, YB + 66, f"Ø3,2 mm, 7 mm from edge; letter fixings Ø4 mm, {N_SP} pcs. (dots); Ø11 mm in left side edge", 7, color=K.GREY, align="c")
 view_title(RX + PW * s / 2, YB + 30, "REAR VIEW (MIRRORED)", f"SCALE 1:{SC}")
 
 # ================================================================ DETAIL A - SECTION 1:2 (lūžęs)
@@ -211,23 +211,23 @@ bom = [
     ["1", "Letter face P8 special", "Alu 3 mm", "RAL 9005", f"{PER:.2f} m / {A_FACE:.2f} m²"],
     ["2", "Letter body P8, milled shell", "Plexi 20 mm white", "-", f"{PER:.2f} m / {A_FACE:.2f} m²"],
     ["3", "LED", "LED", "-", "?"],
-    ["4", "Spacer Ø16x20 on Ø4 holes (CO std.)", "Aluminium", "-", f"{N_SP} pcs."],
-    ["5", f"Folded plate {PW} x {PH}, {PD} deep", "Alu 2 mm folded", "NCS S 0540-B", "1 pcs."],
-    ["6", "L profile 30x30x2 (top + bottom)", "Aluminium", "-", f"2× {L_LEN / 1000:.3f} = {2 * L_LEN / 1000:.2f} m"],
+    ["4", "Spacer Ø16 x 20 mm, Ø4 mm holes", "Aluminium", "-", f"{N_SP} pcs."],
+    ["5", f"Folded plate {PW} x {PH} x {PD} mm", "Alu 2 mm folded", "NCS S 0540-B", "1 pcs."],
+    ["6", "L profile 30 x 30 x 2 mm (top + bottom)", "Aluminium", "-", f"{2 * L_LEN / 1000:.2f} m"],
     ["7", "Wall fixing", "?", "-", "?"],
     ["8", "Letter fixing through plate", "?", "-", f"{N_SP} pcs."],
-    ["9", "Screw plate -> L, DIN 7504 N 4.2x16", "Steel, hardened", "-", f"{2 * (n_scr + 1)} pcs."],
-    ["10", "Cable 12V, white (D11 -> Ø11 side edge)", "cable", "-", "5 m"],
+    ["9", "Screw plate -> L, DIN 7504 N 4,2 x 16 mm", "Steel, hardened", "-", f"{2 * (n_scr + 1)} pcs."],
+    ["10", "Cable 12V white, D11 -> Ø11 mm side", "cable", "-", "5 m"],
     ["11", "Trafo box (PSU)", "PSU", "RAL 7044", "1 pcs."],
 ]
-md = [["Quantity", f"{QTY} pcs."], ["Overall size", f"{PW} x {PH}"], ["Environment", "Exterior ?"],
-      ["Plate", f"Alu 2 mm, depth {PD}, 1 part"], ["Flat", f"{FLAT[0]:.0f} x {FLAT[1]:.0f} (sheet 3000x1500)"],
-      ["Plate finish", "NCS S 0540-B semi matt"], ["Logo", f"{LBB[2] - LBB[0]:.0f} x {LBB[3] - LBB[1]:.0f}"],
-      ["Letters", "P8 special 3 + 20, spacers 20"], ["Letter finish", "RAL 9005 semi matt"],
-      ["Illumination", "LED, backlit"], ["Mounting", "L30x30x2 top + bottom"],
-      ["Fixing holes", "Ø3.2, 7 from edge, 50 / ~300"], ["Cable", "12V 5 m white, left side"],
-      ["Letter holes", f"Ø4 x{N_SP}, slot x{N_SLOT}, Ø8 x{N_D8}"], ["Weight (calc.)", f"≈ {WT:.0f} kg / pcs, excl. PSU"]]
-band("P8 SPECIAL - SECTION A-A (1:2)", p8_band, bom, md, "Order 226045 Clas Ohlson Bodø - LED sign 515 x 2380, P8 special", "1 / 1",
+md = [["Quantity", f"{QTY} pcs."], ["Overall size", f"{PW} x {PH} x {PD} mm"], ["Environment", "Exterior ?"],
+      ["Plate", "Alu 2 mm, sheet 3000 x 1500 mm"], ["Flat", f"{FLAT[0]:.0f} x {FLAT[1]:.0f} mm, 1 part"],
+      ["Plate finish", "NCS S 0540-B semi matt"], ["Logo", f"{LBB[2] - LBB[0]:.0f} x {LBB[3] - LBB[1]:.0f} mm"],
+      ["Letters", "P8: Al 3 mm + plexi 20 mm"], ["Letter finish", "RAL 9005 semi matt"],
+      ["Illumination", "LED, backlit"], ["Mounting", "L 30 x 30 x 2 mm, top + bottom"],
+      ["Fixing holes", "Ø3,2 mm, 7 mm from edge, ~300 mm"], ["Cable", "12V, 5 m, white, left side"],
+      ["Letter holes", f"Ø4 mm: {N_SP} pcs., slots: {N_SLOT} pcs." if not N_D8 else f"Ø4 mm: {N_SP}, slots: {N_SLOT}, Ø8 mm: {N_D8} pcs."], ["Weight (calc.)", f"≈ {WT:.0f} kg / pcs., excl. PSU"]]
+band("P8 SPECIAL - SECTION A-A (1:2)", p8_band, bom, md, "Order 226045 Clas Ohlson Bodø - LED sign 515 x 2380 mm, P8 special", "1 / 1",
      f"1:{SC} / 1:2", qty=QTY)
 K.save(OUT)
 K.pdf_fix_fonts(OUT)
