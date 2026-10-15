@@ -74,7 +74,7 @@ if P6F.kind(spec.get("front", "5S")) == "P10":            # v244: P10 - smeigė 
 RAIL_W = float(str(RAIL["size"]).lower().split("x")[0]) if RAIL_ACR else None
 
 
-def _acr_studs(letters, hs_, ST, g_off, gw, cuts=(), holes=(), vjoints=(), grid=None):
+def _acr_studs(letters, hs_, ST, g_off, gw, cuts=(), holes=(), vjoints=(), grid=None, vlines=()):
     """v245 (Rytis 2026-10-15): smeigės pagal RAIDĖS FORMĄ - kvadratas 4, trikampis 3 ... (supaprastinto gaubto kampų sk.,
     2..6, ilgoms + kas 500); taškai ARTI RAIDĖS CENTERLINE (štricho, kertančio bėgelio liniją, vidurys), ne prie krašto;
     ant vieno bėgelio - VIENA HORIZONTALI LINIJA (y parenkamas bendras visoms raidėms, ne griovelio zonoje).
@@ -83,6 +83,16 @@ def _acr_studs(letters, hs_, ST, g_off, gw, cuts=(), holes=(), vjoints=(), grid=
     cbr = ST["cb_d"] / 2
     rr_ = ST["edge"] + ST["d"] / 2
     ins = [o["geom"].buffer(-rr_) for o in letters]
+
+    def _near_knob(x, y, v_):
+        """v246: tikslus statmens puzzle galvutės užimtas plotas (galvutė + kaklelis) + įleidimo spindulys + 2"""
+        ex, ey, sg = v_[0], v_[1], v_[2]
+        wv = v_[3] if len(v_) > 3 else 40
+        hr = 0.2 * wv
+        kx, ky = ex, ey + sg * hr * 1.6
+        if (x - kx) ** 2 + (y - ky) ** 2 < (hr + cbr + 2) ** 2:
+            return True
+        return abs(x - ex) < 0.12 * wv + cbr + 2 and min(ey, ky) - cbr - 2 < y < max(ey, ky) + cbr + 2
 
     def cands_on(y, r_):
         """raidžių kandidatai linijoje y: kiekvieno kertančio štricho vidurys (ilgame - kas ~150)"""
@@ -96,11 +106,14 @@ def _acr_studs(letters, hs_, ST, g_off, gw, cuts=(), holes=(), vjoints=(), grid=
                 if q.is_empty or not hasattr(q, "coords"):
                     continue
                 a_, b_ = sorted((q.coords[0][0], q.coords[-1][0]))
-                n_ = max(1, int((b_ - a_) // 150) + (1 if b_ - a_ >= 150 else 0))
-                pts += [a_ + (b_ - a_) * (k + 0.5) / n_ for k in range(n_)] if n_ > 1 else [(a_ + b_) / 2]
+                if b_ - a_ < 40:                                  # kertamas štrichas - jo vidurys (centerline)
+                    pts.append((a_ + b_) / 2)
+                else:                                             # v246: išilginis štrichas - GALUOSE (ten stiebai / kampai,
+                    n_ = int((b_ - a_) // 400)                    #  P kaip R), ilgame + kas ~400
+                    pts += [a_ + 3, b_ - 3] + [a_ + (b_ - a_) * k / (n_ + 1) for k in range(1, n_ + 1)]
             pts = [x for x in pts if all(abs(x - c_["x"]) > 30 for c_ in cuts)
                    and all((x - h_[0]) ** 2 + (y - h_[1]) ** 2 > 15 ** 2 for h_ in holes)
-                   and all((x - v_[0]) ** 2 + (y - v_[1]) ** 2 > 24 ** 2 for v_ in vjoints)]
+                   and all(not _near_knob(x, y, v_) for v_ in vjoints)]
             if pts:
                 out_[id(o)] = [(x, y) for x in pts]
         return out_
@@ -141,6 +154,20 @@ def _acr_studs(letters, hs_, ST, g_off, gw, cuts=(), holes=(), vjoints=(), grid=
                     best = (sc, c_)
         if best:
             per[id(o)] += best[1]
+    # v246: smeigės ir STATMENYSE (pvz. L stiebas, kurį užima statmuo) - x = ašis + vs_off (griovelis statmenyje - ašis - g_off)
+    for vx, vy0, vy1 in vlines:
+        sx = vx + ST.get("vs_off", 5)
+        for o, inn in zip(letters, ins):
+            if inn.is_empty or not (o["bb"][0] < sx < o["bb"][2]):
+                continue
+            ix = inn.intersection(_L([(sx, vy0 + 26), (sx, vy1 - 26)]))
+            for q in getattr(ix, "geoms", [ix]):
+                if q.is_empty or not hasattr(q, "coords"):
+                    continue
+                a_, b_ = sorted((q.coords[0][1], q.coords[-1][1]))
+                c_ = (a_ + b_) / 2
+                if all((sx - p_[0]) ** 2 + (c_ - p_[1]) ** 2 > 30 ** 2 for p_ in per[id(o)]):
+                    per[id(o)].append((sx, c_))
     out, fail = [], []
     for o in letters:
         pts = per[id(o)]
@@ -151,6 +178,8 @@ def _acr_studs(letters, hs_, ST, g_off, gw, cuts=(), holes=(), vjoints=(), grid=
         hull = o["geom"].convex_hull.simplify(0.12 * max(o["bb"][2] - o["bb"][0], o["bb"][3] - o["bb"][1]))
         nh = len(hull.exterior.coords) - 1 if hasattr(hull, "exterior") else 2
         n_t = max(min(max(nh, 2), 6), 2 + int((o["bb"][2] - o["bb"][0]) // 500))
+        if max(o["bb"][2] - o["bb"][0], o["bb"][3] - o["bb"][1]) < 200:   # v246: maža raidė (M ~170) - užtenka 3
+            n_t = min(n_t, 3)
         cx, cy = o["geom"].centroid.x, o["geom"].centroid.y
         sel = [max(pts, key=lambda q: (q[0] - cx) ** 2 + (q[1] - cy) ** 2)]   # toliausiai nuo centro, toliau - FPS
         while len(sel) < min(n_t, len(pts)):
@@ -2101,7 +2130,12 @@ if RAIL_ACR:
         ST = ACRY["stud"]
         _gw_ = float((ACRY.get("groove") or {}).get("w", 6) or 6)
         g_off = ST["cb_d"] / 2 + _gw_ / 2 + 2
-        studs, STUD_FAIL = _acr_studs(g["letters"], hs_, ST, g_off, _gw_, cuts, holes, vjoints)
+        _vl = [(((v_["poly"][0][0] + v_["poly"][1][0]) / 2), v_["poly"][0][1], v_["poly"][2][1]) for v_ in vs_
+               if abs(v_["poly"][0][0] - v_["poly"][3][0]) < 1]                    # tik statmenys (ne įstrižai)
+        studs, STUD_FAIL = _acr_studs(g["letters"], hs_, ST, g_off, _gw_, cuts, holes, vjoints, vlines=_vl)
+        if os.environ.get("STUD_DEBUG"):
+            for o in g["letters"]:
+                print(f"    smeigės x{o['bb'][0]:.0f}-{o['bb'][2]:.0f}: " + ", ".join(f"({x_:.0f},{y_:.0f})" for x_, y_, i_ in studs if i_ == id(o)))
         for nm_ in STUD_FAIL:
             print(f"  ! akrilinis rėmas {g['name']}: dalis {nm_} - mažiau nei 2 smeigės (bėgelis per siauras / nepasiekia) - PATIKRINTI")
         # laidų griovelis - nugaroje, bėgeliuose PASLINKTAS nuo ašies (įleistos skylės Ø12 ašyje), statmenyse - ašyje
@@ -2125,7 +2159,8 @@ if RAIL_ACR:
                 slots.append((x_, gy_))
         for v_ in vs_:
             pq = v_["poly"]
-            grooves.append((((pq[0][0] + pq[1][0]) / 2, pq[0][1]), ((pq[2][0] + pq[3][0]) / 2, pq[2][1])))
+            _vo = -g_off if abs(pq[0][0] - pq[3][0]) < 1 else 0.0      # v246: statmenyje griovelis šalia ašies (smeigės kitoje pusėje)
+            grooves.append((((pq[0][0] + pq[1][0]) / 2 + _vo, pq[0][1]), ((pq[2][0] + pq[3][0]) / 2 + _vo, pq[2][1])))
         ACR_GEO[g["name"]] = dict(F=F, parts=parts, vparts=vparts, cuts=cuts, holes=holes, grooves=grooves, knobs=knobs,
                                   studs=studs, slots=slots, g_off=g_off, cslot=CS,
                                   vjoints=vjoints, hs=hs_, vs=vs_, krail=(0.25, 0.15), kvert=(0.2, 0.12))

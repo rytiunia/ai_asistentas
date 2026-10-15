@@ -15,6 +15,7 @@ Gylis 30 mm (raidė), vidaus (Interior); šonai RAL; priekiui gali būti plėvel
   nuo raidės krašto >= kraštas + 1 + Ø/2. Pjūvis `scripts/p10_raides.py`.
 - **Kiekviena raidė / dalis - >= 2 smeigės; kiekis pagal formą (kvadratas 4, trikampis 3), taškai arti štricho centerline,
   ant vieno bėgelio - kuo labiau viena horizontali linija** (Rytis 2026-10-15). Mažų reklamų bėgelis gali būti 55 mm.
+  Panašios raidės tvirtinamos vienodai (P kaip R); maža raidė (pvz. M ~170 mm) - užtenka 3 taškų.
 
 ## LED griovelis raidėje (lapas „30mm plexi", mėlyna linija)
 - Raidėse - **viena linija per štricho vidurį**, tiesios atkarpos, **aštrios sankirtos** (A skersinis iki kojų ašių, A viršūnė -
