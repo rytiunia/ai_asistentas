@@ -72,8 +72,9 @@ MENY Trekanten: dvipusis termoformuotas logotipas 700 x 320 x 118 (3 vnt.): Fram
 
 ## Kojos įvirintos į galinę rėmo dalį (Rytis 2026-10-15, BN danbolig DB-0001)
 `sviesdeze.py` `"legs_type": "inset", "leg_in": 0, "leg_chamfer": 90, "leg": [30, 30, 2]`: rėmas su GALINIU statmeniu (1.4),
-**kojos kaip ir rėmas - □30x30x2 Alu**, įvirintos į galinį statmenį tarp skersinių (į dėžę nelenda, galas statmenas; lape -
-suvirinimo žymos + „1B welded to rear vertical 1.4");
+**kojos kaip ir rėmas - □30x30x2 Alu**, eina PER galinį statmenį (prasideda jo vidinėje briaunoje po skersiniais),
+galinis statmuo 1.4 įvirintas TARP kojų (v254, Rytis eskizas; kaip P10_lightbox_doublesided B; lape - suvirinimo žymos +
+„legs 1B through rear vertical, 1.4 welded between legs");
 **trafo NEREIKIA** (`"psu": false` - be PSU ir trafo plokštelės, 12 V tiekia klientas); **pastaba klientui, kur išeina laidas**
 (raudona po „WALL DRILLING": laidas per plokštės Ø11 į sieną, atstumas nuo viršaus; `"cable_note"` - savas tekstas); **tarpas tarp šviesdėžės
 ir pado - 100 mm** (`"proj"` = stiklas + 100 + plokštė). Kojų uždengimai ir plokštė gali būti kitos spalvos (`cover_hex`,
