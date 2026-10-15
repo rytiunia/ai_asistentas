@@ -639,7 +639,7 @@ def bom1(g):
         for k_, sd in ((6, "A"), (7, "B")):
             rows.append([k_, f"Base {sd} {g['base_t']:g} mm, {len(g['studs'])} x Ø{g['hole_d']:g} (DXF)", f"Plexi {g['plexi']}",
                          "-", f"1 pc. {g['base'].area / 1e6:.3f} m²"])
-    rows += [[8, f"LED Kaisen {g['led_name']}", "PSU " + g["psu_name"], "6500 K", f"{g['led_n']} pcs. ({g['led_W']:.1f} W)"]]
+    rows += [[8, "LED + PSU", "LED / PSU", "-", f"{g['led_n']} pcs. + 1 PSU"]]          # v262: be modelių / specifikacijų
     if g.get("logo") is not None:
         rows += [[9, "Stud (welded to Alu) + nut", "?", "-", f"{2 * len(g['studs'])} pcs."]]
     rows += [[10, ("Countersunk screw" if g["screws"] == "countersunk" else "Screw") + ", Ø3.2 holes in flanges", "A2", "-",
@@ -657,7 +657,7 @@ def main_data1(g):
           ["Body", f"Alu {g['t']:g}, 2 trays A + B, inside white"],
           ["Glass", f"{g['glass']} mm, cut-out + {g['cut_gap']:g}"],
           ["Frame", f"{prof(*g['frame'])} white, legs {g['frame_finish'] or ''}".strip()],
-          ["LED / PSU", f"{g['led_n']} x {g['led_name']}, {g['psu_name']}"],
+          ["LED / PSU", f"{g['led_n']} x LED, PSU"],
           ["Qty", f"{g['qty']}"],
           ["Weight (calc.)", f"≈ {g['kg']:.1f} kg / pcs, excl. PSU"]]
     if g["film"]:
@@ -1211,8 +1211,8 @@ def frame_cut2(g):
     rows += [["1A", f"Mounting plate {P0['w']:g}x{P0['h']:g}x{P0['t']:g}, {len(P0['hz'])} x Ø{g['plate_hole_d']:g}", "Alu", ff,
               f"{len(g['plates_l'])} pc."],
              ["", "Frame profile total", "", "", f"{g['prof_len']:.0f} mm (+ cut allowance)"],
-             [8, f"LED Kaisen {g['led_name']}", "12 V", "6500 K", f"{g['led_n']} pcs."],
-             ["8A", "PSU", g["psu_name"], "IP67", "1 pc."],
+             [8, "LED", "LED", "-", f"{g['led_n']} pcs."],
+             ["8A", "PSU", "PSU", "-", "1 pc."],
              ["8B", "Cable 2 x 0.75 (LED -> PSU)", "", "", "length:"]]
     return rows
 
@@ -1281,13 +1281,10 @@ def _sheet2(g, out):
 
     def detail(X_P6, BY0, W_P6, BH):
         K.main_data(X_P6, BY0, W_P6, BH, [
-            ["Module", f"Kaisen {g['led_name']}"],
-            ["Beam", "10° x 65° (double-sided)"],
+            ["Module", "LED"],                                # v262: be modelių / specifikacijų
             ["Mounting", "top + bottom members"],
-            ["Qty / pitch", f"{g['led_n']} pcs., {g['led_step']:.1f} mm (table {g['led_p']:g})"],
-            ["Power total", f"{g['led_W']:.1f} W"],
-            ["PSU", f"{g['psu_name']}, place:"],
-            ["Supply", "check:"]], title="LED (8)", lab_w=64)
+            ["Qty / pitch", f"{g['led_n']} pcs., {g['led_step']:.1f} mm"],
+            ["PSU", "PSU, place:"]], title="LED (8)", lab_w=64)
     md = [["Frame outer", f"{FW:g} x {FH:g} mm"],
           ["Profile", f"{prof(fa, fb, ft)} Alu, centre of depth"],
           ["Legs", (f"2 x {g['L_leg']:.0f}, through rear vertical, axes {g['legs_y'][1] - g['legs_y'][0]:g}" if g["legB"]

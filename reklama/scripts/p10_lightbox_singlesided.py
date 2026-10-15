@@ -320,7 +320,7 @@ def bom1(g):
                  [4, f"Base {g['base_t']:g} mm, {len(g['studs'])} x Ø{g['hole_d']:g} (DXF)", f"Plexi {g['plexi']}", "-",
                   f"1 pc. {g['base'].area / 1e6:.3f} m²"],
                  [5, "Stud (welded inside front) + nut", "?", "-", f"{len(g['studs'])} pcs."]]
-    rows += [[6, "LED modules on back base (inside)", "?", "6500 K", "?"],
+    rows += [[6, "LED on back base (inside)", "LED", "-", "?"],                  # v262: be modelių / specifikacijų
              [7, f"Cable gland / rubber grommet Ø{unk(g['cab']['hole_d'])}", g["cab"].get("grommet") or "?", "-", "1 pc."],
              [8, "Screw front -> back, perimeter", "-", "-", f"{g['n_scr']} pcs."],
              [9, "Fixing to facade through back", "screws + anchors", "-", "?"]]
