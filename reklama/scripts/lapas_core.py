@@ -37,7 +37,7 @@ else:
 
 # GOST Common: kai kurių simbolių kodai šrifte sumaišyti (Ø -> Ý, ° -> ¹, ± -> ¼) - pakeičiami tinkamais glifais
 _GFIX = str.maketrans({"Ø": "⌀", "ø": "⌀", "°": "˚", "±": "+/-"}) if os.path.exists(_GOST) else {}
-RAL = {"6039": "#8FB03E", "8001": "#9D622B", "4010": "#BC4077", "2008": "#F75E25", "1011": "#8A6642", "3009": "#642424", "5003": "#1D334A", "5022": "#222D5A", "5012": "#3B83BD", "5002": "#1E2460", "5015": "#2271B3", "3000": "#A72920", "6005": "#114232", "7021": "#23282B", "7024": "#474A51", "9003": "#F4F4F4", "9001": "#FDF4E3", "1003": "#F9A800", "2004": "#F44611", "3005": "#5E2129", "6029": "#20603D", "8017": "#45322E", "1019": "#A08F7A", "1023": "#F7B500", "3020": "#C1121C", "5005": "#154889", "5010": "#0E4C8C",
+RAL = {"3028": "#CB3234", "6039": "#8FB03E", "8001": "#9D622B", "4010": "#BC4077", "2008": "#F75E25", "1011": "#8A6642", "3009": "#642424", "5003": "#1D334A", "5022": "#222D5A", "5012": "#3B83BD", "5002": "#1E2460", "5015": "#2271B3", "3000": "#A72920", "6005": "#114232", "7021": "#23282B", "7024": "#474A51", "9003": "#F4F4F4", "9001": "#FDF4E3", "1003": "#F9A800", "2004": "#F44611", "3005": "#5E2129", "6029": "#20603D", "8017": "#45322E", "1019": "#A08F7A", "1023": "#F7B500", "3020": "#C1121C", "5005": "#154889", "5010": "#0E4C8C",
        "5013": "#25314B", "6018": "#57A639", "6024": "#308446", "7016": "#383E42", "7035": "#CBD0CC",
        "9005": "#0E0E10", "7044": "#CAC4B0", "9006": "#A5A8A6", "9010": "#F1EDE1", "9016": "#F1F0EA", "8014": "#4A3526", "8011": "#5A3826"}
 GREY = HexColor("#6E6E6E")
@@ -45,7 +45,7 @@ EXT = HexColor("#7A7A7A")
 SECTION_C = HexColor("#111111")
 VINYL = {"3630-33": "#C8102E", "3630-125": "#FFC20E",
          "100-54": "#85714D"}                            # v260: 3M 100-54 gold (~ Pantone 872C, ekrano artinys)
-PMS = {"297": "#71C5E8", "185": "#E4002B", "872": "#85714D"}          # Pantone C - BOM FINISH langelio užpildui; naują kodą įrašyti čia
+PMS = {"2965": "#00263E", "297": "#71C5E8", "185": "#E4002B", "872": "#85714D"}          # Pantone C - BOM FINISH langelio užpildui; naują kodą įrašyti čia
 # v17 (Rytis 2026-10-08): VISI plėvelių kodai BOM lentelėje - spalvotas langelis (FINISH ir MATERIAL stulpeliai)
 FOIL = {"8500 614": "#00A859", "8500-614": "#00A859", "8500 034": "#EB690F", "8500-034": "#EB690F", "551 010": "#FFFFFF", "551-010": "#FFFFFF",
         "551-035": "#F75E25", "551 035": "#F75E25", "777-002": "#E4002B", "SANDBLAST": "#C4C5C9",
@@ -388,6 +388,12 @@ def ext_line(x1, y1, x2, y2):
         key, a, b = (pg, "h", round(y1, 1)), min(x1, x2), max(x1, x2)
     else:
         line(x1, y1, x2, y2, 0.25, EXT); return
+    # v276: ta pati tiesė ±0,65 pt (apvalinimo skirtumai) - viena išvadinė, ne dvi persidengiančios
+    key = next((k_ for k_ in EXT_REG if k_[0] == key[0] and k_[1] == key[1] and abs(k_[2] - key[2]) <= 0.65), key)
+    if key[1] == "v":
+        x1 = x2 = key[2]
+    else:
+        y1 = y2 = key[2]
     segs = [(a, b)]
     for (p, q) in EXT_REG.get(key, []):
         nxt = []

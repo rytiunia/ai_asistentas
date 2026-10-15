@@ -1,0 +1,233 @@
+{
+ "client_pdf": "Securitas_Sarp_Produksjon_ute_skilt.pdf",
+ "scale": 10,
+ "crop_pt": [
+  8,
+  130,
+  600,
+  450
+ ],
+ "ignore_fills": [
+  [
+   1.0,
+   1.0,
+   1.0
+  ],
+  [
+   0.961,
+   0.961,
+   0.961
+  ],
+  [
+   0.4,
+   0.416,
+   0.443
+  ]
+ ],
+ "qty": "?",
+ "client": "Securitas Sarpsborg",
+ "title": "Securitas Sarpsborg 2000 x 1062 - P6 color + 5S+foil on rails",
+ "order_no": "ALT0000_00.00_RS",
+ "drawing_no": "Securitas Sarpsborg",
+ "file_code": "Securitas_Sarp",
+ "rev": "A",
+ "date": "2026-10-15",
+ "depth_mm": 80,
+ "front": "5S+foil",
+ "rail": {
+  "size": "30x30x2",
+  "depth": 30,
+  "ral": "?"
+ },
+ "groups": [
+  {
+   "name": "CIRCLES",
+   "profile": "6",
+   "on_plate": false,
+   "front": "P6 color",
+   "return_ral": "3028",
+   "face_hex": "#E73A4D",
+   "client_fill": [
+    0.906,
+    0.227,
+    0.302
+   ],
+   "rail_ral": "?",
+   "frame": "verticals"
+  },
+  {
+   "name": "Securitas",
+   "profile": "6",
+   "on_plate": false,
+   "front": "5S+foil",
+   "return_ral": "?",
+   "return_hex": "#00263E",
+   "face_hex": "#2E2D2C",
+   "client_fill": [
+    0.18,
+    0.176,
+    0.173
+   ],
+   "rail_ral": "NCS S 6005-R80B",
+   "frame": "verticals"
+  }
+ ],
+ "bom": [
+  [
+   1,
+   "Face P6 color (circles)",
+   "Acrylic 8 mm Plexiglas GS 3H67",
+   "-",
+   "{PER_CIRCLES} m / {A_CIRCLES} m²"
+  ],
+  [
+   1,
+   "Face 5S+foil (Securitas)",
+   "Polycarbonate 3 mm FR",
+   "-",
+   "{PER_Securitas} m / {A_Securitas} m²"
+  ],
+  [
+   "",
+   "Front film day/night (Securitas)",
+   "day/night film black/white ?",
+   "-",
+   "{A_Securitas} m²"
+  ],
+  [
+   "A",
+   "Fitting PVC edge (Securitas)",
+   "PVC 3 mm",
+   "-",
+   "{PER_Securitas} m"
+  ],
+  [
+   "B",
+   "Bolt, return to PVC edge",
+   "?",
+   "-",
+   "?"
+  ],
+  [
+   2,
+   "Return circles",
+   "Alu 1 mm",
+   "RAL 3028",
+   "{PER_CIRCLES} m / {RET_CIRCLES} m²"
+  ],
+  [
+   2,
+   "Return Securitas",
+   "Alu 1 mm",
+   "PMS 2965 C",
+   "{PER_Securitas} m / {RET_Securitas} m²"
+  ],
+  [
+   3,
+   "Back circles",
+   "Alu 1.5 mm",
+   "RAL 3028",
+   "{PER_CIRCLES} m / {A_CIRCLES} m²"
+  ],
+  [
+   3,
+   "Back Securitas",
+   "Alu 1.5 mm",
+   "PMS 2965 C",
+   "{PER_Securitas} m / {A_Securitas} m²"
+  ],
+  [
+   4,
+   "LED",
+   "LED",
+   "-",
+   ""
+  ],
+  [
+   5,
+   "Rail U {RAIL_SIZE} (circles)",
+   "Aluminium",
+   "? (1080-M230 matt)",
+   "{RAILS_M_CIRCLES} m"
+  ],
+  [
+   5,
+   "Rail U {RAIL_SIZE} (Securitas)",
+   "Aluminium",
+   "NCS S 6005-R80B",
+   "{RAILS_M_Securitas} m"
+  ],
+  [
+   6,
+   "Mounting ear {RAIL_SIZE}, Ø{EAR_HOLE} hole",
+   "Aluminium",
+   "as rails",
+   "{PLATES_N} pcs."
+  ],
+  [
+   7,
+   "PSU",
+   "PSU",
+   "",
+   "?"
+  ],
+  [
+   8,
+   "Wall fixing",
+   "?",
+   "-",
+   "?"
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "?"
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profiles",
+   "P6 color / 5S+foil"
+  ],
+  [
+   "Depth",
+   "80"
+  ],
+  [
+   "Face circles",
+   "Plexiglas GS 3H67, 8 mm"
+  ],
+  [
+   "Face Securitas",
+   "PC 3 FR + day/night film"
+  ],
+  [
+   "Returns",
+   "RAL 3028 / PMS 2965 C"
+  ],
+  [
+   "Finish",
+   "semi matt / matt"
+  ],
+  [
+   "Rails",
+   "U 30x30x2 Alu + ears"
+  ],
+  [
+   "Illumination",
+   "LED"
+  ],
+  [
+   "Environment",
+   "Exterior"
+  ]
+ ],
+ "ears": {
+  "inset": 50,
+  "pitch": 1000,
+  "min_edge": 15
+ }
+}
