@@ -30,11 +30,11 @@
   ]
  ],
  "qty": "?",
- "client": "Securitas Sarpsborg",
- "title": "Securitas Sarpsborg 2000 x 1062 - 5S color + P6+foil on U rails",
+ "client": "BrandFactory",
+ "title": "Order 226030 Securitas Sarpsborg 2000 x 1062 - 5S color + P6+foil on U rails",
  "order_no": "ALT0000_00.00_RS",
- "drawing_no": "Securitas Sarpsborg",
- "file_code": "Securitas_Sarp",
+ "drawing_no": "Order 226030",
+ "file_code": "Order_226030",
  "rev": "A",
  "date": "2026-10-15",
  "depth_mm": 80,
@@ -225,6 +225,10 @@
    "Exterior"
   ]
  ],
- "layout": "columns",
- "auto_frame": true
+ "layout": "rows",
+ "auto_frame": true,
+ "company": "BrandFactory",
+ "view_yaw": 22,
+ "view_pitch": 12,
+ "view_scale": 20
 }

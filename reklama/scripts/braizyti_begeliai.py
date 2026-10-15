@@ -1658,6 +1658,8 @@ LAYS = [[["FS"], ["D", "R", "I"]], [["FS", "D"], ["R", "I"]], [["FS", "I"], ["D"
         [["FS", "R", "D"], ["I"]], [["FS", "D", "I"], ["R"]]]
 if not HAS_D:
     LAYS = [[[b for b in r if b != "D"] for r in lay] for lay in LAYS]
+if spec.get("layout") == "rows":                          # v279 (Rytis 2026-10-15): kairėje priekis, dešinėje galas, apačioje DIDELIS 3D
+    LAYS = [[["FS", "R"], ["I"]]]
 LEDF = spec.get("led_fragment")                            # v162 (Rytis): LED dėliojimas iš originalo - lapo kairė apačia
 if LEDF:
     # Rytis 2026-10-13: „kairė viršus - front view / dešinė viršus - rear view / kairė apačia - led / dešinė apačia - 3d view"
@@ -1675,7 +1677,9 @@ for lay, n1, n2, nz, dh in [(l_, a_, b_, c_, d_) for l_ in LAYS for a_ in STD fo
                              for c_ in ((10, 15, 20, 25, 50) if GZ else (None,)) for d_ in (250, 220, 190, 170, 150)]:
     if True:
         if True:
-            if n2 < n1 or n2 > n1 * 2.5:
+            if n2 < n1 or n2 > n1 * 2.5 or (spec.get("layout") == "rows" and n2 != n1):   # rows: priekis = galas
+                continue
+            if spec.get("view_scale") and n1 != spec["view_scale"]:                      # v279: nurodytas vaizdų mastelis
                 continue
             sz = {"FS": fs_box(n1), "R": r_box(n2), "D": (D_W, dh), "Z": z_box(nz) if GZ else (0, 0)}
             if LEDF:
@@ -1703,11 +1707,11 @@ for lay, n1, n2, nz, dh in [(l_, a_, b_, c_, d_) for l_ in LAYS for a_ in STD fo
             a_iso = kk * kk * ISO_EW * ISO_EH
             # v49 (Joker 1947x208): ilgai siaurai iškabai 3D užima visą lapą, o priekis lieka smulkus - 3D naudingas
             # plotas ribojamas 2 x priekio vaizdo plotu (vaizdai panašaus dydžio)
-            a_iso = min(a_iso, 2.0 * (PW * MM / n1) * (PH * MM / n1))
+            a_iso = min(a_iso, (3.5 if spec.get("layout") == "rows" else 2.0) * (PW * MM / n1) * (PH * MM / n1))
             s1, s2 = MM / n1, MM / n2
             a_f, a_r = (PW * s1) * (PH * s1), (PW * s2) * (PH * s2)
             used = sum(sz[b_][0] * sz[b_][1] for r in lay for b_ in r if b_ != "I") + a_iso
-            score = 3 * (a_f * a_r * a_iso) ** (1 / 3) + 0.3 * used + (3000 if n1 == n2 else 0) + \
+            score = 3 * (a_f * a_r * a_iso) ** (1 / 3) + 0.3 * used + (1.0 * a_iso if spec.get("layout") == "rows" else 0) + (3000 if n1 == n2 else 0) + \
                 (6 * a_f if GZ else 0)                              # su Z detale - pirmenybė didesniam priekiui
             # galinis vaizdas su rėmo matmenimis turi likti skaitomas: mastelis ne smulkesnis nei 1,5 x priekio
             score -= 60000 if n2 > n1 * 1.5 else 0
