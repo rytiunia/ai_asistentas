@@ -3794,7 +3794,8 @@ def export_1to1(path):
     doc = fitz.open()
     pg = doc.new_page(width=(bx1 - bx0) * k, height=(by1 - by0) * k)
     doc.set_metadata({"title": f"{spec.get('file_code', '')} 1:1"})
-    L_LET, L_BACK, L_FRAME = (doc.add_ocg("1_LETTERS"), doc.add_ocg("2_BACK_inset_3mm"), doc.add_ocg("3_FRAME"))
+    inset = spec.get("back_inset_mm", 0.7 if FRONT == "P1" else (float((spec.get("p10") or {}).get("rim", 5)) if FRONT == "P10" else 3))   # v116 / v249
+    L_LET, L_BACK, L_FRAME = (doc.add_ocg("1_LETTERS"), doc.add_ocg(f"2_BACK_inset_{inset:g}mm"), doc.add_ocg("3_FRAME"))
     C_LET, C_BACK, C_FRAME = (0, 0, 0), (0.85, 0, 0), (0, 0.35, 0.85)
     HW = 0.1
 
@@ -3816,7 +3817,6 @@ def export_1to1(path):
                 sh.draw_line(cur, start)
         sh.finish(width=HW, color=C_LET, fill=None, closePath=False, oc=L_LET); sh.commit()
     # 2 - dugnas: raidės kontūras 3 mm į vidų (smulkiai išlygintos kreivės)
-    inset = spec.get("back_inset_mm", 0.7 if FRONT == "P1" else (float((spec.get("p10") or {}).get("rim", 5)) if FRONT == "P10" else 3))   # v116 / v249
     for o in uniq:
         ps = [Polygon(K.flatten(sp, 32)).buffer(0) for sp in o["sub"] if len(K.flatten(sp, 32)) >= 3]
         if not ps:

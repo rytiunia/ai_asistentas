@@ -59,3 +59,9 @@ Gylis 30 mm (raidė), vidaus (Interior); šonai RAL; priekiui gali būti plėvel
 1 lapas - priekis su matmenimis, galinis vaizdas su laidu ir trafo box, Profile 10 pjūvis (1-5), MOUNTING / MATERIALS / DEPTH /
 SIDE COLOR / LED / COLORS lentelė; 2 lapas - rėmo CAD (statmenų žingsnis, 35 pločiai, šonas 20 + 30), explode su Parts List
 (1 20mm clear plexiglass, 2 Alu fitting part, 3 30mm acrylic letters), DETAIL A puzzle, tvirtinimo detalės, 3D.
+
+## CAD failas (v273, Rytis 2026-10-15: „pateik ... cad failą")
+`python3 scripts/pdf1to1_dxf.py <_1-1.pdf> <out.dxf> --merge <griovelis>.dxf:GROOVE_8MM,CENTERLINE` - DXF mm, y aukštyn, VAIZDAS IŠ
+PRIEKIO: 1_LETTERS (bloko kontūras), 2_BACK_inset_<rim>mm (Alu dugnelio įleidimas), 4_THREADED_RODS_* (ilgasriegiai), 5_CABLE_EXITS_D11,
+GROOVE_8MM + CENTERLINE (LED griovelis `griovelis_b.py --groove=8 --wall=2` iš 1_LETTERS kontūrų; plačios dalys >= 40 - žiedas).
+Griovelio gylis - lape „?" (klausti). Pavyzdys: `scripts/projektai/bnskilte_3295_danbolig/cad/ALT0000_DB-0002_danbolig_CAD.dxf`.
