@@ -1739,10 +1739,10 @@ if spec.get("layout") == "columns" and not HAS_D and not LEDF and not GZ:
         _fs, _rb = fs_box(n_), r_box(n_)
         _lw = max(_fs[0], _rb[0]); _lh = _fs[1] + _rb[1] + 14
         _iw = W_AV - _lw - 14
-        if _lh > H_AV or _iw < 0.30 * W_AV:
+        if _lh > H_AV + 30 or _iw < 0.30 * W_AV:       # r_box / fs_box paraštės dosnios - iki 30 pt sutraukiama
             continue
         _kk = min(_iw / ISO_EW, (H_AV - 30) / ISO_EH)
-        _sc = 2 * (PW * MM / n_) * (PH * MM / n_) + 0.5 * min(_kk * _kk * ISO_EW * ISO_EH, 2.5 * (PW * MM / n_) * (PH * MM / n_))
+        _sc = (PW * MM / n_) * (PH * MM / n_)          # v276 (Rytis: „priekio ir galo didesnės, 3D mažesnė") - didžiausias priekis
         if not _bestc or _sc > _bestc[0]:
             _bestc = (_sc, n_, _fs, _rb, _lw, _iw)
     if _bestc:
@@ -1750,10 +1750,18 @@ if spec.get("layout") == "columns" and not HAS_D and not LEDF and not GZ:
         SC2 = SC1
         LAY = [["FS", "I"], ["R"]]
         _vg = (H_AV - _fs[1] - _rb[1]) / 3
+        _lw = max(_lw, 0.56 * W_AV)                     # tolygus lapo užpildymas: kairė sritis ~56 %, vaizdai jos centre
+        _iw = W_AV - _lw - 14
         _xl = VX0 + (_lw - _fs[0]) / 2
-        POS = {"FS": (_xl, VY0 + _vg, _fs[0], _fs[1]),
-               "R": (VX0 + (_lw - _rb[0]) / 2, VY0 + 2 * _vg + _fs[1], _rb[0], _rb[1]),
-               "I": (VX0 + _lw + 24, VY0 + 24, _iw - 34, H_AV - 24)}
+        # 3D - MAŽESNIS už priekį / galą: projekcijos plotis ~0,85 priekio vaizdo pločio, centre dešinėje
+        _k3 = min(0.85 * PW * MM / SC1 / ISO_EW, (_iw - 34) / ISO_EW, (H_AV - 54) / ISO_EH)
+        _w3, _h3 = _k3 * ISO_EW + 20, _k3 * ISO_EH + 50
+        _x3 = VX0 + _lw + 14 + (_iw - _w3) / 2
+        _yf = VY0 + max(_vg, 12)                        # priekio viršutinė matmenų eilė - ne ant lapo rėmo
+        _yr = max(_yf + _fs[1] + max(_vg, 0), VY0 + H_AV - _rb[1] + 24) if _vg < 12 else VY0 + 2 * _vg + _fs[1]
+        POS = {"FS": (_xl, _yf, _fs[0], _fs[1]),
+               "R": (VX0 + (_lw - _rb[0]) / 2, _yr, _rb[0], _rb[1]),
+               "I": (_x3, VY0 + (H_AV - _h3) / 2, _w3, _h3)}
 if LEDF:                                                   # v167 (Rytis): objektai centruojami savo ketvirtyje, simetriškai
     _hw = W_AV / 2
     for (b1, b2), rh_r in zip(LAY, ROWS_H):
