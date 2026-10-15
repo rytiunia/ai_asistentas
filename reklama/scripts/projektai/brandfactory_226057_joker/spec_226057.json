@@ -79,9 +79,9 @@
    ]
   },
   {
-   "name": "black (outline)",
-   "code": "black ?",
-   "hex": "#1F1E1E",
+   "name": "black outline",
+   "code": "ORACAL 551 701",
+   "hex": "#060608",
    "kind": "color",
    "fills": [
     [
