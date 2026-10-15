@@ -132,14 +132,15 @@ view_title(ax0 + 20 * MM / 2, ya + 20, "DETAIL A - SECTION", "SCALE 1:2  |  top 
 # ================================================================ 3D VIEW
 import r3d
 S3 = r3d.Scene(30, 14)
-x3, y3 = ax0 - 40, ya + 64                                       # 3D - visa laisva sritis po DETAIL A
-w3, h3 = K.IX1 - x3 - 10, K.VIEW_BOT - y3 - 30
+# Rytis 2026-10-15: 3D - DEŠINĖJE, praktiškai tokio pat dydžio kaip priekio / galo projekcijos (tas pats aukštis YT..YB)
+x3, y3 = ax0 + 160, YT
+w3, h3 = K.IX1 - x3 - 10, YB - YT
 S3.box((0, 0, 0), (PW, 0, 0), (0, PH, 0), (0, 0, PD), NCS, HexColor("#5D8EA6"))
 for L in LET:
     g = sscale(L["geom"], 1, -1, origin=(0, 0)); g = stranslate(g, 0, PH)
     S3.extrude_xy(g, PD + 20, PD + 43, HexColor("#F4F4F4"), BLK)
 S3.render((x3, y3, w3, h3))
-view_title(x3 + w3 / 2, y3 + h3 + 12, "3D VIEW", "ILLUSTRATIVE - NOT TO SCALE")
+view_title(x3 + w3 / 2, YB + 30, "3D VIEW", "ILLUSTRATIVE - NOT TO SCALE")
 
 # ================================================================ juosta
 W_pl = FLAT[0] * FLAT[1] / 1e6 * TS * 2.70
