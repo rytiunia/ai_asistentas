@@ -111,7 +111,11 @@ dx_, dy_ = D.d11_point(max(LET, key=lambda L: L["geom"].area))     # logotipo la
 hx = rx(dx_)
 circle(hx, ry(dy_), 1.6, fill=K.CABLE, stroke=None)
 T(hx - 4, ry(dy_) - 4, "D11", 8, color=K.CABLE, align="r", auto_red=False)
-bxL = RX + PW * s + 30
+# v288 išdėstymas (Rytis 2026-10-15): po galo vaizdo - TRAFO BOX | [DETAIL A virš LOGO DETAIL] | 3D; vienodi tarpai g
+REAR_R = RX + PW * s + 29                                          # su pozicijų žymomis
+TR_W, DET_W, P3_W = 100, 222, 100                                  # trafo + užrašas, DETAIL A stulpelis, 3D plokštė
+G_ = (K.IX1 - REAR_R - TR_W - DET_W - P3_W) / 4
+bxL = REAR_R + G_
 K.cable_line([(hx, ry(dy_)), (rx(0), ry(dy_)), (bxL + 35, ry(dy_)), (bxL + 35, ry(dy_) + 40)])
 K.set_view(True); circle(rx(0), ry(dy_), 1.8, stroke=K.CABLE, lw=0.6); K.set_view(False)
 by_ = ry(dy_) + 40
@@ -125,9 +129,9 @@ view_title(RX + PW * s / 2, YB + 30, "REAR VIEW (MIRRORED)", f"SCALE 1:{SC}")
 
 # ================================================================ DETAIL A - SECTION 1:2 (lūžęs)
 LY = round(LBB[1])
-ax0 = bxL + 140
-ya = detail_a(ax0, YT + 40, LY)
-view_title(ax0 + 20 * MM / 2, ya + 20, "DETAIL A - SECTION", "SCALE 1:2  |  top edge + letter, broken view")
+ax0 = bxL + TR_W + G_ + 52
+ya = detail_a(ax0, YT + 4, LY)
+view_title(ax0 + 20 * MM / 2, ya + 16, "DETAIL A - SECTION", "SCALE 1:2  |  top edge + letter, broken view")
 
 # ================================================================ LOGO DETAIL 1:10 (Rytis 2026-10-15: „trūksta detalesnių logotipo matmenų")
 #  ženklas (lankas + žiedas), eilutės „Clas" / „Ohlson" - aukščiai, tarpai, pločiai; matmenys nuo logotipo gabarito kampo
@@ -141,10 +145,10 @@ _r2 = [L for L in _txt if L not in _r1]
 bbox = lambda Ls: (min(L["bb"][0] for L in Ls), min(L["bb"][1] for L in Ls), max(L["bb"][2] for L in Ls), max(L["bb"][3] for L in Ls))
 SB, R1, R2 = bbox(_sym), bbox(_r1), bbox(_r2)
 _arc = max(_sym, key=lambda L: L["bb"][3] - L["bb"][1]); _ring = min(_sym, key=lambda L: L["bb"][3] - L["bb"][1])
-x3 = K.IX1 - 104                                                # 3D - dešinėje, siauras aukštas
-LXL = x3 - 58 - (LBB[2] - LBB[0]) * sl                          # logotipo detalė - tarp DETAIL A ir 3D
+x3 = ax0 + 170 + G_                                                # 3D - dešinėje, siauras aukštas
+LXL = ax0 + 59 - (LBB[2] - LBB[0] + 60 / sl) * sl / 2 + 10     # logotipo detalė - PO DETAIL A, stulpelio centre
 lx = lambda x: LXL + (x - LBB[0]) * sl
-ly = lambda y: YT + 58 + (y - LBB[1]) * sl
+ly = lambda y: YB + 30 - 43 + (y - LBB[3]) * sl              # pavadinimas - vienoje eilėje su kitais
 K.set_view(True)
 for L in LET:
     draw_sub(L["sub"], lambda x, y: (lx(x), K.Y(ly(y))), fill=BLK, stroke=None)
@@ -159,20 +163,20 @@ vchain(xr + 14, [ly(v) for v in yy], [lx(_arc["bb"][2]), lx(_ring["bb"][2]), lx(
 vchain(xr + 30, [ly(v) for v in (LBB[1], SB[3], LBB[3])], [xr + 14] * 3, [f"{SB[3] - LBB[1]:.0f}", f"{LBB[3] - SB[3]:.0f}"], size=8)
 vchain(xr + 46, [ly(LBB[1]), ly(LBB[3])], [xr + 30] * 2, [f"{LBB[3] - LBB[1]:.0f}"], size=8)
 xs1 = [LBB[0], _ring["bb"][0], _arc["bb"][2], _ring["bb"][2]]
-hchain(ly(LBB[1]) - 16, [lx(v) for v in xs1], [ly(_arc["bb"][1]), ly(_ring["bb"][1]), ly(_arc["bb"][1]), ly(_ring["bb"][1])],
+hchain(ly(LBB[1]) - 12, [lx(v) for v in xs1], [ly(_arc["bb"][1]), ly(_ring["bb"][1]), ly(_arc["bb"][1]), ly(_ring["bb"][1])],
        [f"{b - a:.0f}" for a, b in zip(xs1, xs1[1:])], size=8)
-hdim(lx(LBB[0]), lx(LBB[2]), ly(LBB[1]) - 36, f"{LBB[2] - LBB[0]:.0f}", ly(_arc["bb"][1]), ly(LBB[1]) + 1, size=8)
 xs2 = [LBB[0], R2[0], R1[2], R2[2]]
-hchain(ly(LBB[3]) + 16, [lx(v) for v in xs2], [ly(_arc["bb"][3]), ly(R2[3]), ly(R1[3]), ly(R2[3])],
+hchain(ly(LBB[3]) + 14, [lx(v) for v in xs2], [ly(_arc["bb"][3]), ly(R2[3]), ly(R1[3]), ly(R2[3])],
        [f"{b - a:.0f}" for a, b in zip(xs2, xs2[1:])], size=8)
-view_title(lx((LBB[0] + LBB[2]) / 2), ly(LBB[3]) + 46, "LOGO DETAIL", f"SCALE 1:{SCL}  |  from logo outline")
+hdim(lx(LBB[0]), lx(LBB[2]), ly(LBB[3]) + 28, f"{LBB[2] - LBB[0]:.0f}", ly(_arc["bb"][3]), ly(R2[3]), size=8)
+view_title(lx((LBB[0] + LBB[2]) / 2), ly(LBB[3]) + 43, "LOGO DETAIL", f"SCALE 1:{SCL}  |  from logo outline")
 
 # ================================================================ 3D VIEW
 import r3d
 S3 = r3d.Scene(30, 14)
 # Rytis 2026-10-15: 3D - DEŠINĖJE, praktiškai tokio pat dydžio kaip priekio / galo projekcijos (tas pats aukštis YT..YB)
 y3 = YT
-w3, h3 = K.IX1 - x3 - 10, YB - YT
+w3, h3 = K.IX1 - G_ - x3, YB - YT
 S3.box((0, 0, 0), (PW, 0, 0), (0, PH, 0), (0, 0, PD), NCS, HexColor("#5D8EA6"))
 for L in LET:
     g = sscale(L["geom"], 1, -1, origin=(0, 0)); g = stranslate(g, 0, PH)
