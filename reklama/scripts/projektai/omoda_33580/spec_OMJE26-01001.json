@@ -22,7 +22,7 @@
  "front": "P6",
  "auto_frame": true,
  "mounting": "none",
- "letters_power": "wago",
+ "letters_power": "per_letter",
  "wall": "facade_panel",
  "trafo_box": {
   "voltage": "12V",
@@ -48,7 +48,7 @@
     0.9425
    ],
    "frame": "verticals",
-   "led": "White LED modules, 6500K"
+   "led": "LED"
   }
  ],
  "bom": [
@@ -68,36 +68,43 @@
   ],
   [
    3,
-   "Letter back",
+   "Letter back (holes - DXF)",
    "Alu 1.5 mm",
    "RAL 9003",
    "{PER_ALL} m / {A_ALL} m²"
   ],
   [
    4,
-   "LED modules white",
-   "",
-   "",
-   ""
+   "Facade fixing screws (by fitter)",
+   "Ø3.2 holes",
+   "-",
+   "{STUDS} holes"
   ],
   [
    5,
-   "Fixing angle, small L-profile",
-   "Aluminium",
-   "RAL 9003",
+   "LED",
+   "LED",
+   "-",
    ""
   ],
   [
    6,
+   "Cable 12V 1.5 m from each part (D11 exit)",
+   "cable",
+   "-",
+   "25 pcs."
+  ],
+  [
+   7,
    "Mounting template 1:1",
    "paper",
    "-",
    "1 pcs."
   ],
   [
-   7,
-   "Dimmable LED driver in power supply box",
-   "",
+   8,
+   "Trafo box (PSU, dimmable)",
+   "PSU",
    "RAL 5008",
    "1 pcs."
   ]
@@ -129,11 +136,11 @@
   ],
   [
    "Illumination",
-   "white LED modules"
+   "LED"
   ],
   [
    "Power",
-   "dimmable driver, box RAL 5008"
+   "12V/letter + trafo box"
   ],
   [
    "Wind qp",

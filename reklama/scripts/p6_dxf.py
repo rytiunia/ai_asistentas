@@ -962,6 +962,27 @@ if SEPARATE and _cv_sep:
                 warn.append(f"{o['id']}: akcentas - laido išvestis atskirai, dėti ranka")
         print(f"  D11 linija: y {PH - yl:.0f} nuo apačios ({yl:.0f} nuo viršaus), plačiausias bendras ruožas >= {best_line[0]:.0f} mm")
         CABLE_VARIANTS = ["line"]
+# v268 (Rytis 2026-10-15, OMODA PO 33580): atskiroms raidėms tvirtinimo ir laido skylės - TOS PAČIOS kaip techniniame lape
+#  (braizyti_begeliai -> rails json "fix_holes" / "cable_holes"); tada skaičiuotos ant ašių skylės ir D11 linija pakeičiamos
+if A.rails_json and SEPARATE:
+    _rjh = json.load(open(A.rails_json))
+    _FH = [(h_[0] + _dx, h_[1] + _dy) for h_ in _rjh.get("fix_holes", [])]
+    _CH = [(h_[0] + _dx, h_[1] + _dy) for h_ in _rjh.get("cable_holes", [])]
+    if _FH or _CH:
+        warn[:] = [w for w in warn if "tvirtinimo skyl" not in w and "D11" not in w and "akcentas" not in w]
+        for o in letters:
+            _bk = o["back"].buffer(0.5)
+            if _FH:
+                o["holes"] = [(round(x, 2), round(y, 2)) for x, y in _FH if _bk.contains(Point(x, y))]
+                o.pop("holes_var", None)
+                if len(o["holes"]) < 2:
+                    warn.append(f"{o['id']}: tik {len(o['holes'])} tvirtinimo skylės iš lapo - tikrinti")
+            _c = [(round(x, 2), round(y, 2)) for x, y in _CH if _bk.contains(Point(x, y))]
+            o.setdefault("d11", {})["line"] = _c[0] if _c else None
+            if not _c:
+                warn.append(f"{o['id']}: laido išvesties iš lapo nėra - tikrinti")
+        CABLE_VARIANTS = ["line"]
+        print(f"  skylės iš lapo: tvirtinimo {len(_FH)}, laido D11 {len(_CH)}")
 
 # ------------------------------------------------------------------ v98: drenažas (exterior)
 # Rytis 2026-10-11: lauko reklamos raidė turi D8 išpjovą apatinėje dalyje kaip drenažą - PAČIOJE ŽEMIAUSIOJE vietoje;

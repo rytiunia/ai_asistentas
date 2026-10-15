@@ -11,3 +11,9 @@ Bendri Alfa Neon dalykai - `alfaneon_volvo.md` 2 skyrius. Šaltiniai: `OMJE26-01
 | 20 | EXLA26-01001 | EXLANTIX 5205 x 375 | P6 kaip 10, „förmonterade på ram lackerad i RAL 5008" - rėmas U 30x30x2 RAL 5008 su L profiliais (ausėlės) ant STIKLO fasado |
 
 Projektas `scripts/projektai/omoda_33580/` (spec, LED spec, rails JSON). Rėmas - AUTO (v238; rankinis rėmas v236-v237 buvo klaida). E vidurinė juosta (atskira dalis tarp bėgelių) be tvirtinimo - KLAUSTI Ryčio. ATVIRA: gylis (lape 80 - prielaida), L kampo profilis ir kiekis poz. 10, pritemdomo driverio modelis, EXLANTIX maitinimas (lape 12V + TRAFO BOX - prielaida), tvirtinimas į stiklo fasadą.
+
+## 2026-10-15 - Ryčio nurodymai (v268)
+- Poz. 10 OMJE26-01001: **P6 palaidos (atskiros) raidės**, tvirtinimo ir laido skylės DUGNE (lape + DXF + šablone), iš kiekvienos dalies
+  12V 1,5 m laidas + trafo box (RAL 5008), montavimo šablonas 1:1. L profilių nėra. Gylis 80 - vis dar prielaida.
+- Poz. 20 EXLA26-01001: **P6 ant L profilio** - kaip VOLVO užsakyme **BILB26-01001** (to užsakymo failų repo NĖRA - paprašyta Ryčio);
+  naujas kliento failas `EXLA26-01001_v2.pdf` (5205 x 375; „mounted on L-profiles for wall mounting on glass facade painted darkblue RAL 5008").

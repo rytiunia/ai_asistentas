@@ -2332,11 +2332,11 @@ if MOUNTING == "none":                                  # v90: atskiros raidės 
                 SEP_PTS.append((xm, SEP_LINE))
                 cc_ = RV(xm, SEP_LINE)
                 K.c.saveState(); K.c.setFillColor(HexColor("#D0021B")); K.c.circle(cc_[0], K.Y(cc_[1]), 1.6, stroke=0, fill=1); K.c.restoreState()
-            _xtra = [o for o in _ls if o not in _main] if FRONT == "P10" else []
+            _xtra = [o for o in _ls if o not in _main]          # v268: kiekviena dalis turi išvestį (P6 / P10)
             for o in _xtra:            # v250: smulkios dalys (i taškas) - irgi išvestis (centre)
                 from shapely.ops import polylabel as _pl
                 _g = max(getattr(o["geom"], "geoms", [o["geom"]]), key=lambda g_: g_.area)
-                _c = _pl(_g, 0.5)
+                _c = _g.centroid if _g.buffer(-8).contains(_g.centroid) else _pl(_g, 0.5)   # v268: centre, ne galas
                 SEP_PTS.append((_c.x, _c.y))
                 cc_ = RV(_c.x, _c.y)
                 K.c.saveState(); K.c.setFillColor(HexColor("#D0021B")); K.c.circle(cc_[0], K.Y(cc_[1]), 1.6, stroke=0, fill=1); K.c.restoreState()
@@ -2354,7 +2354,7 @@ if MOUNTING == "none":                                  # v90: atskiros raidės 
 #  popierinis šablonas. Bėgio nėra -> horizontalios linijos nereikia; taškai LABIAU Į PLOTO CENTRĄ (ne krašte): raidės plotas
 #  dalijamas į n dalių (k-means), kiekvienos dalies centras pritraukiamas į štricho vidurį. n: raidė 4 (ne 5), siaura / smulki
 #  dalis (i stiebas, l, i taškas) 2; g kojelė gauna savo tašką; ne ant laidų išvesčių.
-def _p10_rods(lets, rim, d, exits):
+def _p10_rods(lets, rim, d, exits, exd_min=0.0):
     import numpy as np
     import shapely as _sh
     out, fail = [], []
@@ -2385,7 +2385,7 @@ def _p10_rods(lets, rim, d, exits):
             cen = new
         sep = max(15.0, 0.25 * min(w, h))
         exs = [e for e in exits if g.buffer(5).contains(_sh.points(e))]
-        exd = min(20.0, 0.3 * min(w, h)) if exs else 0
+        exd = max(exd_min, min(20.0, 0.3 * min(w, h))) if exs else 0
         got = []
         order = np.argsort([-(lab == k).sum() for k in range(len(cen))])
         for k in order:
@@ -2403,7 +2403,7 @@ def _p10_rods(lets, rim, d, exits):
     return out, fail
 
 
-def _p10_rods_lines(lets, rim, d, exits, sep_y):
+def _p10_rods_lines(lets, rim, d, exits, sep_y, exd_min=0.0):
     """v251 (Rytis 2026-10-15: „tvirtinimo taškus stengtis išlaikyti vienoje linijoje tiek viršuje, tiek apačioje"):
     dvi BENDROS horizontalios linijos per x aukščio raides (viršutinė ~30 %, apatinė ~70 % x aukščio - į ploto centrą, ne krašte),
     taškai - štrichų sankirtų viduriai (plati raidė - kairysis ir dešinysis štrichas = 4, siaura - 1 + 1 = 2);
@@ -2463,7 +2463,7 @@ def _p10_rods_lines(lets, rim, d, exits, sep_y):
                 c_ = _pl(lg, 0.5)
                 pts.append((c_.x, c_.y))
         out += [(float(x), float(y), len(out) + i_) for i_, (x, y) in enumerate(pts)]
-    o2, f2 = _p10_rods(rest, rim, d, exits)
+    o2, f2 = _p10_rods(rest, rim, d, exits, exd_min)
     return out + [(x, y, len(out) + i_) for i_, (x, y, _) in enumerate(o2)], fail + f2
 
 
@@ -2475,6 +2475,29 @@ if FRONT == "P10" and MOUNTING == "none":
         print(f"  ! P10 ilgasriegiai: raidė x{_x} - mažiau nei 2 taškai - PATIKRINTI")
     SUBS["{STUDS}"] = str(len(P10N_STUDS))
     print(f"  P10 ilgasriegiai (be bėgio): {len(P10N_STUDS)} vnt.")
+P6N_FIX = False
+if FRONT != "P10" and MOUNTING == "none" and spec.get("back_fix_holes", True):
+    # v268 (Rytis 2026-10-15, OMODA PO 33580: „tvirtinimo ir laido skylės dugne (nurodyti dokumente)"): atskiros P6 raidės -
+    #  tvirtinimo skylės dugne į fasadą ta pačia logika kaip P10 ilgasriegiai (dvi bendros linijos, štricho vidurys, kiekviena
+    #  dalis >= 2, ne ant laidų išvesčių); centras >= `back_hole_edge` (10) nuo DUGNO kontūro (dugnas = stiklas - inset 3)
+    _lets = [o for g in groups if not g["plate"] for o in g["letters"]]
+    _hd = float(spec.get("back_hole_d", 3.2))
+    _cl = float(spec.get("back_inset_mm", 3)) + float(spec.get("back_hole_edge", 10))
+    P10_ROD = {"d": _hd, "label": f"D{_hd:g}"}
+    P10N_STUDS, _f = _p10_rods_lines(_lets, _cl - 1 - _hd / 2, _hd, SEP_PTS, SEP_LINE, exd_min=25.0)   # D11 >= 25 nuo varžtų
+    P6N_FIX = True
+    for _x in _f:
+        print(f"  ! P6 tvirtinimo skylės: dalis x{_x} - mažiau nei 2 - PATIKRINTI")
+    SUBS["{STUDS}"] = str(len(P10N_STUDS))
+    print(f"  P6 tvirtinimo skylės dugne (atskiros raidės): {len(P10N_STUDS)} vnt. Ø{_hd:g}, laido išvestys {len(SEP_PTS)}")
+if _RJ and MOUNTING == "none":                            # v268: skylės -> p6_dxf (tos pačios kaip lape)
+    try:
+        _rjd = json.load(open(_RJ))
+        _rjd["fix_holes"] = [[x_, y_, P10_ROD["d"]] for x_, y_, _ in P10N_STUDS] if P6N_FIX else []
+        _rjd["cable_holes"] = [[x_, y_, 11] for x_, y_ in SEP_PTS]
+        json.dump(_rjd, open(_RJ, "w"), indent=1)
+    except Exception as _e:
+        print("  ! rails json skylių įrašymas:", _e)
 K.set_view(False)
 # bėgelių ilgiai (žymos) + vertikali grandinė (bėgelių ašys) kairėje
 def TL(x, y, txt, size, align="c", rot=0, color=None):
@@ -3825,12 +3848,19 @@ def export_1to1(path):
         sh.draw_circle(P((px_ + g["fpl_sz"] / 2, hy_)), EARS.get("hole_d", 6) / 2 * k)
     sh.finish(width=HW, color=C_FRAME, fill=None, closePath=False, oc=L_FRAME); sh.commit()
     if P10N_STUDS:                                      # v249: ilgasriegiai - montavimo šablonas (gręžimo taškai)
-        L_ST = doc.add_ocg(f"4_THREADED_RODS_{P10_ROD['label']}")
+        L_ST = doc.add_ocg(f"4_FIXING_HOLES_{P10_ROD['label']}" if P6N_FIX else f"4_THREADED_RODS_{P10_ROD['label']}")
         sh = pg.new_shape()
         for _sx, _sy, _ in P10N_STUDS:
             sh.draw_circle(P((_sx, _sy)), P10_ROD["d"] / 2 * k)
             sh.draw_line(P((_sx - 8, _sy)), P((_sx + 8, _sy))); sh.draw_line(P((_sx, _sy - 8)), P((_sx, _sy + 8)))
         sh.finish(width=HW, color=(0.85, 0, 0.6), fill=None, closePath=False, oc=L_ST); sh.commit()
+    if MOUNTING == "none" and SEP_PTS:                  # v268: laido išvestys (D11) šablone
+        L_CB = doc.add_ocg("5_CABLE_EXITS_D11")
+        sh = pg.new_shape()
+        for _sx, _sy in SEP_PTS:
+            sh.draw_circle(P((_sx, _sy)), 11 / 2 * k)
+            sh.draw_line(P((_sx - 10, _sy)), P((_sx + 10, _sy))); sh.draw_line(P((_sx, _sy - 10)), P((_sx, _sy + 10)))
+        sh.finish(width=HW, color=(0.85, 0.0, 0.0), fill=None, closePath=False, oc=L_CB); sh.commit()
     doc.save(path, garbage=3, deflate=True)
     print("OK 1:1", path, f"{bx1 - bx0:.0f} x {by1 - by0:.0f} mm, sluoksniai: raidės / dugnas -{inset} mm / rėmas")
 

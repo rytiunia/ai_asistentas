@@ -64,6 +64,12 @@ formulę (ribų prieaugis didėja po 1,5 m: 11,5 m - 5, 17,5 m - 6 ... - tęsiny
 - Kiekviena raidė tvirtinama į fasadą per dugną. Dugno tvirtinimo skylės - pagal skill'o skylių logiką.
   Ašys - horizontalūs bėgeliai, kurie būtų rėme (kliento pilki arba `auto_frame`). Jie lape, BOM ir svoryje NERODOMI,
   į `RAILS_JSON` eksportuojami su `"separate": true`.
+- **v268 (Rytis 2026-10-15, OMODA PO 33580 „tvirtinimo ir laido skylės dugne (nurodyti dokumente)"):** P6 atskirų raidžių
+  tvirtinimo skylės Ø3.2 skaičiuojamos LAPE (`braizyti_begeliai.py`, ta pati logika kaip P10 ilgasriegių: dvi bendros linijos,
+  štricho vidurys, kiekviena dalis >= 2, centras >= 10 nuo dugno kontūro, >= 25 nuo D11) ir rodomos galiniame vaizde; laido
+  išvestys D11 - bendra linija + kiekviena dalis, kurios linija nekerta, - savo išvestį centre. Abi skylių grupės įrašomos į
+  rails json (`fix_holes`, `cable_holes`) -> `p6_dxf.py --rails-json` naudoja TAS PAČIAS skyles (lapas = DXF = šablonas);
+  1:1 šablone sluoksniai `4_FIXING_HOLES_D3.2`, `5_CABLE_EXITS_D11`. Išjungti - `"back_fix_holes": false`.
 - **Elektra:** spec `"letters_power"`:
   - `"per_letter"` (numatyta) - iš kiekvienos raidės po 12V 1,5 m laidą, laidų išvestys VIENOJE horizontalioje linijoje
     per visas raides;
