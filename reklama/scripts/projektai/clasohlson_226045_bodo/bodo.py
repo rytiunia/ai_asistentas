@@ -66,8 +66,8 @@ P3_W = ASP3 * PH * s                                              # 3D - tokio p
 COLS = [58 + PW * s + 29,                                         # FRONT: 2380 grandinė | pozicijos
         (PD + 43) * s + 10 + _side_txt,                           # SIDE + užrašas
         24 + PW * s + 29,                                         # REAR: D11 grandinė | pozicijos
-        max(TR_W, DET_W), LOGO_W, P3_W]
-CX, G_ = LE.distribute(K.IX0, K.IX1, COLS)
+        max(TR_W, DET_W), LOGO_W, max(P3_W, LE.title_w("3D VIEW", "ILLUSTRATIVE - NOT TO SCALE"))]
+CX, G_ = LE.distribute(K.IX0, K.IX1, COLS, margin=(0.5, 1.0))   # Rytis: didesnė paraštė DEŠINĖJE nuo krašto
 X0 = CX[0] + 58
 fx = lambda x: X0 + x * s
 fy = lambda y: YT + y * s
@@ -137,15 +137,20 @@ circle(hx, ry(dy_), 1.6, fill=K.CABLE, stroke=None)
 T(hx - 4, ry(dy_) - 4, "D11", 8, color=K.CABLE, align="r", auto_red=False)
 # v288 išdėstymas (Rytis 2026-10-15): po galo vaizdo - TRAFO BOX | [DETAIL A virš LOGO DETAIL] | 3D; vienodi tarpai g
 bxL = CX[3]
-K.cable_line([(hx, ry(dy_)), (rx(0), ry(dy_)), (bxL + 35, ry(dy_)), (bxL + 35, ry(dy_) + 40)])
-K.set_view(True); circle(rx(0), ry(dy_), 1.8, stroke=K.CABLE, lw=0.6); K.set_view(False)
-by_ = ry(dy_) + 40
+# Rytis 2026-10-15: „laido išvestis pačiame viršuje" - Ø11 kairėje šoninėje briaunoje VIRŠUJE (EX_Y nuo viršaus, po L 30x30
+#  + 18 tarpas), laidas už plokštės nuo D11 aukštyn, tada į šoną
+EX_Y = 50
+ey = ry(EX_Y)
+K.cable_line([(hx, ry(dy_)), (hx, ey), (rx(0), ey), (bxL + 35, ey), (bxL + 35, ey + 40)])
+K.set_view(True); circle(rx(0), ey, 1.8, stroke=K.CABLE, lw=0.6); K.set_view(False)
+T(rx(0) + 4, ey - 4, "Ø11", 8, color=K.CABLE, auto_red=False)
+by_ = ey + 40
 rect(bxL, by_, 70, 24, fill=HexColor(K.ralhex("7044")), lw=0.5)
 T(bxL + 35, by_ + 10, "TRAFO BOX", 8, font="FB", align="c"); T(bxL + 35, by_ + 19, "RAL 7044", 8, align="c")
-T(bxL + 40, ry(dy_) + 22, "12V, 5 m, white", 8, color=K.CABLE, auto_red=False)
+T(bxL + 40, ey + 22, "12V, 5 m, white", 8, color=K.CABLE, auto_red=False)
 K.cable_line([(bxL + 35, by_ + 24), (bxL + 35, by_ + 38)]); T(bxL + 35, by_ + 47, "230V", 8, color=K.CABLE, align="c", auto_red=False)
-vchain(RX - 14, [YT, ry(dy_)], [rx(PW), rx(PW)], [f"{dy_:.0f}"], size=8)
-T(RX + PW * s / 2, YB + 66, f"Ø3,2 mm, 7 mm from edge; letter fixings Ø4 mm, {N_SP} pcs. (dots); Ø11 mm in left side edge", 7, color=K.GREY, align="c")
+vchain(RX - 14, [YT, ey, ry(dy_)], [rx(PW), rx(PW), rx(PW)], [f"{EX_Y}", f"{dy_ - EX_Y:.0f}"], size=8)
+T(RX + PW * s / 2, YB + 66, f"Ø3,2 mm, 7 mm from edge; letter fixings Ø4 mm, {N_SP} pcs. (dots); Ø11 mm in left side edge, 50 mm from top", 7, color=K.GREY, align="c")
 view_title(RX + PW * s / 2, YB + 30, "REAR VIEW (MIRRORED)", f"SCALE 1:{SC}")
 
 # ================================================================ DETAIL A - SECTION 1:2 (lūžęs)
@@ -164,7 +169,7 @@ _r2 = [L for L in _txt if L not in _r1]
 bbox = lambda Ls: (min(L["bb"][0] for L in Ls), min(L["bb"][1] for L in Ls), max(L["bb"][2] for L in Ls), max(L["bb"][3] for L in Ls))
 SB, R1, R2 = bbox(_sym), bbox(_r1), bbox(_r2)
 _arc = max(_sym, key=lambda L: L["bb"][3] - L["bb"][1]); _ring = min(_sym, key=lambda L: L["bb"][3] - L["bb"][1])
-x3 = CX[5]                                                # 3D - dešinėje, siauras aukštas
+x3 = CX[5] + (COLS[5] - P3_W) / 2                                                # 3D - dešinėje, siauras aukštas
 LXL = CX[4] + 12                                                # LOGO DETAIL - savas stulpelis
 lx = lambda x: LXL + (x - LBB[0]) * sl
 _lt = (YT - 36) + (_lh - (L_TOP + LG_H * sl + L_BOT)) / 2 + L_TOP   # centruota vertikaliai zonoje
@@ -202,7 +207,7 @@ for L in LET:
     g = sscale(L["geom"], 1, -1, origin=(0, 0)); g = stranslate(g, 0, PH)
     S3.extrude_xy(g, PD + 20, PD + 43, HexColor("#F4F4F4"), BLK)
 S3.render((x3, y3, w3, h3))
-view_title(min(x3 + w3 / 2, K.IX1 - 64), YB + 30, "3D VIEW", "ILLUSTRATIVE - NOT TO SCALE")
+view_title(x3 + w3 / 2, YB + 30, "3D VIEW", "ILLUSTRATIVE - NOT TO SCALE")
 
 # ================================================================ juosta
 W_pl = FLAT[0] * FLAT[1] / 1e6 * TS * 2.70
@@ -225,7 +230,7 @@ md = [["Quantity", f"{QTY} pcs."], ["Overall size", f"{PW} x {PH} x {PD} mm"], [
       ["Plate finish", "NCS S 0540-B semi matt"], ["Logo", f"{LBB[2] - LBB[0]:.0f} x {LBB[3] - LBB[1]:.0f} mm"],
       ["Letters", "P8: Al 3 mm + plexi 20 mm"], ["Letter finish", "RAL 9005 semi matt"],
       ["Illumination", "LED, backlit"], ["Mounting", "L 30 x 30 x 2 mm, top + bottom"],
-      ["Fixing holes", "Ø3,2 mm, 7 mm from edge, ~300 mm"], ["Cable", "12V, 5 m, white, left side"],
+      ["Fixing holes", "Ø3,2 mm, 7 mm from edge, ~300 mm"], ["Cable", "12V, 5 m, white, left side top"],
       ["Letter holes", f"Ø4 mm: {N_SP} pcs., slots: {N_SLOT} pcs." if not N_D8 else f"Ø4 mm: {N_SP}, slots: {N_SLOT}, Ø8 mm: {N_D8} pcs."], ["Weight (calc.)", f"≈ {WT:.0f} kg / pcs., excl. PSU"]]
 band("P8 SPECIAL - SECTION A-A (1:2)", p8_band, bom, md, "Order 226045 Clas Ohlson Bodø - LED sign 515 x 2380 mm, P8 special", "1 / 1",
      f"1:{SC} / 1:2", qty=QTY)

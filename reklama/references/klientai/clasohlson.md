@@ -21,6 +21,9 @@ Raidei imamas ARTIMIAUSIO AUKŠČIO etalonas, skylių centrai perkeliami proporc
   `data.d11_point`) -> horizontaliai už plokštės -> Ø11 KAIRĖJE ŠONINĖJE užlenktoje briaunoje D11 aukštyje
   (20 nuo briaunos krašto, matmuo nuo viršaus) -> TRAFO BOX RAL 7044 -> 230V.
 - Rodoma galiniame vaizde ir išklotinėje.
+- v292 (Rytis 2026-10-15, Bodø 226045: „laido išvestis pačiame viršuje"): VERTIKALIAI plokštei Ø11 - kairėje šoninėje
+  briaunoje PAČIAME VIRŠUJE (50 nuo viršaus, po L 30x30), ne D11 aukštyje; laidas už plokštės nuo D11 aukštyn, tada į šoną;
+  galiniame vaizde grandinė 50 | (D11 - 50).
 
 ## Folded fonas
 - Spalva (Horten) NCS S 0540-B, dažoma tik išorė.

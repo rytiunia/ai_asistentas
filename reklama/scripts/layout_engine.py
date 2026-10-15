@@ -48,16 +48,24 @@ def box_corners(w, h, d):
 
 
 def distribute(x0, x1, widths, margin=0.5):
-    """Stulpeliai (pločiai su anotacijomis) per [x0, x1] VIENODAIS tarpais; kraštų paraštė = margin * tarpas.
-    Grąžina (kairiųjų kraštų sąrašas, tarpas)."""
+    """Stulpeliai (pločiai su anotacijomis IR pavadinimais) per [x0, x1] VIENODAIS tarpais; kraštų paraštė = margin * tarpas
+    (margin - skaičius arba (kairė, dešinė)). Grąžina (kairiųjų kraštų sąrašas, tarpas)."""
+    ml, mr = margin if isinstance(margin, (tuple, list)) else (margin, margin)
     free = (x1 - x0) - sum(widths)
     if free < 0:
         raise ValueError(f"stulpeliai netelpa: trūksta {-free:.0f} pt - mažinti bendrą mastelį / pertvarkyti zonas")
-    g = free / (len(widths) - 1 + 2 * margin)
-    xs, x = [], x0 + margin * g
+    g = free / (len(widths) - 1 + ml + mr)
+    xs, x = [], x0 + ml * g
     for w in widths:
         xs.append(x); x += w + g
     return xs, g
+
+
+def title_w(title, scale):
+    """vaizdo pavadinimo + mastelio eilutės plotis (stulpelio plotis >= jo, kad užrašas neišlįstų už paraštės)"""
+    import lapas_core as K
+    from reportlab.pdfbase.pdfmetrics import stringWidth
+    return max(stringWidth(title, "FB", K.F_VIEW), stringWidth(scale, "F", K.F_SCALE))
 
 
 def report(name, sc_ortho, gap, fills):
