@@ -1,0 +1,171 @@
+"""Clas Ohlson Bodø - BrandFactory Order 226045 (2026-10-15): LED sign 2 pcs, P8 special (Clas Ohlson standartas) ant
+vertikalios folded plokštės 515 x 2380 (mėlyna), logotipas 420 x 824 juodas (backlit). Analogas - Horten 1
+(`projektai/clasohlson_horten/sheet3.py`), „same thickness as LED sign you have produced" = Horten: plokštė 40, raidė 3 + 20 ant
+spacerių 20. Išklotinė - v173 praktika (flanšai gylis - t). Naudojimas: python3 bodo.py out.pdf"""
+import math, os, sys
+import pymupdf as fitz
+from shapely.geometry import Polygon
+from shapely.affinity import scale as sscale, translate as stranslate
+from common import *
+import data as D
+
+OUT = sys.argv[1]
+HERE = os.path.dirname(os.path.abspath(__file__))
+SRC = os.path.join(HERE, "CO-Bodo-5-6-Plate-515x2380_Logo-420x824-2st.pdf")
+k1 = 25.4 / 72                                   # kliento failas 1:1
+PW, PH, PD, TS = 515, 2380, 40, 2.0
+QTY = 2
+
+# ---- raidės / logotipas iš kliento failo
+pg = fitz.open(SRC)[0]
+LET = []
+for d in pg.get_drawings():
+    f = d.get("fill")
+    if not f or sum(f[:3]) > 0.5:
+        continue
+    sub = [[(s_[0],) + tuple((q[0] * k1, q[1] * k1) for q in s_[1:]) for s_ in sp] for sp in D._subs(d)]
+    polys = [Polygon(D.flat(sp)).buffer(0) for sp in sub if len(D.flat(sp)) > 2]
+    g = polys[0]
+    for p_ in polys[1:]:
+        g = g.symmetric_difference(p_)
+    LET.append({"sub": sub, "geom": g, "bb": g.bounds})
+D.attach_ref(LET)
+LBB = (min(L["bb"][0] for L in LET), min(L["bb"][1] for L in LET), max(L["bb"][2] for L in LET), max(L["bb"][3] for L in LET))
+N_SP = sum(len(L["sp"]) for L in LET)
+N_SLOT = sum(1 for L in LET for f in L["feats"] if f["type"] == "SLOT")
+N_D8 = sum(1 for L in LET for f in L["feats"] if f["type"] == "D8")
+A_FACE = sum(L["geom"].area for L in LET) / 1e6
+PER = sum(L["geom"].length for L in LET) / 1000
+L_LEN = PW - 50
+span = PW - 100; n_scr = max(1, round(span / 300)); pitch = span / n_scr
+FLT = PD - TS
+FLAT = (PW + 2 * FLT, PH + 2 * FLT)              # v173: flanšai = gylis - t
+
+begin(16)
+SC = 15
+s = MM / SC
+X0, YT = K.IX0 + 92, K.IY0 + 58
+fx = lambda x: X0 + x * s
+fy = lambda y: YT + y * s
+YB = fy(PH)
+
+# ================================================================ FRONT VIEW
+K.set_view(True)
+rect(X0, YT, PW * s, PH * s, fill=NCS, lw=0.5)
+tf = lambda x, y: (fx(x), K.Y(fy(y)))
+for L in LET:
+    draw_sub(L["sub"], tf, fill=BLK, stroke=None)
+K.set_view(False)
+hdim(X0, fx(PW), YT - 36, f"{PW}", YT, YT, size=12)
+xs = [0, round(LBB[0]), round(LBB[2]), PW]
+hchain(YT - 16, [fx(v) for v in xs], [YT, fy(LBB[1]), fy(LBB[1]), YT], [f"{b - a}" for a, b in zip(xs, xs[1:])], size=8)
+ys = [0, round(LBB[1]), round(LBB[3]), PH]
+vchain(X0 - 16, [fy(v) for v in ys], [X0, fx(LBB[0]), fx(LBB[0]), X0], [f"{b - a}" for a, b in zip(ys, ys[1:])], size=8)
+vchain(X0 - 46, [YT, YB], [X0, X0], [f"{PH}"], size=12)
+leader(fx(PW * 0.7), fy(PH * 0.8), fx(PW) + 22, fy(PH * 0.86), 5)
+leader(fx(LET[0]["geom"].representative_point().x), fy(LET[0]["geom"].representative_point().y), fx(PW) + 22, fy(LBB[1]) - 10, 1)
+view_title(X0 + PW * s / 2, YB + 30, "FRONT VIEW", f"SCALE 1:{SC}")
+
+# ================================================================ SIDE VIEW (RIGHT)
+SX = fx(PW) + 70
+sx = lambda d: SX + d * s
+K.set_view(True)
+rect(sx(0), YT, PD * s, PH * s, fill=NCS, lw=0.4)
+for L in LET:
+    y0_, y1_ = L["bb"][1], L["bb"][3]
+    rect(sx(PD + 20), fy(y0_), 23 * s, (y1_ - y0_) * s, fill=BLK, lw=0.3)
+for L in LET:
+    for _, y_ in L["sp"]:
+        rect(sx(PD), fy(y_) - 8 * s, 20 * s, 16 * s, fill=HexColor("#C8C8C8"), lw=0.2)
+K.set_view(False)
+hdim(sx(0), sx(PD + 43), YT - 16, "83", YT, fy(LBB[1]), size=8, small_side="r")
+T(sx(PD + 43) + 10, fy(LBB[1]) - 18, "40 + 20 + 23", 8, color=K.GREY)
+T(sx(PD + 43) + 10, fy(LBB[1]) - 8, "(DETAIL A)", 8, color=K.GREY)
+T(sx(PD / 2), YT - 26, "A", 9, font="FB", align="c")
+view_title(sx(PD + 43) / 2 + SX / 2, YB + 30, "SIDE VIEW", f"SCALE 1:{SC}")
+
+# ================================================================ REAR VIEW (MIRRORED)
+RX = SX + 150
+rx = lambda x: RX + (PW - x) * s
+ry = fy
+K.set_view(True)
+rect(RX, YT, PW * s, PH * s, fill=HexColor("#EEF2F4"), lw=0.5)
+rect(rx(PW - 25), ry(2), L_LEN * s, 30 * s, fill=HexColor("#B4B4B4"), lw=0.4)
+rect(rx(PW - 25), ry(PH - 32), L_LEN * s, 30 * s, fill=HexColor("#B4B4B4"), lw=0.4)
+tfr = lambda x, y: (rx(x), K.Y(ry(y)))
+for L in LET:
+    K.draw_shape(L["sub"], tfr, stroke=K.GREY, lw=0.1, dash=([2, 1.5], 0))
+for yy in (7, PH - 7):
+    for i in range(n_scr + 1):
+        circle(rx(50 + pitch * i), ry(yy), 0.9, lw=0.4)
+for L in LET:
+    for x_, y_ in L["sp"]:
+        circle(rx(x_), ry(y_), 0.6, fill=black, stroke=None)
+K.set_view(False)
+hchain(YT - 16, [rx(PW), rx(PW - 50), rx(50), rx(0)], [ry(7) - 3, ry(7) - 3, ry(7) - 3, YT],
+       ["50", f"{n_scr}× {pitch:.0f}" if n_scr > 1 else f"{pitch:.0f}", "50"], size=8)
+hchain(YB + 16, [rx(PW), rx(PW - 25), rx(25), rx(0)], [YB] * 4, ["25", f"{L_LEN}", "25"], size=8)
+leader(rx(PW * 0.5), ry(PH - 17), RX + PW * s + 22, ry(PH - 70), 6)
+leader(rx(50), ry(PH - 7), RX + PW * s + 22, ry(PH - 30), 9)
+dx_, dy_ = D.d11_point(max(LET, key=lambda L: L["geom"].area))     # logotipo lankas
+hx = rx(dx_)
+circle(hx, ry(dy_), 1.6, fill=K.CABLE, stroke=None)
+T(hx - 4, ry(dy_) - 4, "D11", 8, color=K.CABLE, align="r", auto_red=False)
+bxL = RX + PW * s + 30
+K.cable_line([(hx, ry(dy_)), (rx(0), ry(dy_)), (bxL + 35, ry(dy_)), (bxL + 35, ry(dy_) + 40)])
+K.set_view(True); circle(rx(0), ry(dy_), 1.8, stroke=K.CABLE, lw=0.6); K.set_view(False)
+by_ = ry(dy_) + 40
+rect(bxL, by_, 70, 24, fill=HexColor(K.ralhex("7044")), lw=0.5)
+T(bxL + 35, by_ + 10, "TRAFO BOX", 8, font="FB", align="c"); T(bxL + 35, by_ + 19, "RAL 7044", 8, align="c")
+T(bxL + 40, ry(dy_) + 22, "12V, 5 m, white", 8, color=K.CABLE, auto_red=False)
+K.cable_line([(bxL + 35, by_ + 24), (bxL + 35, by_ + 38)]); T(bxL + 35, by_ + 47, "230V", 8, color=K.CABLE, align="c", auto_red=False)
+vchain(RX - 14, [YT, ry(dy_)], [rx(PW), rx(PW)], [f"{dy_:.0f}"], size=8)
+T(RX + PW * s / 2, YB + 66, f"Ø3.2, 7 from edge; letter fixings Ø4 x {N_SP} (dots); Ø11 in left side edge", 7, color=K.GREY, align="c")
+view_title(RX + PW * s / 2, YB + 30, "REAR VIEW (MIRRORED)", f"SCALE 1:{SC}")
+
+# ================================================================ DETAIL A - SECTION 1:2 (lūžęs)
+LY = round(LBB[1])
+ax0 = bxL + 150
+ya = detail_a(ax0, YT + 40, LY)
+view_title(ax0 + 20 * MM / 2, ya + 20, "DETAIL A - SECTION", "SCALE 1:2  |  top edge + letter, broken view")
+
+# ================================================================ 3D VIEW
+import r3d
+S3 = r3d.Scene(30, 14)
+x3, y3 = ax0 - 40, ya + 64                                       # 3D - visa laisva sritis po DETAIL A
+w3, h3 = K.IX1 - x3 - 10, K.VIEW_BOT - y3 - 30
+S3.box((0, 0, 0), (PW, 0, 0), (0, PH, 0), (0, 0, PD), NCS, HexColor("#5D8EA6"))
+for L in LET:
+    g = sscale(L["geom"], 1, -1, origin=(0, 0)); g = stranslate(g, 0, PH)
+    S3.extrude_xy(g, PD + 20, PD + 43, HexColor("#F4F4F4"), BLK)
+S3.render((x3, y3, w3, h3))
+view_title(x3 + w3 / 2, y3 + h3 + 12, "3D VIEW", "ILLUSTRATIVE - NOT TO SCALE")
+
+# ================================================================ juosta
+W_pl = FLAT[0] * FLAT[1] / 1e6 * TS * 2.70
+WT = W_pl + A_FACE * 3 * 2.70 + A_FACE * 20 * 1.19 + 2 * L_LEN / 1000 * 116e-6 * 2700
+bom = [
+    ["1", "Letter face P8 special", "Alu 3 mm", "RAL 9005", f"{PER:.2f} m / {A_FACE:.2f} m²"],
+    ["2", "Letter body P8, milled shell", "Plexi 20 mm white", "-", f"{PER:.2f} m / {A_FACE:.2f} m²"],
+    ["3", "LED", "LED", "-", "?"],
+    ["4", "Spacer Ø16x20 on Ø4 holes (CO std.)", "Aluminium", "-", f"{N_SP} pcs."],
+    ["5", f"Folded plate {PW} x {PH}, {PD} deep", "Alu 2 mm folded", "NCS S 0540-B", "1 pcs."],
+    ["6", "L profile 30x30x2 (top + bottom)", "Aluminium", "-", f"2× {L_LEN / 1000:.3f} = {2 * L_LEN / 1000:.2f} m"],
+    ["7", "Wall fixing", "?", "-", "?"],
+    ["8", "Letter fixing through plate", "?", "-", f"{N_SP} pcs."],
+    ["9", "Screw plate -> L, DIN 7504 N 4.2x16", "Steel, hardened", "-", f"{2 * (n_scr + 1)} pcs."],
+    ["10", "Cable 12V, white (D11 -> Ø11 side edge)", "cable", "-", "5 m"],
+    ["11", "Trafo box (PSU)", "PSU", "RAL 7044", "1 pcs."],
+]
+md = [["Quantity", f"{QTY} pcs."], ["Overall size", f"{PW} x {PH}"], ["Environment", "Exterior ?"],
+      ["Plate", f"Alu 2 mm, depth {PD}, 1 part"], ["Flat", f"{FLAT[0]:.0f} x {FLAT[1]:.0f} (sheet 3000x1500)"],
+      ["Plate finish", "NCS S 0540-B semi matt"], ["Logo", f"{LBB[2] - LBB[0]:.0f} x {LBB[3] - LBB[1]:.0f}"],
+      ["Letters", "P8 special 3 + 20, spacers 20"], ["Letter finish", "RAL 9005 semi matt"],
+      ["Illumination", "LED, backlit"], ["Mounting", "L30x30x2 top + bottom"],
+      ["Fixing holes", "Ø3.2, 7 from edge, 50 / ~300"], ["Cable", "12V 5 m white, left side"],
+      ["Letter holes", f"Ø4 x{N_SP}, slot x{N_SLOT}, Ø8 x{N_D8}"], ["Weight (calc.)", f"≈ {WT:.0f} kg / pcs, excl. PSU"]]
+band("P8 SPECIAL - SECTION A-A (1:2)", p8_band, bom, md, "Order 226045 Clas Ohlson Bodø - LED sign 515 x 2380, P8 special", "1 / 1",
+     f"1:{SC} / 1:2", qty=QTY)
+K.save(OUT)
+K.pdf_fix_fonts(OUT)
+print("logo", [round(v) for v in LBB], "letters", len(LET), "spacers", N_SP, "flat", FLAT, "W", round(WT, 1), "overflow", K.OVERFLOW)

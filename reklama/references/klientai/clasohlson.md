@@ -1,6 +1,6 @@
 # Clas Ohlson (užsakovas BrandFactory) - kliento taisyklės
 
-Raktažodžiai: Clas Ohlson, CO, Horten, ALT8857, P8 special. Bendrinės folded / nesting / DXF / 3D / matmenų taisyklės -
+Raktažodžiai: Clas Ohlson, CO, Horten, Bodø (Order 226045), ALT8857, P8 special. Bendrinės folded / nesting / DXF / 3D / matmenų taisyklės -
 SKILL.md. Projektas `scripts/projektai/clasohlson_horten/` (README ten): Horten 3 (16839 x 900 ant 3 plokštumų,
 6 dalys) ir Horten 1 (3000 x 1300, exterior). Senas brėžinys ALT8857 - „Senų brėžinių perdarymas".
 
@@ -29,3 +29,8 @@ Raidei imamas ARTIMIAUSIO AUKŠČIO etalonas, skylių centrai perkeliami proporc
 
 ## Neišspręsta (lape „?")
 Tvirtinimas į sieną, raidės tvirtinimo elementas per plokštę, LED kiekis, priekio išsikišimas, Ø8 paskirtis, ORDER NO.
+
+## Bodø - Order 226045 (2026-10-15)
+LED sign 2 vnt.: vertikali folded plokštė 515 x 2380 x 40 (mėlyna), logotipas 420 x 824 P8 special („same thickness as LED sign
+you have produced" = Horten: plokštė 40, raidė 3 + 20, spaceriai 20). Projektas `scripts/projektai/clasohlson_226045_bodo/`
+(savarankiškas - `bodo.py`, vietinės common / data / refholes kopijos). Išklotinė 591 x 2456 - lakštas 3000x1500.
