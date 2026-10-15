@@ -24,3 +24,6 @@ VIENOJE vietoje - Ryčio privačiame GitHub repo **`rytiunia/ai_asistentas`**, a
    nebent keičiasi repo vieta. Failų vardai - tik ASCII.
 
 Su Ryčiu kalbėti lietuviškai, tiesiai, be komplimentų.
+
+
+Prieš kiekvieną užsakymą: `python3 scripts/ziniu_paieska.py <produktas> <raktažodžiai>` (SKILL taisyklė 0).
