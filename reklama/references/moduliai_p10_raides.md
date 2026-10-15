@@ -10,6 +10,11 @@ Visa, kas žemiau - perskaityta iš etalono (ne prielaidos).
 Gylis 30 mm (raidė), vidaus (Interior); šonai RAL; priekiui gali būti plėvelė (ORACAL 8500).
 „Šitie viduriukai kaip ADOPT tik įsigilina ir klijuojasi plėvelė" - smulkūs vidurio elementai tik įgilinami, ant jų plėvelė.
 
+- **Alu 1,5 dugnelis ĮSILEIDŽIA į bloką** (Rytis 2026-10-15): bloko gale įleidimas 1,5 mm, aplink plexi kraštas
+  (etalone ~5 mm - vidinis kontūras „30mm plexi" lape); bendras raidės gylis 30. Smeigės privirintos prie dugnelio ->
+  nuo raidės krašto >= kraštas + 1 + Ø/2. Pjūvis `scripts/p10_raides.py`.
+- **Kiekviena raidė / dalis - >= 2 smeigės** (Rytis 2026-10-15).
+
 ## LED griovelis raidėje (lapas „30mm plexi", mėlyna linija)
 - Raidėse - **viena linija per štricho vidurį**, tiesios atkarpos, **aštrios sankirtos** (A skersinis iki kojų ašių, A viršūnė -
   linija iki pat viršūnės, k šakos sujungtos su stiebu), **linijos eina beveik iki raidės galų**.

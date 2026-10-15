@@ -69,7 +69,49 @@ ACRY = {"thk": 20, "sheet": [3050, 2050], "joint_clear": 0.2, "hole_d": 8, "hole
 # v231 (Rytis 2026-10-14: „per daug statmenų"): statmenys NE po kiekviena raide, o žingsniu v_pitch (1000 mm) per stiebus;
 #  griovelis "groove": {"w": 8, "d": 10} (nugaroje); jungtys pagal lakšto ilgį - vaizduose brūkšn. taškinė linija + dalių grandinė
 ACRY.update(spec.get("acrylic", {}))
+if P6F.kind(spec.get("front", "5S")) == "P10":            # v244: P10 - smeigė ant įleisto Alu dugnelio (kraštas rim) -> nuo raidės krašto >= rim + 1
+    ACRY["stud"] = dict(ACRY["stud"], edge=max(float(ACRY["stud"].get("edge", 8)), float((spec.get("p10") or {}).get("rim", 5)) + 1))
 RAIL_W = float(str(RAIL["size"]).lower().split("x")[0]) if RAIL_ACR else None
+
+
+def _acr_studs(letters, hs_, ST, g_off, gw, cuts=(), holes=(), vjoints=(), grid=2.0):
+    """v244: smeigių vietos - kiekvienai raidei >= 2 (ilgai - kas ~two_if); grąžina (studs [(x, y, id)], nepavykę [x])"""
+    from shapely.geometry import box as _b, Point as _P
+    from shapely.ops import unary_union as _u
+    from shapely.prepared import prep as _prep
+    cbr = ST["cb_d"] / 2
+    band = _u([_b(r_["x0"] + 15, r_["y0"] + cbr + 2, r_["x1"] - 15, r_["y1"] - cbr - 2) for r_ in hs_])
+    gz = _u([_b(r_["x0"], (r_["y0"] + r_["y1"]) / 2 - g_off - gw / 2 - cbr - 1, r_["x1"],
+                (r_["y0"] + r_["y1"]) / 2 - g_off + gw / 2 + cbr + 1) for r_ in hs_])
+    av = _u([_b(c_["x"] - 30, -1e5, c_["x"] + 30, 1e5) for c_ in cuts] + [_P(h_[0], h_[1]).buffer(15) for h_ in holes]
+            + [_P(v_[0], v_[1]).buffer(24) for v_ in vjoints])
+    zone = band.difference(gz).difference(av)
+    out, fail = [], []
+    for o in letters:
+        inn = o["geom"].buffer(-(ST["edge"] + ST["d"] / 2)).intersection(zone)
+        if inn.is_empty:
+            fail.append(round(o["bb"][0])); continue
+        x0, y0, x1, y1 = inn.bounds
+        P_ = _prep(inn)
+        pts = [(x0 + i * grid, y0 + j * grid) for i in range(int((x1 - x0) / grid) + 1) for j in range(int((y1 - y0) / grid) + 1)]
+        pts = [q for q in pts if P_.contains(_P(q))] or [tuple(inn.representative_point().coords[0])]
+        a_ = min(pts, key=lambda q: (q[0], q[1])); b_ = max(pts, key=lambda q: (q[0], -q[1]))
+        for _ in range(2):                                   # toliausia pora (2 iteracijos)
+            b_ = max(pts, key=lambda q: (q[0] - a_[0]) ** 2 + (q[1] - a_[1]) ** 2)
+            a_ = max(pts, key=lambda q: (q[0] - b_[0]) ** 2 + (q[1] - b_[1]) ** 2)
+        d_ = ((a_[0] - b_[0]) ** 2 + (a_[1] - b_[1]) ** 2) ** 0.5
+        if d_ < 25:
+            out.append((a_[0], a_[1], id(o))); fail.append(round(o["bb"][0])); continue
+        n_ = 2 + int(d_ // ST.get("two_if", 400))
+        sel = [a_]
+        for k in range(1, n_ - 1):
+            t_ = (a_[0] + (b_[0] - a_[0]) * k / (n_ - 1), a_[1] + (b_[1] - a_[1]) * k / (n_ - 1))
+            sel.append(min(pts, key=lambda q: (q[0] - t_[0]) ** 2 + (q[1] - t_[1]) ** 2))
+        sel.append(b_)
+        out += [(q[0], q[1], id(o)) for q in sel]
+    return out, fail
+
+
 
 
 def _rail_t(sz):
@@ -765,9 +807,15 @@ for g in groups:
             #  bėgelis per abiejų ašių vidurį, statmenų nėra
             _hs2 = sorted(hs, key=lambda r_: r_["y0"])
             if len(_hs2) == 2 and _hs2[1]["y0"] - _hs2[0]["y1"] < RAIL_W:
-                _W1 = float(ACRY.get("single_w", 60))
                 _cy = ((_hs2[0]["y0"] + _hs2[0]["y1"]) / 2 + (_hs2[1]["y0"] + _hs2[1]["y1"]) / 2) / 2
                 _x0, _x1 = min(r_["x0"] for r_ in _hs2), max(r_["x1"] for r_ in _hs2)
+                _ST, _gw0 = ACRY["stud"], float((ACRY.get("groove") or {}).get("w", 6) or 6)
+                _go0 = _ST["cb_d"] / 2 + _gw0 / 2 + 2
+                for _W1 in range(int(ACRY.get("single_w", 60)), 141, 10):   # v244: platinti, kol visos dalys gauna >= 2 smeiges
+                    _tr = [{"x0": _x0, "x1": _x1, "y0": _cy - _W1 / 2, "y1": _cy + _W1 / 2}]
+                    if not _acr_studs(g["letters"], _tr, _ST, _go0, _gw0)[1]:
+                        break
+                _W1 = float(_W1)
                 hs = [{"x0": _x0, "x1": _x1, "y0": _cy - _W1 / 2, "y1": _cy + _W1 / 2, "kind": "h", "auto": True, "len": _x1 - _x0,
                        "poly": [(_x0, _cy - _W1 / 2), (_x1, _cy - _W1 / 2), (_x1, _cy + _W1 / 2), (_x0, _cy + _W1 / 2)]}]
                 vs = []
@@ -1997,36 +2045,16 @@ if RAIL_ACR:
                 if r_["x0"] + 20 < gx_ < r_["x1"] - 20 and all(abs(gx_ - c_["x"]) > 40 for c_ in cuts) \
                         and not LETG.intersects(_APt(gx_, cy_).buffer(_hd / 2 + 2)):
                     holes.append((gx_, cy_))
-        # v241: raidžių smeigės - įleistos skylės bėgelio ašyje po raidėmis
+        # v244 (Rytis 2026-10-15: „raidės tvirtinasi tik ant vieno varžto - negerai, logotipo dalis net neturi tvirtinimo"):
+        #  KIEKVIENA raidė / dalis - >= 2 smeigės (ilgoms - kas ~400), bet kur bėgelio juostoje (ne tik ašyje), toliausiai
+        #  viena nuo kitos; ne laidų griovelio zonoje, ne prie jungčių / Ø8 / statmenų galvučių
         ST = ACRY["stud"]
-        studs = []
-        _avoid = [(c_["x"], 30) for c_ in cuts] + [(h_[0], 15) for h_ in holes] + [(vj_[0], 22) for vj_ in vjoints]
-        for o in g["letters"]:
-            inn = o["geom"].buffer(-(ST["edge"] + ST["d"] / 2))
-            if inn.is_empty:
-                continue
-            for r_ in hs_:
-                cy_ = (r_["y0"] + r_["y1"]) / 2
-                seg = inn.intersection(_ALn([(o["bb"][0] - 1, cy_), (o["bb"][2] + 1, cy_)]))
-                segs = [(min(c[0] for c in q.coords), max(c[0] for c in q.coords)) for q in getattr(seg, "geoms", [seg])
-                        if not q.is_empty and hasattr(q, "coords")]
-                segs = [(a_, b_) for a_, b_ in segs if r_["x0"] + 15 < (a_ + b_) / 2 < r_["x1"] - 15]
-                if not segs:
-                    continue
-                L_ = max(segs, key=lambda q: q[1] - q[0])
-                cand = [(L_[0] + L_[1]) / 2] if (o["bb"][2] - o["bb"][0]) < ST["two_if"] or (L_[1] - L_[0]) < ST["two_if"] / 2 \
-                    else [L_[0] + (L_[1] - L_[0]) * 0.2, L_[1] - (L_[1] - L_[0]) * 0.2]
-                for x_ in cand:
-                    for _k in range(40):                                  # pasislinkti nuo jungčių / Ø8 / statmenų
-                        bad = [c for c, d_ in _avoid if abs(x_ - c) < d_]
-                        if not bad:
-                            break
-                        x_ += 2 if x_ >= bad[0] else -2
-                    if L_[0] <= x_ <= L_[1]:
-                        studs.append((x_, cy_, id(o)))
-        # laidų griovelis - nugaroje, bėgeliuose PASLINKTAS nuo ašies (įleistos skylės Ø12 ašyje), statmenyse - ašyje
         _gw_ = float((ACRY.get("groove") or {}).get("w", 6) or 6)
         g_off = ST["cb_d"] / 2 + _gw_ / 2 + 2
+        studs, STUD_FAIL = _acr_studs(g["letters"], hs_, ST, g_off, _gw_, cuts, holes, vjoints)
+        for nm_ in STUD_FAIL:
+            print(f"  ! akrilinis rėmas {g['name']}: dalis {nm_} - mažiau nei 2 smeigės (bėgelis per siauras / nepasiekia) - PATIKRINTI")
+        # laidų griovelis - nugaroje, bėgeliuose PASLINKTAS nuo ašies (įleistos skylės Ø12 ašyje), statmenyse - ašyje
         grooves = [((r_["x0"] + 10, (r_["y0"] + r_["y1"]) / 2 - g_off), (r_["x1"] - 10, (r_["y0"] + r_["y1"]) / 2 - g_off)) for r_ in hs_]
         # ovali skylė kiaurai laidui - po kiekviena raide ant viršutinio bėgelio griovelio
         slots = []
@@ -2832,7 +2860,7 @@ if r_first:
     _y5 = RV(0, (_top_r["y0"] + _top_r["y1"]) / 2)[1]
     _yb5 = max((_vt - ROW[0] - 20 * max(UPR[0], 1) + 6) - 7 * max(1, len(CEX)) - 14, K.IY0 + 14)
     if not any(b_[0] - 30 < _x5 < b_[1] + 30 and b_[2] < _vt for b_ in TAG_BOXES):   # v160: virš balionui žymų nėra - arčiau vaizdo
-        _x5, _yb5 = _xb - 8, None                  # balionas dešinėje už galinio vaizdo, bėgelio aukštyje
+        _x5, _yb5 = (_xb - 40 if RAIL_ACR else _xb - 8), None                  # balionas dešinėje už galinio vaizdo, bėgelio aukštyje
     _dx5 = 22                                      # v50: išvadinė nekerta laido - pasvyra nuo artimiausio laido
     if any(_x5 < a_ <= _x5 + 60 for a_, b_ in _busy):
         _dx5 = -22
@@ -3055,7 +3083,10 @@ if FRONT == "P1":
                  bracket=(next((str(r_[0]) for r_ in _BOM_ROWS if re.search(r"bracket|hanger", str(r_[1]), re.I)), "") if BRACKETS else None))
 elif FRONT == "P10":                                     # v242: P10 blokas ant akrilinio rėmo (etalonas Boots ALT6739)
     import p10_raides as _P10R
+    import auto_remas as _ARs
+    _strk = sorted(_ARs.stroke_t(o["geom"]) for g in groups for o in g["letters"])
     _P10R.section(K, X_P6, BY0, W_P6, BH, spec, ACRY if RAIL_ACR else None, RAIL_W if RAIL_ACR else None,
+                  stroke=_strk[len(_strk) // 2] if _strk else None,
                   title=f"PROFILE P10 ON {'CLEAR ACRYLIC FRAME ' + RAIL['size'] if RAIL_ACR else 'FRAME'}")
 elif RAIL_ACR:                                           # v232 (Rytis: „kodėl senas pjūvis?"): etaloninis P6 pjūvis
     _P6REF.ACRYLIC = True                                #  (square wallframe) su skaidriu pilnaviduriu akrilo bėgeliu 40x20
