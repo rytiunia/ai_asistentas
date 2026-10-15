@@ -1,0 +1,32 @@
+# P10 raidės (30 mm plexi) ant skaidraus akrilinio rėmo - etalonas (v236, Rytis 2026-10-15)
+
+**NEPAINIOTI su P10_lightbox_doublesided / singlesided (šviesdėžės).** Etalonas: `assets/etalonai/P10_Boots_ALT6739_akriliniai_begeliai.pdf`
+(Boots apotek Åsane, BrandFactory, ALT6739_01.14_rycka, 2 lapai + gamybos detalės; Rytio pavyzdys „P10 jau darytos ant akrilinių bėgelių").
+Visa, kas žemiau - perskaityta iš etalono (ne prielaidos).
+
+## Konstrukcija (Profile 10, 1 lapo pjūvis)
+1. Priekis - **balta plexi 30 mm** (raidė - vientisas blokas); 2. LED - nugaroje išfrezuotame griovelyje / kišenėje;
+3. Nugara - **Alu 1,5 mm**; 4. **privirinti tvirtinimai** (welded fasteners - smeigės nugaroje); 5. **20 mm skaidrus plexi rėmas**.
+Gylis 30 mm (raidė), vidaus (Interior); šonai RAL; priekiui gali būti plėvelė (ORACAL 8500).
+„Šitie viduriukai kaip ADOPT tik įsigilina ir klijuojasi plėvelė" - smulkūs vidurio elementai tik įgilinami, ant jų plėvelė.
+
+## LED griovelis raidėje (lapas „30mm plexi", mėlyna linija)
+- Raidėse - **viena linija per štricho vidurį**, tiesios atkarpos, **aštrios sankirtos** (A skersinis iki kojų ašių, A viršūnė -
+  linija iki pat viršūnės, k šakos sujungtos su stiebu), **linijos eina beveik iki raidės galų**.
+- **Plačios dalys (kryžius) - kelios lygiagrečios tiesios eilės** (kryžiaus rankose 3 eilės ~ plotis / 4 žingsniu), eilės
+  kerta viena kitą, baigiasi ~ prieš galą. -> `scripts/griovelis_b.py` (B) ir `griovelis_sim.py` (simuliacija).
+
+## Akrilinis rėmas (20 mm skaidrus plexi)
+- Bėgelio pjūvis („PRIEKIS / galas", detalės iš galo taip ir frezuoti): **iš priekio išilginis plyšys 5 mm pločio, 5 mm gylio;
+  iš galo kišenė 12 mm pločio, 15 mm gylio** (T-griovelis privirintoms smeigėms / veržlėms - raidės slankiojamos išilgai).
+- **Laidų griovelis - mėlyna centerline, 6 mm pločio, 3,5 mm gylio**; tvirtinimo skylės - ovalios, kiaurai.
+- Dalys jungiamos **puzzle (interlocking) jungtimis, klijuojamos** („Bonding acrylic frame parts together with interlocking joints",
+  DETAIL A 1:5); statmenų galuose - puzzle galvutės (detalės iš galo).
+- Vidaus pakabinimas (Boots): stovai iš rėmo statmenų iki lubų, Alu tvirtinimo detalė - plokštelė 100 x 100 Alu 5 mm (Ø11 x 4,
+  stačiakampė anga) + 40x25x2 Alu atvamzdis (Ø10, 70); „pasirinkus aukštį stovai nupjaunami ir pritvirtinami".
+- Trafo box RAL 9005, 12 V / 220 V; laidas rėmo grioveliu.
+
+## Lapai (etalono forma)
+1 lapas - priekis su matmenimis, galinis vaizdas su laidu ir trafo box, Profile 10 pjūvis (1-5), MOUNTING / MATERIALS / DEPTH /
+SIDE COLOR / LED / COLORS lentelė; 2 lapas - rėmo CAD (statmenų žingsnis, 35 pločiai, šonas 20 + 30), explode su Parts List
+(1 20mm clear plexiglass, 2 Alu fitting part, 3 30mm acrylic letters), DETAIL A puzzle, tvirtinimo detalės, 3D.
