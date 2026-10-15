@@ -62,7 +62,10 @@ RAIL_SQ = str(RAIL.get("type", "u")).lower().startswith(("sq", "box", "kv"))
 #  statmuo po KIEKVIENA raide; ausėlių / 6 m strypų nėra (lakštas spec "acrylic": {"sheet": [3050, 2050]})
 RAIL_ACR = str(RAIL.get("type", "")).lower().startswith("acr")
 ACRY = {"thk": 20, "sheet": [3050, 2050], "joint_clear": 0.2, "hole_d": 8, "holes_every_gap": 2, "groove": None, "v_edge": 3,
-        "v_pitch": 1000}
+        "v_pitch": 1000, "stud": {"d": 5, "cb_d": 12, "cb_depth": 15, "edge": 8, "two_if": 400}, "cable_slot": None}
+# v241 (Rytis 2026-10-15, etalonas P10 Boots): raidės prisukamos per ATSKIRAS ĮLEISTAS SKYLES bėgelyje (iš priekio Ø5, iš galo
+#  Ø12 x 15 - veržlė nesitrukdo), smeigės privirintos raidės nugaroje; laidų griovelis nugaroje PASLINKTAS nuo ašies (šalia skylių
+#  eilės), prie kiekvienos raidės ovali skylė kiaurai laidui
 # v231 (Rytis 2026-10-14: „per daug statmenų"): statmenys NE po kiekviena raide, o žingsniu v_pitch (1000 mm) per stiebus;
 #  griovelis "groove": {"w": 8, "d": 10} (nugaroje); jungtys pagal lakšto ilgį - vaizduose brūkšn. taškinė linija + dalių grandinė
 ACRY.update(spec.get("acrylic", {}))
@@ -1979,16 +1982,66 @@ if RAIL_ACR:
                 if r_["x0"] + 20 < gx_ < r_["x1"] - 20 and all(abs(gx_ - c_["x"]) > 40 for c_ in cuts) \
                         and not LETG.intersects(_APt(gx_, cy_).buffer(_hd / 2 + 2)):
                     holes.append((gx_, cy_))
-        # laidų griovelis - per bėgelių ir statmenų ašis (nugaroje)
-        grooves = [((r_["x0"] + 10, (r_["y0"] + r_["y1"]) / 2), (r_["x1"] - 10, (r_["y0"] + r_["y1"]) / 2)) for r_ in hs_]
+        # v241: raidžių smeigės - įleistos skylės bėgelio ašyje po raidėmis
+        ST = ACRY["stud"]
+        studs = []
+        _avoid = [(c_["x"], 30) for c_ in cuts] + [(h_[0], 15) for h_ in holes] + [(vj_[0], 22) for vj_ in vjoints]
+        for o in g["letters"]:
+            inn = o["geom"].buffer(-(ST["edge"] + ST["d"] / 2))
+            if inn.is_empty:
+                continue
+            for r_ in hs_:
+                cy_ = (r_["y0"] + r_["y1"]) / 2
+                seg = inn.intersection(_ALn([(o["bb"][0] - 1, cy_), (o["bb"][2] + 1, cy_)]))
+                segs = [(min(c[0] for c in q.coords), max(c[0] for c in q.coords)) for q in getattr(seg, "geoms", [seg])
+                        if not q.is_empty and hasattr(q, "coords")]
+                segs = [(a_, b_) for a_, b_ in segs if r_["x0"] + 15 < (a_ + b_) / 2 < r_["x1"] - 15]
+                if not segs:
+                    continue
+                L_ = max(segs, key=lambda q: q[1] - q[0])
+                cand = [(L_[0] + L_[1]) / 2] if (o["bb"][2] - o["bb"][0]) < ST["two_if"] or (L_[1] - L_[0]) < ST["two_if"] / 2 \
+                    else [L_[0] + (L_[1] - L_[0]) * 0.2, L_[1] - (L_[1] - L_[0]) * 0.2]
+                for x_ in cand:
+                    for _k in range(40):                                  # pasislinkti nuo jungčių / Ø8 / statmenų
+                        bad = [c for c, d_ in _avoid if abs(x_ - c) < d_]
+                        if not bad:
+                            break
+                        x_ += 2 if x_ >= bad[0] else -2
+                    if L_[0] <= x_ <= L_[1]:
+                        studs.append((x_, cy_, id(o)))
+        # laidų griovelis - nugaroje, bėgeliuose PASLINKTAS nuo ašies (įleistos skylės Ø12 ašyje), statmenyse - ašyje
+        _gw_ = float((ACRY.get("groove") or {}).get("w", 6) or 6)
+        g_off = ST["cb_d"] / 2 + _gw_ / 2 + 2
+        grooves = [((r_["x0"] + 10, (r_["y0"] + r_["y1"]) / 2 - g_off), (r_["x1"] - 10, (r_["y0"] + r_["y1"]) / 2 - g_off)) for r_ in hs_]
+        # ovali skylė kiaurai laidui - po kiekviena raide ant viršutinio bėgelio griovelio
+        slots = []
+        CS = ACRY.get("cable_slot") or [_gw_, _gw_ / 2]
+        r0_ = hs_[0] if hs_ else None
+        for o in (g["letters"] if r0_ else []):
+            gy_ = (r0_["y0"] + r0_["y1"]) / 2 - g_off
+            inn = o["geom"].buffer(-(CS[0] / 2 + 3))
+            seg = inn.intersection(_ALn([(o["bb"][0] - 1, gy_), (o["bb"][2] + 1, gy_)]))
+            segs = [(min(c[0] for c in q.coords), max(c[0] for c in q.coords)) for q in getattr(seg, "geoms", [seg])
+                    if not q.is_empty and hasattr(q, "coords")]
+            segs = [(a_, b_) for a_, b_ in segs if r0_["x0"] + 15 < (a_ + b_) / 2 < r0_["x1"] - 15]
+            if segs:
+                a_, b_ = max(segs, key=lambda q: q[1] - q[0])
+                x_ = (a_ + b_) / 2
+                while any(abs(x_ - sx_) < 12 for sx_, _, _ in studs) and x_ < b_:
+                    x_ += 2
+                slots.append((x_, gy_))
         for v_ in vs_:
             pq = v_["poly"]
             grooves.append((((pq[0][0] + pq[1][0]) / 2, pq[0][1]), ((pq[2][0] + pq[3][0]) / 2, pq[2][1])))
         ACR_GEO[g["name"]] = dict(F=F, parts=parts, vparts=vparts, cuts=cuts, holes=holes, grooves=grooves, knobs=knobs,
+                                  studs=studs, slots=slots, g_off=g_off, cslot=CS,
                                   vjoints=vjoints, hs=hs_, vs=vs_, krail=(0.25, 0.15), kvert=(0.2, 0.12))
         print(f"  akrilinis rėmas {g['name']}: {len(parts)} dalys ({', '.join(f'{p_.bounds[2] - p_.bounds[0]:.0f}' for p_ in parts)} mm), "
               f"puzzle x {', '.join(f'{c_['x']:.0f} (po raide {c_['under'] * 100:.0f} %)' for c_ in cuts)}, Ø{_hd:g} skylių {len(holes)}, "
               f"statmenų / įstrižų atskirų detalių {len(vparts)} (puzzle į bėgelius)")
+
+
+SUBS["{STUDS}"] = str(sum(len(AG_["studs"]) for AG_ in ACR_GEO.values())) if ACR_GEO else "?"     # v241
 
 
 # ============================================================ REAR VIEW (MIRRORED)
@@ -2064,6 +2117,15 @@ for g in groups:
             cc_ = RV(hx_, hy_)
             K.c.saveState(); K.c.setFillColor(white); K.c.setStrokeColor(HexColor("#1F5FD0")); K.c.setLineWidth(0.3)
             K.c.circle(cc_[0], K.Y(cc_[1]), max(0.6, ACRY["hole_d"] / 2 * s2), stroke=1, fill=1); K.c.restoreState()
+        for sx_, sy_, _ in AG["studs"]:                 # v241: įleistos skylės (Ø12 iš galo + Ø5)
+            cc_ = RV(sx_, sy_)
+            K.c.saveState(); K.c.setStrokeColor(black); K.c.setLineWidth(0.25); K.c.setFillColor(white)
+            K.c.circle(cc_[0], K.Y(cc_[1]), max(0.9, ACRY["stud"]["cb_d"] / 2 * s2), stroke=1, fill=1)
+            K.c.circle(cc_[0], K.Y(cc_[1]), max(0.4, ACRY["stud"]["d"] / 2 * s2), stroke=1, fill=0); K.c.restoreState()
+        for ox_, oy_ in AG["slots"]:                    # v241: ovali skylė laidui (kiaurai)
+            cc_ = RV(ox_, oy_)
+            rect(cc_[0] - max(1.2, AG["cslot"][0] / 2 * s2), cc_[1] - max(0.6, AG["cslot"][1] / 2 * s2),
+                 2 * max(1.2, AG["cslot"][0] / 2 * s2), 2 * max(0.6, AG["cslot"][1] / 2 * s2), fill=white, lw=0.25)
         for _ci, c_ in enumerate(AG["cuts"]):           # v231: jungtis pagal lakšto ilgį - brūkšn. taškinė linija + žyma
             _jx = RV(c_["x"], 0)[0]
             _jy0, _jy1 = RV(0, AG["F"].bounds[1])[1] - 10, RV(0, AG["F"].bounds[3])[1] + 10
@@ -3185,6 +3247,13 @@ def draw_acrylic_sheet():
     for hx_, hy_ in AG["holes"]:
         cc_ = Fm(hx_, hy_)
         K.circle(cc_[0], cc_[1], max(0.6, ACRY["hole_d"] / 2 * s_), fill=white, stroke=HexColor("#1F5FD0"), lw=0.3)
+    for sx_, sy_, _ in AG["studs"]:                     # v241: įleistos skylės raidžių smeigėms
+        cc_ = Fm(sx_, sy_)
+        K.circle(cc_[0], cc_[1], max(0.9, ACRY["stud"]["cb_d"] / 2 * s_), fill=white, lw=0.25)
+        K.circle(cc_[0], cc_[1], max(0.4, ACRY["stud"]["d"] / 2 * s_), lw=0.25)
+    for a_, b_ in AG["grooves"]:
+        pa_, pb_ = Fm(*a_), Fm(*b_)
+        line(pa_[0], pa_[1], pb_[0], pb_[1], 0.25, HexColor("#3B3BB0"))
     K.set_view(False)
     for i_, q in enumerate(rp):
         c_ = q.representative_point(); p_ = Fm(c_.x, c_.y)
@@ -3257,29 +3326,37 @@ def draw_acrylic_sheet():
         p_ = D_(ex_, ey_ + sg_ * hr_ * 1.6)
         T(p_[0] + 30, p_[1] + 2, f"head Ø{2 * hr_:g}, neck {2 * nk_:g}", 6.5)
         T(p_[0] + 30, p_[1] + 11, f"clearance {ACRY['joint_clear']:g}", 6.5, color=K.GREY)
-    # SECTION E - bėgelio pjūvis (20 storis, griovelis nugaroje, Ø8)
+    # SECTION E - bėgelio pjūvis per raidės smeigę (v241): įleista skylė Ø12 x 15 iš galo + Ø5 į priekį (ašyje), laidų griovelis
+    #  nugaroje paslinktas g_off nuo ašies; priekyje - raidės nugara su privirinta smeige (punktyru)
     if AG["hs"]:
         w_ = AG["hs"][0]["y1"] - AG["hs"][0]["y0"]; th_ = float(ACRY["thk"])
+        ST = ACRY["stud"]; gw_, gd_ = float(GW.get("w", 6)), float(GW.get("d", 3.5)); go_ = AG["g_off"]
         se = MM * 2
         x0e = K.IX0 + 2 * dw_ + (dw_ - th_ * se) / 2
         y0e = dy0 + 6
+        yc_ = y0e + w_ / 2 * se
         K.set_view(True)
         rect(x0e, y0e, th_ * se, w_ * se, fill=blue, lw=0.4)
-        if GW:
-            rect(x0e, y0e + (w_ - GW.get("w", 8)) / 2 * se, GW.get("d", 10) * se, GW.get("w", 8) * se, fill=white, lw=0.4)
+        rect(x0e, yc_ - ST["cb_d"] / 2 * se, ST["cb_depth"] * se, ST["cb_d"] * se, fill=white, lw=0.4)          # įleidimas iš galo
+        rect(x0e + ST["cb_depth"] * se, yc_ - ST["d"] / 2 * se, (th_ - ST["cb_depth"]) * se, ST["d"] * se, fill=white, lw=0.4)
+        rect(x0e, yc_ - (go_ + gw_ / 2) * se, gd_ * se, gw_ * se, fill=white, lw=0.4)                            # laidų griovelis
         K.set_view(False)
+        K.centerline(x0e - 6, yc_, x0e + th_ * se + 8, yc_)
+        rect(x0e + th_ * se, y0e - 4, 4, w_ * se + 8, lw=0.3, dash=(2, 1.5))
+        T(x0e + th_ * se + 7, y0e - 6, "letter back + welded stud", 6, color=K.GREY)
         line(x0e - 14, y0e - 6, x0e - 14, y0e + w_ * se + 6, 1.2, HexColor("#888888"))
         T(x0e - 20, y0e + w_ * se / 2, "FACADE", 6.5, rot=90, align="c", color=K.GREY)
         hdim(x0e, x0e + th_ * se, y0e - 14, f"{th_:g}", y0e, y0e, size=K.F_DIM_FRAME)
-        if GW:
-            hdim(x0e, x0e + GW.get("d", 10) * se, y0e + w_ * se + 16, f"{GW.get('d', 10):g} (groove)", y0e + w_ * se, y0e + w_ * se,
-                 size=K.F_DIM_FRAME)
-            vchain(x0e + th_ * se + 16, [y0e, y0e + (w_ - GW.get("w", 8)) / 2 * se, y0e + (w_ + GW.get("w", 8)) / 2 * se, y0e + w_ * se],
-                   [x0e + th_ * se] * 4, [f"{(w_ - GW.get('w', 8)) / 2:g}", f"{GW.get('w', 8):g}", f"{(w_ - GW.get('w', 8)) / 2:g}"],
-                   size=K.F_DIM_FRAME)
-        T(x0e + th_ * se / 2, y0e + w_ * se + 46, f"Ø{ACRY['hole_d']:g} fixing holes - through, between letters", 6.5, align="c",
-          color=K.GREY)
-        view_title(x0e + th_ * se / 2, y0e + w_ * se + 70, "SECTION E - RAIL (CABLE GROOVE)", "SCALE 2:1")
+        hdim(x0e, x0e + ST["cb_depth"] * se, y0e + w_ * se + 16, f"{ST['cb_depth']:g}", y0e + w_ * se, y0e + w_ * se, size=K.F_DIM_FRAME)
+        hdim(x0e, x0e + gd_ * se, y0e + w_ * se + 34, f"{gd_:g} (groove)", y0e + w_ * se, y0e + w_ * se, size=K.F_DIM_FRAME)
+        ys_ = sorted({y0e, yc_ - (go_ + gw_ / 2) * se, yc_ - (go_ - gw_ / 2) * se, yc_ - ST["cb_d"] / 2 * se,
+                      yc_ + ST["cb_d"] / 2 * se, y0e + w_ * se})
+        vchain(x0e + th_ * se + 22, ys_, [x0e + th_ * se] * len(ys_), [f"{(b - a) / se:g}" for a, b in zip(ys_, ys_[1:])],
+               size=K.F_DIM_FRAME)
+        T(x0e + th_ * se + 60, yc_ + 3, f"Ø{ST['d']:g} / Ø{ST['cb_d']:g} x {ST['cb_depth']:g}", 6.5)
+        T(x0e + th_ * se / 2, y0e + w_ * se + 58, f"stud holes under letters (nut in counterbore), cable slots {AG['cslot'][0]:g} x "
+          f"{AG['cslot'][1]:g} through, Ø{ACRY['hole_d']:g} fixing holes between letters", 6.5, align="c", color=K.GREY)
+        view_title(x0e + th_ * se / 2, y0e + w_ * se + 82, "SECTION E - RAIL AT LETTER STUD", "SCALE 2:1")
     # ---------------- juosta: paaiškinimas, BOM, duomenys
     K.header(X_P6, BY0, W_P6, "WHY / WHERE THE FRAME JOINS")
     rect(X_P6, BY0 + 12, W_P6, BH - 12, lw=0.6)
@@ -3293,7 +3370,9 @@ def draw_acrylic_sheet():
            "   nested from offcuts - saves material;",
            "   puzzle into rails (detail D).",
            f"4. Puzzle clearance {ACRY['joint_clear']:g}; cable groove on back",
-           f"   {GW.get('w', '?')} x {GW.get('d', '?')} deep (section E); Ø{ACRY['hole_d']:g} fixings."]
+           f"   {GW.get('w', '?')} x {GW.get('d', '?')} deep (section E); Ø{ACRY['hole_d']:g} fixings.",
+           f"5. Letters: welded studs through Ø{ACRY['stud']['d']:g}, nut in Ø{ACRY['stud']['cb_d']:g} x {ACRY['stud']['cb_depth']:g}",
+           "   counterbore from back - nut does not touch facade."]
     for i_, t_ in enumerate(nt_):
         T(X_P6 + 5, BY0 + 25 + i_ * 9.6, t_, 7)
     rows_ = []
@@ -3311,7 +3390,8 @@ def draw_acrylic_sheet():
     md_ = [("Material", f"clear acrylic {ACRY['thk']:g} mm"), ("Sheet", f"{ACRY['sheet'][0]:g} x {ACRY['sheet'][1]:g}"),
            ("Rails", f"{RAIL_W:g} wide, {len(rp)} parts"), ("Verticals", f"{len(vp)} pcs., separate"),
            ("Joints", f"puzzle, clearance {ACRY['joint_clear']:g}"), ("Groove", f"{GW.get('w', '?')} x {GW.get('d', '?')} (back)"),
-           ("Holes", f"{len(AG['holes'])} x Ø{ACRY['hole_d']:g}"), ("Quantity", f"{spec.get('qty', '?')} signs")]
+           ("Holes", f"{len(AG['holes'])} x Ø{ACRY['hole_d']:g}; studs {len(AG['studs'])} x Ø{ACRY['stud']['d']:g}/{ACRY['stud']['cb_d']:g}"),
+           ("Quantity", f"{spec.get('qty', '?')} signs")]
     K.main_data(X_MD, BY0, W_MD, BH, md_, lab_w=58)
     sp2 = dict(spec, sheet="2 / 2", title=f"{spec.get('drawing_no', '')} Acrylic frame - parts & joints")
     K.title_block(X_TB, W_TB, sp2, f"1:{n1} / 1:1 / 2:1")
@@ -3439,7 +3519,10 @@ if ACR_GEO:                                             # v229: akrilinio rėmo 
     _doc = _ez.new("R2010"); _doc.units = _ez.units.MM
     _GD = ACRY.get("groove") or {}
     _GL = f"GROOVE_BACK_{_GD.get('w', '?')}x{_GD.get('d', '?')}_DEEP"
-    for _ln, _cl in (("ACRYLIC_20_CUT", 7), ("HOLES_D%g" % ACRY["hole_d"], 3), ("GROOVE_BACK_AXIS", 2), (_GL, 4), ("TEXT", 8)):
+    _ST = ACRY["stud"]
+    _L5, _L12 = f"STUD_HOLE_D{_ST['d']:g}_THROUGH", f"COUNTERBORE_D{_ST['cb_d']:g}_DEPTH{_ST['cb_depth']:g}_BACK"
+    for _ln, _cl in (("ACRYLIC_20_CUT", 7), ("HOLES_D%g" % ACRY["hole_d"], 3), ("GROOVE_BACK_AXIS", 2), (_GL, 4), (_L5, 1), (_L12, 6),
+                     ("CABLE_SLOT_THROUGH", 30), ("TEXT", 8)):
         _doc.layers.add(_ln, color=_cl)
     _m = _doc.modelspace()
     _oy = 0.0
@@ -3452,6 +3535,16 @@ if ACR_GEO:                                             # v229: akrilinio rėmo 
                     _m.add_lwpolyline([Q(c_) for c_ in ring.coords], close=True, dxfattribs={"layer": "ACRYLIC_20_CUT"})
         for hx_, hy_ in AG["holes"]:
             _m.add_circle(Q((hx_, hy_)), ACRY["hole_d"] / 2, dxfattribs={"layer": "HOLES_D%g" % ACRY["hole_d"]})
+        for sx_, sy_, _ in AG["studs"]:
+            _m.add_circle(Q((sx_, sy_)), _ST["d"] / 2, dxfattribs={"layer": _L5})
+            _m.add_circle(Q((sx_, sy_)), _ST["cb_d"] / 2, dxfattribs={"layer": _L12})
+        for ox_, oy_ in AG["slots"]:
+            _sl = _APt(ox_, oy_).buffer(AG["cslot"][1] / 2, 16)
+            _sl = _aun([_sl, _APt(ox_ - (AG["cslot"][0] - AG["cslot"][1]) / 2, oy_).buffer(AG["cslot"][1] / 2, 16),
+                        _APt(ox_ + (AG["cslot"][0] - AG["cslot"][1]) / 2, oy_).buffer(AG["cslot"][1] / 2, 16),
+                        _abox(ox_ - (AG["cslot"][0] - AG["cslot"][1]) / 2, oy_ - AG["cslot"][1] / 2,
+                              ox_ + (AG["cslot"][0] - AG["cslot"][1]) / 2, oy_ + AG["cslot"][1] / 2)])
+            _m.add_lwpolyline([Q(c_) for c_ in _sl.exterior.coords], close=True, dxfattribs={"layer": "CABLE_SLOT_THROUGH"})
         _gw = float((ACRY.get("groove") or {}).get("w", 0) or 0)
         for a_, b_ in AG["grooves"]:
             _m.add_line(Q(a_), Q(b_), dxfattribs={"layer": "GROOVE_BACK_AXIS"})
@@ -3461,7 +3554,8 @@ if ACR_GEO:                                             # v229: akrilinio rėmo 
                     if hasattr(_gg, "exterior"):
                         _m.add_lwpolyline([Q(c_) for c_ in _gg.exterior.coords], close=True, dxfattribs={"layer": _GL})
         _m.add_text(f"{_gn}: CLEAR ACRYLIC {ACRY['thk']:g} mm frame, {len(AG['parts'])} parts (puzzle joints, clearance "
-                    f"{ACRY['joint_clear']:g}), {len(AG['holes'])} x D{ACRY['hole_d']:g}, cable groove on the back "
+                    f"{ACRY['joint_clear']:g}), {len(AG['holes'])} x D{ACRY['hole_d']:g}, {len(AG['studs'])} x stud hole D{_ST['d']:g} + counterbore "
+                    f"D{_ST['cb_d']:g} x {_ST['cb_depth']:g} from back, {len(AG['slots'])} cable slots through, cable groove on the back "
                     f"{_GD.get('w', '?')} wide x {_GD.get('d', '?')} deep; view FROM FRONT", dxfattribs={"layer": "TEXT", "height": 12}).set_placement((0, _oy - 40))
         _oy -= (AG["F"].bounds[3] - AG["F"].bounds[1]) + 200
     _dp = os.path.splitext(OUT)[0].replace("_tech", "") + "_akrilinis_remas.dxf"

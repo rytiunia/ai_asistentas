@@ -57,7 +57,10 @@ def rows_of(letters):
     #  2 x teksto aukščio) neturi tapti eilutės matu - bėgeliai per TEKSTO štrichų vidurį, simbolis - ant to paties rėmo
     for r in big:
         _hs = [o["bb"][3] - o["bb"][1] for o in r["letters"]]
-        r["h"] = _median([h for h in _hs if h >= 0.6 * max(_hs)] or _hs)   # v238: trafaretų dalys (E juostos) - ne eilutės matas
+        # v238: trafaretų dalys (E juostos) - ne eilutės matas; v241 (Leapmotor): ir aukštas logotipo ženklas (2 x teksto) -
+        #  ne matas: eilutės aukštis - DAŽNIAUSIO aukščio grupės (±15 %) mediana
+        _best = max(_hs, key=lambda h: (sum(1 for q in _hs if abs(q - h) <= 0.15 * h), h))
+        r["h"] = _median([q for q in _hs if abs(q - _best) <= 0.15 * _best] or _hs)
     return big
 
 

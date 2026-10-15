@@ -18,12 +18,14 @@ Gylis 30 mm (raidė), vidaus (Interior); šonai RAL; priekiui gali būti plėvel
 
 ## Akrilinis rėmas (20 mm skaidrus plexi)
 - **P10 VISADA = 30 mm blokas + rėmas; bendras gylis = 30 + rėmo storis** (Rytis 2026-10-15).
-- Etalono bėgelyje raidžių tvirtinimui - ATSKIROS skylės su įleidimu (dvigubi apskritimai): pjūvis „PRIEKIS / galas" -
-  iš priekio Ø5 (5 mm gylio), iš galo Ø12 įleidimas 15 mm gylio (smeigei / veržlei).
-  **Rytis 2026-10-15: „jei rėmas akrilinis - T griovelis"** (išilginis: priekyje 5 pločio x 5, gale 12 pločio x 15) -
-  PATIKSLINTI, ar T griovelis ištisinis, ar kaip etalone - atskiros įleistos skylės (klausta 2026-10-15).
+- **Raidės prisukamos per ATSKIRAS ĮLEISTAS SKYLES** (Rytis 2026-10-15: „atskiros įleistos skylės, kad būtų galima prisukti
+  raides ir netrukdytų veržlė"): bėgelio ašyje po raidėmis **iš priekio Ø5 kiaurai, iš galo Ø12 x 15 įleidimas** veržlei
+  (veržlė neliečia fasado); smeigės privirintos raidės nugaroje. NE ištisinis T griovelis.
+  Generatorius: `braizyti_begeliai.py` `"acrylic": {"stud": {"d": 5, "cb_d": 12, "cb_depth": 15, "edge": 8, "two_if": 400}}` -
+  1 smeigė raidei bėgelyje (2 - kai raidė >= 400), ne arčiau jungčių / Ø8 / statmenų; DXF STUD_HOLE_D5_THROUGH, COUNTERBORE_D12_DEPTH15_BACK.
 - **Laidų griovelis - kaip etalone: 6 mm pločio, 3,5 mm gylio** (mėlyna centerline palei bėgelį, ne ašyje - šalia
-  tvirtinimo skylių eilės); prie raidžių - **ovalios skylės kiaurai** laidams (Rytis 2026-10-15: „laidui griovelis kaip pavyzdyje").
+  tvirtinimo skylių eilės: poslinkis = Ø12 / 2 + griovelis / 2 + 2); prie raidžių - **ovalios skylės kiaurai** laidams
+  (CABLE_SLOT_THROUGH, po 1 raidei) (Rytis 2026-10-15: „laidui griovelis kaip pavyzdyje").
 - Dalys jungiamos **puzzle (interlocking) jungtimis, klijuojamos** („Bonding acrylic frame parts together with interlocking joints",
   DETAIL A 1:5); statmenų galuose - puzzle galvutės (detalės iš galo).
 - Vidaus pakabinimas (Boots): stovai iš rėmo statmenų iki lubų, Alu tvirtinimo detalė - plokštelė 100 x 100 Alu 5 mm (Ø11 x 4,
