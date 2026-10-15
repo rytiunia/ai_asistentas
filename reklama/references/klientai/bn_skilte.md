@@ -169,3 +169,7 @@ aluminium profile. 7. Suport, 5mm aluminium (Coop - 3mm). 8. LED modules. 9. Han
   Sheet 3 / 3 - poz. 02 raidės); 1:1 šablonas - atskiras failas. Šviesdėžė: 800 x 300 x 100, nuo sienos 850 (iš fasado brėžinio
   „850 / 800"), kojos inset + plokštė 140 x 300, kojų uždengimai ir plokštė NCS S 8010-R90B, korpusas RAL 9010, logotipas
   693 x 157 (iš fasado PDF, 85 nuo viršaus) 3M 100-54 abiejose pusėse.
+- 2026-10-15 (Rytis, BN atnaujintas fasado brėžinys): DB-0001 matmenys **H470 x B1550 x D100** (šviesdėžė = stiklas 1550 x 470,
+  nuo sienos 1550 + 100 + 5 = 1655; padas 140 x 470). Logotipas išdidintas proporcingai (x1,567 -> 1086 x 246, 133 nuo viršaus) - PRIELAIDA.
+  BN aprašymas: „let aluminium konstruktion med udfræsede logofelter og hvide RAL 9010 fronter, indvendigt hvid opal akryl med guld folie,
+  blå fodplade" - Alu priekiai su išfrezuotu logotipu + opal akrilas su auksine plėvele viduje (ne 5S stiklas su lipduku) - KLAUSTA Ryčio.

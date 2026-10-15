@@ -845,7 +845,8 @@ def sheet1(g, out):
     face_label(Xa(-TOT / 2) + 2, ya(0) - 10, "A", 9); face_label(Xa(TOT / 2) - 2, ya(0) - 10, "B", 9)
     hchain(ya(Hd) + D1, [Xa(-TOT / 2), Xa(-D / 2), Xa(-fb / 2), Xa(fb / 2), Xa(D / 2), Xa(TOT / 2)], [ya(Hd)] * 6,
            [f"{tf:g}", f"{(D - fb) / 2:g}", f"{fb:g}", f"{(D - fb) / 2:g}", f"{tf:g}"], size=K.F_DIM_FRAME)
-    HM(Xa(-TOT / 2), Xa(TOT / 2), ya(Hd) + D2 + 22, f"{TOT:g}", ya(Hd), ya(Hd))
+    _aa_x = 16 if TOT * s5 < 70 else 0
+    HM(Xa(-TOT / 2), Xa(TOT / 2), ya(Hd) + D2 + 22 + _aa_x, f"{TOT:g}", ya(Hd), ya(Hd))   # v272: siauras pjūvis - grandinės žymos laiptuotos
     VM(Xa(-TOT / 2) - 24, ya(0), ya(Hd), Xa(-TOT / 2), f"{Hd:g}")
     K.balloon_side([(Xa(zs8) + 3.5 * s5, ya(ov - 0.8), 8), (Xa(fb / 2), ya(ov + tb + fa * 0.7), 1),
                     (Xa(TOT / 2), ya(Hd * 0.35), 5), (Xa(11), ya(yl - 4), 7),
@@ -860,7 +861,7 @@ def sheet1(g, out):
     # v254 (Rytis 2026-10-15: „exploded view svarbesnis nei top view - top view po front view, exploded - didesnis plotas";
     #  taisyklė kaip P10_lightbox_singlesided v232): kairėje - TOP VIEW tiesiai po FRONT VIEW A (ta pati x skalė), po juo 3D A / B;
     #  dešinėje iki lapo krašto - EXPLODED VIEW
-    y3 = max(Yv(Hd), ya(Hd)) + D2 + 22 + 30
+    y3 = max(Yv(Hd), ya(Hd) + _aa_x) + D2 + 22 + 30
     P0 = g["plates"][0]
     tx0 = fxA
     tyc = y3 + 30 + max(P0["w"] / 2, D / 2 + tf) * s
