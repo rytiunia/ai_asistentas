@@ -1127,10 +1127,21 @@ for g in groups:
                 PP_["redundancy"]["long_rail_mm"] else 2
             _ax = [fp[0] + es / 2 for fp in g["fplates"]] if _stagger else []
             # v191: kraštinių ausėlių zona - tarp pilno aukščio raidžių (ne po kableliu / taškais už paskutinės raidės)
-            _full = [o for o in g["letters"] if o["bb"][3] - o["bb"][1] >= 0.65 * H_]
-            _ez = (min(o["bb"][0] for o in _full), max(o["bb"][2] for o in _full)) if _full else None
+            # v238 (OMODA / EXLANTIX): trafaretinio šrifto raidė iš kelių dalių (E iš 3 juostų, O iš 2 pusių) - dalys, kurios
+            #  persidengia x ir kartu užima >= 0,65 H, yra VIENA pilno aukščio raidė (anksčiau E juostos buvo „ne raidė" ->
+            #  kraštinės ausėlės atsidurdavo po E juostomis, ne tarpe tarp raidžių)
+            _cl = []
+            for o in sorted(g["letters"], key=lambda o: o["bb"][0]):
+                c_ = next((c for c in _cl if o["bb"][0] < c[1] - 1 and o["bb"][2] > c[0] + 1), None)
+                if c_:
+                    c_[0] = min(c_[0], o["bb"][0]); c_[1] = max(c_[1], o["bb"][2])
+                    c_[2] = min(c_[2], o["bb"][1]); c_[3] = max(c_[3], o["bb"][3])
+                else:
+                    _cl.append([o["bb"][0], o["bb"][2], o["bb"][1], o["bb"][3]])
+            _boxes = [(c[0], c[1]) for c in _cl if c[3] - c[2] >= 0.65 * H_]
+            _ez = (min(b[0] for b in _boxes), max(b[1] for b in _boxes)) if _boxes else None
             res_, wfr_ = AUS.place_frame(LET, rinfo, es, smax_, dict(EARS, n_min=n_min_, smax_tol=tol_, avoid_x=_ax, end_zone=_ez,
-                                                                            letter_boxes=[(o["bb"][0], o["bb"][2]) for o in _full]))
+                                                                            letter_boxes=_boxes))
             # v81 (Rytis 2026-10-10, LIETUVA apačia „per daug ausėlių, nesuprantama logika"): kai poromis su Smax neišeina,
             # NEPEREINAMA prie atskirų bėgelių (ten ausėlės sukrenta be logikos, pvz. 3861 + 4171) - Smax didinamas
             # pakopomis (+10 % iki +30 %) ir lieka PORŲ logika: tarpinės viršus / apačia vienoje linijoje, tolygiai.
@@ -1140,7 +1151,7 @@ for g in groups:
                     if _ri is rinfo and _t2 <= tol_:
                         continue
                     res_, w2_ = AUS.place_frame(LET, _ri, es, smax_, dict(EARS, n_min=n_min_, smax_tol=_t2, avoid_x=_ax, end_zone=_ez,
-                                                                         letter_boxes=[(o["bb"][0], o["bb"][2]) for o in _full]))
+                                                                         letter_boxes=_boxes))
                     if res_ is not None:
                         wfr_ = [f"poros sudėtos su Smax +{_t2 * 100:.0f} % ({smax_ * (1 + _t2):.0f} mm)"
                                 + (", be fizikos patikros (siena / inkaras - tikrinti)" if _ri is _rg else "")

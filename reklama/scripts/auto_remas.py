@@ -29,14 +29,23 @@ def stroke_t(geom, hi=400):
 
 
 def rows_of(letters):
+    # v238 (Rytis 2026-10-15 „kodėl vėl rėmai ne pagal taisykles?", OMODA | JAECOO / EXLANTIX): eilutės renkamos pagal
+    #  AUKŠČIO INTERVALŲ PERSIDENGIMĄ, aukščiausi elementai pirmi. Anksčiau eilutę „sėdavo" pirmas pagal y elementas -
+    #  trafaretinio šrifto dalys (O pusės, E juostos, J pėda) tapdavo atskiromis eilutėmis -> netikri bėgeliai / auto rėmo klaida.
     rows = []
-    for o in sorted(letters, key=lambda o: (o["bb"][1] + o["bb"][3])):      # y ŽEMYN (skripto koordinatės): viršutinė eilutė - mažesnis y
-        cy = (o["bb"][1] + o["bb"][3]) / 2
+    for o in sorted(letters, key=lambda o: -(o["bb"][3] - o["bb"][1])):
+        a, b = o["bb"][1], o["bb"][3]
+        best = None
         for r in rows:
-            if abs(r["cy"] - cy) < 0.5 * r["h"]:
-                r["letters"].append(o); break
+            ov = min(b, r["y1"]) - max(a, r["y0"])
+            if ov >= 0.5 * min(b - a, r["y1"] - r["y0"]) and (best is None or ov > best[0]):
+                best = (ov, r)
+        if best:
+            r = best[1]; r["letters"].append(o)
         else:
-            rows.append({"cy": cy, "h": o["bb"][3] - o["bb"][1], "letters": [o]})
+            rows.append({"y0": a, "y1": b, "h": b - a, "letters": [o]})
+    for r in rows:
+        r["cy"] = (r["y0"] + r["y1"]) / 2
     rows.sort(key=lambda r: r["cy"])                 # viršutinė (mažesnis y) pirma
     hmax = max(r["h"] for r in rows)
     big = [r for r in rows if r["h"] >= 0.5 * hmax]
@@ -47,7 +56,8 @@ def rows_of(letters):
     # v229 (Leapmotor): eilutės aukštis - raidžių aukščių MEDIANA (ne pirmos raidės): aukštas simbolis (logotipo ženklas
     #  2 x teksto aukščio) neturi tapti eilutės matu - bėgeliai per TEKSTO štrichų vidurį, simbolis - ant to paties rėmo
     for r in big:
-        r["h"] = _median([o["bb"][3] - o["bb"][1] for o in r["letters"]])
+        _hs = [o["bb"][3] - o["bb"][1] for o in r["letters"]]
+        r["h"] = _median([h for h in _hs if h >= 0.6 * max(_hs)] or _hs)   # v238: trafaretų dalys (E juostos) - ne eilutės matas
     return big
 
 

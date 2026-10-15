@@ -20,7 +20,7 @@
  "date": "2026-10-15",
  "depth_mm": 80,
  "front": "P6",
- "auto_frame": false,
+ "auto_frame": true,
  "mounting": "none",
  "letters_power": "wago",
  "wall": "facade_panel",
@@ -48,72 +48,7 @@
     0.9425
    ],
    "frame": "verticals",
-   "led": "White LED modules, 6500K",
-   "rails": [
-    {
-     "kind": "h",
-     "poly": [
-      [
-       10,
-       33
-      ],
-      [
-       6702,
-       33
-      ],
-      [
-       6702,
-       63
-      ],
-      [
-       10,
-       63
-      ]
-     ]
-    },
-    {
-     "kind": "h",
-     "poly": [
-      [
-       10,
-       313
-      ],
-      [
-       6702,
-       313
-      ],
-      [
-       6702,
-       343
-      ],
-      [
-       10,
-       343
-      ]
-     ]
-    },
-    {
-     "kind": "h",
-     "poly": [
-      [
-       4787,
-       173
-      ],
-      [
-       5074,
-       173
-      ],
-      [
-       5074,
-       203
-      ],
-      [
-       4787,
-       203
-      ]
-     ]
-    }
-   ]
+   "led": "White LED modules, 6500K"
   }
  ],
  "bom": [
