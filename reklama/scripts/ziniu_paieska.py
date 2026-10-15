@@ -132,6 +132,22 @@ def main(argv):
             terms.add(s_)
     q = " ".join(raw)
 
+    # 0. katalogas (v266): tikslūs raktažodžiai -> paruoštas generatorius / šablonas / etalonas; seni pavadinimai
+    kat = os.path.join(ROOT, "references", "produktu_katalogas.md")
+    if os.path.exists(kat):
+        sec, rows = "", []
+        for ln in open(kat, encoding="utf-8").read().split("\n"):
+            if ln.startswith("## "):
+                sec = ln[3:4]
+            elif ln.startswith("| ") and not ln.startswith("|---") and sec in ("A", "B", "C"):
+                c0 = ln.split("|")[1]
+                if score(c0, terms) and not c0.strip().startswith(("Raktažodis", "Senas")):
+                    rows.append((sec, ln))
+        if rows:
+            print("=" * 100)
+            print("## 0. KATALOGAS (references/produktu_katalogas.md):  A - paruošta, B - klausti prieš braižant, C - SENAS pavadinimas")
+            for sec, ln in rows:
+                print(f"  [{sec}] " + " | ".join(x.strip() for x in ln.split("|")[1:-1])[:330])
     fams = [k for k, f in FAMILIES.items() if any(norm(kw) in q for kw in f["keys"])]
     print("=" * 100)
     print("ŽINIŲ PAIEŠKA:", " ".join(argv), "| terminai:", ", ".join(sorted(terms)))
