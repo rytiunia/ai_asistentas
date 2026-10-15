@@ -33,5 +33,11 @@
   "2 / 3"
  ],
  "leg_in": 0,
- "leg_chamfer": 90
+ "leg_chamfer": 90,
+ "psu": false,
+ "leg": [
+  30,
+  30,
+  2
+ ]
 }

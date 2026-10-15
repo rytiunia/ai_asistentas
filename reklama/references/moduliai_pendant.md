@@ -71,7 +71,10 @@ MENY Trekanten: dvipusis termoformuotas logotipas 700 x 320 x 118 (3 vnt.): Fram
 4. Ar IDP drapeau laikikliai turi savo stovą (D5 strypas - vėliavos ašis?) - kokia jų funkcija?
 
 ## Kojos įvirintos į galinę rėmo dalį (Rytis 2026-10-15, BN danbolig DB-0001)
-`sviesdeze.py` `"legs_type": "inset", "leg_in": 0, "leg_chamfer": 90`: rėmas su GALINIU statmeniu (1.4), kojos □40x40x4
-įvirintos į jį (į dėžę nelenda, galas statmenas), trafo plokštelė dėžės viduje prie galinio statmens; **tarpas tarp šviesdėžės
+`sviesdeze.py` `"legs_type": "inset", "leg_in": 0, "leg_chamfer": 90, "leg": [30, 30, 2]`: rėmas su GALINIU statmeniu (1.4),
+**kojos kaip ir rėmas - □30x30x2 Alu**, įvirintos į galinį statmenį tarp skersinių (į dėžę nelenda, galas statmenas; lape -
+suvirinimo žymos + „1B welded to rear vertical 1.4");
+**trafo NEREIKIA** (`"psu": false` - be PSU ir trafo plokštelės, 12 V tiekia klientas); **pastaba klientui, kur išeina laidas**
+(raudona po „WALL DRILLING": laidas per plokštės Ø11 į sieną, atstumas nuo viršaus; `"cable_note"` - savas tekstas); **tarpas tarp šviesdėžės
 ir pado - 100 mm** (`"proj"` = stiklas + 100 + plokštė). Kojų uždengimai ir plokštė gali būti kitos spalvos (`cover_hex`,
 `cover_finish`, `frame_hex` - NCS).
