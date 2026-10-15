@@ -340,6 +340,35 @@ def circle(x, y, r, fill=None, stroke=black, lw=0.5, dash=None):
     c.restoreState()
 
 
+def dim_lbl(lab):
+    """v276 (Rytis 2026-10-15, ISO 129-1 / references/cad_matmenavimas_ISO.md): matmens užraše dešimtainis KABLELIS (15,5),
+    be nereikšmingo „,0" (50.0 -> 50)."""
+    s_ = re.sub(r"(?<![\d.])(\d+)\.0+(?![\d])", r"\1", str(lab))
+    return re.sub(r"(\d)\.(\d)", r"\1,\2", s_)
+
+
+def dim_dot(x, y, r=0.9):
+    """v276: ISO taško galūnė - grandinėje tarp dviejų mažų tarpų (rodyklės čia viena ant kitos)"""
+    c.saveState(); c.setFillColor(black); c.circle(x, Y(y), r, stroke=0, fill=1); c.restoreState()
+
+
+def _runs(labels):
+    """v276 (ISO 129-1, cad_matmenavimas_ISO.md 3 sk.): >= 3 vienodi gretimi intervalai -> viena žyma „n× v (= L)" """
+    out, i, n = [], 0, len(labels)
+    while i < n:
+        j = i
+        while j + 1 < n and str(labels[j + 1]) == str(labels[i]) and str(labels[i]).strip() != "":
+            j += 1
+        if j - i + 1 >= 3:
+            try:
+                v = float(str(labels[i]).replace(",", "."))
+                out.append((i, j, f"{j - i + 1}× {dim_lbl(labels[i])} (= {dim_lbl(f'{v * (j - i + 1):.6g}')})"))
+            except ValueError:
+                pass
+        i = j + 1
+    return out
+
+
 def arrowhead(x, y, ang):
     c.saveState(); c.setFillColor(black); c.translate(x, Y(y)); c.rotate(ang)
     p = c.beginPath(); p.moveTo(0, 0); p.lineTo(-5.5, 1.3); p.lineTo(-5.5, -1.3); p.close()
@@ -380,6 +409,7 @@ def ext_line(x1, y1, x2, y2):
 
 
 def hdim(x1, x2, y, label, e1=None, e2=None, size=8, small_side="r", avoid=None):
+    label = dim_lbl(label)
     for x, e in ((x1, e1), (x2, e2)):
         if e is not None:
             sgn = 1 if e > y else -1
@@ -450,10 +480,22 @@ def hchain(y, xs, ext_from_y, labels, size=8, bg=False, avoid=None):
     rodyklių / kitų tarpų: mažo tarpo užrašas - tik kraštinio tarpo IŠORĖJE (už grandinės galo), vidurinių - eilėje TOLIAU
     nuo objekto, virš savo tarpo, su trumpa išvadine; eilės stumiamos, kol laisva."""
     TX = _Tbg if bg else T
-    for x, ey in zip(xs, ext_from_y):
+    labels = [dim_lbl(l_) for l_ in labels]
+    RUNS = _runs(labels)                                   # v276: n× v (= L)
+    _inner = set()                                         # serijos vidiniai taškai: be iškeltinių / rodyklių (tekstas virš jų)
+    _rseg = set()
+    for i0, i1, _ in RUNS:
+        for k_ in range(i0, i1 + 1):
+            labels[k_] = ""; _rseg.add(k_)
+        _inner.update(range(i0 + 1, i1 + 1))
+    for j_, (x, ey) in enumerate(zip(xs, ext_from_y)):
+        if j_ in _inner:
+            continue
         sgn = 1 if ey > y else -1
         ext_line(x, ey - 2 * sgn, x, y - 3 * sgn)
     line(xs[0], y, xs[-1], y, 0.3)
+    _sm = [str(l_) != "" and (b_ - a_) <= max(16, pdfmetrics.stringWidth(str(l_), "F", size) + 10)
+           for a_, b_, l_ in zip(xs[:-1], xs[1:], labels)]
     away = -1 if sum(ey - y for ey in ext_from_y) >= 0 else 1      # kryptis nuo objekto (puslapio y)
     placed = []                                            # (x0, x1, y) užimti tekstų plotai
 
@@ -463,6 +505,12 @@ def hchain(y, xs, ext_from_y, labels, size=8, bg=False, avoid=None):
     smalls, n = [], len(labels)
     for i, (a, b, lab) in enumerate(zip(xs[:-1], xs[1:], labels)):
         if str(lab) == "":
+            if i in _rseg:                                 # serija: rodyklės tik jos galuose
+                if i not in _inner:
+                    arrowhead(a, y, 180)
+                if i + 1 not in _inner:
+                    arrowhead(b, y, 0)
+                continue
             arrowhead(a, y, 180); arrowhead(b, y, 0)
             continue
         w_ = pdfmetrics.stringWidth(str(lab), "F", size)
@@ -471,8 +519,25 @@ def hchain(y, xs, ext_from_y, labels, size=8, bg=False, avoid=None):
             cx = _dodge((a + b) / 2, a, b, lab, size, avoid)
             TX(cx, y - 2.5, lab, size, align="c"); placed.append((cx - w_ / 2, cx + w_ / 2, y - 2.5))
         else:
-            arrowhead(a, y, 0); arrowhead(b, y, 180)
+            # v276: tarp dviejų mažų tarpų - TAŠKAS (ne dvi rodyklės viena ant kitos); galuose / prie didelio - rodyklė iš lauko
+            if i > 0 and _sm[i - 1]:
+                dim_dot(a, y)
+            else:
+                arrowhead(a, y, 0)
+            if i < n - 1 and _sm[i + 1]:
+                dim_dot(b, y)
+            else:
+                arrowhead(b, y, 180)
             smalls.append((i, a, b, lab, w_))
+    for i0, i1, rl in RUNS:                                # n× v (= L) - virš serijos centro
+        a, b = xs[i0], xs[i1 + 1]
+        w_ = pdfmetrics.stringWidth(rl, "F", size)
+        cx = (a + b) / 2
+        yy = y - 2.5
+        k_ = 0
+        while not free(cx - w_ / 2, cx + w_ / 2, yy) and k_ < 6:
+            k_ += 1; yy = y - 2.5 + away * k_ * (size + 2)
+        TX(cx, yy, rl, size, align="c"); placed.append((cx - w_ / 2, cx + w_ / 2, yy))
     for i, a, b, lab, w_ in smalls:
         yl = y - 2.5
         opts = []
@@ -504,10 +569,13 @@ def vchain(x, ys, ext_to, labels, size=8, bg=False, small=None):
     v152: mažo tarpo užrašas - kraštinio tarpo IŠORĖJE (virš / po grandinės galu, pasuktas kaip kiti), vidurinių -
     šone TOLIAU nuo objekto (horizontalus tekstas su išvadine), vienas kito neliečia."""
     TX = _Tbg if bg else T
+    labels = [dim_lbl(l_) for l_ in labels]
     for y, ex in zip(ys, ext_to):
         sgn = 1 if ex > x else -1
         ext_line(x - 3 * sgn, y, ex - 2 * sgn, y)
     line(x, ys[0], x, ys[-1], 0.3)
+    _sm = [abs(b_ - a_) <= max(14, pdfmetrics.stringWidth(str(l_), "F", size) + 6)
+           for a_, b_, l_ in zip(ys[:-1], ys[1:], labels)]
     out = -1 if all(ex > x for ex in ext_to) else 1          # maži užrašai - į pusę nuo išvadinių
     n = len(labels); top, bot = min(ys), max(ys)
     placed = []                                              # (y0, y1, x0, x1)
@@ -523,7 +591,14 @@ def vchain(x, ys, ext_to, labels, size=8, bg=False, small=None):
             TX(x - 2.5, (a + b) / 2, lab, size, align="c", rot=90)
             placed.append(((a + b) / 2 - w_ / 2, (a + b) / 2 + w_ / 2, x - size, x))
             continue
-        arrowhead(x, a, -90 if a < b else 90); arrowhead(x, b, 90 if a < b else -90)
+        if i > 0 and _sm[i - 1]:                             # v276: tarp dviejų mažų - taškas
+            dim_dot(x, a)
+        else:
+            arrowhead(x, a, -90 if a < b else 90)
+        if i < len(labels) - 1 and _sm[i + 1]:
+            dim_dot(x, b)
+        else:
+            arrowhead(x, b, 90 if a < b else -90)
         # v172 (Rytis: „matmenų linijos sugrūdamos"): kraštinis mažas tarpas - VIRŠ / PO grandinės galu (ne šone, kur
         #  jį kerta išorinio matmens išvadinė); vidurinis - šone, toliau nuo objekto
         end = "top" if i == 0 else ("bot" if i == n - 1 else "side")
@@ -857,7 +932,7 @@ def title_body(x, ty, w, spec, scales, rows_h=TB_ROWS):
     y0 += rows_h[2]
     fr_ = (0.27, 0.16, 0.32, 0.25)
     xx_ = x
-    for f_, (lab, val) in zip(fr_, (("SCALE (DIM. mm)", scales), ("FORMAT", "A3"), ("", ""), ("PROJECTION", ""))):
+    for f_, (lab, val) in zip(fr_, (("SCALE", scales), ("FORMAT", "A3"), ("", ""), ("PROJECTION", ""))):
         cell(xx_, y0, w * f_, rows_h[3], lab, val, 9.5)
         xx_ += w * f_
     rx_ = x + w * (fr_[0] + fr_[1]) + w * fr_[2] / 2               # REV. - etiketė + reikšmė centre
@@ -891,6 +966,7 @@ def title_block(x, w, spec, scales):
     revs = spec.get("revisions", [] if spec.get("blank") else [[spec.get("rev", "A"), "First issue", spec["date"], ""]])
     rvy = BAND_Y
     header(x, rvy, w, "REVISIONS")
+    T(x + w - 3, rvy + 8.5, "ALL DIMENSIONS IN mm UNLESS OTHERWISE SPECIFIED", 5.5, align="r", color=GREY, auto_red=False)   # v276 ISO
     rc = [("REV", 24), ("DESCRIPTION", w - 24 - 58 - 40), ("DATE", 58), ("BY", 40)]
     yy = rvy + 12
     for i, rowv in enumerate([[n for n, _ in rc]] + revs):
@@ -1351,10 +1427,13 @@ class View3D:
 #    rodyklės žiūrėjimo kryptimi ir raidės prie rodyklių (už vaizdo);
 #  - balionai / žymos - STULPELYJE UŽ vaizdo (ir už matmenų), surikiuoti pagal taikinio y (išvadinės nesikerta),
 #    tarpas >= 2 r + 3; ant projekcijos - tik išvadinės taškas.
-def cut_plane(x, y0, y1, letter, look="right", size=10):
-    """vertikali pjūvio plokštuma x per vaizdą y0..y1 (y žemyn): atkarpos virš / po vaizdu, rodyklės `look` kryptimi"""
+def cut_plane(x, y0, y1, letter, look="right", size=10, out=(0, 0)):
+    """vertikali pjūvio plokštuma x per vaizdą y0..y1 (y žemyn): atkarpos virš / po vaizdu, rodyklės `look` kryptimi.
+    v276 (ISO, Rytis „linija ant linijos"): out=(viršuje, apačioje) - žymės UŽ matmenų eilių (ne ant jų), plona
+    jungiančios linijos nėra (ISO 128-40: pakanka storų galų su rodyklėmis; linija kirstų matmenų tekstus)."""
     sg = 1 if look == "right" else -1
-    for ya, yb in ((y0 - 16, y0 - 5), (y1 + 5, y1 + 16)):
+    o0, o1 = out
+    for ya, yb in ((y0 - 16 - o0, y0 - 5 - o0), (y1 + 5 + o1, y1 + 16 + o1)):
         line(x, ya, x, yb, 0.8)
         ye = ya if ya < y0 else yb
         line(x, ye, x + sg * 9, ye, 0.3)

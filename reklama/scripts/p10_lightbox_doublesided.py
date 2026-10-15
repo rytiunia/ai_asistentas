@@ -485,7 +485,7 @@ def sheet1(g, out):
     line(Xt(0), Zt(0), Xt(W), Zt(0), 0.2, HexColor("#888888"), dash=(3, 1.5))
     face_label(Xt(0) - 8, Zt(D / 2 - 6), "A", 8); face_label(Xt(0) - 8, Zt(-D / 2 + 6), "B", 8)
     xs_ = [0] + g["scr_x"] + [W]
-    hchain(Zt(-D / 2 - pr) - D1, [Xt(v) for v in xs_], [Zt(-g["screw_edge"])] * len(xs_),
+    hchain(Zt(-D / 2 - pr) - D1, [Xt(v) for v in xs_], [Zt(-D / 2) if v in (0, W) else Zt(-g["screw_edge"]) for v in xs_],  # v276
            [f"{b - a:.0f}" for a, b in zip(xs_, xs_[1:])], size=K.F_DIM_MAIN)
     vchain(Xt(W + PR) + D1, [Zt(-g["screw_edge"]), Zt(g["screw_edge"])], [Xt(W)] * 2, [f"{2 * g['screw_edge']:g}"],
            size=K.F_DIM_MAIN)
@@ -705,11 +705,13 @@ def frame_view(g, fx, top, nF, title=None, sub=False):
     if g["legB"]:
         hchain(Yv(x0) - D1, [X(x0), X(xr)], [Yv(x0)] * 2, [f"{FW:g}"], size=K.F_DIM_FRAME)
         yl_ = g["legs_y"][1] + fb / 2
-        hchain(Yv(yl_) + 12, [X(xr - fa), X(xf)], [Yv(yl_)] * 2, [f"{g['L_leg']:.0f}"], size=K.F_DIM_FRAME)
+        # v276 ISO (9 sk. - nedubliuoti; 5 sk. - be linijos ant linijos / per tekstą): kojos ilgis - tik BOM (2 x L), lape jo
+        #  matmuo kirto statmens dalių grandinę arba ėjo išilgai statmens / plokštės kraštų; gabaritas 697 + rėmas 594 lieka
         HM(X(x0), X(xf + PLt), Yv(x0) - D2, f"{xf + PLt - x0:g}", Yv(x0), Yv(x0))
     else:
-        hchain(Yv(x0) - D1, [X(x0), X(W), X(xf)], [Yv(x0)] * 3, [f"{W - x0:g}", f"{LL:g}"], size=K.F_DIM_FRAME)
-        HM(X(x0), X(xf), Yv(x0) - D2, f"{g['L_h']:.0f}", Yv(x0), Yv(x0))
+        _pt = min([x0] + [P_["yc"] - P_["h"] / 2 for P_ in g.get("plates_l") or []])   # v276: plokštės viršus (ne išilgai jos krašto)
+        hchain(Yv(x0) - D1, [X(x0), X(W), X(xf)], [Yv(x0), Yv(x0), Yv(_pt)], [f"{W - x0:g}", f"{LL:g}"], size=K.F_DIM_FRAME)
+        HM(X(x0), X(xf), Yv(x0) - D2, f"{g['L_h']:.0f}", Yv(x0), Yv(_pt))
     vchain(X(x0) - D1, [Yv(x0), Yv(x0 + fb), Yv(x0 + FH - fb), Yv(x0 + FH)], [X(x0)] * 4,
            [f"{fb:g}", f"{g['L_v']:.0f}", f"{fb:g}"], size=K.F_DIM_FRAME)
     VM(X(x0) - D2, Yv(x0), Yv(x0 + FH), X(x0), f"{FH:g}")
@@ -717,8 +719,9 @@ def frame_view(g, fx, top, nF, title=None, sub=False):
     vchain(X(xf + PLt) + D1, [Yv(la_), Yv(lb_)], [X(xf)] * 2, [f"{lb_ - la_:g}"], size=K.F_DIM_FRAME)
     if g["legB"]:
         _rp = [x0 + fb] + [v for a_, b_ in g["rear_parts"] for v in (a_, b_)][1:-1] + [x0 + FH - fb]
-        vchain(X(xr - fa) - 10, [Yv(v) for v in _rp], [X(xr - fa)] * len(_rp), [f"{b - a:.0f}" for a, b in zip(_rp, _rp[1:])],
-               size=K.F_DIM_FRAME)
+        # v276 ISO: matmens linija rėmo statmens AŠYJE (be iškeltinių) - ne išilgai rėmo narių kraštų (linija ant linijos)
+        vchain(X(xr - fa / 2), [Yv(v) for v in _rp], [X(xr - fa / 2) + 5] * len(_rp),
+               [f"{b - a:.0f}" for a, b in zip(_rp, _rp[1:])], size=K.F_DIM_FRAME)
     if sub:                                                         # v224: 2 lapas - pjaustymo pozicijos
         K.balloon_auto(X(x0 + FW * 0.3), Yv(x0 + fb / 2), "1.1")
         K.balloon_auto(X(x0 + FW * 0.3), Yv(x0 + FH - fb / 2), "1.2")
@@ -763,7 +766,9 @@ def plate_view_h(g, cx, top, n):
     K.centerline(X(P0["yc"] - L / 2) - 5, Y(0), X(P0["yc"] + L / 2) + 5, Y(0))
     ys_ = [P0["yc"] - L / 2] + [y_ for _, y_ in sorted(P0["hz"], key=lambda q: q[1])] + [P0["yc"] + L / 2]
     yb = Y(Wp / 2)
-    hchain(yb + D1, [X(v) for v in ys_], [yb] * len(ys_), [f"{b - a:.0f}" for a, b in zip(ys_, ys_[1:])], size=K.F_DIM_FRAME)
+    _hzy = {round(y_, 2): Y(z_) for z_, y_ in P0["hz"]}          # v276: iškeltinė - skylės centro linijos tęsinys (už jos galo)
+    hchain(yb + D1, [X(v) for v in ys_], [max(yb, _hzy[round(v, 2)] + 7) if round(v, 2) in _hzy else yb for v in ys_],
+           [f"{b - a:.0f}" for a, b in zip(ys_, ys_[1:])], size=K.F_DIM_FRAME)
     HM(X(ys_[0]), X(ys_[-1]), yb + D2, f"{L:g}", yb, yb)
     zs_ = sorted(set(round(z_, 2) for z_, _ in P0["hz"]))
     xr_ = X(P0["yc"] + L / 2)

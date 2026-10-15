@@ -1805,10 +1805,17 @@ def P6_REAL(g):
         and g["spec"].get("depth_mm", depth) >= 20
 
 
-def extreme(geom, which):
+def extreme(geom, which, near=None):
+    """kraštinis taškas; v276 (ISO, Rytis „linija ant linijos"): plokščiame krašte (keli taškai ±0,5 mm) imamas taškas,
+    ARČIAUSIAI matmens eilės (near: "l" / "r" / "t" / "b"; numatyta - miny/maxy -> kairė, minx -> viršus, maxx -> viršus),
+    kad iškeltinė nebėgtų išilgai raidės krašto (linija ant linijos)."""
     pts = [q for gg in getattr(geom, "geoms", [geom]) for q in gg.exterior.coords]
     f = {"minx": lambda p: p[0], "maxx": lambda p: -p[0], "miny": lambda p: p[1], "maxy": lambda p: -p[1]}[which]
-    return min(pts, key=f)
+    v0 = f(min(pts, key=f))
+    cand = [q for q in pts if f(q) - v0 <= 0.5]
+    near = near or ("l" if which in ("miny", "maxy") else "t")
+    g_ = {"l": lambda p: p[0], "r": lambda p: -p[0], "t": lambda p: p[1], "b": lambda p: -p[1]}[near]
+    return min(cand, key=g_)
 
 
 ALL_G = unary_union([g["geom"] for g in groups] + [g["plate"]["geom"] for g in groups if g["plate"]])
@@ -1882,9 +1889,9 @@ if len(m) > 2:                                   # grandinė, kartojanti bendrą
 # apačia: plokštės raidė + apatinės grupės
 pr = [(0, pmin), (PW, pmax)]
 for g in bot_gs:
-    pr += [(g["lx0"], extreme(g["geom"], "minx")), (g["lx1"], extreme(g["geom"], "maxx"))]
+    pr += [(g["lx0"], extreme(g["geom"], "minx", "b")), (g["lx1"], extreme(g["geom"], "maxx", "b"))]
     if g["plate"]:
-        pr += [(g["x0"], extreme(g["plate"]["geom"], "minx")), (g["x1"], extreme(g["plate"]["geom"], "maxx"))]
+        pr += [(g["x0"], extreme(g["plate"]["geom"], "minx", "b")), (g["x1"], extreme(g["plate"]["geom"], "maxx", "b"))]
 m = chain_marks(pr)
 yb = FVY + fh + 20
 if len(m) > 2:                                   # v172: išvadinės nuo objekto -> hchain žino kryptį (maži tarpai - toliau nuo objekto)
@@ -1929,10 +1936,25 @@ if not any(g["plate"] for g in groups):          # be plokštės: kairiausios gr
     else:
         pr += [(rep[0], rep[1]) for rep in (max(c_, key=lambda q: q[2]) for c_ in cl)]
 m = chain_marks(pr)
+
+
+def first_hit(p, side="l"):
+    """v276 (ISO 129-1 / cad_matmenavimas_ISO.md 5 sk.): iškeltinė baigiasi PIRMAME objekte nuo matmens eilės pusės
+    (ne toliau esančios raidės taške - kitaip bėga per / išilgai kitų raidžių kraštų = linija ant linijos)."""
+    from shapely.geometry import box as _box
+    y = p[1]
+    tol = 1.0 / s1                                    # ±1 pt juosta - lėkšti kreivių viršai irgi „pataikomi"
+    hit = ALL_G.intersection(_box(-1e5, y - tol, 1e5, y + tol))
+    if not hit.is_empty:
+        b_ = hit.bounds
+        return (b_[0] if side == "l" else b_[2], y)
+    return p
+
+
 if len(m) > 2:
-    vchain(FVX - 24, [FV(0, v)[1] for v, _ in m], [FV(*p)[0] for _, p in m],
+    vchain(FVX - 24, [FV(0, v)[1] for v, _ in m], [FV(*first_hit(p))[0] for _, p in m],
            [f"{round(b[0]) - round(a[0])}" for a, b in zip(m[:-1], m[1:])], K.F_DIM_MAIN)
-vchain(FVX - 48, [FVY, FVY + fh], [FV(*pmn_y)[0], FV(*pmx_y)[0]], [f"{PH:.0f}"], K.F_DIM_MAIN)
+vchain(FVX - 48, [FVY, FVY + fh], [FV(*first_hit(pmn_y))[0], FV(*first_hit(pmx_y))[0]], [f"{PH:.0f}"], K.F_DIM_MAIN)
 # dešinė: grupės ant bėgelių
 pr = [(0, pmn_y)]
 for g in groups:
@@ -1940,7 +1962,7 @@ for g in groups:
         pr += [(g["ly0"], extreme(g["geom"], "maxx")), (g["ly1"], extreme(g["geom"], "maxx"))]
 m = chain_marks(pr)
 if len(m) > 2:
-  vchain(FVX + fw + 20, [FV(0, v)[1] for v, _ in m], [FV(*p)[0] for _, p in m],
+  vchain(FVX + fw + 20, [FV(0, v)[1] for v, _ in m], [FV(*first_hit(p, "r"))[0] for _, p in m],
          [f"{round(b[0]) - round(a[0])}" for a, b in zip(m[:-1], m[1:])], K.F_DIM_MAIN)
 # profilių žymos
 for g in groups:
@@ -2715,7 +2737,8 @@ AXIS_X = []                                             # v172: bėgelių ašių
 for g in groups:
     hs_ = sorted([r_ for r_ in g["rails"] if r_["kind"] == "h"], key=lambda r_: r_["y0"])
     car_ = [hs_[0], hs_[-1]] if len(hs_) >= 2 else hs_
-    AV_ = [RV((r_["x0"] + r_["x1"]) / 2, 0)[0] for r_ in g["rails"] if not any(r_ is q for q in car_)]
+    AV_ = [RV((r_["x0"] + r_["x1"]) / 2, 0)[0] + d_ for r_ in g["rails"] if not any(r_ is q for q in car_)
+           for d_ in range(-24, 25, 4)]                   # v276: įstriža žymos išvadinė (±0,36·dy) - tekstas laisvas visoje juostoje
     blk_top, blk_bot, gap_ = _stack(g)
     used = {"up": 0, "dn": 0}
     for k_, r_ in enumerate(car_):
@@ -2801,17 +2824,22 @@ for g in groups:
                 _cx += [_ed + _dx * (10 + 9 * rk) for rk in range(3)]
         _left = any(a_[0] - 2 <= x_ <= a_[0] + w_ + 4 for x_ in _cx)
         # v157: žymos iš skirtingų grupių / krypčių nesidengia - kol kerta jau padėtą žymą, eilė toliau nuo vaizdo
+        # v276 (ISO 128-22 / cad_matmenavimas_ISO.md 5 sk.): išvadinė ĮSTRIŽA (~70°), ne vertikali - nesusilieja su iškeltinėmis,
+        #  matmens liniją kerta statmenai-įstrižai; lentynėlė ir tekstas - už matmenų eilių
+        _off = lambda: (-1 if _left else 1) * 0.36 * abs(ty_ + 1.5 - a_[1])
         for _try in range(8):
-            _bx = (a_[0] - w_ - 2, a_[0] + 2) if _left else (a_[0] - 2, a_[0] + w_ + 2)
+            _ax = a_[0] + _off()
+            _bx = (_ax - w_ - 2, _ax + 2) if _left else (_ax - 2, _ax + w_ + 2)
             if not any(_bx[0] < b_[1] and b_[0] < _bx[1] and abs(ty_ - b_[2]) < 11 for b_ in TAG_BOXES):
                 break
             t_["row"] += 1
             ty_ = (_vt - base_ - 12 * t_["row"]) if up_ else (_vb + base_ + 12 * t_["row"])
+        _ax = a_[0] + _off()
         TAG_BOXES.append((_bx[0], _bx[1], ty_))
-        line(a_[0], a_[1], a_[0], ty_ + 1.5, 0.3)
-        line(a_[0], ty_ + 1.5, a_[0] + (-w_ if _left else w_), ty_ + 1.5, 0.3)
+        line(a_[0], a_[1], _ax, ty_ + 1.5, 0.3)
+        line(_ax, ty_ + 1.5, _ax + (-w_ if _left else w_), ty_ + 1.5, 0.3)
         K.c.saveState(); K.c.setFillColor(black); K.c.circle(a_[0], K.Y(a_[1]), 1.0, stroke=0, fill=1); K.c.restoreState()
-        T(a_[0] + (-2 if _left else 2), ty_, t_["t"], K.F_DIM_FRAME, align="r" if _left else "l")
+        T(_ax + (-2 if _left else 2), ty_, t_["t"], K.F_DIM_FRAME, align="r" if _left else "l")
         if not up_:
             CH_BOT[0] = max(CH_BOT[0], ty_ + 4)
     if g.get("zfr"):                                    # X Z juostos: tik plotis ir aukštis tarp centrų
@@ -3601,8 +3629,9 @@ def draw_acrylic_sheet():
         T(jx_ + 4, Fm(0, Y0)[1] - 6, f"J{ci_ + 1}", 7, font="FB")
     xs_ = sorted(Fm(x_, 0)[0] for x_ in [X0, X1] + [c_["x"] for c_ in AG["cuts"]])
     if AG["cuts"]:
-        hchain(Fm(0, Y0)[1] - 30, xs_, [Fm(0, Y0)[1]] * len(xs_), [f"{abs(b - a) / s_:.0f}" for a, b in zip(xs_, xs_[1:])],
-               size=K.F_DIM_FRAME)
+        _jxs = [Fm(c_["x"], 0)[0] for c_ in AG["cuts"]]   # v276 ISO: ties jungtimi iškeltinė = J linijos tęsinys (ne ant jos)
+        hchain(Fm(0, Y0)[1] - 30, xs_, [Fm(0, Y0)[1] - (12 if any(abs(x_ - j_) < 0.5 for j_ in _jxs) else 0) for x_ in xs_],
+               [f"{abs(b - a) / s_:.0f}" for a, b in zip(xs_, xs_[1:])], size=K.F_DIM_FRAME)
     hdim(xs_[0], xs_[-1], Fm(0, Y0)[1] - 50, f"{X1 - X0:.0f}", Fm(0, Y0)[1], Fm(0, Y0)[1], size=K.F_DIM_FRAME)
     vchain(Fm(X0, 0)[0] + 16, [Fm(0, Y0)[1], Fm(0, Y1)[1]], [Fm(X0, 0)[0]] * 2, [f"{Y1 - Y0:.0f}"], size=K.F_DIM_FRAME)
     # detalių nuorodos
@@ -3649,7 +3678,7 @@ def draw_acrylic_sheet():
         D_ = detail(0, cx_ + 10, cy_, (90, 70), "DETAIL C - RAIL JOINT J1 (PUZZLE)", f"SCALE {'1:1' if dsc == 1 else '1:2'}")
         a_, b_ = D_(cx_, r0["y0"]), D_(cx_, r0["y1"])
         line(a_[0], a_[1] - 8, b_[0], b_[1] + 8, 0.3, HexColor("#C00000"), dash=([6, 2, 1.5, 2], 0))
-        vchain(D_(cx_ - 35, 0)[0] + 16, [D_(0, r0["y0"])[1], D_(0, r0["y1"])[1]], [D_(cx_ - 30, 0)[0]] * 2, [f"{w_:g}"], size=K.F_DIM_FRAME)
+        vchain(D_(cx_ - 35, 0)[0] + 16, [D_(0, r0["y0"])[1], D_(0, r0["y1"])[1]], [D_(cx_ - 35, 0)[0] + 1] * 2, [f"{w_:g}"], size=K.F_DIM_FRAME)   # v276: iškeltinė nuo lango krašto (ne išilgai bėgio krašto)
         hc_ = D_(cx_ + hr_ * 1.6, cy_)
         T(hc_[0], D_(0, r0["y0"])[1] - 8, f"head Ø{2 * hr_:g}, neck {2 * nk_:g}", 6.5, align="c")
         T(hc_[0], D_(0, r0["y1"])[1] + 12, f"clearance {ACRY['joint_clear']:g} all round", 6.5, align="c", color=K.GREY)

@@ -187,7 +187,7 @@ def sheet1(g, out):
     HM(X(0), X(W), Yv(0) - D2, f"{W:g}", Yv(0), Yv(0))
     VM(X(0) - D2, Yv(0), Yv(H), X(0), f"{H:g}")
     xc = (g["logo_x"] + g["logo_w"] / 2) if lg is not None else W / 2
-    K.cut_plane(X(xc), Yv(0) - 30, Yv(H) + 30, "A", look="right")
+    K.cut_plane(X(xc), Yv(0), Yv(H), "A", look="right", out=(46, 30))   # v276: žymė virš matmenų eilių (ne per 750 tekstą)
     K.balloon_auto(X(W * 0.08), Yv(H * 0.92), 1)
     if lg is not None:
         p_ = lg.representative_point()
@@ -581,10 +581,11 @@ def _sheet2(g, out):
             cx_, cy_, r_ = d["cable"]
             circle(X(cx_), Y(cy_), r_ * s, lw=K.HAIR)
             K.balloon_auto(X(cx_), Y(cy_), f"cable Ø{unk(g['cab']['hole_d'])} + grommet", kind="tag")
-        hchain(Y(0) - D1, [X(0), X(bx0), X(bx1), X(Fw_)], [Y(by0)] * 4,
+        # v276 ISO: iškeltinė - iki PIRMO kontūro taško (atlanko kampo), ne išilgai išpjovos krašto (linija ant linijos)
+        hchain(Y(0) - D1, [X(0), X(bx0), X(bx1), X(Fw_)], [Y(by0), Y(0), Y(0), Y(by0)],
                [f"{bx0:g}", f"{bx1 - bx0:g}", f"{Fw_ - bx1:g}"], size=K.F_DIM_FRAME)
         HM(X(0), X(Fw_), Y(0) - D2, f"{Fw_:g}", Y(by0), Y(by0))
-        vchain(X(Fw_) + D1, [Y(0), Y(by0), Y(by1), Y(Fh_)], [X(bx1)] * 4, [f"{by0:g}", f"{by1 - by0:g}", f"{Fh_ - by1:g}"],
+        vchain(X(Fw_) + D1, [Y(0), Y(by0), Y(by1), Y(Fh_)], [X(bx1), X(Fw_), X(Fw_), X(bx1)], [f"{by0:g}", f"{by1 - by0:g}", f"{Fh_ - by1:g}"],
                size=K.F_DIM_FRAME)
         VM(X(Fw_) + D2 + 20, Y(0), Y(Fh_), X(Fw_), f"{Fh_:g}")
         hy0 = d["holes"][-1][1]                                     # apatinio atlanko skylės - grandinė apačioje

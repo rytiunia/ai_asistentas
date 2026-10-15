@@ -716,9 +716,12 @@ def sheet1(g, out):
             rect(a2, Yv(P["yc"] - P["h"] / 2), P["t"] * s, P["h"] * s, fill=COL_FL, lw=0.1)
         for L in g["legs"]:
             K.centerline(X(Wd - 20), Yv(L["y"]), X(g["PROJ"] + 8), Yv(L["y"]))
-        xs_ = sorted([X(0), X(g["xb"]), X(g["xf"]), X(g["PROJ"])])
-        labs = [f"{g['xb']:g}", f"{LL:g}", f"{g['plates'][0]['t']:g}"]
-        hchain(Yv(Hd) + D1, xs_, [Yv(Hd)] * 4, labs[::-1] if mirror else labs, size=K.F_DIM_FRAME)
+        # v276 (ISO, Rytis): grandinė nuo STIKLO krašto: stiklas | tarpas iki plokštės | plokštė (= gabaritas); kojos ilgis - BOM / lapas 2
+        #  stiklo plotis jau viršuje (1550) - apačioje nekartojamas: tik tarpas iki plokštės + plokštė, gabaritas už jų
+        xs_ = sorted([X(Wd), X(g["xf"]), X(g["PROJ"])])
+        labs = [f"{g['xf'] - Wd:g}", f"{g['plates'][0]['t']:g}"]
+        hchain(Yv(Hd) + D1, xs_, [Yv(Hd)] * 3, labs[::-1] if mirror else labs, size=K.F_DIM_FRAME)
+        xs_ = sorted([X(0), X(g["PROJ"])])
         lg = g.get("logo_r") is not None                           # v145: grandinė arčiausiai, gabaritas už jos
         HM(xl, xr_, Yv(0) - (D2 if lg else D1), f"{Wd:g}", Yv(0), Yv(0))
         HM(xs_[0], xs_[-1], Yv(Hd) + D2, f"{g['PROJ']:g}", Yv(Hd), Yv(Hd))
@@ -743,7 +746,7 @@ def sheet1(g, out):
         vchain(XA(g["PROJ"]) + 16, [Yv(0), Yv(ax), Yv(Hd - ax), Yv(Hd)], [XA(Wd)] + [XA(g["PROJ"])] * 2 + [XA(Wd)],
                [f"{ax:g}", f"{Hd - 2 * ax:g}", f"{ax:g}"], size=K.F_DIM_FRAME)
     xcut = Wd * 0.1
-    K.cut_plane(XA(xcut), Yv(0), Yv(Hd), "A", look="right")
+    K.cut_plane(XA(xcut), Yv(0), Yv(Hd), "A", look="right", out=(D2 + 8, D2 + 8))   # v276: žymės už matmenų eilių
     view_title(XA(g["PROJ"] / 2), top - 84, "FRONT VIEW - SIDE A", sl)
     # vaizdas iš sienos (gręžimo schema)
     sxc = XA(g["PROJ"]) + 118 + (40 if g["covers"] else 0)
@@ -785,9 +788,10 @@ def sheet1(g, out):
            [f"{b - a:g}" for a, b in zip(yr_, yr_[1:])], size=K.F_DIM_FRAME)
     VM(Xs(ex_) + D2, Yv(pl_top), Yv(pl_bot), Xs(PW2), f"{pl_bot - pl_top:g}")
     yl_ = sorted(set([0, Hd, pl_top, pl_bot]))                   # kairėje: plokštė nuo stiklo kraštų + stiklo aukštis
-    vchain(Xs(-ex_) - D1, [Yv(v) for v in yl_], [Xs(-TOT / 2) if v in (0, Hd) else Xs(-PW2) for v in yl_],
-           [f"{b - a:g}" for a, b in zip(yl_, yl_[1:])], size=K.F_DIM_FRAME)
-    VM(Xs(-ex_) - D2, Yv(0), Yv(Hd), Xs(-TOT / 2), f"{Hd:g}")
+    if len(yl_) > 2:                                              # v276 ISO: plokštė = stiklo aukštis -> kairėje nedubliuojama
+        vchain(Xs(-ex_) - D1, [Yv(v) for v in yl_], [Xs(-TOT / 2) if v in (0, Hd) else Xs(-PW2) for v in yl_],
+               [f"{b - a:g}" for a, b in zip(yl_, yl_[1:])], size=K.F_DIM_FRAME)
+        VM(Xs(-ex_) - D2, Yv(0), Yv(Hd), Xs(-TOT / 2), f"{Hd:g}")
     yw = g["scr_wall"][len(g["scr_wall"]) // 2]
     nh = sum(len(P["holes"]) for P in g["plates"])
     P0 = g["plates"][0]
@@ -843,10 +847,8 @@ def sheet1(g, out):
         line(Xa(0), ya(yl - 8), Xa(dz * D / 2), ya(yl - 8 - D / 2 / math.tan(math.radians(32.5))), 0.2,
              HexColor("#C9A000"), dash=(2, 1.5))
     face_label(Xa(-TOT / 2) + 2, ya(0) - 10, "A", 9); face_label(Xa(TOT / 2) - 2, ya(0) - 10, "B", 9)
-    hchain(ya(Hd) + D1, [Xa(-TOT / 2), Xa(-D / 2), Xa(-fb / 2), Xa(fb / 2), Xa(D / 2), Xa(TOT / 2)], [ya(Hd)] * 6,
-           [f"{tf:g}", f"{(D - fb) / 2:g}", f"{fb:g}", f"{(D - fb) / 2:g}", f"{tf:g}"], size=K.F_DIM_FRAME)
-    _aa_x = 16 if TOT * s5 < 70 else 0
-    HM(Xa(-TOT / 2), Xa(TOT / 2), ya(Hd) + D2 + 22 + _aa_x, f"{TOT:g}", ya(Hd), ya(Hd))   # v272: siauras pjūvis - grandinės žymos laiptuotos
+    # v276 ISO (9 sk., nedubliuoti): pjūvyje - tik gabaritai; stiklas / tarpai / rėmas - DETAIL B ir BOM
+    HM(Xa(-TOT / 2), Xa(TOT / 2), ya(Hd) + D1, f"{TOT:g}", ya(Hd), ya(Hd))
     VM(Xa(-TOT / 2) - 24, ya(0), ya(Hd), Xa(-TOT / 2), f"{Hd:g}")
     K.balloon_side([(Xa(zs8) + 3.5 * s5, ya(ov - 0.8), 8), (Xa(fb / 2), ya(ov + tb + fa * 0.7), 1),
                     (Xa(TOT / 2), ya(Hd * 0.35), 5), (Xa(11), ya(yl - 4), 7),
@@ -861,7 +863,7 @@ def sheet1(g, out):
     # v254 (Rytis 2026-10-15: „exploded view svarbesnis nei top view - top view po front view, exploded - didesnis plotas";
     #  taisyklė kaip P10_lightbox_singlesided v232): kairėje - TOP VIEW tiesiai po FRONT VIEW A (ta pati x skalė), po juo 3D A / B;
     #  dešinėje iki lapo krašto - EXPLODED VIEW
-    y3 = max(Yv(Hd), ya(Hd) + _aa_x) + D2 + 22 + 30
+    y3 = max(Yv(Hd), ya(Hd)) + D2 + 22 + 30
     P0 = g["plates"][0]
     tx0 = fxA
     tyc = y3 + 30 + max(P0["w"] / 2, D / 2 + tf) * s
@@ -1035,7 +1037,8 @@ def end_view(g, cx, Yv, s, holes=False):
         HM(Zs(-PW2), Zs(PW2), Yv(ytop) - D2 - 10, f"{2 * PW2:g}", Yv(pl_top), Yv(pl_top))
         cab_y = [P["cable"][1] for P in g["plates"] if P["cable"]]
         yr_ = sorted(set(list(edges) + hyv + cab_y))
-        vchain(Zs(ex_) + D1, [Yv(v) for v in yr_], [Zs(PW2) if round(v, 2) in edges else (Zs(0) if v in cab_y else Zs(hz[-1]))
+        # v276 ISO: skylių eilių iškeltinė - centro linijos TĘSINYS (prasideda už jos galo), ne ant jos
+        vchain(Zs(ex_) + D1, [Yv(v) for v in yr_], [Zs(PW2) if round(v, 2) in edges else (Zs(PW2) + 2 if v in cab_y else Zs(PW2 + 6) + 1)
                                                      for v in yr_], [f"{round(b - a, 1):g}" for a, b in zip(yr_, yr_[1:])],
                size=K.F_DIM_FRAME)
         VM(Zs(ex_) + D2, Yv(pl_top), Yv(pl_bot), Zs(PW2), f"{pl_bot - pl_top:g}")
@@ -1048,9 +1051,8 @@ def end_view(g, cx, Yv, s, holes=False):
     # kairėje: plokštės nuo rėmo išorės + rėmo aukštis
     yl_ = sorted(set([x0, x0 + FH, pl_top, pl_bot]))
     # v251: grandinė (su mažais 3 mm tarpais) - IŠORĖJE, rėmo matmuo - viduje (kitaip rėmo iškeliamosios kerta „3")
-    vchain(Zs(-ex_) - D2, [Yv(v) for v in yl_], [Zs(-fb / 2) if v in (x0, x0 + FH) else Zs(-PW2) for v in yl_],
-           [f"{b - a:g}" for a, b in zip(yl_, yl_[1:])], size=K.F_DIM_FRAME)
-    VM(Zs(-ex_) - D1, Yv(x0), Yv(x0 + FH), Zs(-fb / 2), f"{FH:g} (frame)")
+    # v276 ISO: tik rėmo aukštis (plokštė - dešinėje, ašis bendra) - jokių „3" ant plokštės / rėmo kraštų, jokio dubliavimo
+    VM(Zs(-ex_) - D1, Yv(x0), Yv(x0 + FH), Zs(-D / 2) - 1, f"{FH:g} (frame)")      # iškeltinė iki korpuso krašto (ne per punktyrą)
     P0 = g["plates"][0]
     nh = sum(len(P["holes"]) for P in g["plates"])
     tags = [(Zs(PW2), Yv(P0["yc"] - P0["h"] / 2 + 6), "1A")]
@@ -1096,9 +1098,10 @@ def frame_view(g, fx, ytop, n, sub=False):
             for lx in led_x:
                 rect(X(lx - 11), Yv(yr - 8 if up else yr), 22 * s, 8 * s, fill=COL_LED, lw=0.1)
         K.set_view(False)
-        hchain(Yv(x0) - D1, [X(x0), X(g["xb"]), X(g["xf"]), X(g["xf"] + FLt)], [Yv(x0)] * 2 + [Yv(x0 + fa / 2 - FLh / 2)] * 2,
+        _fl_top = min([x0 + fa / 2 - FLh / 2] + [P_["yc"] - P_["h"] / 2 for P_ in g.get("plates") or []])   # v276: iškeltinė iki
+        hchain(Yv(x0) - D1, [X(x0), X(g["xb"]), X(g["xf"]), X(g["xf"] + FLt)], [Yv(x0)] * 2 + [Yv(_fl_top)] * 2,  # VIRŠUTINIO krašto
                [f"{g['xb'] - x0:g}", f"{LL:g}", f"{FLt:g}"], size=K.F_DIM_FRAME)
-        HM(X(x0), X(g["xf"]), Yv(x0) - D2 - 14, f"{g['L_h']:g}", Yv(x0), Yv(x0))
+        HM(X(x0), X(g["xf"]), Yv(x0) - D2 - 14, f"{g['L_h']:g}", Yv(x0), Yv(min(x0, _fl_top)))   # v276: ne išilgai plokštės krašto
         vchain(X(x0) - D1, [Yv(x0), Yv(x0 + fa), Yv(x0 + FH - fa), Yv(x0 + FH)], [X(x0)] * 4,
                [f"{fa:g}", f"{g['L_v']:g}", f"{fa:g}"], size=K.F_DIM_FRAME)
         VM(X(x0) - D2, Yv(x0), Yv(x0 + FH), X(x0), f"{FH:g}")

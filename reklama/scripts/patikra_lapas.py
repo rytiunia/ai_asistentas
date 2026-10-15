@@ -233,6 +233,63 @@ def check(pdf, band_y=None, skips=(), verbose=True):
                     errs.append(f"IŠVADINĖ KERTA LINIJĄ: ({a[0]:.0f}, {a[1]:.0f}) -> ({a[2]:.0f}, {a[3]:.0f})")
             if len(dimx) > 1:
                 errs.append(f"IŠVADINĖ KERTA {len(dimx)} MATMENŲ LINIJAS: ({a[0]:.0f}, {a[1]:.0f}) -> ({a[2]:.0f}, {a[3]:.0f})")
+        # 6. v276 (Rytis 2026-10-15, ISO 129-1 / references/cad_matmenavimas_ISO.md 5 sk.: „vėl linija ant linijos, žmogaus akiai tai
+        #  labai klaidinanti informacija") - LINIJA ANT LINIJOS: matmenų / iškeltinių linijų (0,18-0,31, ir pilkos) atkarpa, sutampanti
+        #  (ta pati tiesė ±0,6 pt, persidengia > 2 pt) su KITO objekto linija (kitas matmuo, pjūvio žymė, kontūras, išvadinė)
+        allseg = []
+        for d in vis:
+            r_ = d["rect"]
+            if r_.y0 >= by - 1 or r_.y1 < top or d["type"] not in ("s", "fs") or r_.width > pg.rect.width * 0.8:
+                continue
+            for sg in _segs(d):
+                if math.hypot(sg[2] - sg[0], sg[3] - sg[1]) > 2:
+                    allseg.append((sg, abs(d.get("width") or 0), id(d), bool(str(d.get("dashes") or "").strip("[] 0"))))
+        dimsegs = [(sg, w, did) for sg, w, did, ds in allseg if 0.18 <= w <= 0.31 and not ds   # matmenų linijos niekada nebūna punktyrinės
+                   and math.hypot(sg[2] - sg[0], sg[3] - sg[1]) >= 7]                         # < 7 pt - skylių centro kryželiai, ne matmenys
+        allseg = [(sg, w, did) for sg, w, did, ds in allseg]
+        def _coll(a, b):
+            if abs(a[1] - a[3]) < 0.3 and abs(b[1] - b[3]) < 0.3 and abs(a[1] - b[1]) < 0.6:
+                o = 0
+            elif abs(a[0] - a[2]) < 0.3 and abs(b[0] - b[2]) < 0.3 and abs(a[0] - b[0]) < 0.6:
+                o = 1
+            else:
+                return 0
+            a0, a1 = sorted((a[o], a[o + 2])); b0, b1 = sorted((b[o], b[o + 2]))
+            return min(a1, b1) - max(a0, b0)
+        seen = set()
+        for sg, w, did in dimsegs:
+            if inskip(fitz.Rect(min(sg[0], sg[2]), min(sg[1], sg[3]), max(sg[0], sg[2]) + 0.1, max(sg[1], sg[3]) + 0.1)):
+                continue
+            for sg2, w2, did2 in allseg:
+                if did2 == did:
+                    continue
+                ov = _coll(sg, sg2)
+                if ov > 2:
+                    k_ = (round(min(sg[0], sg2[0])), round(min(sg[1], sg2[1])))
+                    if k_ not in seen:
+                        seen.add(k_)
+                        errs.append(f"LINIJA ANT LINIJOS: ({sg[0]:.0f}, {sg[1]:.0f})-({sg[2]:.0f}, {sg[3]:.0f}) x "
+                                    f"({sg2[0]:.0f}, {sg2[1]:.0f})-({sg2[2]:.0f}, {sg2[3]:.0f}) [{w:.2f}/{w2:.2f} pt], {ov:.0f} pt")
+        # 7. v276: MATMENŲ LINIJOS KERTASI (dvi tamsios matmenų linijos, statmenos, kertasi ne galuose)
+        dl = [sg for sg, w, d in lines if 0.24 <= w <= 0.31 and max(abs(sg[0] - sg[2]), abs(sg[1] - sg[3])) > 8
+              and (abs(sg[0] - sg[2]) < 0.2 or abs(sg[1] - sg[3]) < 0.2)]
+        for i in range(len(dl)):
+            for j in range(i + 1, len(dl)):
+                if _cross(dl[i], dl[j]):
+                    a_, b_ = dl[i], dl[j]
+                    errs.append(f"MATMENYS KERTASI: ({a_[0]:.0f}, {a_[1]:.0f})-({a_[2]:.0f}, {a_[3]:.0f}) x ({b_[0]:.0f}, {b_[1]:.0f})-({b_[2]:.0f}, {b_[3]:.0f})")
+        # 8. v276: RODYKLĖS PERSIDENGIA - mažos užpildytos rodyklės (matmenų, pjūvio žymių) viena ant kitos (> 40 % ploto)
+        arr = [fitz.Rect(d["rect"]) for d in vis if d["type"] == "f" and len(d["items"]) == 3 and d.get("fill")
+               and max(d["fill"]) < 0.15
+               and all(it[0] == "l" for it in d["items"]) and d["rect"].width < 9 and d["rect"].height < 9
+               and d["rect"].y0 < by - 1 and d["rect"].y1 > top]
+        for i in range(len(arr)):
+            for j in range(i + 1, len(arr)):
+                a_, b_ = arr[i], arr[j]
+                ia = a_ & b_
+                if not ia.is_empty and ia.width * ia.height > 0.4 * min(a_.width * a_.height, b_.width * b_.height) \
+                        and not (abs(a_.x0 - b_.x0) < 0.05 and abs(a_.y0 - b_.y0) < 0.05) and not inskip(a_):
+                    errs.append(f"RODYKLĖS PERSIDENGIA: ({a_.x0:.0f}, {a_.y0:.0f})")
         errs = sorted(set(errs))
         total += len(errs)
         if verbose:
