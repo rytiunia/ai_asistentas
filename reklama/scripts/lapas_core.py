@@ -10,6 +10,7 @@ antraštė, 3D. Naudojimas:
     K.save(out_pdf)
 """
 import math
+import re
 import os
 from functools import reduce
 
@@ -806,13 +807,62 @@ def bom_table(x, y, w, h, rows_, title="BILL OF MATERIALS",
     rect(x, y + 12, w, h - 12, lw=0.6)
 
 
+TB_ROWS = (30, 24, 30, 24, 30)
+
+
+def qty_txt(q):
+    """v248: kiekis juodam blokui - „5 pcs." (tuščias, jei nenurodytas)"""
+    q = "" if q in (None, "", "?") else str(q).strip()
+    return q if not q or re.search(r"pcs|vnt|szt", q, re.I) else f"{q} pcs."
+
+
+def title_body(x, ty, w, spec, scales, rows_h=TB_ROWS):
+    """v248 (Rytis 2026-10-15, pavyzdys EXLANTIX): antraštės lentelė nuo CLIENT žemyn. Apačioje: DATE | DIDELIS JUODAS blokas
+    su kiekiu („5 pcs.", balta) | DIDELĖ „Sheet 1 / 1". DRAWN / CHECKED nebėra; SHEET - apačioje; REV. - eilutėje su SCALE."""
+    tbh = sum(rows_h)
+    y0 = ty
+    cell(x, y0, w, rows_h[0], "CLIENT", spec.get("client", ""), 14, "FB"); y0 += rows_h[0]
+    cell(x, y0, w, rows_h[1], "TITLE", spec.get("title", ""), 9.5); y0 += rows_h[1]
+    _on = spec.get("order_no", "")                      # Rytis 2026-10-07: formatas ALT0000_00.00_RS, paryškintas
+    if (unk(_on) or not str(_on).strip()) and not spec.get("blank"):
+        _on = "ALT0000_00.00_RS"
+    cell(x, y0, w * 0.4, rows_h[2], "ORDER NO.", _on, 14, "FB")
+    cell(x + w * 0.4, y0, w * 0.6, rows_h[2], "FILE / DRAWING NO.", spec.get("drawing_no", spec.get("file_code", "")), 12)
+    y0 += rows_h[2]
+    fr_ = (0.27, 0.16, 0.32, 0.25)
+    xx_ = x
+    for f_, (lab, val) in zip(fr_, (("SCALE (DIM. mm)", scales), ("FORMAT", "A3"), ("", ""), ("PROJECTION", ""))):
+        cell(xx_, y0, w * f_, rows_h[3], lab, val, 9.5)
+        xx_ += w * f_
+    rx_ = x + w * (fr_[0] + fr_[1]) + w * fr_[2] / 2               # REV. - etiketė + reikšmė centre
+    T(rx_ - 3, y0 + rows_h[3] / 2 + 3.5, "REV.", F_INFO + 1, color=GREY, align="r", auto_red=False)
+    T(rx_ + 3, y0 + rows_h[3] / 2 + 4, "" if spec.get("blank") else str(spec.get("rev", "A")), 10)
+    px_, py_ = x + w * (1 - fr_[-1] / 2), y0 + 15
+    poly([(px_ - 13, py_ - 3), (px_ - 4, py_ - 5.5), (px_ - 4, py_ + 5.5), (px_ - 13, py_ + 3)], lw=0.5)
+    c.saveState(); c.setLineWidth(0.5)
+    c.circle(px_ + 6, Y(py_), 5.5); c.circle(px_ + 6, Y(py_), 3); c.restoreState()
+    line(px_ - 15, py_, px_ + 13, py_, 0.2, black, dash=([4, 1, 1, 1], 0))
+    y0 += rows_h[3]
+    h4 = rows_h[4]
+    cell(x, y0, w * 0.27, h4, "DATE", spec.get("date", ""), 9.5)
+    rect(x + w * 0.27, y0, w * 0.31, h4, fill=HexColor("#1B1C1B"), lw=0.4)          # kiekis - juodas blokas
+    q_ = qty_txt(spec.get("qty"))
+    if q_:
+        T(x + w * (0.27 + 0.31 / 2), y0 + h4 / 2 + 6.5, q_, 19, align="c", color=white, fit=w * 0.31 - 8, fit_min=10)
+    rect(x + w * 0.58, y0, w * 0.42, h4, lw=0.4)
+    sh_ = "" if spec.get("blank") else str(spec.get("sheet", "1 / 1")).strip()
+    T(x + w * 0.79, y0 + h4 / 2 + 6.5, f"Sheet {sh_}" if sh_ else "Sheet", 18, align="c", fit=w * 0.42 - 8, fit_min=10)
+    rect(x, ty, w, tbh, lw=1.0)
+
+
 def title_block(x, w, spec, scales):
     """Rytis 2026-10-07 (pavyzdys): CLIENT - užsakovas (pvz. BrandFactory), didelis paryškintas ORDER NO.,
-    FILE / DRAWING NO. - užsakovo užsakymo Nr. (`drawing_no`), įmonės pavadinimo langelio apačioje NĖRA."""
-    rows_h = (30, 24, 30, 24, 28)
+    FILE / DRAWING NO. - užsakovo užsakymo Nr. (`drawing_no`), įmonės pavadinimo langelio apačioje NĖRA.
+    v248: apatinė dalis - title_body (juodas kiekio blokas, didelė Sheet)."""
+    rows_h = TB_ROWS
     tbh = sum(rows_h)
     ty = IY1 - tbh
-    revs = spec.get("revisions", [[spec.get("rev", "A"), "First issue", spec["date"], ""]])
+    revs = spec.get("revisions", [] if spec.get("blank") else [[spec.get("rev", "A"), "First issue", spec["date"], ""]])
     rvy = BAND_Y
     header(x, rvy, w, "REVISIONS")
     rc = [("REV", 24), ("DESCRIPTION", w - 24 - 58 - 40), ("DATE", 58), ("BY", 40)]
@@ -836,32 +886,7 @@ def title_block(x, w, spec, scales):
         for _, cw_ in rc:
             rect(xx, yy, cw_, ty - yy, lw=0.35); xx += cw_
     rect(x, rvy + 12, w, ty - rvy - 12, lw=0.6)
-    y0 = ty
-    cell(x, y0, w, rows_h[0], "CLIENT", spec["client"], 14, "FB"); y0 += rows_h[0]
-    cell(x, y0, w, rows_h[1], "TITLE", spec["title"], 9.5); y0 += rows_h[1]
-    _on = spec.get("order_no", "")                      # Rytis 2026-10-07: formatas ALT0000_00.00_RS, paryškintas
-    if unk(_on) or not str(_on).strip():
-        _on = "ALT0000_00.00_RS"
-    cell(x, y0, w * 0.4, rows_h[2], "ORDER NO.", _on, 14, "FB")
-    cell(x + w * 0.4, y0, w * 0.6, rows_h[2], "FILE / DRAWING NO.", spec.get("drawing_no", spec.get("file_code", "")), 12)
-    y0 += rows_h[2]
-    fr_ = (0.27, 0.16, 0.16, 0.16, 0.25)
-    xx_ = x
-    for f_, (lab, val) in zip(fr_, (("SCALE (DIM. mm)", scales), ("FORMAT", "A3"), ("SHEET", spec.get("sheet", "1 / 1")),
-                                    ("REV.", spec.get("rev", "A")), ("PROJECTION", ""))):
-        cell(xx_, y0, w * f_, rows_h[3], lab, val, 9.5)
-        xx_ += w * f_
-    px_, py_ = x + w * (1 - fr_[-1] / 2), y0 + 15
-    poly([(px_ - 13, py_ - 3), (px_ - 4, py_ - 5.5), (px_ - 4, py_ + 5.5), (px_ - 13, py_ + 3)], lw=0.5)
-    c.saveState(); c.setLineWidth(0.5)
-    c.circle(px_ + 6, Y(py_), 5.5); c.circle(px_ + 6, Y(py_), 3); c.restoreState()
-    line(px_ - 15, py_, px_ + 13, py_, 0.2, black, dash=([4, 1, 1, 1], 0))
-    y0 += rows_h[3]
-    cell(x, y0, w * 0.22, rows_h[4], "DRAWN", spec.get("drawn", ""), 9.5)
-    cell(x + w * 0.22, y0, w * 0.22, rows_h[4], "CHECKED", spec.get("checked", ""), 9.5)
-    cell(x + w * 0.44, y0, w * 0.22, rows_h[4], "DATE", spec["date"], 9.5)
-    cell(x + w * 0.66, y0, w * 0.34, rows_h[4], "", "", 9.5)
-    rect(x, ty, w, tbh, lw=1.0)
+    title_body(x, ty, w, spec, scales, rows_h)
 
 
 # ------------------------------------------------------------------ P6 tipinis pjūvis (juostai)

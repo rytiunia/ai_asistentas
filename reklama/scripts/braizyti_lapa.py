@@ -1387,7 +1387,7 @@ def cell(x, y, w, h, label, val, size=8.5, font="F"):
 
 
 # v13 (Rytis 2026-10-08): antraštė - TOKIA PAT kaip lapas_core.title_block (naujas stilius visuose lapuose)
-rows_h = (30, 24, 30, 24, 28)
+rows_h = K.TB_ROWS
 tbh = sum(rows_h)
 ty = IY1 - tbh
 revs = spec.get("revisions", [[spec.get("rev", "A"), "First issue", spec["date"], ""]])
@@ -1409,30 +1409,9 @@ while yy + 0.5 < ty:
         rect(xx, yy, w, hh_, lw=0.35); xx += w
     yy += hh_
 rect(RX0, rvy + 12, tw, ty - rvy - 12, lw=0.6)
-y0 = ty
-cell(RX0, y0, tw, rows_h[0], "CLIENT", spec["client"], 14, "FB"); y0 += rows_h[0]
-cell(RX0, y0, tw, rows_h[1], "TITLE", spec["title"], 9.5); y0 += rows_h[1]
-_on = spec.get("order_no") or "ALT0000_00.00_RS"
-cell(RX0, y0, tw * 0.4, rows_h[2], "ORDER NO.", _on, 14, "FB")
-cell(RX0 + tw * 0.4, y0, tw * 0.6, rows_h[2], "FILE / DRAWING NO.", spec.get("drawing_no", spec["file_code"]), 12)
-y0 += rows_h[2]
-fr_ = (0.27, 0.16, 0.16, 0.16, 0.25)
-xx_ = RX0
-for f_, (lab, val) in zip(fr_, (("SCALE (DIM. mm)", f"1:{SC1} / 1:{SC2}"), ("FORMAT", "A3"), ("SHEET", spec.get("sheet", "1 / 1")),
-                                ("REV.", spec.get("rev", "A")), ("PROJECTION", ""))):
-    cell(xx_, y0, tw * f_, rows_h[3], lab, val, 9.5)
-    xx_ += tw * f_
-px_, py_ = RX0 + tw * (1 - fr_[-1] / 2), y0 + 15
-poly([(px_ - 13, py_ - 3), (px_ - 4, py_ - 5.5), (px_ - 4, py_ + 5.5), (px_ - 13, py_ + 3)], lw=0.5)
-c.saveState(); c.setLineWidth(0.5)
-c.circle(px_ + 6, Y(py_), 5.5); c.circle(px_ + 6, Y(py_), 3); c.restoreState()
-line(px_ - 15, py_, px_ + 13, py_, 0.2, black, dash=([4, 1, 1, 1], 0))
-y0 += rows_h[3]
-cell(RX0, y0, tw * 0.22, rows_h[4], "DRAWN", spec.get("drawn", ""), 9.5)
-cell(RX0 + tw * 0.22, y0, tw * 0.22, rows_h[4], "CHECKED", spec.get("checked", ""), 9.5)
-cell(RX0 + tw * 0.44, y0, tw * 0.22, rows_h[4], "DATE", spec["date"], 9.5)
-cell(RX0 + tw * 0.66, y0, tw * 0.34, rows_h[4], "", "", 9.5)
-rect(RX0, ty, tw, tbh, lw=1.0)
+_kc = K.c; K.c = c                                 # v248: bendra antraštės apačia (juodas kiekio blokas, didelė Sheet)
+K.title_body(RX0, ty, tw, dict(spec, drawing_no=spec.get("drawing_no", spec.get("file_code", ""))), f"1:{SC1} / 1:{SC2}", rows_h)
+K.c = _kc
 line(IX0, BY0 - 6, IX1, BY0 - 6, 0.7)   # juostos skirtukas
 
 c.save()
