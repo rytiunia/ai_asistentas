@@ -39,4 +39,14 @@ Leapmotor NETAIKOMAS - čia 12 V 1,5 m + TRAFO BOX, Rytis).
   (buv. P6_8mm). Poz. 10 dokumentas - **2 lapai**: 2 lapas „ACRYLIC FRAME - PARTS & JOINTS" (R1-R4, V1-V5, J1, DETAIL C / D,
   SECTION E, blokas „WHY / WHERE THE FRAME JOINS", dalių BOM); 1 lape nuorodos C / D.
   Poz. 30: LED moduliai matomi pjūvyje A-A ir DETAIL B; exploded view - dešinė kolona per visą aukštį, top view - 2 eilėje.
-- Neatsakyta: poz. 20 profilis (P6 netinka - štrichas ~16,2, dugnas -3 iš kiekvienos pusės -> ~10 < 16).
+- 2026-10-15 (v235-v246, Rytis):
+  - Poz. 20 = **P10** (30 mm balta plexi blokas, šonai RAL 7021, Alu 1,5 dugnelis įleistas į bloką) ant skaidraus akrilinio
+    rėmo 20; gylis 30 + 20 = 50; `spec_LEAP26-06002.json` (`"front": "P10"`). Raidės mažos (113) -> **VIENAS bėgelis**
+    (nuo 55 mm, gavosi 60); laidų griovelis rėme 6 x 3,5 + ovalios skylės kiaurai (kaip etalone Boots ALT6739).
+  - Akriliniame rėme raidės prisukamos per **atskiras įleistas skyles** (Ø5 kiaurai + Ø12 x 15 iš galo veržlei);
+    smeigės pagal raidės formą (kvadratas 4, trikampis 3, maža raidė - iki 3), arti centerline, ant bėgelio - viena
+    horizontali linija; P tvirtinama kaip R; smeigės ir statmenyse (poz. 10 L). Poz. 10: 36 smeigės, poz. 20: 24.
+  - P10 LED griovelis: simuliacija `griovelis_sim.py`, variantas B `griovelis_b.py` (`poz20/`); balti (atspindintys) šonai
+    viduje tolygumui svarbiausi.
+- Neatsakyta: P10 LED griovelio gylis; simbolio LED - dvi tiesios eilės ar žiedas; ar ~8 mm Alu dugnelio juostelė
+  siauruose štrichuose tinka smeigei privirinti; poz. 30 kabelio skylė (y, Ø, tarpinė).
