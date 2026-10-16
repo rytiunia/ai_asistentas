@@ -1440,6 +1440,47 @@ for g in groups:
     for fr_ in g.get("_vframes", []):
         place_verticals(g, LET_V, es, fr_)
 
+# v297 (Rytis 2026-10-16, EXLANTIX: „E brūkšnelis kabo ore, taip negalima, kiekviena dalis turi tvirtintis prie rėmo"):
+#  KIEKVIENA raidės / elemento dalis turi liesti rėmą. Dalis be rėmo -> statmuo per jos vidurį tarp artimiausių bėgelių
+#  (viršuje ir apačioje); jei bėgelis tik iš vienos pusės - T forma (v193): statmuo nuo bėgelio per visą dalį (iki krašto - 10).
+#  Neišsprendus - lapo klaida (K.SHEET_ERR -> patikra 18 KABO ORE).
+def _rail_geom(r_):
+    return Polygon(r_["poly"]) if r_.get("poly") else sbox(r_["x0"], r_["y0"], r_["x1"], r_["y1"])
+
+
+if MOUNTING != "none":
+    for g in groups:
+        if g["plate"] or not g["rails"]:
+            continue
+        t_v = float(g["rsz"]["size"].lower().split("x")[0]) if g.get("rsz") else 30.0
+        for o in g["letters"]:
+            geo_ = o["geom"]
+            if any(geo_.intersects(_rail_geom(r_)) for r_ in g["rails"]):
+                continue
+            xc_ = geo_.representative_point().x
+            c_ = geo_.centroid
+            if geo_.contains(Point(c_.x, c_.y)):
+                xc_ = c_.x
+            hs_ = [r_ for r_ in g["rails"] if r_["kind"] == "h" and r_["x0"] - 1 <= xc_ <= r_["x1"] + 1]
+            up_ = [r_ for r_ in hs_ if r_["y1"] <= o["bb"][1] + 1]
+            dn_ = [r_ for r_ in hs_ if r_["y0"] >= o["bb"][3] - 1]
+            a_ = max(up_, key=lambda r_: r_["y1"]) if up_ else None
+            b_ = min(dn_, key=lambda r_: r_["y0"]) if dn_ else None
+            if a_ and b_:
+                y0_, y1_ = a_["y0"], b_["y1"]
+            elif a_:
+                y0_, y1_ = a_["y0"], o["bb"][3] - 10
+            elif b_:
+                y0_, y1_ = o["bb"][1] + 10, b_["y1"]
+            else:
+                msg_ = f"{g['name']}: dalis x{o['bb'][0]:.0f}-{o['bb'][2]:.0f} KABO ORE - nėra bėgelio virš / po ja"
+                print("  ! " + msg_); K.SHEET_ERR.append(msg_)
+                continue
+            x_ = xc_ - t_v / 2
+            g["rails"].append({"x0": x_, "x1": x_ + t_v, "y0": y0_, "y1": y1_, "kind": "v", "len": y1_ - y0_, "support": True,
+                               "poly": [(x_, y0_), (x_ + t_v, y0_), (x_ + t_v, y1_), (x_, y1_)]})
+            print(f"  {g['name']}: dalis x{o['bb'][0]:.0f}-{o['bb'][2]:.0f} be rėmo -> statmuo x{xc_:.0f} L{y1_ - y0_:.0f} (v297)")
+
 # v85: rėmo eksportas P6 DXF moduliui (p6_dxf.py --rails-json) - tas pats rėmas kaip lape (auto rėmas, pakopos, akcentai)
 # v90 (Rytis 2026-10-11): atskiros raidės (mounting "none") - rėmo nėra; apskaičiuoti horizontalūs bėgeliai lieka TIK
 #  kaip tvirtinimo skylių ašys DXF moduliui (raidė tvirtinama į fasadą per dugną), lape / BOM / svoryje jų nėra.
@@ -1552,6 +1593,7 @@ SUBS = {"{PER_6}": f"{P6:.2f}", "{A_6}": f"{A6:.2f}", "{RET_6}": f"{P6 * depth /
         "{PER_63}": f"{P63:.2f}", "{A_63}": f"{A63:.2f}", "{RET_63}": f"{P63 * depth / 1000:.2f}",
         "{PER_ALL}": f"{P6 + P63:.2f}", "{RAIL_N}": str(len(rail_len)),
         "{RAIL_LIST}": " + ".join(str(v) for v in rail_len), "{RAIL_TOTAL}": str(sum(rail_len)),
+        "{RAIL_H_M}": f"{sum(r_['len'] for g in groups if not g['plate'] for r_ in g['rails'] if r_['kind'] == 'h') / 1000:.2f}",   # v297: tik horizontalūs (sienos L)
         "{RAIL_LIST_M}": " + ".join(f"{v / 1000:.2f}" for v in rail_len), "{RAIL_TOTAL_M}": f"{sum(rail_len) / 1000:.2f}",
         **{f"{{PER_{g['name']}}}": f"{g['per']:.2f}" for g in groups},
         **{f"{{A_{g['name']}}}": f"{g['area']:.2f}" for g in groups},

@@ -159,7 +159,7 @@ F_DIM_MAIN, F_DIM_FRAME, F_INFO, F_VIEW, F_SCALE = 12, 8, 8, 13, 9
 def init(tmp_pdf, title=""):
     global c, _tmp
     _tmp = tmp_pdf
-    TEXT_BOXES.clear(); EXT_REG.clear(); BALLOONS.clear(); BLOCKS.clear(); OVERFLOW.clear(); FEAT.clear()
+    TEXT_BOXES.clear(); EXT_REG.clear(); BALLOONS.clear(); BLOCKS.clear(); OVERFLOW.clear(); FEAT.clear(); SHEET_ERR.clear()
     c = canvas.Canvas(tmp_pdf, pagesize=(W, H))
     c.setTitle(title)
     return c
@@ -227,7 +227,7 @@ def art_json(out_pdf, pages_offset=0):
         json.dump({"art": [list(a[:4]) + [a[4] + pages_offset] for a in ART],
                    "blocks": [list(b[:4]) + [b[4] + pages_offset, b[5]] for b in BLOCKS],
                    "gen": os.path.abspath(sys.argv[0]) if sys.argv and sys.argv[0] else "",
-                   "feat": sorted(FEAT), "overflow": list(OVERFLOW)}, fh)
+                   "feat": sorted(FEAT), "overflow": list(OVERFLOW), "errors": list(SHEET_ERR)}, fh)
     ART.clear(); BLOCKS.clear(); FEAT.clear()
 
 
@@ -246,6 +246,7 @@ def merge_sheets(pages, out):
             acc["gen"] = acc["gen"] or j_.get("gen", "")
             acc["feat"] = sorted(set(acc["feat"]) | set(j_.get("feat", [])))
             acc.setdefault("overflow", []).extend(j_.get("overflow", []))
+            acc.setdefault("errors", []).extend(j_.get("errors", []))
             os.remove(sc_)
         off += n_
     d.save(out, garbage=3, deflate=True); d.close()
@@ -889,6 +890,7 @@ def frame():
     pass                                                  # juostos viršų formuoja patys blokai (vientisas blokas)
 
 
+SHEET_ERR = []         # v297: generatoriaus aptiktos konstrukcijos klaidos (pvz. dalis kabo ore) -> sidecar -> patikra 18
 FEAT = set()           # v293: naudotos taisyklių funkcijos (layout = layout_engine.report) -> sidecar -> patikra
 BLOCKS = []            # v291: (x, y, w, h, psl., pavadinimas) - turinys centruojamas savo bloke (TAISYKLĖ 5)
 

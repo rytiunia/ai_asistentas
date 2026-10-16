@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v296 (2026-10-16)
+Atnaujinta: v297 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -101,6 +101,14 @@ SUVESTINĖ PASENUSI.
 - Vieno užsakymo kelios iškabos = VIENAS dokumentas `ALT0000_Order_<nr>.pdf` (Rytis v296, Order 33580): kiekviena iškaba -
   savas lapas (spec `"sheet": "1 / 2"`, `"2 / 2"`), sujungta `K.merge_sheets`; 1:1 failai - atskirai kiekvienai iškabai.
 
+## D2. Konstrukcija - rėmas (v297)
+
+- KIEKVIENA raidės / elemento dalis (atskiras kontūras: E brūkšnelis, taškas, akcentas, kablelis) privalo liesti rėmą.
+  Dalis be rėmo: `braizyti_begeliai` automatiškai deda statmenį per jos vidurį tarp artimiausių bėgelių. Jei bėgelis yra
+  tik iš vienos pusės, statmuo daromas T forma (v193).
+- Neišsprendus: patikra 18 KONSTRUKCIJA / KABO ORE (`K.SHEET_ERR`).
+- BOM sienos rėmo (wall L) ilgis = tik horizontalūs (`{RAIL_H_M}`). Raidžių rėmas - su statmenimis.
+
 ## E. Produktų / klientų taisyklės
 
 - Produkto šeimos taisyklės: `references/moduliai_*.md`.
@@ -129,6 +137,7 @@ SUVESTINĖ PASENUSI.
     BOM formulės, blokas be centravimo).
 15. SUVESTINĖ PASENUSI.
 17. VIENETAS NENURODYTAS - ir lentelėje skaičius su kableliu be vieneto („10,00" -> „10,00 m"), v296.
+18. KONSTRUKCIJA (KABO ORE ir kt. - generatoriaus aptiktos klaidos), v297.
 16. NETELPA LANGELYJE (v294): tekstas netelpa lentelės langelyje; trumpinti tekstą, šrifto nemažinti.
 
 Ko automatika NEtikrina (tikrinama akimis kiekvieną kartą):
