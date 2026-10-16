@@ -121,6 +121,22 @@ def leg_line(o, y0, y1, side):
     return mx + b * (y0 - my), mx + b * (y1 - my), b
 
 
+def _cover_cand(o, ya, yb, t_rail, hx0, hx1, min_cov=0.5):
+    """v311: statmuo per raidę be stiebo - x, kur raidė dengia statmenį daugiausia (statmuo tarp bėgelių galų)"""
+    from shapely.geometry import box as _bx
+    best = None
+    for k_ in range(0, int(o["bb"][2] - o["bb"][0] - t_rail) + 1, 2):
+        x_ = o["bb"][0] + k_
+        if not (hx0 <= x_ and x_ + t_rail <= hx1):
+            continue
+        cov = o["geom"].intersection(_bx(x_, ya, x_ + t_rail, yb)).area / max(t_rail * (yb - ya), 1e-6)
+        if best is None or cov > best[0]:
+            best = (cov, x_ + t_rail / 2)
+    if best and best[0] >= min_cov:
+        return {"x": best[1], "k": "v", "o": o, "partial": best[0]}
+    return None
+
+
 def single_verticals(r, t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log, every_letter=False):
     """v204 (Rytis 2026-10-14, „LIETUVA"): vienos eilutės rėmas - bėgeliai per VISĄ ilgį (kiekvienas iki kraštinės raidės
     krašto - edge), GALINIAI statmenys TIK ten, kur jie panaudojami: per kraštinei artimiausios raidės stiebą (L, T, E ...);
@@ -164,7 +180,26 @@ def single_verticals(r, t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log, every
     gap_ = 300
     left_ = min(cands, key=lambda c: (c["x"], c["k"] != "v"))
     right_ = max(cands, key=lambda c: (c["x"], c["k"] == "v"))
+    # v311 (Rytis 2026-10-16, LEAP26-01002: „papildoma statmena po R raide gale"; TAISYKLĖ v299): GALINIS statmuo - po
+    #  KRAŠTINE pilno aukščio raide. Jei ji be stiebo / kojelės (R, P šiame šrifte) - ten, kur raidė jį dengia daugiausia
+    #  (>= 50 %); ankstesnis kraštinis kandidatas lieka tarpiniu.
+    _full = [o for o in r["letters"] if o["bb"][3] - o["bb"][1] >= 0.6 * r["h"]]
+    _extra = []
+    for side_, o_ in (("l", min(_full, key=lambda o: o["bb"][0], default=None)),
+                      ("r", max(_full, key=lambda o: o["bb"][2], default=None))):
+        cur_ = left_ if side_ == "l" else right_
+        if o_ is None or cur_["o"] is o_:
+            continue
+        c_ = _cover_cand(o_, ya, yb, t_rail, hx0, hx1)
+        if c_:
+            _extra.append(cur_)
+            if side_ == "l":
+                left_ = c_
+            else:
+                right_ = c_
+            log(f"  auto rėmas: galinis statmuo po kraštine raide x{c_['x']:.0f} ({c_['partial'] * 100:.0f} % po raide)")
     chosen = [left_] + ([right_] if right_["x"] - left_["x"] >= gap_ else [])
+    chosen += [c for c in _extra if all(abs(c["x"] - q["x"]) >= gap_ for q in chosen)]
     if every_letter:                                 # v229 (Rytis 2026-10-14, Leapmotor): AKRILINIS rėmas - statmuo po KIEKVIENA raide
         for o in r["letters"]:
             if o["bb"][3] - o["bb"][1] < 0.6 * r["h"] or any(c["o"] is o for c in chosen):

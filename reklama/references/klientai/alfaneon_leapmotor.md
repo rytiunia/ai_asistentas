@@ -58,3 +58,6 @@ Leapmotor NETAIKOMAS - čia 12 V 1,5 m + TRAFO BOX, Rytis).
   12 V 1,5 m + TRAFO BOX, skaidrus akrilo rėmas 20 mm (poz. 20 - vienas bėgelis 70 mm, vientisas, be jungčių).
 - BOM plotai - nesting visam kiekiui (40 / 20 vnt.), per 1 vnt.
 - Neatsakyta: LED tipas (poz. 10 / 20 / 30); poz. 30 kabelio skylė (y, Ø, tarpinė); ar poz. 30 gylis tikrai 50 (PO „approx").
+- v311 (Rytis 2026-10-16): poz. 10 - papildomas statmuo po R gale; Ø8 fasado tvirtinimai R/O, T/O, M/P, A/E, L/LOGO
+  (galinis vaizdas iš kairės); laido griovelis tik apatiniame bėgelyje. Poz. 20 - prašyta 50 mm, bet M ir T negautų smeigių;
+  Rytis pasirinko: smeigės kraštas 5 mm, mažiausias plotis su 2 smeigėmis kiekvienai daliai -> 65 mm.

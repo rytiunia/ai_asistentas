@@ -61,6 +61,14 @@
   "groove": {
    "w": 8,
    "d": 10
+  },
+  "single_w": 50,
+  "stud": {
+   "d": 5,
+   "cb_d": 12,
+   "cb_depth": 15,
+   "edge": 5,
+   "two_if": 400
   }
  },
  "bom": [

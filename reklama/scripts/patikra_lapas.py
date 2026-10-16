@@ -431,7 +431,7 @@ if __name__ == "__main__":
         else:
             i += 1
     n = check(pdf, skips=sk)
-    # 20. COREL (v310): vienas GOST šriftas lape, „GOST Common", qpdf --check - kitaip CorelDRAW „file corrupted"
+    # 22. COREL (v310; buvo 20 - numeris užimtas PAŠALINIŲ OBJEKTŲ): vienas GOST šriftas lape, „GOST Common", qpdf --check - kitaip CorelDRAW „file corrupted"
     import patikra_corel
     _ce = patikra_corel.check(pdf)
     for e in _ce:

@@ -900,7 +900,9 @@ for g in groups:
                 _go0 = _ST["cb_d"] / 2 + _gw0 / 2 + 2
                 for _W1 in range(int(ACRY.get("single_w", 55)), 141, 5):    # v244/v245: platinti, kol visos dalys gauna >= 2 smeiges
                     _tr = [{"x0": _x0, "x1": _x1, "y0": _cy - _W1 / 2, "y1": _cy + _W1 / 2}]
-                    if not _acr_studs(g["letters"], _tr, _ST, _go0, _gw0)[1]:
+                    # v311 (Rytis 2026-10-16, LEAP26-06002: „rėmas 50 mm pločio"): spec acrylic "single_w_fixed" - nurodytas
+                    #  plotis nekeičiamas (smeigių trūkumas - įspėjimas, ne platinimas)
+                    if ACRY.get("single_w_fixed") or not _acr_studs(g["letters"], _tr, _ST, _go0, _gw0)[1]:
                         break
                 _W1 = float(_W1)
                 hs = [{"x0": _x0, "x1": _x1, "y0": _cy - _W1 / 2, "y1": _cy + _W1 / 2, "kind": "h", "auto": True, "len": _x1 - _x0,
@@ -2381,13 +2383,30 @@ if RAIL_ACR:
                 P_ = P_.difference(_aun(vknobs).buffer(_cl, 24))
             parts.append(P_.buffer(0))
         # Ø8 skylės - tarpuose tarp raidžių ant horizontalių bėgelių, kas antrame tarpe (Rytis: dvigubai mažiau)
-        xs_ = sorted((o["bb"][0], o["bb"][2]) for o in g["letters"])
+        # v311 (Rytis 2026-10-16, LEAP26-01002: „tvirtinimai fasadui tarp R/O, T/O, M/P, A/E, L/LOGO"): tarpai - tarp SIMBOLIŲ
+        #  (logotipas iš kelių dalių - vienas simbolis: gretimos dalys, aukštesnės už teksto raides > 1,3 x), kas antras tarpas
+        #  NUO KRAŠTŲ - abu kraštiniai tarpai visada su skylėmis (rėmo galai pritvirtinti)
+        _hl = sorted(o["bb"][3] - o["bb"][1] for o in g["letters"])
+        _hm = _hl[len(_hl) // 2] if _hl else 0
+        xs_ = []
+        for o in sorted(g["letters"], key=lambda o: o["bb"][0]):
+            big_ = o["bb"][3] - o["bb"][1] > 1.3 * _hm
+            if xs_ and big_ and xs_[-1][2] and o["bb"][0] - xs_[-1][1] < 3 * (o["bb"][3] - o["bb"][1]):
+                xs_[-1] = (xs_[-1][0], max(xs_[-1][1], o["bb"][2]), True)
+            else:
+                xs_.append((o["bb"][0], o["bb"][2], big_))
         gaps_, cur_ = [], None
-        for a_, b_ in xs_:
+        for a_, b_, _ in xs_:
             if cur_ is not None and a_ - cur_ > 2 * _hd + 10:
                 gaps_.append((cur_ + a_) / 2)
             cur_ = b_ if cur_ is None else max(cur_, b_)
-        gaps_ = gaps_[::max(1, int(ACRY["holes_every_gap"]))]
+        _st = max(1, int(ACRY["holes_every_gap"]))
+        _ix = list(range(0, len(gaps_), _st))
+        if gaps_ and _ix[-1] != len(gaps_) - 1:
+            _ix.append(len(gaps_) - 1)
+        if ACRY.get("holes_gaps"):                         # spec: tiksliai nurodyti tarpai (1 = pirmas nuo kairės, priekio vaizde)
+            _ix = [int(i_) - 1 for i_ in ACRY["holes_gaps"] if 0 < int(i_) <= len(gaps_)]
+        gaps_ = [gaps_[i_] for i_ in _ix]
         holes = []
         for r_ in hs_:
             cy_ = (r_["y0"] + r_["y1"]) / 2
@@ -2408,13 +2427,20 @@ if RAIL_ACR:
             for o in g["letters"]:
                 print(f"    smeigės x{o['bb'][0]:.0f}-{o['bb'][2]:.0f}: " + ", ".join(f"({x_:.0f},{y_:.0f})" for x_, y_, i_ in studs if i_ == id(o)))
         for nm_ in STUD_FAIL:
-            print(f"  ! akrilinis rėmas {g['name']}: dalis {nm_} - mažiau nei 2 smeigės (bėgelis per siauras / nepasiekia) - PATIKRINTI")
+            # v311: TAISYKLĖ v244 („raidė ant vieno varžto - negerai") - lapo klaida (patikra 18), ne tylus įspėjimas
+            K.SHEET_ERR.append(f"akrilinis rėmas {g['name']}: dalis x{nm_} - mažiau nei 2 smeigės (bėgelis per siauras / "
+                               f"nepasiekia; TAISYKLĖ v244)")
+            print("  ! " + K.SHEET_ERR[-1])
         # laidų griovelis - nugaroje, bėgeliuose PASLINKTAS nuo ašies (įleistos skylės Ø12 ašyje), statmenyse - ašyje
-        grooves = [((r_["x0"] + 10, (r_["y0"] + r_["y1"]) / 2 - g_off), (r_["x1"] - 10, (r_["y0"] + r_["y1"]) / 2 - g_off)) for r_ in hs_]
-        # ovali skylė kiaurai laidui - po kiekviena raide ant viršutinio bėgelio griovelio
+        # v311 (Rytis 2026-10-16, LEAP26-01002: „laido griovelis tik apatiniame rėme"): griovelis ir laidų skylės (kiaurai) -
+        #  TIK APATINIAME bėgelyje (spec acrylic "groove_rails": "all" - visuose bėgeliuose ir statmenyse, kaip iki v311)
+        _grv_all = str(ACRY.get("groove_rails", "bottom")).lower() == "all"
+        _hsg = hs_ if _grv_all else ([max(hs_, key=lambda r_: (r_["y0"] + r_["y1"]) / 2)] if hs_ else [])
+        grooves = [((r_["x0"] + 10, (r_["y0"] + r_["y1"]) / 2 - g_off), (r_["x1"] - 10, (r_["y0"] + r_["y1"]) / 2 - g_off)) for r_ in _hsg]
+        # ovali skylė kiaurai laidui - po kiekviena raide ant griovelio bėgelio
         slots = []
         CS = ACRY.get("cable_slot") or [_gw_, _gw_ / 2]
-        r0_ = hs_[0] if hs_ else None
+        r0_ = (_hsg[0] if not _grv_all else hs_[0]) if hs_ else None
         for o in (g["letters"] if r0_ else []):
             gy_ = (r0_["y0"] + r0_["y1"]) / 2 - g_off
             inn = o["geom"].buffer(-(CS[0] / 2 + 3))
@@ -2428,7 +2454,7 @@ if RAIL_ACR:
                 while any(abs(x_ - sx_) < 12 for sx_, _, _ in studs) and x_ < b_:
                     x_ += 2
                 slots.append((x_, gy_))
-        for v_ in vs_:
+        for v_ in (vs_ if _grv_all else []):
             pq = v_["poly"]
             _vo = -g_off if abs(pq[0][0] - pq[3][0]) < 1 else 0.0      # v246: statmenyje griovelis šalia ašies (smeigės kitoje pusėje)
             grooves.append((((pq[0][0] + pq[1][0]) / 2 + _vo, pq[0][1]), ((pq[2][0] + pq[3][0]) / 2 + _vo, pq[2][1])))

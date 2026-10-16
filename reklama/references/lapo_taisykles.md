@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v310 (2026-10-16)
+Atnaujinta: v311 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -130,6 +130,9 @@ SUVESTINĖ PASENUSI.
 - Jei rėme yra statmenys, jų turi būti BENT 2 (v298). Du ilgi bėgeliai su vienu statmeniu nėra stabilūs.
   Antras statmuo dedamas po KRAŠTINE (toliausia nuo pirmojo) raide. Toje raidėje jis statomas ten, kur raidė jį uždengia
   daugiausia, kad statmuo kuo mažiau matytųsi (v299, EXLANTIX - po X). Jei raidės nėra - patikra 18.
+- GALINIS statmuo - po KRAŠTINE pilno aukščio raide abiejuose galuose (v311, Rytis 2026-10-16 LEAP26-01002: „papildoma
+  statmena po R raide gale"). Raidė be stiebo / kojelės (R, P šiame šrifte) - statmuo ten, kur ji jį dengia daugiausia (>= 50 %);
+  ankstesnis kraštinis (pvz. po T) lieka tarpiniu. `auto_remas.single_verticals`.
 - Pailga dalis be rėmo (E brūkšnelis, plotis >= 2 x aukštis) gauna HORIZONTALŲ bėgelį savo ašyje. Galai - pagal rėmo
   tvirtinimo taisyklę: kraštinio štricho VIDURYJE (kraštas + pusė štricho), abu kampai >= 10 mm dalies viduje (v300)
   plius statmenį iki rėmo. Taip dalis turi >= 2 tvirtinimo taškus ir D11 laido išvestį bėgelio ašyje (v299).
@@ -137,6 +140,12 @@ SUVESTINĖ PASENUSI.
 - L profilių sistema (l_hang): sienos rėmas (wall L) galiniame vaizde rodomas PUNKTYRU, su savo matmeniu ir pozicija.
   Ilgis = atstumas tarp kraštinių rėmo statmenų ašių - 2 x 50 mm (v300; be statmenų - bėgelio ilgis - 2 x 50).
   BOM kiekis - `{WALL_L_M}`.
+- AKRILINIS rėmas (v311, LEAP26-01002 / 06002):
+  - Ø8 fasado tvirtinimai - tarpuose tarp SIMBOLIŲ (logotipas iš kelių dalių = vienas simbolis), kas antras tarpas NUO
+    KRAŠTŲ, abu kraštiniai tarpai visada (LEAP: R/O, T/O, M/P, A/E, L/LOGO); spec `"holes_gaps"` - tikslūs tarpai;
+  - laido griovelis ir laidų skylės kiaurai - TIK APATINIAME bėgelyje (spec `"groove_rails": "all"` - visur, kaip iki v311);
+  - kiekviena raidės dalis >= 2 smeigės (v244) - kitaip patikra 18; vientisas bėgelis nuo spec `"single_w"` platinamas
+    kas 5 mm, kol visos dalys gauna po 2 (LEAP26-06002: prašyta 50, smeigės kraštas 5 mm -> 65 mm, Rytis pasirinko).
 - Spalvos: visa RAL Classic paletė (213 spalvų) yra `assets/ral_classic.json` (v298). Nežinomas RAL kodas nebėra tyli
   pilka spalva, o patikros 18 klaida. Naujas kodas įrašomas į paletę.
 
@@ -207,15 +216,15 @@ SUVESTINĖ PASENUSI.
 14. SENA TAISYKLĖ (generatoriaus lint: fiksuotos vietos / mastelis projekto skripte, projekto lapas be `layout_engine`,
     BOM formulės, blokas be centravimo).
 15. SUVESTINĖ PASENUSI.
+16. NETELPA LANGELYJE (v294): tekstas netelpa lentelės langelyje; trumpinti tekstą, šrifto nemažinti.
 17. VIENETAS NENURODYTAS - ir lentelėje skaičius su kableliu be vieneto („10,00" -> „10,00 m"), v296.
 18. KONSTRUKCIJA (KABO ORE ir kt. - generatoriaus aptiktos klaidos), v297.
 19. PLOTAS NE NESTING (v304).
-21. SKIRTINGI MASTELIAI (v309): FRONT / SIDE / REAR lape skirtingais masteliais.
 20. PAŠALINIAI OBJEKTAI (v307): objektai paslėpti už iškarpos arba už lapo ribų (įdėtas visas šaltinio puslapis).
     Lint: VISAS ŠALTINIO PUSLAPIS, BALTAS DANGTIS.
-20. COREL (v310): lape daugiau nei vienas GOST šriftas, „GOST-Common" vardas arba qpdf --check klaida - CorelDRAW
+21. SKIRTINGI MASTELIAI (v309): FRONT / SIDE / REAR lape skirtingais masteliais.
+22. COREL (v310): lape daugiau nei vienas GOST šriftas, „GOST-Common" vardas arba qpdf --check klaida - CorelDRAW
     „file corrupted" (`scripts/patikra_corel.py`, kviečiama iš patikra_lapas.py).
-16. NETELPA LANGELYJE (v294): tekstas netelpa lentelės langelyje; trumpinti tekstą, šrifto nemažinti.
 
 Ko automatika NEtikrina (tikrinama akimis kiekvieną kartą):
 - ar vaizdai proporcingi ir subalansuoti;
