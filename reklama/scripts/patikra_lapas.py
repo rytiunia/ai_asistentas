@@ -85,10 +85,11 @@ def check(pdf, band_y=None, skips=(), verbose=True):
         arts = _j.get("art", [])
         blocks = _j.get("blocks", [])
         gen = _j.get("gen", "")
+        ovf = _j.get("overflow", [])
     # v293 (Rytis 2026-10-16: „kad kitą kartą vėl nebūtų daroma su senomis taisyklėmis ir nustatymais"):
     #  14 SENA TAISYKLĖ - generatoriaus lint (taisykliu_lint.py), 15 SUVESTINĖ PASENUSI - references/lapo_taisykles.md
     #  „Atnaujinta: vNNN" turi sutapti su SKILL.md „Versija" (kiekvienas skill pakeitimas peržiūri galiojančių taisyklių suvestinę)
-    glob_errs = []
+    glob_errs = [f"NETELPA LANGELYJE (trumpinti tekstą, ne mažinti šriftą): '{o_}'" for o_ in (ovf if "ovf" in dir() else [])]
     try:
         import taisykliu_lint as _TL
         glob_errs += _TL.lint(gen) if "gen" in dir() and gen else []

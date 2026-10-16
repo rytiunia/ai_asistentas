@@ -159,7 +159,7 @@ F_DIM_MAIN, F_DIM_FRAME, F_INFO, F_VIEW, F_SCALE = 12, 8, 8, 13, 9
 def init(tmp_pdf, title=""):
     global c, _tmp
     _tmp = tmp_pdf
-    TEXT_BOXES.clear(); EXT_REG.clear(); BALLOONS.clear(); BLOCKS.clear()
+    TEXT_BOXES.clear(); EXT_REG.clear(); BALLOONS.clear(); BLOCKS.clear(); OVERFLOW.clear(); FEAT.clear()
     c = canvas.Canvas(tmp_pdf, pagesize=(W, H))
     c.setTitle(title)
     return c
@@ -227,7 +227,7 @@ def art_json(out_pdf, pages_offset=0):
         json.dump({"art": [list(a[:4]) + [a[4] + pages_offset] for a in ART],
                    "blocks": [list(b[:4]) + [b[4] + pages_offset, b[5]] for b in BLOCKS],
                    "gen": os.path.abspath(sys.argv[0]) if sys.argv and sys.argv[0] else "",
-                   "feat": sorted(FEAT)}, fh)
+                   "feat": sorted(FEAT), "overflow": list(OVERFLOW)}, fh)
     ART.clear(); BLOCKS.clear(); FEAT.clear()
 
 
@@ -245,6 +245,7 @@ def merge_sheets(pages, out):
             acc["blocks"] += [b_[:4] + [b_[4] + off, b_[5]] for b_ in j_.get("blocks", [])]
             acc["gen"] = acc["gen"] or j_.get("gen", "")
             acc["feat"] = sorted(set(acc["feat"]) | set(j_.get("feat", [])))
+            acc.setdefault("overflow", []).extend(j_.get("overflow", []))
             os.remove(sc_)
         off += n_
     d.save(out, garbage=3, deflate=True); d.close()

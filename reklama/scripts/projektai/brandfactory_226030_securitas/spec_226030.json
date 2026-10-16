@@ -31,7 +31,7 @@
  ],
  "qty": "1",
  "client": "BrandFactory",
- "title": "Order 226030 Securitas Sarpsborg 2000 x 1062 - 5S color + P6+foil on U rails",
+ "title": "Order 226030 Securitas Sarpsborg 2000 x 1062 mm - 5S color + P6+foil",
  "order_no": "ALT0000_00.00_RS",
  "drawing_no": "Order 226030",
  "file_code": "Order_226030",
@@ -42,7 +42,8 @@
  "rail": {
   "size": "30x30x2",
   "depth": 30,
-  "ral": "NCS S 6005-R80B"
+  "ral": "9006",
+  "type": "square"
  },
  "groups": [
   {
@@ -57,9 +58,9 @@
     0.227,
     0.302
    ],
-   "rail_ral": "NCS S 6005-R80B",
+   "rail_ral": "9006",
    "frame": "verticals",
-   "ears": false
+   "ears": true
   },
   {
    "name": "Securitas",
@@ -74,9 +75,9 @@
     0.176,
     0.173
    ],
-   "rail_ral": "NCS S 6005-R80B",
+   "rail_ral": "9006",
    "frame": "verticals",
-   "ears": false
+   "ears": true
   }
  ],
  "bom": [
@@ -152,17 +153,24 @@
   ],
   [
    5,
-   "Rail U {RAIL_SIZE} (circles)",
+   "Rail □{RAIL_SIZE} with ears (circles)",
    "Aluminium",
-   "NCS S 6005-R80B",
+   "RAL 9006",
    "{RAILS_M_CIRCLES} m"
   ],
   [
    5,
-   "Rail U {RAIL_SIZE} (Securitas)",
+   "Rail □{RAIL_SIZE} with ears (Securitas)",
    "Aluminium",
-   "NCS S 6005-R80B",
+   "RAL 9006",
    "{RAILS_M_Securitas} m"
+  ],
+  [
+   6,
+   "Mounting ear {RAIL_SIZE}, Ø{EAR_HOLE} hole",
+   "Aluminium",
+   "RAL 9006",
+   "{PLATES_N} pcs."
   ],
   [
    7,
@@ -173,7 +181,7 @@
   ],
   [
    8,
-   "Wall fixing through U rails",
+   "Wall fixing (through Ø{EAR_HOLE} ear holes)",
    "?",
    "-",
    "?"
@@ -214,7 +222,7 @@
   ],
   [
    "Rails",
-   "U 30x30x2, NCS S 6005-R80B"
+   "□30x30x2, ears, RAL 9006"
   ],
   [
    "Illumination",
@@ -254,5 +262,9 @@
   "cable_len_m": 1.5,
   "mains": "230V"
  },
- "power_note": "Power: 12V, trafo box"
+ "power_note": "Power: 12V, trafo box",
+ "mounting": "ears",
+ "ears": {
+  "hole_d": 8
+ }
 }
