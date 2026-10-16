@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v314 (2026-10-16)
+Atnaujinta: v315 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -168,6 +168,12 @@ SUVESTINĖ PASENUSI.
   BN PO 3311 Kvickly, pavyzdys ALT7782 „Sign from 3 pieces"): pjūviai - raidžių kraštų tęsiniais ten, kur raidės susiliečia
   (ne bet kur), atskiri kontūrai (i taškas) - atskiros dalys; dalys -> vektorinis šaltinis (kreivės lankais) -> braizyti_begeliai.
   Analogas: `scripts/projektai/bnskilte_3311_kvickly/pieces.py`.
+  - DALYS PARODOMOS lape (v315, Rytis: „nėra atvaizduota, kad raidės į vientisą reklamą susideda iš 3 dalių"): spec
+    `"pieces_view"` - priekyje sandūros J1.. (raudona brūkšninė hairline, pratęsta už kontūro), žymos PART 1..n, 3D
+    „SIGN FROM n PIECES" su atitrauktomis dalimis. Generatorius pats aptinka besiliečiančias dalis - be `pieces_view` patikra 18.
+  - TVIRTINIMO TAŠKAI KIEKVIENAI RAIDEI (v315, „interpretuojant raides kaip atskiras"): spec `"fix_split_x"` - raidžių ribos
+    dalyse (mm nuo kairės); kiekviena raidė >= 2 taškai; smulkios dalys (i taškas) neskaidomos. Be jo (dalys + mounting none)
+    - patikra 18.
 
 ## E2. Patvirtinimas -> gamybos paketas (`references/patvirtinimas.md`)
 

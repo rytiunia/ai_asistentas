@@ -188,3 +188,6 @@ aluminium profile. 7. Suport, 5mm aluminium (Coop - 3mm). 8. LED modules. 9. Han
 - Palaidos raidės (mounting none): tvirtinimo skylės dugne Ø6 (BN raidžių standartas), 12 V 1,5 m laidas iš kiekvienos dalies
   (D11), popierinis šablonas 1:1. Neatsakyta: LED modulis / kiekis, keitiklis (ar tiekiame), i taško tvirtinimas,
   fasado brėžinyje F „B2372" vs PO / matmuo 2373.
+- v315 (Rytis 2026-10-16): lape parodyta, kad reklama iš 3 dalių (J1 / J2, PART 1-3, 3D exploded); tvirtinimo taškai
+  kiekvienai raidei (K, v, i, c, k, l, y + i taškas; A - 29 Ø6); prierašas „WAGO connector inside the letter, external PSU
+  (not trafo box)" - BN palaidoms raidėms trafo IŠORINIS, ne trafo box (spec "power_note", BOM „External PSU 12V").

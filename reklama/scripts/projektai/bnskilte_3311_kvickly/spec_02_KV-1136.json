@@ -85,7 +85,7 @@
   ],
   [
    6,
-   "Cable 12V 1.5 m from each part (D11 exit)",
+   "Cable 12V 1.5 m from each part, WAGO inside the letter",
    "cable",
    "-",
    "4 pcs."
@@ -99,7 +99,7 @@
   ],
   [
    8,
-   "Converter 12V",
+   "External PSU 12V (not trafo box)",
    "?",
    "-",
    "?"
@@ -120,7 +120,7 @@
   ],
   [
    "Parts",
-   "K | vick | ly + i dot"
+   "3 pieces: K | vick | ly + i dot"
   ],
   [
    "Letter depth",
@@ -140,12 +140,31 @@
   ],
   [
    "Power",
-   "12V, 1,5 m from each part"
+   "12V, external PSU"
+  ],
+  [
+   "Connection",
+   "WAGO inside letter"
   ],
   [
    "Wind qp",
    "{WIND_QP} kN/m²"
   ]
  ],
- "sheet": "2 / 2"
+ "sheet": "2 / 2",
+ "pieces_view": {
+  "names": [
+   "PART 1 - K",
+   "PART 2 - vick",
+   "PART 3 - ly"
+  ],
+  "small_name": "i dot"
+ },
+ "fix_split_x": [
+  817.9,
+  962.9,
+  1336.5,
+  1891.5
+ ],
+ "power_note": "12V cable 1.5 m from each part ({n} pcs.) - WAGO connector inside the letter, external PSU (not trafo box)"
 }

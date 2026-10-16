@@ -2239,7 +2239,67 @@ def _callouts(view, F):
 
 VIEW_BOX = {"front": (FVX, FVY, FVX + fw, FVY + fh)}
 _callouts("front", FV)
-view_title(FVX + fw / 2, FVY + fh + 52, "FRONT VIEW", f"SCALE 1:{SC1}")
+# v315 (Rytis 2026-10-16, BN PO 3311 Kvickly: „nėra atvaizduota, kad raidės į vientisą reklamą susideda iš 3 dalių"):
+#  spec "pieces_view" - reklama iš atskirų DALIŲ: priekyje dalių sandūros RAUDONAI (storai), dalys pažymėtos PART 1..n,
+#  3D - dalys atitrauktos (exploded), pavadinime „SIGN FROM n PIECES"
+PIECES = spec.get("pieces_view")
+PIECE_IDX = {}
+# v315: liečiasi kelios dalys (reklama iš DALIŲ) - dalys PRIVALO būti parodytos (pieces_view), o tvirtinimo taškai -
+#  kiekvienai raidei (fix_split_x), kitaip lapo klaida (patikra 18 KONSTRUKCIJA)
+_tl_ = [o for g in groups if not g["plate"] for o in g["letters"]]
+_touch = any(a_["geom"].buffer(0.3).intersection(b_["geom"].boundary).length > 20
+             for i_, a_ in enumerate(_tl_) for b_ in _tl_[i_ + 1:]
+             if a_["bb"][0] <= b_["bb"][2] and b_["bb"][0] <= a_["bb"][2])
+if _touch and not PIECES:
+    K.SHEET_ERR.append("reklama iš DALIŲ (dalys liečiasi) - parodyti dalis: spec \"pieces_view\" (sandūros J, PART, 3D exploded)")
+if _touch and MOUNTING == "none" and not spec.get("fix_split_x"):
+    K.SHEET_ERR.append("reklama iš DALIŲ - tvirtinimo taškai kiekvienai RAIDEI: spec \"fix_split_x\" (raidžių ribos dalyse)")
+if PIECES:
+    _pl_ = sorted([o for g in groups if not g["plate"] for o in g["letters"]], key=lambda o: o["bb"][0])
+    _hm_ = sorted(o["bb"][3] - o["bb"][1] for o in _pl_)[len(_pl_) // 2]
+    _main_p = [o for o in _pl_ if o["bb"][3] - o["bb"][1] >= 0.5 * _hm_]
+    for o in _pl_:                                   # smulkios dalys (i taškas) - prie dalies, kurios x ribose yra
+        _cx = (o["bb"][0] + o["bb"][2]) / 2
+        PIECE_IDX[id(o)] = min(range(len(_main_p)), key=lambda i_: 0 if _main_p[i_]["bb"][0] <= _cx <= _main_p[i_]["bb"][2]
+                               else min(abs(_cx - _main_p[i_]["bb"][0]), abs(_cx - _main_p[i_]["bb"][2])))
+    N_PIECES = len(_main_p)
+    from shapely.ops import linemerge as _lm_
+    _jn = 0
+    for i_, a_ in enumerate(_pl_):
+        for b_ in _pl_[i_ + 1:]:
+            _j = a_["geom"].buffer(0.3).intersection(b_["geom"].boundary)
+            _segs = [q for q in getattr(_j, "geoms", [_j]) if not q.is_empty and hasattr(q, "coords") and q.length >= 5]
+            if not _segs:
+                continue
+            _jl = _lm_(_segs) if len(_segs) > 1 else _segs[0]
+            _jn += 1                                     # viena žyma dalių porai (sandūra gali būti iš kelių atkarpų)
+            _tops = []
+            for ln_ in getattr(_jl, "geoms", [_jl]):
+                if ln_.length < 20:
+                    continue
+                # sandūra - pjūvio linija (hairline, raudona brūkšninė), pratęsta už kontūro 10 pt abiem kryptimis + J žyma
+                p0, p1 = FV(*ln_.coords[0]), FV(*ln_.coords[-1])
+                _L = math.hypot(p1[0] - p0[0], p1[1] - p0[1]) or 1
+                ux_, uy_ = (p1[0] - p0[0]) / _L, (p1[1] - p0[1]) / _L
+                q0, q1 = (p0[0] - ux_ * 10, p0[1] - uy_ * 10), (p1[0] + ux_ * 10, p1[1] + uy_ * 10)
+                line(q0[0], q0[1], q1[0], q1[1], K.HAIR, HexColor("#D0021B"), dash=([6, 2, 1.5, 2], 0))
+                _tops.append(q0 if q0[1] < q1[1] else q1)
+            if _tops:
+                _top = min(_tops, key=lambda q: q[1])
+                K._Tbg(_top[0], _top[1] - 3, f"J{_jn}", 7.5, align="c", font="FB", color=HexColor("#D0021B"), auto_red=False)
+    _names = PIECES.get("names") if isinstance(PIECES, dict) else None
+    _small = [o for o in _pl_ if o not in _main_p]
+    for i_, o in enumerate(_main_p):
+        _c = o["geom"].representative_point()
+        K.balloon_auto(*FV(_c.x, _c.y), (_names[i_] if _names and i_ < len(_names) else f"PART {i_ + 1}"), kind="tag",
+                       avoid=[VIEW_BOX["front"]])
+    for o in _small:
+        _c = o["geom"].representative_point()
+        K.balloon_auto(*FV(_c.x, _c.y), f"PART {PIECE_IDX[id(o)] + 1} ({PIECES.get('small_name', 'small part')}, separate)"
+                       if isinstance(PIECES, dict) else f"PART {PIECE_IDX[id(o)] + 1}", kind="tag", avoid=[VIEW_BOX["front"]])
+    K.FEAT.add("pieces")
+view_title(FVX + fw / 2, FVY + fh + 52, "FRONT VIEW", f"SCALE 1:{SC1}" + (f"  |  SIGN FROM {N_PIECES} PIECES, joints J - red"
+                                                                      if PIECES else ""))
 
 # ============================================================ SIDE VIEW (RIGHT)
 GAPV = max(90, 0.13 * fw)                                   # v280: = fs_box tarpas
@@ -2657,6 +2717,8 @@ if MOUNTING == "none":                                  # v90: atskiros raidės 
             _lbl = ("WAGO inside letters, one supply cable" if _pw.startswith("wago")
                     else f"12V cable 1.5 m from each letter, exits on one line ({_nx} pcs."
                     + (", small parts - exit in the part" if _xtra else "") + ")")
+            if spec.get("power_note"):                  # v315 (Rytis 2026-10-16, BN PO 3311): pvz. WAGO raidės viduje, išorinis trafo
+                _lbl = str(spec["power_note"]).format(n=_nx)
             _ty = RV(0, min(o["bb"][1] for o in _main))[1] - 8      # virš galinio vaizdo
             T(min(a_[0], b_[0]), _ty, "- - -  " + _lbl, 7.5, color=HexColor("#D0021B"))
             print(f"  atskiros raidės: laidų linija y{SEP_LINE:.0f} (nuo viršaus), {_nx} išvestys; {_lbl}")
@@ -2793,6 +2855,27 @@ if FRONT != "P10" and MOUNTING == "none" and spec.get("back_fix_holes", True):
     #  tvirtinimo skylės dugne į fasadą ta pačia logika kaip P10 ilgasriegiai (dvi bendros linijos, štricho vidurys, kiekviena
     #  dalis >= 2, ne ant laidų išvesčių); centras >= `back_hole_edge` (10) nuo DUGNO kontūro (dugnas = stiklas - inset 3)
     _lets = [o for g in groups if not g["plate"] for o in g["letters"]]
+    # v315 (Rytis 2026-10-16, BN PO 3311 Kvickly: „tvirtinimo taškus dėlioti interpretuojant raides kaip atskiras, tai kiekviena
+    #  turi turėti tvirtinimo taškus"): reklama iš DALIŲ (kelios raidės viename korpuse) - dalys tvirtinimo skylėms skaidomos į
+    #  RAIDES vertikaliomis ribomis spec "fix_split_x" [mm nuo kairės]; kiekviena raidė gauna savo >= 2 taškus
+    if spec.get("fix_split_x"):
+        from shapely.geometry import box as _bx2
+        _xs2 = sorted(float(v_) for v_ in spec["fix_split_x"])
+        _lz = []
+        _hmed = sorted(o["bb"][3] - o["bb"][1] for o in _lets)[len(_lets) // 2]
+        for o in _lets:
+            # smulkios dalys (i taškas) neskaidomos; pjūvis, atkertantis < 40 mm juostelę, nedaromas
+            _in = [v_ for v_ in _xs2 if o["bb"][0] + 40 < v_ < o["bb"][2] - 40] \
+                if (o["bb"][3] - o["bb"][1]) >= 0.5 * _hmed else []
+            _cuts = [o["bb"][0] - 1] + _in + [o["bb"][2] + 1]
+            for x0_, x1_ in zip(_cuts, _cuts[1:]):
+                _gz = o["geom"].intersection(_bx2(x0_, -1e5, x1_, 1e5)).buffer(0)
+                if _gz.is_empty or _gz.area < 100:
+                    continue
+                _b = _gz.bounds
+                _lz.append(dict(o, geom=_gz, bb=(_b[0], _b[1], _b[2], _b[3])))
+        print(f"  tvirtinimo taškai pagal RAIDES: {len(_lets)} dalys -> {len(_lz)} raidės (fix_split_x)")
+        _lets = _lz
     _hd = float(spec.get("back_hole_d", 3.2))
     _cl = float(spec.get("back_inset_mm", 3)) + float(spec.get("back_hole_edge", 10))
     P10_ROD = {"d": _hd, "label": f"D{_hd:g}"}
@@ -3585,8 +3668,10 @@ NOTE3D = spec.get("note_3d")                              # v251: aiški nuoroda
 if NOTE3D:
     iy, ih = iy + 26, ih - 26
 up = lambda geom: __import__("shapely.affinity", fromlist=["scale"]).scale(geom, 1, -1, origin=(0, PH / 2))
-fit = [(x, y, 0) for x in (-_WM, PW + _WM) for y in (-_WM * 0.8, PH + _WM * 0.8)] + \
-      [(x, y, ZMAX) for x in (0, PW) for y in (0, PH)]
+_XG = (float(PIECES.get("gap_3d", 0.06 * PW)) if isinstance(PIECES, dict) else 0.06 * PW) if PIECES else 0.0   # v315 exploded
+_XW = _XG * (max(PIECE_IDX.values()) if PIECE_IDX else 0)
+fit = [(x, y, 0) for x in (-_WM, PW + _WM + _XW) for y in (-_WM * 0.8, PH + _WM * 0.8)] + \
+      [(x, y, ZMAX) for x in (0, PW + _XW) for y in (0, PH)]
 V3.fit(fit, (ix, iy, iw, ih))
 objs = []
 for g in groups:
@@ -3619,14 +3704,16 @@ for g in groups:
     z0 = Z_PLATE_L if g["plate"] else g["spec"].get("z0", Z_RAIL_L)
     gd_ = g["spec"].get("depth_mm", depth)
     for o in g["letters"]:
+        _ox = _XG * PIECE_IDX.get(id(o), 0)              # v315: dalys atitrauktos (exploded)
+        _sh = (lambda gg_, _ox=_ox: __import__("shapely.affinity", fromlist=["translate"]).translate(gg_, _ox, 0)) if _ox else (lambda gg_: gg_)
         if P6_REAL(g):                                   # v59: realus P6 - korpusas -1,5 + stiklas 3 mm
-            _ug = up(o["geom"]); _ub = _ug.buffer(-PV.body_inset(gfront(g)), join_style=2)
+            _ug = _sh(up(o["geom"])); _ub = _ug.buffer(-PV.body_inset(gfront(g)), join_style=2)
             _foil = PV.white_edge(gfront(g))   # v90: balta plexi (su / be plėvelės)
             if not _ub.is_empty:
                 objs.append((_ub, z0, z0 + gd_ - PV.GLASS_EDGE, retcol(g), retcol(g), None))   # v190: korpuso priekis po stiklu - be kontūro
             objs.append((_ug, z0 + gd_ - PV.GLASS_EDGE, z0 + gd_, PV.GLASS_WHITE if _foil else facecol(g), facecol(g)))
             continue
-        objs.append((up(o["geom"]), z0, z0 + gd_, retcol(g), facecol(g)))
+        objs.append((_sh(up(o["geom"])), z0, z0 + gd_, retcol(g), facecol(g)))
 for d_, dc_ in DECALS_RAW:                               # v11: lipdukai 3D ant grupės priekio (v13: tarp sluoksnių)
     _g = next((g for g in groups if g["name"] == dc_.get("group")), None)
     _zf = (_g["spec"].get("z0", Z_RAIL_L) + _g["spec"].get("depth_mm", depth)) if _g else ZMAX
@@ -3643,7 +3730,8 @@ for ob_ in objs:
         V3.solid(*ob_[:5], face_stroke=ob_[5])
     else:
         V3.solid(*ob_)
-view_title(ix + iw / 2, iy + ih + 16, "3D VIEW", "ILLUSTRATIVE - NOT TO SCALE")
+view_title(ix + iw / 2, iy + ih + 16, f"3D VIEW - SIGN FROM {N_PIECES} PIECES" if PIECES else "3D VIEW",
+           "ILLUSTRATIVE - NOT TO SCALE" + ("  |  parts pulled apart" if PIECES else ""))
 if NOTE3D:
     _lm = [o for g in groups if not g["plate"] for o in g["letters"]]
     _o = min(_lm, key=lambda o: o["bb"][0]) if _lm else None
