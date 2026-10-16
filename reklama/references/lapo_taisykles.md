@@ -252,6 +252,13 @@ failas apvalus, bet gaunasi kampuotas"; ta pati pastaba buvo v113, bet pataisa b
   lint DXF BE LANKŲ - `.saveas(` ne per `KR.saveas` (v313). LED lapai (`led_km.py`), r3d 3D plokštumos - taip pat lankais.
   LEAP 33577: DXF mazgai 4107 -> 212 / 10542 -> 622, lapas 1: 31 394 atkarpos -> 2 025 + 1 422 kreivės.
 
+## E3c. Folded plokštės BOM kiekis - m² (v323, Rytis 2026-10-16: „folded plate QTY pažymėta kaip 1 pcs, o turi būti plate m2")
+
+- Folded plokštės (fono, back plate) BOM QTY - plokštės m² (lakšto sunaudojimas išklotinei, `nesting.folded_qty`), NE „1 pcs.".
+- Kelios dalys - „A1 - 4,19 m², A2 - 2,39 m²" (dalys A1, A2 ... iš viršaus; tie patys vardai lape - šoniniame vaizde
+  ir MAIN DATA „Parts": „A1 2700 x 1400 + A2 2700 x 700").
+- Vykdo `folded_vinyl.py` ir `braizyti_lapa.py` (eilutė su „folded" ir kiekiu „N pcs." -> m²). Patikra 26 FOLDED BE m².
+
 ## E4. Folded plate + lipdukai - lenkimas (v302, Rytis 2026-10-16 Joker 226057)
 
 - `folded_vinyl.py` išklotinė: VIRŠUS / APAČIA LENKIASI Į VIDŲ (tarp šonų) - jų atlankai iš galų t trumpesni (W - 2t),
@@ -301,6 +308,7 @@ failas apvalus, bet gaunasi kampuotas"; ta pati pastaba buvo v113, bet pataisa b
     vardo DXF - laužtės be lankų (patikra_dxf). Lint: DXF BE LANKŲ.
 24. UŽ RĖMELIO (v316): užrašas (ne zonų žymė) išeina už vidinio rėmelio.
 25. DRENAŽAS SKYLUTE (v318, patikra_dxf): P6 dugne Ø8 apskritimai vietoj puslankio kontūre.
+26. FOLDED BE m² (v323): folded plokštės BOM kiekis „N pcs." vietoj m² (A1 - m², A2 - m²).
 
 Ko automatika NEtikrina (tikrinama akimis kiekvieną kartą):
 - ar vaizdai proporcingi ir subalansuoti;

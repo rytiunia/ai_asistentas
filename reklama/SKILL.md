@@ -53,6 +53,8 @@ kartą vėl nebūtų daroma su senomis taisyklėmis ir nustatymais") !!!**
      tvirtinamos gamyboje pagal faktą - esminis skylių atitikimas raidėse ir fone (BOM „per production / holes = letter
      back"); laido Ø11 skylė fono briaunoje - STANDARTAS 15 mm nuo lenkimo linijos (fono priekio) ir 15 mm nuo viršaus
      (`folded_dxf.py --cable-edge=left`, spec `"cable": {"edge": "left", "edge_mm": 15}`).
+   - **Folded plokštės BOM kiekis - m²** (v323): ne „1 pcs.", o lakšto sunaudojimas; kelios dalys - „A1 - m², A2 - m²",
+     dalys lape A1, A2 (suvestinė E3c, patikra 26 FOLDED BE m²).
    - Regresija: `python3 scripts/test_p6.py` = OK po kiekvieno P6 generatorių pakeitimo.
    - Bendra: kreivės lankais (9), dugnas -3 mm, D11 - laido išvestis dugne (ant rėmo - bėgelio ašyje), drenažas tik
      exterior (`--interior` - be jo).

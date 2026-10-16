@@ -35,6 +35,8 @@ v37-v172 - NEBENAUDOTI; seni projektų skriptai jo nepakeisti.) max ilgis - lak�
     susiliečia priekiniu kraštu; kampai lape tik informaciniai („sketch, not measured") + raudonas perspėjimas
     „gamybai reikalingi tikslūs fasado kampai". Kai kampai žinomi - kampo dalies priekis trumpinamas
     gylis·tan(α/2).
+- **v323 (Rytis 2026-10-16): BOM QTY folded plokštei - m² (lakšto sunaudojimas), kelios dalys - „A1 - m², A2 - m²"**,
+  ne „1 pcs." / „2 pcs."; dalys lape pažymėtos A1, A2 (`nesting.folded_qty`, patikra 26 FOLDED BE m²).
 - **v302 (Rytis 2026-10-16, Joker 226057): folded plate + lipdukai (`folded_vinyl.py`) - VIRŠUS / APAČIA LENKIASI Į VIDŲ**
   (atlankai W - 2t, šonai per visą aukštį, kaip `folded_dxf.py --tb-inside`); spec `"tb_inside": false` - šonai į vidų.
 - **Kelios dalys vienoje plokštumoje (back plate didesnis už lakštą, pvz. OKQ8 3200x2400, Rytis 2026-10-09):**
