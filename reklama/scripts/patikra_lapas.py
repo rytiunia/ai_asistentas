@@ -434,7 +434,7 @@ def check(pdf, band_y=None, skips=(), verbose=True):
         # 19. v304 (Rytis 2026-10-16: „plotą visada skaičiuok nesting principu. tai taisyklė."): lentelėje yra m², o
         #  generatorius neskaičiavo nesting (nesting.py / plevele.plan) -> grynasis plotas, ne sunaudojimas
         # v326: folded plokštės eilutė (gaminio m², v324) - ne nesting; tikrinamos kitos m² eilutės
-        _fold_y = [(r_.y0 + r_.y1) / 2 for r_, t_ in allsp if r_.y0 > by and re.search(r"folded", t_, re.I)]
+        _fold_y = [(r_.y0 + r_.y1) / 2 for r_, t_ in allsp if r_.y0 > by and re.search(r"folded|\btray\b", t_, re.I)]
         _m2_ = [r_ for r_, t_ in allsp if r_.y0 > by and "m²" in t_
                 and not any(abs((r_.y0 + r_.y1) / 2 - fy_) < 3 for fy_ in _fold_y)]
         if _m2_ and "nest" not in (feat if "feat" in dir() else []):
@@ -448,10 +448,17 @@ def check(pdf, band_y=None, skips=(), verbose=True):
         # 26. v323 (Rytis 2026-10-16: „folded plate QTY pažymėta kaip 1 pcs, o turi būti plate m2"): BOM eilutė su „folded"
         #  - kiekis m² (A1 - m², A2 - m² ...), ne „N pcs."
         for r_, t_ in allsp:
-            if r_.y0 > by and re.search(r"folded", t_, re.I):
+            if r_.y0 > by and re.search(r"folded|\btray\b", t_, re.I):        # v328: ir lovelės („tik fasado m2")
                 row_ = [t2 for r2, t2 in allsp if abs((r2.y0 + r2.y1) / 2 - (r_.y0 + r_.y1) / 2) < 3 and r2.x0 > r_.x1]
-                if any(re.fullmatch(r"\d+\s*pcs\.?", t2.strip()) for t2 in row_) and not any("m²" in t2 for t2 in row_):
+                if any(re.fullmatch(r"\d+\s*pcs?\.?", t2.strip()) for t2 in row_) and not any("m²" in t2 for t2 in row_):
                     errs.append(f"FOLDED BE m²: '{t_[:40]}' - kiekis turi būti plokštės m² (A1 - m², A2 - m² ...), ne vnt.")
+        # 29. v328 (Rytis 2026-10-16: „spauda dokumente tik nurodoma, gamyboje kitas spaudos algoritmas"): SPAUDA SU PLOTU -
+        #  BOM spaudos eilutėje m² neskaičiuojamas
+        for r_, t_ in allsp:
+            if r_.y0 > by and re.match(r"\s*(UV\s+)?print\b", t_, re.I):
+                row_ = [t2 for r2, t2 in allsp if abs((r2.y0 + r2.y1) / 2 - (r_.y0 + r_.y1) / 2) < 3 and r2.x0 > r_.x1]
+                if any("m²" in t2 for t2 in row_):
+                    errs.append(f"SPAUDA SU PLOTU: '{t_[:40]}' - spauda lape tik nurodoma (gamyboje savas algoritmas), m² nerašyti")
         # 21. v309 (Rytis 2026-10-16, Leapmotor 33577; suvestinė B): FRONT / SIDE / REAR - VIENAS bendras mastelis
         _vsc = {}
         for r_, t_ in allsp:

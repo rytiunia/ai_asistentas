@@ -7,6 +7,7 @@
  "date": "2026-10-16",
  "rev": "A",
  "depth": 40,
+ "tb_inside": true,
  "t": 2,
  "plate_ral": "1020",
  "finish": "RAL 1020 semi matt, wet paint",
@@ -117,5 +118,6 @@
     724.6
    ]
   }
- ]
+ ],
+ "_tb_inside_note": "v302 užsakymo nurodymas (Rytis): folded viršus / apačia į vidų - ne standartas (v328 numatyta: trumposios kraštinės)"
 }

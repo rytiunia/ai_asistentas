@@ -393,10 +393,9 @@ def build(S, P, out, sheet_no, n_sheets):
             S.get("finish_short", f"RAL {S['plate_ral']}"), NE.folded_qty([(W, h) for h in hp])[0]]]   # v324: gaminio plotas W x h (A1 / A2 ...)
     K.FEAT.add("folded_qty")                             # v326: atskira žyma; patikra 19 folded eilutės netaiko
     if PR:
-        # v326: tiesioginė spauda ant plokštės - spausdinamas gaminio plotas (ne lakšto / rulono nesting); KLAUSIMAS Ryčiui
-        #  (moduliai_folded „SPAUDA" (W+80) x (H+80)?) - kol neatsakyta, žyma „nest" sąmoningai (spaudos plotas = sunaudojimas)
-        K.FEAT.add("nest")
-        bom.append(["2", PR.get("part", "Print, front + edges"), PR.get("material", "original file"), "-", f"{W * H / 1e6:.2f} m²"])
+        # v328 (Rytis 2026-10-16: „spauda dokumente tik nurodoma, gamyboje kitas spaudos algoritmas"): spaudos eilutė - TIK
+        #  nurodoma (kas ir iš kokio failo), plotas / m² neskaičiuojamas
+        bom.append(["2", PR.get("part", "Print, front + edges"), PR.get("material", "original file"), "-", "per production"])
     for i, (v, p_, a_) in enumerate(VIN):
         bom.append(["2" if i == 0 else "", f"Vinyl {v['name']}", v["code"], "-", f"{p_['m2']:.2f} m²"])
     bom += [["3", "L profile 30x30x2 (top + bottom)", "Aluminium", "-", f"{L_tot:.2f} m"],
@@ -420,10 +419,11 @@ def build(S, P, out, sheet_no, n_sheets):
     return {"hp": hp, "flats": flats, "VIN": VIN, "G": G, "n": n, "pitch": pitch, "nj": nj, "pj": pj, "kg": kg}
 
 
-def flat_dxf(fn, W, h, depth, t, holes_top, holes_bot, bolts_top, bolts_bot, tb_inside=True):
+def flat_dxf(fn, W, h, depth, t, holes_top, holes_bot, bolts_top, bolts_bot, tb_inside=False):
     """išklotinė (v173 gamybos praktika, FACE OUT): lenkimo linijos W x h, flanšai depth - t.
-    v302 (Rytis 2026-10-16, Joker 226057: „folded plates viršus / apačia lenkiasi į vidų"): NUMATYTA viršus / apačia TARP šonų -
-    jie iš galų t trumpesni (W - 2t), šonai per visą aukštį (kaip folded_dxf --tb-inside); tb_inside=False - šonai į vidų."""
+    tb_inside=True - viršus / apačia TARP šonų (W - 2t), šonai per visą aukštį (kaip folded_dxf --tb-inside); False - šonai į vidų.
+    v328 (Rytis 2026-10-16): NUMATYTA - trumposios kraštinės į vidų (H > W -> viršus / apačia, kitaip šonai); spec "tb_inside"
+    true / false - tik ne standartas (v302 Joker 226057 - užsakymo nurodymas „viršus / apačia į vidų", jo spec'e)."""
     import ezdxf
     FL = depth - t
     F, WF = W + 2 * FL, h + 2 * FL
@@ -479,7 +479,7 @@ def main(spec_path, out):
         for j, h in enumerate(hp):
             flat_dxf(f"{base}_flat_{P['name']}{'_' + str(j + 1) if len(hp) > 1 else ''}.dxf", P["w"], h, depth, t,
                      holes_top=(j == 0), holes_bot=(j == len(hp) - 1), bolts_top=(j > 0), bolts_bot=(j < len(hp) - 1),
-                     tb_inside=S.get("tb_inside", True))
+                     tb_inside=S["tb_inside"] if "tb_inside" in S else P["h"] > P["w"])   # v328: trumposios kraštinės į vidų
         for v, p_, a_ in r["VIN"]:
             PL.write_dxf(p_, f"{base}_vinyl_{P['name']}_{v['name'].split()[0].replace('/', '-')}.dxf")
         print(f"  {P['name']}: {P['w']} x {P['h']} parts {hp} flats {[(round(a), round(b)) for a, b in r['flats']]} "

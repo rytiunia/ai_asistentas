@@ -7,11 +7,12 @@
 - kampų išpjova stačiakampė, be spindulių.
 1000x1000x40 -> išklotinė 1076 x 1076. Ø3.2 tvirtinimo skylės (skill v37) - atskirame sluoksnyje HOLES_D3.2,
 7 mm nuo viršaus / apačios flanšo krašto, 50 nuo galų, žingsnis ~300 (`--no-holes` - be jų).
-NUMATYTA (Rytis 2026-10-13, bet kokiems matmenims): „sides inside" - šonai įsilenkia į vidų, viršus / apačia užsilenkia ant jų.
-`--tb-inside` (v174, tik nurodžius „top/bottom inside"): viršus / apačia įsilenkia TARP šonų - jie t trumpesni iš galų (W - 2t), šonai per visą aukštį H.
+NUMATYTA (v328, Rytis 2026-10-16): TRUMPOSIOS kraštinės lenkiasi į vidų - W >= H: „sides inside" (šonai įsilenkia, viršus /
+apačia užsilenkia ant jų); H > W: viršus / apačia įsilenkia TARP šonų (W - 2t), šonai per visą aukštį H.
+Ne standartas - tik nurodžius: `--tb-inside` (viršus / apačia į vidų) arba `--sides-inside` (šonai į vidų).
 Laido Ø11 skylė briaunoje (v321): `--cable-edge=left|right|top|bottom` [`--cable-mm=15`] - 15 mm nuo lenkimo linijos
 (fono priekio) ir 15 mm nuo viršaus (šone) / nuo kairės (viršuje / apačioje).
-Naudojimas: python3 folded_dxf.py PLOTIS AUKŠTIS out.dxf [GYLIS] [--t 2] [--no-holes] [--tb-inside] [--cable-edge=left]"""
+Naudojimas: python3 folded_dxf.py PLOTIS AUKŠTIS out.dxf [GYLIS] [--t 2] [--no-holes] [--tb-inside | --sides-inside] [--cable-edge=left]"""
 import sys, os
 import ezdxf
 import kreives as KR  # v312: kreivės lankais (skripto katalogas - sys.path[0])
@@ -24,7 +25,10 @@ args = [a for a in argv if not a.startswith("--")]
 W, H, OUT = float(args[0]), float(args[1]), args[2]
 PD = float(args[3]) if len(args) > 3 else 40.0
 HOLES = "--no-holes" not in sys.argv
-TB_IN = "--tb-inside" in sys.argv          # v174: viršus / apačia tarp šonų
+# v328 (Rytis 2026-10-16: „pagal nutylėjimą trumposios kraštinės lenkiasi į vidų, kitas variantas nurodomas, jei ne standartas"):
+#  į vidų (tarp kitų, t trumpesni) - TRUMPŲJŲ kraštinių flanšai: W >= H -> šonai (sides inside), H > W -> viršus / apačia.
+#  Ne standartas - tik nurodžius: --tb-inside (viršus / apačia) arba --sides-inside (šonai).
+TB_IN = True if "--tb-inside" in sys.argv else False if "--sides-inside" in sys.argv else H > W
 # v321 (Rytis 2026-10-16: „laido skylė briaunoje daroma, kaip standartas kuo arčiau dugno ir viršutinės dalies ~15mm"):
 #  Ø11 laido skylė užlenktoje briaunoje - 15 mm nuo lenkimo linijos (fono priekio = padėklo dugno) ir 15 mm nuo viršaus
 #  (šoninėje briaunoje - nuo viršutinės lenkimo linijos; viršutinėje / apatinėje - nuo kairės / dešinės lenkimo linijos)
@@ -63,7 +67,7 @@ th = min(30, H / 20)
 msp.add_text(f"FOLDED PLATE {W:.0f} x {H:.0f} x {PD:.0f} - Al {t:g} mm - FLAT {F:.0f} x {WF:.0f} - FACE OUT",
              height=th, dxfattribs={"layer": "TEXT"}).set_placement((F / 2, -2 * th), align=ezdxf.enums.TextEntityAlignment.MIDDLE_CENTER)
 msp.add_text(f"bend lines = {W:.0f} x {H:.0f}, flanges {FL:g} from bend line, "
-             + (f"top/bottom flanges {W - 2 * t:g} INSIDE (t shorter each end), sides {H:g}" if TB_IN else f"SIDES INSIDE (default): side flanges {H - 2 * t:g} (t shorter each end)")
+             + (f"top/bottom flanges {W - 2 * t:g} INSIDE (t shorter each end), sides {H:g}" if TB_IN else f"SIDES INSIDE: side flanges {H - 2 * t:g} (t shorter each end)")
              + ", 4 x 90 up"
              + (f" | D3.2 x 2 x {n + 1}: 50 | {n} x {span / n:.1f} | 50, 7 from edge" if HOLES else ""),
              height=th * 0.6, dxfattribs={"layer": "TEXT"}).set_placement((F / 2, -3.6 * th), align=ezdxf.enums.TextEntityAlignment.MIDDLE_CENTER)

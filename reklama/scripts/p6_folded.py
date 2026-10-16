@@ -30,7 +30,8 @@ LAYERS = (("CUT", 7, "CONTINUOUS"), ("BEND_UP_90", 1, "DASHED"), ("HOLES_D3.2", 
           ("DRAIN_D8", 5, "CONTINUOUS"), ("TEXT", 7, "CONTINUOUS"))
 
 
-def combine(p6_dxf, W, H, depth, lx, ly, out, cable_edge="none", t=2):
+def combine(p6_dxf, W, H, depth, lx, ly, out, cable_edge="none", t=2, tb_inside=None):
+    """tb_inside None - standartas (v328: trumposios kraštinės į vidų), True / False - ne standartas (nurodyta užsakyme)"""
     fl = depth - t                                           # flanšas nuo lenkimo linijos (v173)
     ox, oy = fl + lx, fl + ly                                # raidžių nulis išklotinėje
     doc = ezdxf.new("R2010", setup=True)
@@ -44,6 +45,8 @@ def combine(p6_dxf, W, H, depth, lx, ly, out, cable_edge="none", t=2):
     cmd = ["python3", os.path.join(HERE, "folded_dxf.py"), f"{W:g}", f"{H:g}", flat_fn, f"{depth:g}"]
     if cable_edge in ("left", "right"):
         cmd.append(f"--cable-edge={cable_edge}")
+    if tb_inside is not None:
+        cmd.append("--tb-inside" if tb_inside else "--sides-inside")
     subprocess.run(cmd, capture_output=True, text=True, check=True)
     for e in ezdxf.readfile(flat_fn).modelspace():
         msp.add_entity(e.copy())

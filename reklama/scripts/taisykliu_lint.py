@@ -35,6 +35,9 @@ RULES = [
     # v326 (Rytis 2026-10-16: „klaidos neturi kartotis" - sviesdeze / p10 lapai jungti be .art.json, patikra nematė blokų)
     ("LAPAI BE merge_sheets", re.compile(r"\.insert_pdf\(fitz\.open\(\w+\)\)\s*(#.*)?$"), False,
      "lapai jungiami be jų .art.json (blokai, kliento grafika, NETELPA dingsta iš patikros) - K.merge_sheets(pages, out)"),
+    # v328 (Rytis 2026-10-16: „visi įkelti pavyzdžiai ir dokumentai keičiami į GOST šriftą")
+    ("ĮDĖTAS TEKSTAS NE GOST", re.compile(r"place_pdf\([^#\n]*gost\s*=\s*False"), False,
+     "įdėto fragmento tekstas paliekamas savo šriftu - tik kliento logotipo dizaino tekstui (# lint-ok: <priežastis>)"),
     ("BALTAS DANGTIS", re.compile(r"draw_rect\([^#\n]*fill\s*=\s*\(1,\s*1,\s*1\)[^#\n]*\)"), True,
      "senas turinys uždengiamas baltu (lieka faile) - ištrinti redakcija (add_redact_annot + apply_redactions)"),
 ]

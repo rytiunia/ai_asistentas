@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v327 (2026-10-16)
+Atnaujinta: v328 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -289,13 +289,21 @@ failas apvalus, bet gaunasi kampuotas"; ta pati pastaba buvo v113, bet pataisa b
 - Kelios dalys - „A1 - 3,78 m², A2 - 1,89 m²" (dalys A1, A2 ... iš viršaus; tie patys vardai lape - šoniniame vaizde
   ir MAIN DATA „Parts": „A1 2700 x 1400 + A2 2700 x 700").
 - Vykdo `folded_vinyl.py` ir `braizyti_lapa.py` (eilutė su „folded" ir kiekiu „N pcs." -> m²). Patikra 26 FOLDED BE m².
+- Šviesdėžių LOVELĖS (front / back tray, folded A / B) - taip pat TIK FASADO m² (v328, Rytis: „tik fasado m2"):
+  `p10_lightbox_singlesided`, `p10_lightbox_doublesided`; patikra 26 tikrina ir „tray", ir „pc." / „pcs.".
+- SPAUDA (v328, Rytis: „spauda dokumente tik nurodoma, gamyboje kitas spaudos algoritmas"): BOM spaudos eilutė - tik kas
+  ir iš kokio failo, kiekis „per production", m² NESKAIČIUOJAMAS. Patikra 29 SPAUDA SU PLOTU.
+- LAIDAS (v328, Rytis: „laidas, jei nenurodyta užklausoje, 1.5 m"): numatytas 12V / 230V laido ilgis - 1,5 m
+  (`braizyti_begeliai` trafo_box.cable_len_m); kitas - tik jei nurodyta užklausoje (pvz. SPAR 225960 - 3 m).
 
-## E4. Folded plate + lipdukai - lenkimas (v302, Rytis 2026-10-16 Joker 226057)
+## E4. Folded lenkimas - TRUMPOSIOS KRAŠTINĖS Į VIDŲ (v328, Rytis 2026-10-16: „pagal nutylėjimą trumposios kraštinės lenkiasi į vidų, kitas variantas nurodomas, jei ne standartas")
 
-- `folded_vinyl.py` išklotinė: VIRŠUS / APAČIA LENKIASI Į VIDŲ (tarp šonų) - jų atlankai iš galų t trumpesni (W - 2t),
-  šonai per visą aukštį; spec `"tb_inside": false` - šonai į vidų. DXF TEXT sluoksnyje užrašas „TOP / BOTTOM INSIDE".
-- v326 pastaba (dabartinis kodas, nesuvienodinta): `folded_dxf.py` (fonas be lipdukų, P6 ant folded, pilonų / šviesdėžių
-  lovelės) numatyta priešingai - SIDES INSIDE (v173), top / bottom į vidų - tik `--tb-inside`. Laukia Ryčio sprendimo.
+- Į vidų (tarp kitų atlankų, iš galų t trumpesni) lenkiami TRUMPŲJŲ kraštinių atlankai: W >= H - šonai (sides inside,
+  viršus / apačia užsilenkia ant jų); H > W - viršus / apačia (W - 2t), šonai per visą aukštį.
+- Vienodai visur: `folded_dxf.py` (fonas, P6 ant folded - `p6_folded.py`, lovelės), `folded_vinyl.py` (plokštė + lipdukai).
+- Ne standartas - TIK nurodžius užsakyme: `folded_dxf.py --tb-inside` / `--sides-inside`, spec `"tb_inside": true / false`
+  (pvz. Joker 226057 v302 „viršus / apačia į vidų" - jo spec'e; SPAR 225960 bp7 / bp89 - spec'e).
+- DXF TEXT sluoksnyje - užrašas „TOP / BOTTOM INSIDE" arba „SIDES INSIDE".
 
 ## E5. Įdėta kliento / seno lapo grafika - faile TIK lape matomi objektai (v307, Rytis 2026-10-16 KIA 33597)
 
@@ -308,6 +316,14 @@ failas apvalus, bet gaunasi kampuotas"; ta pati pastaba buvo v113, bet pataisa b
   (`add_redact_annot` + `apply_redactions(graphics=PDF_REDACT_LINE_ART_REMOVE_IF_TOUCHED)`), NE uždengiami baltu
   stačiakampiu (lint BALTAS DANGTIS).
 - `K.save` - `garbage=4` (pasikartojantys ICC / šriftai vieną kartą; KIA 5,6 -> 1,5 MB).
+- GOST VISUR (v328, Rytis 2026-10-16: „visi įkelti pavyzdžiai ir dokumentai keičiami į GOST šriftą. GOST šriftas
+  pagrindinis galutiniame dokumente"): `K.place_pdf(..., gost=True)` (numatyta) - visas fragmento gyvas tekstas (bet koks
+  šriftas, ir seno lapo GOST kopija) iš fragmento pašalinamas ir perrašomas lapo GOST šriftu toje pačioje vietoje
+  (dydis, spalva, kryptis); fragmentas be teksto - be šriftų resursų. Lape - VIENAS GOST šriftas (patikra 22 COREL).
+  `gost=False` - tik kliento logotipo dizaino tekstui, su `# lint-ok: priežastis` (lint ĮDĖTAS TEKSTAS NE GOST).
+  Išimtis - simboliai, kurių GOST Common neturi (Å / Æ / Ø / Ä / Ö) - osifont (v11 / v146).
+- LED PDF (`led_km.py`) - atskiras dokumentas: modulio / PSU modeliai ir užrašai jame lieka (v328, Rytis: v262 „tik LED / PSU"
+  LED PDF NETAIKOMA).
 
 ## F. Ką tikrina automatika (lapas neatiduodamas, kol ne 0)
 
@@ -349,11 +365,12 @@ failas apvalus, bet gaunasi kampuotas"; ta pati pastaba buvo v113, bet pataisa b
     v326: P1 pjūvio (K.p1_typical) šono balionas 2 - raidės viduje, ne ant gylio matmens.
 28. ANTRAŠTĖS MASTELIS (v327): antraštės SCALE langelyje - tik masteliai, kurie yra lapo vaizduose / blokuose (p10 doublesided
     rašė numatytus „1:5 / 1:2 / 1:1"); sviesdeze.band `scales` - privalomas. Vienas bendras mastelis - vienas įrašas.
+29. SPAUDA SU PLOTU (v328): BOM spaudos eilutėje m² - spauda tik nurodoma („per production").
 - (be numerio) DVIGUBA LINIJA (v190, SKILL bendrinė 9): du įdėti hairline kontūrai arčiau nei 0,6 pt - spaudoje susilieja į
   storą liniją (tikrinama kartu su 1 HAIRLINE).
 
 `taisykliu_lint.py` (generatoriaus kodas): FIKSUOTA VIETA, FIKSUOTAS MASTELIS, KIEKIS SU FORMULE, BLOKAS BE CENTRAVIMO,
-VISAS ŠALTINIO PUSLAPIS, DXF BE LANKŲ, TVIRTINIMAS NE PAGAL FORMĄ, LAPAI BE merge_sheets (v326), BALTAS DANGTIS, BE LAYOUT_ENGINE.
+VISAS ŠALTINIO PUSLAPIS, DXF BE LANKŲ, TVIRTINIMAS NE PAGAL FORMĄ, LAPAI BE merge_sheets (v326), ĮDĖTAS TEKSTAS NE GOST (v328), BALTAS DANGTIS, BE LAYOUT_ENGINE.
 
 `regresija.py` (v326): visi `CASES` - patikra_lapas / patikra_corel / patikra_dxf = 0 ir test_p6 OK.
 

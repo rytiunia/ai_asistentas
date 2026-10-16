@@ -311,9 +311,12 @@ def sheet1(g, out):
 
 def bom1(g):
     W, H = g["w"], g["h"]
-    rows = [[1, f"Front tray {W:g} x {H:g} x {g['depth']:g} mm, in white", f"Alu {g['t']:g} mm", g["body_finish"] or "", "1 pc."],
+    # v328 (Rytis 2026-10-16: lovelės - „tik fasado m2"): kiekis - fasado plotas W x H m², ne vnt.
+    K.FEAT.add("folded_qty")
+    rows = [[1, f"Front tray {W:g} x {H:g} x {g['depth']:g} mm, in white", f"Alu {g['t']:g} mm", g["body_finish"] or "",
+             NE.folded_qty([(W, H)])[0]],
             [2, f"Back tray {g['BW']:g} x {g['BH']:g} x {g['back_depth']:g} mm, in white", f"Alu {g['back_t']:g} mm",
-             g["back_finish"] or "", "1 pc."]]
+             g["back_finish"] or "", NE.folded_qty([(g["BW"], g["BH"])])[0]]]
     if g["logo"] is not None:
         # v309 (TAISYKLĖ v304): plexi plotas - nesting visam užsakymo kiekiui (nesting.py), ne grynasis plotas
         _n = lambda gs_, mat_, lab_: K.nest_m2(gs_, mat_, lab_, qty=_qty(g))      # v326: bendras K.nest_m2
@@ -623,8 +626,9 @@ def _sheet2(g, out):
             ["Cable", f"z {g['cab']['z']:g} mm from facade, y {unk(g['cab']['y_'], '{:g} mm')}"]], title="TRAYS", lab_w=64)
     md = [["Bend rule", "folded v173, no K-factor"], ["Flanges front", f"{D - t:g} mm"],
           ["Flanges back", f"{g['back_depth'] - g['back_t']:g} mm"], ["Qty", K.qty_txt(g["qty"]) or "?"]]
-    rows = [[1, "Front tray (DXF)", f"Alu {t:g} mm", g["body_finish"] or "", "1 pc."],
-            [2, "Back tray (DXF)", f"Alu {g['back_t']:g} mm", g["back_finish"] or "", "1 pc."]]
+    K.FEAT.add("folded_qty")                              # v328: lovelės - fasado m²
+    rows = [[1, "Front tray (DXF)", f"Alu {t:g} mm", g["body_finish"] or "", NE.folded_qty([(W, H)])[0]],
+            [2, "Back tray (DXF)", f"Alu {g['back_t']:g} mm", g["back_finish"] or "", NE.folded_qty([(g["BW"], g["BH"])])[0]]]
     band(g, sheet_no(g, 1), "", md, rows, detail, f"1:{n:g}", center_detail=False)   # TRAYS - lentelė, ne pjūvis
     K.save(out)
 

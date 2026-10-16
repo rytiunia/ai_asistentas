@@ -55,9 +55,7 @@ CASES = [
      ["out/ALT8901_10.16_RS_SPAR_order_225960.pdf"], ["out/*.dxf"], "alt8901"),
 ]
 # žinomi, dar neišspręsti (Ryčio sprendimas) - rodomi, bet regresijos nesugadina; kiekvienas su priežastimi
-KNOWN = {
-    "order kia": "COREL: 5 GOST šriftai (įdėtas kliento fragmentas su savo šriftais) - laukia sprendimo",
-}
+KNOWN = {}   # v328: KIA - įdėto fragmento tekstas perrašomas lapo GOST šriftu (K.place_pdf gost=True), išimties nebėra
 
 
 def mirror(proj):

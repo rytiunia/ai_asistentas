@@ -41,7 +41,7 @@ CAB_EDGE = "left"                                    # kliento laido išvestis -
 sp = json.load(open(os.path.join(HERE, "spec.json")))
 sp.pop("cable_exit", None)
 sp["cable"] = {"d11_mm": [round((LT.x0 - PL.x0) * S + d11[0]), round((LT.y1 - PL.y0) * S - d11[1])], "letter": "letter B",
-               "edge": CAB_EDGE, "edge_mm": 15, "label": "12V, 3 m -> trafo box (220V)"}
+               "edge": CAB_EDGE, "edge_mm": 15, "label": "12V, 1,5 m -> trafo box (220V)"}  # v328: numatyta 1,5 m
 json.dump(sp, open(os.path.join(HERE, "spec.json"), "w"), indent=1, ensure_ascii=False)
 subprocess.run(["python3", os.path.join(SCR, "braizyti_lapa.py"), "spec.json", "TEST_Bandymas_folded.pdf"], cwd=HERE,
                capture_output=True, text=True, check=True)

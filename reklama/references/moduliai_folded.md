@@ -57,12 +57,12 @@ v37-v172 - NEBENAUDOTI; seni projektų skriptai jo nepakeisti.) max ilgis - lak�
 - **v321 (Rytis 2026-10-16): Ø11 laido skylė briaunoje - STANDARTAS ~15 mm nuo lenkimo linijos (fono priekio / padėklo
   dugno) ir ~15 mm nuo viršaus** (`folded_dxf.py --cable-edge=...`); P6 raidžių D3.2 / D11 / Ø8 skylės atsikartoja fone 1:1,
   tvirtinama gamyboje pagal faktą.
-- **Laidas folded fone (bendra):** TIK po raide - D11 raidės gale (>= 30 mm nuo kontūro, >= 20 nuo tvirtinimo
-  skylių; v326 pastaba: P6 ant folded D11 vietą DXF'e dabar parenka `p6_dxf.py --folded` - `--d11-edge` 20, `--d11-fix-clear` 25)
+- **Laidas folded fone (bendra):** TIK po raide - D11 raidės gale (v328, Rytis 2026-10-16: >= 20 mm nuo kontūro,
+  >= 25 mm nuo tvirtinimo skylių - kaip `p6_dxf.py` `--d11-edge` 20 / `--d11-fix-clear` 25; senas „>= 30 / >= 20" - PAKEISTA)
   -> už fono -> pro Ø11 skylę UŽLENKTOJE BRIAUNOJE (viršutinėje / apatinėje / ŠONINĖJE) kliento nurodytoje
   vietoje; matmuo iki skylės lape; ant fono išvesties niekada. Kurią briauną - pagal kliento failą / standartą.
 - **Išklotinės ir DXF:** lape išklotinė su lenkimo ašimis, Ø3.2 skylėmis, grandinėmis; DXF -
-  `scripts/folded_dxf.py PLOTIS AUKŠTIS out.dxf [GYLIS] [--t 2] [--no-holes] [--tb-inside] [--cable-edge=left|right|top|bottom]
+  `scripts/folded_dxf.py PLOTIS AUKŠTIS out.dxf [GYLIS] [--t 2] [--no-holes] [--tb-inside | --sides-inside] [--cable-edge=left|right|top|bottom]
   [--cable-mm=15]` (gamybos išklotinė v173, Ø3.2 7 nuo krašto atskirame sluoksnyje, Ø11 laidui v321); dalims su sandūra -
   `scripts/projektai/okq8_vaster/okq8.py: flat_dxf(fn, W, H, holes_top, holes_bot, bolts_top, bolts_bot)`.
   Sluoksniai (v326 pataisyta pagal kodą): `folded_dxf.py` - CUT / BEND_UP_90 / HOLES_D3.2 / TEXT (+ HOLE_D11_CABLE su
@@ -89,10 +89,10 @@ Pavyzdys `assets/spec_folded_2parts.json`, eiga `scripts/projektai/spar_type670/
   dalių grandinė virš bendro pločio. **„PANEL JOINT" - TIK pastaba UŽ reklamos ribų** (virš priekio grandinių,
   virš galinio vaizdo varžtų grandinės) su išvadine - NIEKADA ant fasado ar raidžių.
 - **Laidas (folded / box lid):** išeina TIK po raide - D11 raidės gale (`d11_mm`, raidė arčiausiai kliento išvesties,
-  >= 30 mm nuo kontūro), už fono iki užlenktos briaunos (trasa ne per L: šone x = 12, kur L dar nėra), pro Ø11 skylę
+  >= 20 mm nuo kontūro, >= 25 nuo tvirtinimo - v328), už fono iki užlenktos briaunos (trasa ne per L: šone x = 12, kur L dar nėra), pro Ø11 skylę
   UŽLENKTOJE BRIAUNOJE kliento nurodytoje vietoje (`edge`: left/right/top/bottom, `edge_mm` - padėtis išilgai
   briaunos, matmuo lape) ir įtampa. Bet kur ant fono išvesties NEDĖTI. Spec:
-  `"cable": {"d11_mm": [600, 160], "letter": "letter F", "edge": "left", "edge_mm": 15, "label": "12V, 3 m -> PSU (220V)"}`
+  `"cable": {"d11_mm": [600, 160], "letter": "letter F", "edge": "left", "edge_mm": 15, "label": "12V, 1,5 m -> PSU (220V)"}` (v328: numatytas laidas 1,5 m, jei užklausoje nenurodyta)
   (v326: `edge_mm` 29 -> 15 - v321 standartas 15 mm nuo viršaus, `braizyti_lapa.py` numatyta 15; 29 buvo SPAR TYPE 670)
   (senas `cable_exit` - tik suderinamumui). Laidas - 0,9 pt raudonas (`_cpoly`, VIEW_MODE hairline netaikomas);
   balionai 9 / 6 - priešingoje pusėje nei laidas.
@@ -160,3 +160,10 @@ raidžių D3.2 / D11 / Ø8 skylės ir LETTER_POSITION perkeliamos į išklotinę
   (perimetras x gylis), PVC = `{PER_L} m`; `{L_SIZE} {L_QTY} {L_LEN} {L_TOTAL}`, `{S_SPEC} {S_MAT} {S_QTY} {S_PER}`.
   (v326: `{A_FACE}` / `{A_BACK}` / `{A_RET}` nuo v316 - lakšto / juostų NESTING sunaudojimas, ne grynasis plotas; 5 folded fono
   eilutės kiekis - gaminio plotas W x H m² (`nesting.folded_qty`, E3c), ne „1 pcs.".)
+
+## v328 (Rytis 2026-10-16) - galioja
+- Lenkimas: TRUMPOSIOS kraštinės į vidų (W >= H - šonai, H > W - viršus / apačia); kitaip - tik nurodžius (suvestinė E4).
+- Spauda: lape tik nurodoma („per production"), plotas neskaičiuojamas - gamyboje savas algoritmas (ankstesnis
+  „SPAUDA (W+80) x (H+80)" - PAKEISTA).
+- Lovelės (šviesdėžių front / back tray) - BOM tik fasado m².
+- Laidas, jei nenurodyta - 1,5 m.

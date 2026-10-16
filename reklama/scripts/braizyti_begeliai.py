@@ -2965,7 +2965,8 @@ TB_ON = TB is not None and (bool(CABLES) or bool(TB))
 TB_V = (TB or {}).get("voltage") or next((c_["voltage"] for c_ in CABLES if not K.unk(c_["voltage"])), "12V")
 TB_X = (TB or {}).get("x", PW / 2)                     # dėžės vieta (iškabos koord., mm)
 TB_RES = (TB or {}).get("reserve_m", 1.0)
-TB_LEN = (TB or {}).get("cable_len_m", 3.0)               # Rytis 2026-10-08 (v13): visi laidai 12V 3 m
+# v328 (Rytis 2026-10-16: „laidas, jei nenurodyta užklausoje, 1.5 m"; anksčiau v13 - 3 m, komentaruose - 5 m)
+TB_LEN = (TB or {}).get("cable_len_m", 1.5)
 
 
 def _grp_ends(g):
@@ -3469,7 +3470,7 @@ if TB_ON and CEX:
     nmax = max(_ranks.values()) + 1
     by0 = CAB_Y[0] + BUS * (nmax - 1) + 12
     _bx_real = PW - (bxc - RVX) / s2                                 # dėžės vieta (už iškabos, apačioje)
-    for cb, ce in CEX:                    # Rytis 2026-10-08: visi laidai 5 m (spec trafo_box.cable_len_m); None - skaičiuoti
+    for cb, ce in CEX:                    # v328: numatyta 1,5 m (spec trafo_box.cable_len_m - užklausos ilgis); None - skaičiuoti
         L_ = TB_LEN if TB_LEN else math.ceil(((abs(ce[0] - _bx_real) + abs(PH - ce[1])) / 1000 + TB_RES) * 2) / 2
         cb["len_m"] = L_; cb["label"] = f"{L_:g} m"
     TBH = 32

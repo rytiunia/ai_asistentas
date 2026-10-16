@@ -156,7 +156,7 @@ def s10():
                    ["Print only - no back plate.", "Original print forwarded - separate files for printing.", "Material / laminate:",
                     "The vinyl graphic consists of two parts.", "Provide a 10 mm overlap at the joint."],
                    [("PRINT", "#3A3A3A", "original file - forwarded"), ("LAMINATE gloss", None, "")],
-                   [[1, "Print, 2 parts, 10 mm overlap", "", "", t1], ["", "Laminate", "", "-", t2]],
+                   [[1, "Print, 2 parts, 10 mm overlap", "", "", "per production"], ["", "Laminate", "", "-", t2]],   # v328: spauda tik nurodoma
                    [["Quantity", "1 pcs."], ["Size", "3000 x 2300 mm"], ["Parts", "2 (joint 1150, overlap 10 mm)"], ["Product", "print only"],
                     ["Artwork", "original file (forwarded)"], ["Material", ""], ["Finish", ""], ["Weight (calc.)", "-"]])
 

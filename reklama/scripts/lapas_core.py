@@ -170,16 +170,47 @@ _PLACE = []
 ART = []          # v182: įdėtos kliento grafikos sritys (pymupdf koord. + psl.) -> <lapas>.pdf.art.json, patikra_lapas jas praleidžia
 
 
-def place_pdf(src_pdf, pno, clip, tl, tr, bl, outline=0.3, under=False):
+def place_pdf(src_pdf, pno, clip, tl, tr, bl, outline=0.3, under=False, gost=True):
     """v151 (Rytis 2026-10-13, Thales: "labai daug neatitikimų" perpiešiant kliento grafiką kontūrais): TIKSLUS kito PDF
     fragmento įdėjimas - vektorius + gyvas tekstas + paveikslėliai + gradientai, kaip kliento faile. clip - šaltinio puslapio
     sritis (pymupdf koord.), tl / tr / bl - tikslo lygiagretainio kampai (reportlab koord.; 2D - stačiakampis, 3D - afininis).
     Įdedama save() metu VIRŠ lapo turinio."""
     # v171: under=True - fragmentas PO lapo turiniu (ant jo rašomi GOST užrašai reportlab šriftu, ne papildomi Type0 šriftai)
-    _PLACE.append((c.getPageNumber() - 1, src_pdf, pno, tuple(clip), tuple(tl), tuple(tr), tuple(bl), outline, under))
+    # v328 (Rytis 2026-10-16: „visi įkelti pavyzdžiai ir dokumentai keičiami į GOST šriftą. GOST šriftas pagrindinis
+    #  galutiniame dokumente"): gost=True (numatyta) - VISAS fragmento gyvas tekstas (bet koks šriftas, ir seno lapo GOST
+    #  kopija) iš fragmento PAŠALINAMAS ir perrašomas lapo GOST šriftu toje pačioje vietoje (dydis, spalva, kryptis pagal
+    #  įdėjimo transformaciją) - lape lieka VIENAS GOST šriftas (patikra 22 COREL). gost=False - tik kliento logotipo gyvas
+    #  tekstas, kuris yra dizaino dalis (prekės ženklo šriftas).
+    if gost:
+        _gost_texts(src_pdf, pno, clip, tl, tr, bl)
+    _PLACE.append((c.getPageNumber() - 1, src_pdf, pno, tuple(clip), tuple(tl), tuple(tr), tuple(bl), outline, under, gost))
 
 
-def clip_source(src, pno, clip):
+def _gost_texts(src, pno, clip, tl, tr, bl):
+    """v328: įdedamo fragmento tekstas -> K.T (GOST) lape; koordinatės - afininis clip -> (tl, tr, bl) atvaizdavimas"""
+    import math as _m
+    sd = src if isinstance(src, fitz.Document) else fitz.open(src)
+    cl = fitz.Rect(clip)
+    cw, ch = max(cl.width, 1e-6), max(cl.height, 1e-6)
+    ux, uy = (tr[0] - tl[0]) / cw, (tr[1] - tl[1]) / cw              # šaltinio +x -> reportlab
+    vx, vy = (bl[0] - tl[0]) / ch, (bl[1] - tl[1]) / ch              # šaltinio +y (žemyn) -> reportlab
+    k = _m.hypot(ux, uy)
+    for b in sd[pno].get_text("dict", clip=cl)["blocks"]:
+        for l in b.get("lines", []):
+            dx, dy = l.get("dir", (1, 0))
+            ang = _m.degrees(_m.atan2(dx * uy + dy * vy, dx * ux + dy * vx))
+            for sp in l["spans"]:
+                t_ = sp["text"]
+                if not t_.strip() or not cl.contains(fitz.Rect(sp["bbox"]).tl + (fitz.Rect(sp["bbox"]).br - fitz.Rect(sp["bbox"]).tl) * 0.5):
+                    continue
+                ox, oy = sp["origin"][0] - cl.x0, sp["origin"][1] - cl.y0
+                X_ = tl[0] + ox * ux + oy * vx
+                Yr = tl[1] + ox * uy + oy * vy
+                col = sp.get("color", 0)
+                T(X_, H - Yr, t_, max(sp["size"] * k, 1.0), color=HexColor(f"#{col:06x}"), rot=ang, auto_red=False)
+
+
+def clip_source(src, pno, clip, gost=False):
     """v307 (Rytis 2026-10-16, KIA 33597: „dokumente daug pašalinių objektų, faile tik lape esantys objektai"):
     show_pdf_page įdeda VISĄ šaltinio puslapį (paslėptą už clip) - CorelDRAW rodo viską. Todėl prieš įdedant iš šaltinio
     puslapio kopijos IŠTRINAMA viskas, kas nesikerta su clip: vektoriai, tekstas, paveikslėliai, anotacijos.
@@ -220,7 +251,13 @@ def clip_source(src, pno, clip):
             p.add_redact_annot(fitz.Rect(im["bbox"]))
     p.apply_redactions(images=fitz.PDF_REDACT_IMAGE_REMOVE, graphics=fitz.PDF_REDACT_LINE_ART_NONE,
                        text=fitz.PDF_REDACT_TEXT_NONE)
+    if gost:                                                    # v328: tekstas perrašytas lapo GOST šriftu (place_pdf) - čia šalinamas
+        p.add_redact_annot(cl + (-1, -1, 1, 1))
+        p.apply_redactions(images=fitz.PDF_REDACT_IMAGE_NONE, graphics=fitz.PDF_REDACT_LINE_ART_NONE,
+                           text=fitz.PDF_REDACT_TEXT_REMOVE)
     p.clean_contents()
+    if gost and not p.get_text().strip():                       # v328: be teksto - ir be šriftų resursų (lape VIENAS GOST)
+        nd.xref_set_key(p.xref, "Resources/Font", "null")
     buf = nd.tobytes(garbage=4, deflate=True)
     return fitz.open("pdf", buf)
 
@@ -230,9 +267,10 @@ def _apply_place(doc):
     for it_ in _PLACE:
         pi, src, pno, clip, tl, tr, bl, ol = it_[:8]
         und = it_[8] if len(it_) > 8 else False
-        key = (src, pno, tuple(round(v, 2) for v in clip))
+        gst = it_[9] if len(it_) > 9 else False
+        key = (id(src) if isinstance(src, fitz.Document) else src, pno, tuple(round(v, 2) for v in clip), gst)
         if key not in srcs:
-            srcs[key] = clip_source(src, pno, clip)
+            srcs[key] = clip_source(src, pno, clip, gost=gst)
         pg = doc[pi]; Hp = pg.rect.height
         old = {x[0] for x in pg.get_xobjects()}
         pg.show_pdf_page(fitz.Rect(0, 0, 100, 100), srcs[key], 0, clip=fitz.Rect(clip), keep_proportion=False,  # lint-ok: šaltinis jau išvalytas clip_source

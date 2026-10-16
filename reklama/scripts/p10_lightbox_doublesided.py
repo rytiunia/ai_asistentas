@@ -619,6 +619,13 @@ def detail_b(g):
     return detail
 
 
+def _fasm2(w, h):
+    """v328 (Rytis 2026-10-16: lovelės / folded - „tik fasado m2"): BOM kiekis - fasado plotas W x H m² (nesting.folded_qty)"""
+    import nesting as _NE
+    K.FEAT.add("folded_qty")
+    return _NE.folded_qty([(w, h)])[0]
+
+
 def bom1(g):
     fa, fb, ft = g["frame"]
     P0 = g["plates_l"][0]
@@ -635,8 +642,8 @@ def bom1(g):
               ["1A", f"Mounting plate {P0['w']:g}x{P0['h']:g}x{P0['t']:g}, Ø{g['plate_hole_d']:g}", "Alu, welded to leg",
                g["frame_finish"] or "", f"{len(g['plates_l'])} pcs."]]
     rows = r1 + [
-            [2, f"Front A, folded {W:g}x{H:g}x{g['PD']:g}", f"Alu {g['t']:g} mm", g["body_finish"] or "", "1 pc."],  # v326: „inside white" - MAIN DATA Body (netelpa)
-            [3, f"Back B, folded {W:g}x{H:g}x{g['PD']:g}", f"Alu {g['t']:g} mm", g["body_finish"] or "", "1 pc."]]
+            [2, f"Front A, folded {W:g}x{H:g}x{g['PD']:g}", f"Alu {g['t']:g} mm", g["body_finish"] or "", _fasm2(W, H)],  # v326: „inside white" - MAIN DATA Body (netelpa)
+            [3, f"Back B, folded {W:g}x{H:g}x{g['PD']:g}", f"Alu {g['t']:g} mm", g["body_finish"] or "", _fasm2(W, H)]]
     if g.get("logo") is not None:
         if g["ins_t"] > 0:
             for k_, sd in ((4, "A"), (5, "B")):
