@@ -219,3 +219,19 @@ def nest_strips(lengths_mm, width_mm, material_text, label="returns", qty=1):
                      f"{r['m2_total']:.2f} m²" + (f" = {r['m2']:.3f} m² / pcs." if q > 1 else "")
                      + f" (detalės {pm:.2f} m², atliekos {r['waste'] * 100:.0f} %)")
     return r
+
+
+def folded_qty(flats_mm, material_text, prefix="A", qty=1):
+    """v323 (Rytis 2026-10-16: „folded plate QTY pažymėta kaip 1 pcs, o turi būti plate m2; jei kelios - A1 - m2, A2 - m2"):
+    folded plokštės BOM kiekis - m² (lakšto sunaudojimas, nesting kiekvienai išklotinei W x H mm). Viena dalis -> „1,23 m²",
+    kelios -> „A1 - 1,23 m², A2 - 0,98 m²". Grąžina (tekstas, [m2 ...])."""
+    from shapely.geometry import box as _box
+    m2 = []
+    for w_, h_ in flats_mm:
+        r_ = nest_parts([_box(0, 0, w_, h_)], material_text, label="folded", qty=qty)
+        m2.append(r_["m2"] if r_.get("m2") is not None else w_ * h_ / 1e6)
+    f_ = lambda v: f"{v:.2f}".replace(".", ",") + " m²"
+    if len(m2) == 1:
+        return f_(m2[0]), m2
+    return ", ".join(f"{prefix}{i + 1} - {f_(v)}" for i, v in enumerate(m2)), m2
+

@@ -24,6 +24,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import lapas_core as K  # noqa: E402
 import kreives as KR  # noqa: E402  v312: kreivės lankais
+import nesting as NE  # noqa: E402  v323: folded plokštės m²
 import plevele as PL  # noqa: E402
 import r3d  # noqa: E402
 import pymupdf as fitz  # noqa: E402
@@ -297,6 +298,10 @@ def build(S, P, out, sheet_no, n_sheets):
     for h in hp:
         rect(SX, fy(acc), depth * s, h * s, fill=PLATE, lw=0.4); acc += h
     K.set_view(False)
+    if joint:                                            # v323: dalių vardai A1, A2 ... (BOM kiekis m² pagal juos)
+        acc = 0
+        for i_, h in enumerate(hp):
+            T(SX - 6, fy(acc + h / 2) + 3, f"A{i_ + 1}", 8, font="FB", align="r", auto_red=False); acc += h
     hdim(SX, SX + depth * s, YT - 18, f"{depth:g}", YT, YT, size=K.F_DIM_FRAME, small_side="r")
     T(SX + depth * s + 8, YT + 10, "A", 9, font="FB")
     if joint:
@@ -382,9 +387,10 @@ def build(S, P, out, sheet_no, n_sheets):
     L_tot = 2 * (W - 50) / 1000
     kg = A_flat * t * 2.70 + L_tot * 0.000116 * 2700
     n_scr = 2 * (n + 1)
-    part_txt = " + ".join(f"{W:g} x {h:g}" for h in hp)
+    part_txt = " + ".join(f"A{i + 1} {W:g} x {h:g}" for i, h in enumerate(hp))     # v323: dalys A1, A2 ... (kaip BOM)
     bom = [["1", f"Folded plate {W:g} x {H:g} x {depth:g} mm" + (f" ({len(hp)} parts)" if joint else ""), f"Alu {t:g} mm folded",
-            S.get("finish_short", f"RAL {S['plate_ral']}"), (f"{len(hp)} pcs." if joint else "1 pcs.")]]
+            S.get("finish_short", f"RAL {S['plate_ral']}"), NE.folded_qty(flats, f"Alu {t:g} mm")[0]]]   # v323: m² (A1 / A2 ...)
+    K.FEAT.add("nest")
     if PR:
         bom.append(["2", PR.get("part", "Print, front + edges"), PR.get("material", "original file"), "-", f"{W * H / 1e6:.2f} m²"])
     for i, (v, p_, a_) in enumerate(VIN):

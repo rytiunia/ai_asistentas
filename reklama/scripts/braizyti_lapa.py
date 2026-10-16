@@ -788,6 +788,12 @@ for _r in spec["bom"]:
 for _l in NEST_LOG:
     print("  nesting:", _l)
 spec["bom"] = [[subst(x) for x in row] for row in spec["bom"]]
+# v323 (Rytis 2026-10-16): folded fono BOM kiekis - m² (lakšto sunaudojimas), dalys - A1 - m², A2 - m² ...
+_FOLD_FL = [((_b - _a) + 2 * (bend - spec.get("sheet_thk_mm", 2)), PH + 2 * (bend - spec.get("sheet_thk_mm", 2))) for _a, _b in PARTS]
+for _r in spec["bom"]:
+    if len(_r) >= 5 and re.search(r"folded", f"{_r[1]} {_r[2]}", re.I) and re.fullmatch(r"\s*\d+\s*pcs\.?\s*", str(_r[4])):
+        _r[4] = _NE.folded_qty(_FOLD_FL, f"Alu {spec.get('sheet_thk_mm', 2)} mm")[0]
+        K.FEAT.add("nest")
 # v100 (Rytis 2026-10-11): „Letter back" - spalva = šonų spalva (standartas), kitokia - tik nurodžius (spec "back_ral")
 _back_ral = spec.get("back_ral") or spec.get("return_ral")
 if _back_ral:

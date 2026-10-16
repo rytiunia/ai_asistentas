@@ -414,6 +414,13 @@ def check(pdf, band_y=None, skips=(), verbose=True):
         for r_, t_ in allsp:
             if len(t_) > 1 and (r_.x1 > _fx1 + 0.5 or r_.x0 < _fx0 - 0.5 or r_.y0 < _fy0 - 0.5 or r_.y1 > _fy1 + 0.5):
                 errs.append(f"UŽ RĖMELIO: '{t_[:40]}' ({r_.x0:.0f}, {r_.y0:.0f}) - užrašas išeina už vidinio rėmelio")
+        # 26. v323 (Rytis 2026-10-16: „folded plate QTY pažymėta kaip 1 pcs, o turi būti plate m2"): BOM eilutė su „folded"
+        #  - kiekis m² (A1 - m², A2 - m² ...), ne „N pcs."
+        for r_, t_ in allsp:
+            if r_.y0 > by and re.search(r"folded", t_, re.I):
+                row_ = [t2 for r2, t2 in allsp if abs((r2.y0 + r2.y1) / 2 - (r_.y0 + r_.y1) / 2) < 3 and r2.x0 > r_.x1]
+                if any(re.fullmatch(r"\d+\s*pcs\.?", t2.strip()) for t2 in row_) and not any("m²" in t2 for t2 in row_):
+                    errs.append(f"FOLDED BE m²: '{t_[:40]}' - kiekis turi būti plokštės m² (A1 - m², A2 - m² ...), ne vnt.")
         # 21. v309 (Rytis 2026-10-16, Leapmotor 33577; suvestinė B): FRONT / SIDE / REAR - VIENAS bendras mastelis
         _vsc = {}
         for r_, t_ in allsp:
