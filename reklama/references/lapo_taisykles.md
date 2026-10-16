@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v319 (2026-10-16)
+Atnaujinta: v320 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -11,6 +11,21 @@ atnaujinamas tame pačiame commit'e.
 
 `patikra_lapas.py` tikrina, kad šio failo „Atnaujinta: vNNN" nebūtų senesnė už SKILL „Versija". Jei senesnė, išmeta klaidą
 SUVESTINĖ PASENUSI.
+
+## P6 - PAGRINDINĖ TAISYKLĖ (v320, Rytis 2026-10-16: „išsaugok kaip pagrindinę taisyklę P6")
+
+Galioja VISIEMS P6 darbams. Testai: `scripts/projektai/bandymas_3500/` (P6 ant U 30x30x2) ir
+`scripts/projektai/bandymas_3500_folded/` (P6 ant folded 3900 x 1000 x 40) - po generatorių pakeitimų turi duoti tą patį.
+
+| | P6 ant RĖMO (U / L / □) | P6 ant FOLDED fono |
+|---|---|---|
+| Tvirtinimas D3.2 | kvadrato / trikampio principas (4 / 3, štrichų centrai ant bėgelio ašies) | tas pats principas, ašys be rėmo (`--folded`) |
+| Drenažas Ø8 | PUSLANKIS dugno kontūre (išpjaunamas su kontūru) | SKYLUTĖ dugne + ta pati skylė fone |
+| DXF | `p6_dxf.py --rails-json` (raidės + rėmas) | `p6_dxf.py --folded` + `folded_dxf.py` -> vienas DXF (išklotinė su raidžių vieta ir skylėmis + raidės) |
+| Lapas | `braizyti_begeliai.py` | `braizyti_lapa.py` |
+
+Detalės: D2 (tvirtinimas), E3 (drenažas, P6 ant folded). Laukiamas rezultatas - testų README.
+REGRESIJA: `python3 scripts/test_p6.py` = OK (po kiekvieno p6_dxf / braizyti_begeliai / braizyti_lapa / folded_dxf pakeitimo).
 
 ## A. Darbo eiga - PRIVALOMA kiekvieną kartą
 
