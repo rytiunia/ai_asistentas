@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v297 (2026-10-16)
+Atnaujinta: v298 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -108,6 +108,11 @@ SUVESTINĖ PASENUSI.
   tik iš vienos pusės, statmuo daromas T forma (v193).
 - Neišsprendus: patikra 18 KONSTRUKCIJA / KABO ORE (`K.SHEET_ERR`).
 - BOM sienos rėmo (wall L) ilgis = tik horizontalūs (`{RAIL_H_M}`). Raidžių rėmas - su statmenimis.
+- Jei rėme yra statmenys, jų turi būti BENT 2 (v298). Du ilgi bėgeliai su vienu statmeniu nėra stabilūs.
+  Antras statmuo dedamas automatiškai per tiesų raidės stiebą (I, L, T, N), kuo toliau nuo pirmojo, kitame rėmo gale.
+  Jei stiebo nėra - patikra 18.
+- Spalvos: visa RAL Classic paletė (213 spalvų) yra `assets/ral_classic.json` (v298). Nežinomas RAL kodas nebėra tyli
+  pilka spalva, o patikros 18 klaida. Naujas kodas įrašomas į paletę.
 
 ## E. Produktų / klientų taisyklės
 

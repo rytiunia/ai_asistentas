@@ -38,9 +38,10 @@ else:
 
 # GOST Common: kai kurių simbolių kodai šrifte sumaišyti (Ø -> Ý, ° -> ¹, ± -> ¼) - pakeičiami tinkamais glifais
 _GFIX = str.maketrans({"Ø": "⌀", "ø": "⌀", "°": "˚", "±": "+/-"}) if os.path.exists(_GOST) else {}
-RAL = {"1020": "#999950", "3028": "#CB3234", "6039": "#8FB03E", "8001": "#9D622B", "4010": "#BC4077", "2008": "#F75E25", "1011": "#8A6642", "3009": "#642424", "5003": "#1D334A", "5022": "#222D5A", "5012": "#3B83BD", "5002": "#1E2460", "5015": "#2271B3", "3000": "#A72920", "6005": "#114232", "7021": "#23282B", "7024": "#474A51", "9003": "#F4F4F4", "9001": "#FDF4E3", "1003": "#F9A800", "2004": "#F44611", "3005": "#5E2129", "6029": "#20603D", "8017": "#45322E", "1019": "#A08F7A", "1023": "#F7B500", "3020": "#C1121C", "5005": "#154889", "5010": "#0E4C8C",
-       "5013": "#25314B", "6018": "#57A639", "6024": "#308446", "7016": "#383E42", "7035": "#CBD0CC",
-       "9005": "#0E0E10", "7044": "#CAC4B0", "9006": "#A5A8A6", "9010": "#F1EDE1", "9016": "#F1F0EA", "8014": "#4A3526", "8011": "#5A3826"}
+# v298 (Rytis 2026-10-16: „atnaujink RAL spalvų paletę, nes dabar vaizduojama RAL 5008 labiau pilka nei mėlyna"): VISA RAL
+#  Classic paletė (213 spalvų) - assets/ral_classic.json; anksčiau 41 spalva, trūkstama (pvz. 5008) -> pilka #888888.
+import json as _json
+RAL = _json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "ral_classic.json"), encoding="utf-8"))["ral"]
 GREY = HexColor("#6E6E6E")
 EXT = HexColor("#7A7A7A")
 SECTION_C = HexColor("#111111")
@@ -260,7 +261,12 @@ def set_view(on):
 
 
 def ralhex(code):
-    return RAL.get(str(code).replace("RAL", "").strip().split()[0] if str(code).strip() else "", "#888888")
+    k_ = str(code).replace("RAL", "").strip().split()[0] if str(code).strip() else ""
+    if re.fullmatch(r"\d{4}", k_) and k_ not in RAL:      # v298: nežinomas RAL - ne tyli pilka, o lapo klaida (patikra 18)
+        m_ = f"RAL {k_} nėra paletėje (assets/ral_classic.json) - spalva lape neteisinga"
+        if m_ not in SHEET_ERR:
+            print("  ! " + m_); SHEET_ERR.append(m_)
+    return RAL.get(k_, "#888888")
 
 
 def unk(s):

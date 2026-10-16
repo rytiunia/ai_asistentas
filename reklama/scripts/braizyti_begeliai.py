@@ -1481,6 +1481,46 @@ if MOUNTING != "none":
                                "poly": [(x_, y0_), (x_ + t_v, y0_), (x_ + t_v, y1_), (x_, y1_)]})
             print(f"  {g['name']}: dalis x{o['bb'][0]:.0f}-{o['bb'][2]:.0f} be rėmo -> statmuo x{xc_:.0f} L{y1_ - y0_:.0f} (v297)")
 
+# v298 (Rytis 2026-10-16: „jei dedasi statmenys, jų turi būti 2 vnt., negali būti vienas - 2 ilgi profiliai, sujungti tik
+#  vienu statmeniu, neduoda stabilumo; šituo atveju antras dedasi po I raide gale"): rėmas iš >= 2 horizontalių bėgelių su
+#  VIENU statmeniu -> antras statmuo per TIESŲ raidės stiebą (I, L, T, N ...), kuo toliau nuo pirmojo (kitame rėmo gale).
+if MOUNTING != "none":
+    for g in groups:
+        if g["plate"] or not g["rails"]:
+            continue
+        hs_ = [r_ for r_ in g["rails"] if r_["kind"] == "h"]
+        vs_ = [r_ for r_ in g["rails"] if r_["kind"] in ("v", "d")]
+        if len(hs_) < 2 or len(vs_) != 1:
+            continue
+        v0_ = vs_[0]
+        t_v = v0_["x1"] - v0_["x0"] if v0_["kind"] == "v" else 30.0
+        xv_ = (v0_["x0"] + v0_["x1"]) / 2
+        top_ = min(hs_, key=lambda r_: r_["y0"]); bot_ = max(hs_, key=lambda r_: r_["y1"])
+        ya_, yb_ = top_["y1"], bot_["y0"]                    # tarpas tarp bėgelių
+        cands_ = []
+        for o in g["letters"]:
+            if o["bb"][1] > ya_ + 1 or o["bb"][3] < yb_ - 1:
+                continue                                     # raidė nesiekia abiejų bėgelių
+            iv_ = None
+            for f_ in (0.1, 0.3, 0.5, 0.7, 0.9):
+                cur_ = _stroke_centers(o["geom"], ya_ + (yb_ - ya_) * f_, o["bb"][0], o["bb"][2])
+                if iv_ is None:
+                    iv_ = cur_
+                else:
+                    iv_ = [(max(a0, b0), min(a1, b1)) for a0, a1 in iv_ for b0, b1 in cur_ if min(a1, b1) - max(a0, b0) > 0]
+            for a0, a1 in iv_ or []:
+                if a1 - a0 >= 0.8 * t_v:
+                    cands_.append(((a0 + a1) / 2, o))
+        if not cands_:
+            m_ = f"{g['name']}: rėmas su vienu statmeniu, antram tiesaus stiebo nėra - spręsti ranka"
+            print("  ! " + m_); K.SHEET_ERR.append(m_)
+            continue
+        xc_, o_ = max(cands_, key=lambda c_: abs(c_[0] - xv_))
+        x_ = xc_ - t_v / 2
+        g["rails"].append({"x0": x_, "x1": x_ + t_v, "y0": top_["y0"], "y1": bot_["y1"], "kind": "v", "len": bot_["y1"] - top_["y0"],
+                           "support": True, "poly": [(x_, top_["y0"]), (x_ + t_v, top_["y0"]), (x_ + t_v, bot_["y1"]), (x_, bot_["y1"])]})
+        print(f"  {g['name']}: antras statmuo (stabilumas, v298) x{xc_:.0f} per stiebą (raidė x{o_['bb'][0]:.0f}-{o_['bb'][2]:.0f})")
+
 # v85: rėmo eksportas P6 DXF moduliui (p6_dxf.py --rails-json) - tas pats rėmas kaip lape (auto rėmas, pakopos, akcentai)
 # v90 (Rytis 2026-10-11): atskiros raidės (mounting "none") - rėmo nėra; apskaičiuoti horizontalūs bėgeliai lieka TIK
 #  kaip tvirtinimo skylių ašys DXF moduliui (raidė tvirtinama į fasadą per dugną), lape / BOM / svoryje jų nėra.

@@ -27,7 +27,8 @@ else:
     pdfmetrics.registerFont(TTFont("FB", FD + "DejaVuSansCondensed-Bold.ttf"))
 # GOST Common: kai kurių simbolių kodai šrifte sumaišyti (Ø -> Ý, ° -> ¹, ± -> ¼) - pakeičiami tinkamais glifais
 _GFIX = str.maketrans({"Ø": "⌀", "ø": "⌀", "°": "˚", "±": "+/-"}) if os.path.exists(_GOST) else {}
-RAL = {"6039": "#8FB03E", "8001": "#9D622B", "4010": "#BC4077", "2008": "#F75E25", "1011": "#8A6642", "5003": "#1D334A", "5002": "#1E2460", "5015": "#2271B3", "3000": "#A72920", "6005": "#114232", "7021": "#23282B", "7024": "#474A51", "9003": "#F4F4F4", "9001": "#FDF4E3", "1003": "#F9A800", "2004": "#F44611", "3005": "#5E2129", "6029": "#20603D", "8017": "#45322E", "1019": "#A08F7A", "6024": "#308446", "5005": "#154889", "5010": "#0E4C8C", "3020": "#C1121C", "1023": "#F7B500", "6018": "#57A639", "9005": "#0E0E10", "7044": "#CAC4B0", "3009": "#642424", "9010": "#F1EDE1", "9016": "#F1F0EA", "7016": "#383E42", "5013": "#25314B", "9006": "#A5A8A6", "8014": "#4A3526", "8011": "#5A3826"}
+import json as _json                                   # v298: bendra VISA RAL Classic paletė (assets/ral_classic.json)
+RAL = _json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "ral_classic.json"), encoding="utf-8"))["ral"]
 RED = HexColor("#C8102E")
 GREY = HexColor("#6E6E6E")
 EXT = HexColor("#7A7A7A")
