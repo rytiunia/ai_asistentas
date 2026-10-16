@@ -225,10 +225,12 @@ def build(S, P, out, sheet_no, n_sheets):
         if not gs:
             continue
         p_ = PL.plan(gs, v.get("code", ""), kind=v.get("kind", "color"))
+        K.FEAT.add("nest")                               # v304: plėvelės plotas - rulono nesting
         VIN.append((v, p_, sum(g.area for g in gs) / 1e6))
     rows = max(10, 5 + len(VIN) + (1 if joint else 0))
     K.set_band(rows)
     K.init(out + ".tmp", P["name"])
+    K.FEAT.add("nest")                                   # v304: plėvelių plotas skaičiuotas rulono nesting (plevele.plan)
     K.frame()
     # ---- mastelis: viršutinė eilė FRONT | SIDE | REAR, apačioje DETAIL A (B) + 3D
     ROW2 = 196                                          # apatinė eilė: DETAIL A / B 1:2 + 3D

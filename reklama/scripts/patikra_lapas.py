@@ -78,7 +78,7 @@ def _cross(a, b):
 
 def check(pdf, band_y=None, skips=(), verbose=True):
     doc = fitz.open(pdf)
-    arts, blocks, gen = [], [], ""
+    arts, blocks, gen, feat = [], [], "", []
     import json, os
     if os.path.exists(pdf + ".art.json"):                                          # v182: K.place_pdf kliento grafikos sritys
         _j = json.load(open(pdf + ".art.json"))
@@ -87,6 +87,7 @@ def check(pdf, band_y=None, skips=(), verbose=True):
         gen = _j.get("gen", "")
         ovf = _j.get("overflow", [])
         cerr = _j.get("errors", [])
+        feat = _j.get("feat", [])
     # v293 (Rytis 2026-10-16: „kad kitą kartą vėl nebūtų daroma su senomis taisyklėmis ir nustatymais"):
     #  14 SENA TAISYKLĖ - generatoriaus lint (taisykliu_lint.py), 15 SUVESTINĖ PASENUSI - references/lapo_taisykles.md
     #  „Atnaujinta: vNNN" turi sutapti su SKILL.md „Versija" (kiekvienas skill pakeitimas peržiūri galiojančių taisyklių suvestinę)
@@ -376,6 +377,10 @@ def check(pdf, band_y=None, skips=(), verbose=True):
             if by - 3 <= r_.y0 and r_.y1 <= by + 15 and re.search(r"SECTION|PROFILE|DETAIL", t_) \
                     and not any(bp == pno and bx - 1 <= r_.x0 <= bx + bw for bx, by_, bw, bh, bp, bn in blocks):
                 errs.append(f"BLOKAS NECENTRUOJAMAS: '{t_}' - piešti per K.centered / K.section_block (TAISYKLĖ 5 / 34)")
+        # 19. v304 (Rytis 2026-10-16: „plotą visada skaičiuok nesting principu. tai taisyklė."): lentelėje yra m², o
+        #  generatorius neskaičiavo nesting (nesting.py / plevele.plan) -> grynasis plotas, ne sunaudojimas
+        if any("m²" in t_ for r_, t_ in allsp if r_.y0 > by) and "nest" not in (feat if "feat" in dir() else []):
+            errs.append("PLOTAS NE NESTING: BOM m² turi būti lakšto / rulono sunaudojimas (nesting.py, plevele.plan), ne grynasis plotas")
         if pno == 0:
             errs += glob_errs
         errs = sorted(set(errs))

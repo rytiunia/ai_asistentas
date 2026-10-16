@@ -211,10 +211,16 @@ view_title(x3 + w3 / 2, YB + 30, "3D VIEW", "ILLUSTRATIVE - NOT TO SCALE")
 
 # ================================================================ juosta
 W_pl = FLAT[0] * FLAT[1] / 1e6 * TS * 2.70
+# v304 (Rytis: „plotą visada skaičiuok nesting principu") - BOM plotas = lakšto sunaudojimas (nesting.py), svoris - grynasis
+import nesting as NE
+N_FACE = NE.nest_parts([L["geom"] for L in LET], "Alu 3 mm", "P8 face")
+N_BODY = NE.nest_parts([L["geom"] for L in LET], "Plexi 20 mm", "P8 body")
+K.FEAT.add("nest")
+print(N_FACE["text"]); print(N_BODY["text"])
 WT = W_pl + A_FACE * 3 * 2.70 + A_FACE * 20 * 1.19 + 2 * L_LEN / 1000 * 116e-6 * 2700
 bom = [
-    ["1", "Letter face P8 special", "Alu 3 mm", "RAL 9005", f"{PER:.2f} m / {A_FACE:.2f} m²"],
-    ["2", "Letter body P8, milled shell", "Plexi 20 mm white", "-", f"{PER:.2f} m / {A_FACE:.2f} m²"],
+    ["1", "Letter face P8 special", "Alu 3 mm", "RAL 9005", f"{PER:.2f} m / {N_FACE['m2']:.2f} m²"],
+    ["2", "Letter body P8, milled shell", "Plexi 20 mm white", "-", f"{PER:.2f} m / {N_BODY['m2']:.2f} m²"],
     ["3", "LED", "LED", "-", "?"],
     ["4", "Spacer Ø16 x 20 mm, Ø4 mm holes", "Aluminium", "-", f"{N_SP} pcs."],
     ["5", f"Folded plate {PW} x {PH} x {PD} mm", "Alu 2 mm folded", "NCS S 0540-B", "1 pcs."],

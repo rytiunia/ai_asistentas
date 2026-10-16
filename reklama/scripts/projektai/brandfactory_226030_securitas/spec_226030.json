@@ -86,21 +86,21 @@
    "Face 5S color (circles)",
    "Plexiglas GS 3H67 red, 3 mm",
    "-",
-   "{PER_CIRCLES} m / 1.21 m²"
+   "{PER_CIRCLES} m / {A_CIRCLES} m²"
   ],
   [
    1,
    "Face P6+foil (Securitas)",
    "Acrylic 8 mm white",
    "-",
-   "{PER_Securitas} m / 0.67 m²"
+   "{PER_Securitas} m / {A_Securitas} m²"
   ],
   [
    "",
    "Front foil (Securitas)",
    "Perf. foil Gel'UV D/N, black",
    "-",
-   "0.63 m²"
+   "{FOIL_Securitas} m²"
   ],
   [
    "A",
@@ -121,28 +121,28 @@
    "Return circles",
    "Alu 1 mm",
    "RAL 3028",
-   "{PER_CIRCLES} m / 0.48 m²"
+   "{PER_CIRCLES} m / {RET_CIRCLES} m²"
   ],
   [
    2,
    "Return Securitas",
    "Alu 1 mm",
    "PMS 2965 C",
-   "{PER_Securitas} m / 1.12 m²"
+   "{PER_Securitas} m / {RET_Securitas} m²"
   ],
   [
    3,
    "Back circles",
    "Alu 1.5 mm",
    "RAL 3028",
-   "1.62 m²"
+   "{BACK_CIRCLES} m²"
   ],
   [
    3,
    "Back Securitas",
    "Alu 1.5 mm",
    "PMS 2965 C",
-   "0.50 m²"
+   "{BACK_Securitas} m²"
   ],
   [
    4,

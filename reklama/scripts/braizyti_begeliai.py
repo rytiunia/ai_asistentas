@@ -1699,6 +1699,62 @@ SUBS = {"{PER_6}": f"{P6:.2f}", "{A_6}": f"{A6:.2f}", "{RET_6}": f"{P6 * depth /
 SUBS.update(BRK_SUBS)
 
 
+# v304 (Rytis 2026-10-16: „plotą visada skaičiuok nesting principu. tai taisyklė."): BOM eilutės plotas (m²) - lakšto
+#  nesting (nesting.py) pagal eilutės MEDŽIAGĄ: {A_x} / {BACK_x} - detalės (priekiai / dugnai), {RET_x} - šonų juostos,
+#  {FOIL_x} - plėvelė (plevele.py, atskiros raidės ant rulono); x = 6 / 63 / ALL / grupės pavadinimas. Ranka įrašytas
+#  plotas lakšto medžiagai - klaida (patikra 18).
+import nesting as NE
+
+
+def _nest_groups(k):
+    if k == "6":
+        return G6
+    if k == "63":
+        return G63
+    if k == "ALL":
+        return G6 + G63
+    return [g for g in groups if g["name"] == k]
+
+
+NEST_LOG = []
+
+
+def nest_row(row):
+    row = list(row)
+    if len(row) < 5:
+        return row
+    q, mat = str(row[4]), str(row[2])
+
+    def rep(m):
+        kind, key = m.group(1), m.group(2)
+        gs = _nest_groups(key)
+        lets = [o for g in gs for o in g["letters"]]
+        if not lets:
+            return m.group(0)
+        if kind == "FOIL":
+            import plevele as _PL
+            r_ = _PL.plan([o["geom"] for o in lets], film=mat, separate=True)
+            NEST_LOG.append(f"{row[1]}: {r_['text']}")
+            K.FEAT.add("nest")
+            return f"{r_['m2']:.2f}"
+        if kind == "RET":
+            r_ = NE.nest_strips([K.perim(o["sub"]) for o in lets], depth, mat, label=str(row[1]))
+        else:
+            gg = [o["geom"].buffer(-3) if kind == "BACK" else o["geom"] for o in lets]
+            r_ = NE.nest_parts(gg, mat, label=str(row[1]))
+        NEST_LOG.append(f"{row[1]}: {r_['text']}")
+        if r_.get("m2") is None:
+            K.SHEET_ERR.append(f"BOM '{row[1]}': {r_['text']}")
+            return "?"
+        K.FEAT.add("nest")
+        return f"{r_['m2']:.2f}"
+    q2 = re.sub(r"\{(A|RET|BACK|FOIL)_([^}]+)\}", rep, q)
+    if q2 == q and re.search(r"\d+[.,]\d+\s*m²", q) and NE.parse_material(mat)[0] and "nesting" not in q:
+        K.SHEET_ERR.append(f"BOM '{row[1]}': plotas '{q}' įrašytas ranka - naudoti {{A_..}} / {{RET_..}} / {{BACK_..}} / {{FOIL_..}} (nesting)")
+    row[4] = q2
+    return row
+
+
 def subst(v):
     v = str(v)
     # v90 (Rytis 2026-10-11): BOM - tik bendras rezultatas, be sudėties (ne "1 + 1 + 2 = 4")
@@ -3689,12 +3745,14 @@ else:
                        bracket=(next((str(r_[0]) for r_ in _BOM_ROWS if re.search(r"bracket|hanger", str(r_[1]), re.I)), "") if BRACKETS else None)))
     _P6REF.K_FIX = None
 if spec.get("bom_cols"):                                   # v160: originalo lentelės stulpeliai (perkeliama iš org. dokumento)
-    K.bom_table(X_BOM, BY0, W_BOM, BH, [[subst(x) for x in row] for row in spec["bom"]],
+    K.bom_table(X_BOM, BY0, W_BOM, BH, [[subst(x) for x in nest_row(row)] for row in spec["bom"]],
                 title=spec.get("bom_title", "BILL OF MATERIALS  (per 1 pcs.)"),
                 cols=tuple((c_[0], c_[1]) for c_ in spec["bom_cols"]))
 else:
-    K.bom_table(X_BOM, BY0, W_BOM, BH, [[subst(x) for x in row] for row in _BOM_ROWS],
+    K.bom_table(X_BOM, BY0, W_BOM, BH, [[subst(x) for x in nest_row(row)] for row in _BOM_ROWS],
                 title=f"BILL OF MATERIALS  (per 1 pcs.)")
+for _nl in NEST_LOG:
+    print("  " + _nl)
 # bendras svoris (Rytis patvirtino - visada MAIN DATA); prielaidos - assets/svoris.json
 _SV = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "svoris.json")))
 _rho, _t = _SV["density_kg_dm3"], dict(_SV["thk_mm"])
