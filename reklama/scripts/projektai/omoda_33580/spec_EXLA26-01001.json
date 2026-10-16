@@ -47,7 +47,10 @@
     0.943
    ],
    "frame": "rails",
-   "led": "White LED"
+   "led": "White LED",
+   "cable": {
+    "rail": "top"
+   }
   }
  ],
  "bom": [
