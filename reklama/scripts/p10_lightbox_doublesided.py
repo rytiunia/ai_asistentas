@@ -633,16 +633,18 @@ def bom1(g):
               ["1A", f"Mounting plate {P0['w']:g}x{P0['h']:g}x{P0['t']:g}, Ø{g['plate_hole_d']:g}", "Alu, welded to leg",
                g["frame_finish"] or "", f"{len(g['plates_l'])} pcs."]]
     rows = r1 + [
-            [2, f"Front A, folded {W:g}x{H:g}x{g['PD']:g}, in white", f"Alu {g['t']:g} mm", g["body_finish"] or "", "1 pc."],
-            [3, f"Back B, folded {W:g}x{H:g}x{g['PD']:g}, in white", f"Alu {g['t']:g} mm", g["body_finish"] or "", "1 pc."]]
+            [2, f"Front A, folded {W:g}x{H:g}x{g['PD']:g}", f"Alu {g['t']:g} mm", g["body_finish"] or "", "1 pc."],  # v326: „inside white" - MAIN DATA Body (netelpa)
+            [3, f"Back B, folded {W:g}x{H:g}x{g['PD']:g}", f"Alu {g['t']:g} mm", g["body_finish"] or "", "1 pc."]]
     if g.get("logo") is not None:
         if g["ins_t"] > 0:
             for k_, sd in ((4, "A"), (5, "B")):
                 rows.append([k_, f"Insert {sd} {g['ins_t']:g} mm, GLUED to base", f"Plexi {g['plexi']}", g["film"] or "-",
-                             f"1 pc. {g['logo'].area / 1e6:.3f} m²"])
+                             "1 pc. / " + K.nest_m2(list(getattr(g["logo"], "geoms", [g["logo"]])), f"Plexi {g['ins_t']:g} mm",
+                                                    f"insert {sd}", qty=K.order_qty(g.get("qty")))])   # v326 TAISYKLĖ v304
         for k_, sd in ((6, "A"), (7, "B")):
             rows.append([k_, f"Base {sd} {g['base_t']:g} mm, {len(g['studs'])} x Ø{g['hole_d']:g} (DXF)", f"Plexi {g['plexi']}",
-                         "-", f"1 pc. {g['base'].area / 1e6:.3f} m²"])
+                         "-", "1 pc. / " + K.nest_m2(g["base_parts"], f"Plexi {g['base_t']:g} mm", f"base {sd}",
+                                                     qty=K.order_qty(g.get("qty")))])
     rows += [[8, "LED + PSU", "LED / PSU", "-", f"{g['led_n']} pcs. + 1 PSU"]]          # v262: be modelių / specifikacijų
     if g.get("logo") is not None:
         rows += [[9, "Stud (welded to Alu) + nut", "?", "-", f"{2 * len(g['studs'])} pcs."]]
@@ -797,7 +799,8 @@ def plate_view(g, cx, top, n):
     for z_, y_ in P0["hz"]:
         circle(rxp(z_), ryp(y_), g["plate_hole_d"] / 2 * sp, fill=white, lw=0.1)
     for y_ in g["legs_y"]:                                          # kojos (punktyru) - privirintos
-        rect(rxp(-fa / 2), ryp(y_ - fb / 2), fa * sp, fb * sp, lw=0.2, dash=(2, 1.5))
+        if abs(y_ - P0["yc"]) < P0["h"] / 2:                        # v326: tik ant šios plokštės esanti koja (ne už lapo)
+            rect(rxp(-fa / 2), ryp(y_ - fb / 2), fa * sp, fb * sp, lw=0.2, dash=(2, 1.5))
     K.set_view(False)
     for z_, y_ in P0["hz"]:
         K.centerline(rxp(z_ - 8), ryp(y_), rxp(z_ + 8), ryp(y_))
@@ -1327,11 +1330,7 @@ def main(spec_path, out):
         K.auto_begin("draw", pl_); K.AUTO["region"] = None
         fn(g, pp)
         K.auto_begin(None)
-    import pymupdf as fitz
-    d = fitz.open()
-    for pp in (p1, p2):
-        d.insert_pdf(fitz.open(pp))
-    d.save(out, garbage=3, deflate=True); d.close()
+    K.merge_sheets([p1, p2], out)                 # v326: kartu su .art.json (blokai, kliento grafika - patikra tikrina visus lapus)
     K.pdf_fix_fonts(out)
     for pp in (p1, p2, p1 + ".tmp", p2 + ".tmp"):
         os.path.exists(pp) and os.remove(pp)

@@ -56,16 +56,30 @@ def size(rs):
     return max(xs) - min(xs), max(ys) - min(ys)
 
 
+_SUBS = {}
+
+
 def draw_rl(c, rs, ox, oy_top, s, Hpage, color, xform=None):
     """reportlab: logotipas lape; xform(x_mm, y_mm) -> (x_pt, y_pt_top_down) (pvz. 3D projekcijai)"""
     from reportlab.pdfgen.canvas import FILL_EVEN_ODD
     c.saveState()
     c.setFillColor(color); c.setStrokeColor(color); c.setLineWidth(0.1)
+    import kreives as _KR
+    tf = lambda x, y: (lambda XY: (XY[0], Hpage - XY[1]))(xform(x, y) if xform else (ox + x * s, oy_top + y * s))
     p = c.beginPath()
     for r in rs:
-        for i, (x, y) in enumerate(r):
-            X, Y = xform(x, y) if xform else (ox + x * s, oy_top + y * s)
-            (p.moveTo if i == 0 else p.lineTo)(X, Hpage - Y)
+        # v326 (patikra 23 KAMPUOTA KREIVĖ, suvestinė E3b): kontūras lankais (kubinės Bezier), ne trumpų tiesių laužtė
+        key = (id(rs), id(r), len(r))
+        sub = _SUBS.get(key)
+        if sub is None:
+            sub = _SUBS[key] = _KR.ring_to_sub(r, True) or [("M", r[0])] + [("L", q) for q in r[1:]]
+        for s_ in sub:
+            if s_[0] == "M":
+                p.moveTo(*tf(*s_[1]))
+            elif s_[0] == "L":
+                p.lineTo(*tf(*s_[1]))
+            else:
+                a, b, d = tf(*s_[1]), tf(*s_[2]), tf(*s_[3]); p.curveTo(a[0], a[1], b[0], b[1], d[0], d[1])
         p.close()
     c.drawPath(p, stroke=0, fill=1, fillMode=FILL_EVEN_ODD)
     c.restoreState()

@@ -280,6 +280,26 @@ def art_json(out_pdf, pages_offset=0):
     ART.clear(); BLOCKS.clear(); FEAT.clear()
 
 
+def order_qty(q, default=1):
+    """v326: užsakymo kiekis skaičiumi („5", „5 pcs.", „?" -> default) - nesting visam kiekiui"""
+    m_ = re.search(r"\d+", str(q if q is not None else ""))
+    return max(1, int(m_.group(0))) if m_ else default
+
+
+def nest_m2(geoms, material, label="parts", qty=1, fmt="{:.3f} m²"):
+    """v326 (TAISYKLĖ v304 „plotą visada skaičiuok nesting principu"; „klaidos neturi kartotis"): BENDRAS lakšto
+    sunaudojimas detalėms (nesting.nest_parts) visam kiekiui -> tekstas BOM'ui. Pažymi FEAT „nest"; nežinoma medžiaga /
+    netelpa -> „?" + SHEET_ERR (patikra 18). geoms - shapely geometrijos (mm)."""
+    import nesting as _NE
+    n_ = _NE.nest_parts(list(geoms), material, label, qty=qty)
+    print("  " + n_["text"])
+    FEAT.add("nest")
+    if n_.get("m2") is None:
+        SHEET_ERR.append(n_["text"])
+        return "?"
+    return fmt.format(n_["m2"])
+
+
 def merge_sheets(pages, out):
     """v293: atskirų lapų PDF -> vienas PDF KARTU su jų `.art.json` (kliento grafika, centruojami blokai, generatorius,
     funkcijos - su puslapių poslinkiu), kad patikra_lapas.py tikrintų visus lapus pagal dabartines taisykles."""
@@ -1028,7 +1048,17 @@ def cell(x, y, w, h, label, val, size=8.5, font="F"):
     rect(x, y, w, h, lw=0.4)
     if label:
         T(x + 3, y + 7.5, label, F_INFO, color=GREY, auto_red=False)
-    T(x + 4, y + h - 4, val, max(size, F_INFO), font=font, fit=w - 7, fit_min=F_INFO)
+    sz = max(size, F_INFO)
+    wl = wrap_cell(val, w - 7, size=sz, font=font, nmax=1) if str(val).strip() else None
+    if wl is None and str(val).strip() and h >= 24:              # v326: netelpa - dvi eilutės F_INFO (ne už rėmelio)
+        wl2 = wrap_cell(val, w - 7, size=F_INFO, font=font, nmax=2)
+        if wl2 and len(wl2) == 2:
+            T(x + 4, y + h - 10.5, wl2[0], F_INFO, font=font); T(x + 4, y + h - 3, wl2[1], F_INFO, font=font)
+            return
+        if wl2:
+            T(x + 4, y + h - 4, wl2[0], F_INFO, font=font)
+            return
+    T(x + 4, y + h - 4, wl[0] if wl else val, sz, font=font, fit=w - 7, fit_min=F_INFO)
 
 
 _SEP = r"(?:\s*x\s*|\s+×\s+)"                                  # matmenų skirtukas; „2× 465" (be tarpo prieš ×) - kartotinumas
@@ -1049,18 +1079,64 @@ def cell_units(s):
     return re.sub(r"([Ø⌀]\d+(?:[.,]\d+)?)(?!\d|[.,]\d|\s*[x×]|\s*(?:mm|m²|m\b|cm))", r"\1 mm", s)
 
 
+def wrap_cell(s, w, size=None, font="F", nmax=2):
+    """v326 (Rytis: „trumpinti tekstą, ne mažinti šriftą"; „klaidos neturi kartotis"): langelio tekstas, netelpantis
+    viena eilute, laužomas per žodžius į <= nmax eilučių (be šrifto mažinimo). Grąžina eilutes arba None - jei netelpa
+    ir per nmax eilučių (tada generatorius privalo trumpinti, patikra NETELPA LANGELYJE)."""
+    size = size or F_INFO
+    s = cell_units(str(s))
+    sw = lambda t: pdfmetrics.stringWidth(_DEC.sub(r"\1,\2", t).translate(_GFIX), font, size)
+    if sw(s) <= w:
+        return [s]
+    c_ = _re.sub(r"\b(\d+(?:[.,]\d+)?) x (\d+(?:[.,]\d+)?) x (\d+(?:[.,]\d+)?)\b", r"\1x\2x\3", s)   # 1) „30 x 30 x 2 mm" -> „30x30x2 mm"
+    #    (tik 3 dalių profilio / gabarito grupė; „2 x 595" - kiekis x ilgis - nekeičiamas)
+    c_ = _re.sub(r"\s*->\s*", " > ", c_)
+    if sw(c_) <= w:
+        return [c_]
+    if nmax < 2:
+        return None
+    s = c_
+    out, cur = [], ""
+    wds = []
+    for wd in s.split(" "):                                      # vienetas neatskiriamas nuo skaičiaus („⌀3 mm", „2,1 m²")
+        if wds and (_re.match(r"(mm|m|m²|cm|kg|pcs\.?|vnt\.?|=)(\W|$)", wd) or wds[-1] in ("RAL", "NCS", "PMS", "x", "+", "-", "->", ">")):
+            wds[-1] += " " + wd
+        else:
+            wds.append(wd)
+    for wd in wds:
+        t = (cur + " " + wd).strip()
+        if cur and sw(t) > w:
+            out.append(cur); cur = wd
+        else:
+            cur = t
+    out.append(cur)
+    return out if len(out) <= nmax and all(sw(q) <= w for q in out) else None
+
+
 def main_data(x, y, w, h, rows_, title="MAIN DATA", lab_w=56):
     header(x, y, w, title)
-    rh = max(ROW_H, (h - 12) / len(rows_))              # eilutės užpildo visą bloko aukštį
+    # v326: etikečių stulpelis - ne platesnis nei ilgiausia etiketė (+ 8 pt), likusi vieta - reikšmėms
+    lab_w = min(lab_w, max([pdfmetrics.stringWidth(str(a_), "F", F_INFO) for a_, _ in rows_] or [0]) + 8)
+    _md_unit = lambda l_, v_: (f"{str(v_).strip()} mm" if re.fullmatch(r"\d+(?:[.,]\d+)?", str(v_).strip()) and re.search(
+        r"depth|size|width|height|length|thick|gyl|aukš|plot|ilg", str(l_), re.I) else v_)   # v291: skaičius matmens laukelyje - su vienetu
+    rows_ = [(l_, _md_unit(l_, v_)) for l_, v_ in rows_]
+    # v326: netelpanti reikšmė - kompaktiškai arba dviem eilutėmis (eilutė gauna dvigubą aukštį, jei blokas talpina)
+    wls = [wrap_cell(v_, w - lab_w - 5) for _, v_ in rows_]
+    nl = [len(q) if q else 1 for q in wls]
+    if sum(nl) * ROW_H > h - 12:
+        wls = [wrap_cell(v_, w - lab_w - 5, nmax=1) for _, v_ in rows_]; nl = [1] * len(rows_)
+    u = max(ROW_H, (h - 12) / sum(nl))                  # eilutės užpildo visą bloko aukštį
     ry = y + 12
-    for lab, val in rows_:
+    for (lab, val), wl, k in zip(rows_, wls, nl):
+        rh = u * k
         rect(x, ry, w, rh, lw=0.3)
         line(x + lab_w, ry, x + lab_w, ry + rh, 0.3)
         T(x + 3, ry + rh / 2 + 2.9, lab, F_INFO, color=GREY, auto_red=False)
-        if re.fullmatch(r"\d+(?:[.,]\d+)?", str(val).strip()) and re.search(r"depth|size|width|height|length|thick|gyl|aukš|plot|ilg",
-                                                                          str(lab), re.I):
-            val = f"{str(val).strip()} mm"                     # v291: vienas skaičius matmens laukelyje - su vienetu
-        T(x + lab_w + 3, ry + rh / 2 + 2.9, cell_units(val), F_INFO, fit=w - lab_w - 5, fit_min=F_INFO)
+        if wl:
+            for li, q in enumerate(wl):
+                T(x + lab_w + 3, ry + rh / 2 + 2.9 + (li - (len(wl) - 1) / 2) * (F_INFO + 2), q, F_INFO)
+        else:
+            T(x + lab_w + 3, ry + rh / 2 + 2.9, cell_units(val), F_INFO, fit=w - lab_w - 5, fit_min=F_INFO)
         ry += rh
     rect(x, y + 12, w, h - 12, lw=0.6)
 
@@ -1073,15 +1149,39 @@ def bom_table(x, y, w, h, rows_, title="BILL OF MATERIALS",
     cw = [20 if n_ == "POS" else (w_ * free if w_ else None) for n_, w_ in cols]
     cw[-1] = w - sum(v for v in cw[:-1])
     by = y + 12
-    nlines = sum(max(1, str(r[-1]).count("\n") + 1, str(r[1]).count("\n") + 1) for r in rows_)
-    lh = max(ROW_H, (h - 12 - 10) / max(nlines, 1))      # eilutės užpildo visą bloko aukštį
+    # v326: netelpantis PART / MATERIAL / FINISH / QTY tekstas - 1) kompaktiškai („30x30x2 mm"), 2) dviem eilutėmis, kol
+    #  blokas talpina (ne mažinamas šriftas); kas lieka - NETELPA LANGELYJE (generatorius privalo trumpinti)
+    _rw, _wr = [], []
+    for ri_, r in enumerate(rows_):
+        r = list(r)
+        for i_, (n_, _) in enumerate(cols):
+            v_ = r[i_] if i_ < len(r) else ""
+            if n_ != "POS" and isinstance(v_, str) and "\n" not in v_ and not (len(v_) == 7 and v_.startswith("#")):
+                w1 = wrap_cell(v_, cw[i_] - 5, nmax=1)
+                if w1:
+                    r[i_] = w1[0]
+                else:
+                    w2 = wrap_cell(v_, cw[i_] - 5, nmax=2)
+                    if w2:
+                        _wr.append((ri_, i_, "\n".join(w2)))
+        _rw.append(r)
+    LP = F_INFO + 1.5                                   # papildomos eilutės žingsnis langelyje
+    _need = lambda rs_: sum(ROW_H + (max(str(v_).count("\n") + 1 for v_ in r) - 1) * LP for r in rs_)
+    for ri_, i_, v2 in _wr:
+        old_ = _rw[ri_][i_]
+        _rw[ri_][i_] = v2
+        if _need(_rw) > h - 22:
+            _rw[ri_][i_] = old_
+    rows_ = _rw
+    _ks = [max(str(v_).count("\n") + 1 for v_ in r) for r in rows_]
+    lh = max(ROW_H, (h - 12 - 10 - sum(k_ - 1 for k_ in _ks) * LP) / max(len(rows_), 1))   # eilutės užpildo visą bloko aukštį
     cx_ = x
     for (n_, _), w_ in zip(cols, cw):
         rect(cx_, by, w_, 10, fill=HexColor("#F6F6F6"), lw=0.4); T(cx_ + 3, by + 7.6, n_, F_INFO, font="FB", fit=w_ - 5, fit_min=F_INFO); cx_ += w_
     by += 10
     for row in rows_:
-        k = max(1, str(row[-1]).count("\n") + 1, str(row[1]).count("\n") + 1)
-        rh = lh * k
+        k = max(str(v_).count("\n") + 1 for v_ in row)
+        rh = lh + (k - 1) * LP
         cx_ = x
         for (n_, _), w_, val in zip(cols, cw, row):
             # Rytis 2026-10-07: spalva - užpildomas VISAS FINISH langelis, jame - spalvos kodas
@@ -1106,7 +1206,7 @@ def bom_table(x, y, w, h, rows_, title="BILL OF MATERIALS",
             else:
                 parts = str(val).split("\n")
                 for li, pv in enumerate(parts):
-                    yy = by + lh * li + lh / 2 + 2.9
+                    yy = by + rh / 2 + 2.9 + (li - (len(parts) - 1) / 2) * LP
                     tc_ = black
                     if cf_:
                         hc_ = HexColor(cf_)
@@ -1138,7 +1238,7 @@ def title_body(x, ty, w, spec, scales, rows_h=TB_ROWS):
     if (unk(_on) or not str(_on).strip()) and not spec.get("blank"):
         _on = "ALT0000_00.00_RS"
     cell(x, y0, w * 0.4, rows_h[2], "ORDER NO.", _on, 14, "FB")
-    cell(x + w * 0.4, y0, w * 0.6, rows_h[2], "FILE / DRAWING NO.", spec.get("drawing_no", spec.get("file_code", "")), 12)
+    cell(x + w * 0.4, y0, w * 0.6, rows_h[2], "FILE / DRAWING NO.", cell_units(spec.get("drawing_no", spec.get("file_code", ""))), 12)
     y0 += rows_h[2]
     fr_ = (0.27, 0.16, 0.32, 0.25)
     xx_ = x
@@ -1359,7 +1459,8 @@ def p6_typical(x, y, w, h, depth, variant="rail", title=None, show_magnifier=Tru
     hdim(bgx, xf + TF, py0 + 10, f"{depth:.0f}", yt, yt - (0 if F8 else 1.5))
     bcol = px0 + pw_ - 12 if not show_magnifier else xf + 22
     leader(xf + TF / 2, yt + (yb - yt) * 0.40, xf + TF + 15, yt + (yb - yt) * 0.40, nm["face"])
-    leader(bgx + Dp * 0.55, yt + RT / 2, bgx + Dp * 0.55, py0 + 20 if variant == "plate" else py0 + 14, nm["ret"])
+    # v326 (patikra 27 BALIONAS UŽDENGTAS: balionas 2 buvo ant gylio matmens) - šono balionas raidės viduje, po šonu
+    leader(bgx + Dp * 0.45, yt + RT / 2, xf - 18, yt + (yb - yt) * 0.24, nm["ret"])
     leader(backx + 2, yt + (yb - yt) * 0.86, xf - 18, yt + (yb - yt) * 0.86, nm["back"])
     leader(backx + 13, yt + (yb - yt) * 0.62, backx + 32, yt + (yb - yt) * 0.62, nm["led"])
     if variant == "rail":
@@ -1438,11 +1539,15 @@ def p1_typical(x, y, w, h, depth, variant="rail", title=None, numbers=None, boxe
         rect(plx, py0 + 10, 3, ph_ - 14, fill=HexColor("#E2E2E2"), lw=0.45)
     # dugnas PVC 10 mm - štrichuotas
     rect(bgx, yt + RT + 0.5, TB, yb - yt - 2 * RT - 1, fill=HexColor("#D9D9D9"), lw=0.45)
-    c.saveState(); p_ = c.beginPath(); p_.rect(bgx, Y(yb - RT - 0.5), TB, yb - yt - 2 * RT - 1); c.clipPath(p_, stroke=0, fill=0)
-    c.setLineWidth(0.2); c.setStrokeColor(GREY)
+    # v326 (patikra PAŠALINIAI OBJEKTAI): štrichai apkerpami geometriškai (ne clipPath - faile tik matomi objektai)
+    c.saveState(); c.setLineWidth(0.2); c.setStrokeColor(GREY)
+    ylo_, yhi_ = yt + RT + 0.5, yb - RT - 0.5
     k_ = yt
     while k_ < yb + TB:
-        c.line(bgx, Y(k_), bgx + TB, Y(k_ - TB)); k_ += 2.2
+        t0_, t1_ = max(0.0, (k_ - yhi_) / TB), min(1.0, (k_ - ylo_) / TB)        # y = k - TB*t
+        if t1_ - t0_ > 1e-3:
+            c.line(bgx + TB * t0_, Y(k_ - TB * t0_), bgx + TB * t1_, Y(k_ - TB * t1_))
+        k_ += 2.2
     c.restoreState()
     # šonai Alu 1 mm (pjūvis - juodai) ir priekis Alu 2 mm; tarp gretimų - balta linija
     rect(bgx, yt, Dp - TFc - 0.5, RT, fill=SECT, lw=0.3)
@@ -1517,7 +1622,8 @@ def p1_typical(x, y, w, h, depth, variant="rail", title=None, numbers=None, boxe
     set_view(False)
     hdim(bgx, xf, py0 + 10, f"{depth:.0f}", yt, yt)
     leader(xf - TFc / 2, yt + (yb - yt) * 0.40, xf + 15, yt + (yb - yt) * 0.40, nm["face"])
-    leader(bgx + Dp * 0.55, yt + RT / 2, bgx + Dp * 0.55, py0 + 20 if variant == "plate" else py0 + 14, nm["ret"])
+    # v326 (patikra 27 BALIONAS UŽDENGTAS: balionas 2 buvo ant gylio matmens) - šono balionas raidės viduje, po šonu
+    leader(bgx + Dp * 0.45, yt + RT / 2, xf - 18, yt + (yb - yt) * 0.24, nm["ret"])
     leader(bgx + TB / 2, yt + (yb - yt) * 0.62, xf - 18, yt + (yb - yt) * 0.62, nm["back"])
     if variant == "rail":
         leader(wall + 10, yt + (yb - yt) * 0.13 - 8, wall + 4, py0 + 14, nm["mount"], 5)

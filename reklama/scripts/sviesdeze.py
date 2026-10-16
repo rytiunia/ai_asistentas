@@ -224,6 +224,12 @@ def prof(a, b, t):
     return f"□{a:g}x{b:g}x{t:g}" if a == b else f"{max(a, b):g}x{min(a, b):g}x{t:g}"
 
 
+def _face_m2(g, side):
+    """v326 (TAISYKLĖ v304): stiklo (A / B) plotas - lakšto sunaudojimas nesting visam užsakymo kiekiui, ne grynasis plotas"""
+    from shapely.geometry import box
+    return K.nest_m2([box(0, 0, g["w"], g["h"])], g["face"], f"face {side}", qty=K.order_qty(g.get("qty")))
+
+
 def bom_rows(g):
     fa, fb, ft = g["frame"]
     FLw, FLh, FLt = g["flange"]
@@ -248,9 +254,9 @@ def bom_rows(g):
                 ["1A", f"Flange {FLw:g}x{FLh:g}x{FLt:g}, 4 x Ø{g['hole_d']:g}", "Alu, welded to leg", g["frame_finish"], "2 pcs."]]
     return head + [[2, f"Body band {g['band_thk']:g} x {g['depth']:g}, inside white", "Alu, folded, welded to frame", f"{g['body_finish']} out",
              f"{g['BW']:g} x {g['BH']:g}: {g['per_b']:g} mm"],
-            [3, "Face A (glass)", g["face"], "-", f"{g['w']:g} x {g['h']:g} = {g['w'] * g['h'] / 1e6:.2f} m²"],
+            [3, "Face A (glass)", g["face"], "-", f"{g['w']:g} x {g['h']:g} mm, " + _face_m2(g, "A")],
             [4, f"PVC edge {pw:g} x {pd:g} (face A)", "PVC, glued to face", "white", f"{g['pvc_len']:g} mm"],
-            [5, "Face B (glass, mirror)", g["face"], "-", f"{g['w']:g} x {g['h']:g} = {g['w'] * g['h'] / 1e6:.2f} m²"],
+            [5, "Face B (glass, mirror)", g["face"], "-", f"{g['w']:g} x {g['h']:g} mm, " + _face_m2(g, "B")],
             [6, f"PVC edge {pw:g} x {pd:g} (face B)", "PVC, glued to face", "white", f"{g['pvc_len']:g} mm"],
             ([7, "LED", "no PSU (12 V by client)", "-", f"{g['led_n']} pcs."]
              if g.get("no_psu") else
@@ -1352,11 +1358,7 @@ def main(spec_path, out):
         K.auto_begin("draw", pl); K.AUTO["region"] = None
         fn(g, pp)
         K.auto_begin(None)
-    import pymupdf as fitz
-    d = fitz.open()
-    for p in (p1, p2):
-        d.insert_pdf(fitz.open(p))
-    d.save(out, garbage=3, deflate=True); d.close()
+    K.merge_sheets([p1, p2], out)                 # v326: kartu su .art.json (blokai, kliento grafika - patikra tikrina visus lapus)
     K.pdf_fix_fonts(out)
     for p in (p1, p2, p1 + ".tmp", p2 + ".tmp"):
         os.path.exists(p) and os.remove(p)

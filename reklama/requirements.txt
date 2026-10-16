@@ -1,0 +1,16 @@
+# v326: reklama skill'o Python priklausomybės (pip install --break-system-packages -r reklama/requirements.txt)
+# + sistemoje: qpdf (patikra_corel, Corel PDF), Chromium nereikia
+pymupdf
+reportlab
+ezdxf
+shapely
+numpy
+scipy
+networkx
+Pillow
+opencv-python-headless
+scikit-image
+fonttools
+pikepdf
+matplotlib
+potracer

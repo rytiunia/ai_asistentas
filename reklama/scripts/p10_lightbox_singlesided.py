@@ -316,18 +316,13 @@ def bom1(g):
              g["back_finish"] or "", "1 pc."]]
     if g["logo"] is not None:
         # v309 (TAISYKLĖ v304): plexi plotas - nesting visam užsakymo kiekiui (nesting.py), ne grynasis plotas
-        nI = NE.nest_parts(list(getattr(g["logo"], "geoms", [g["logo"]])), f"Plexi {g['ins_t']:g} mm", "insert", qty=_qty(g))
-        nB = NE.nest_parts(g["base_parts"], f"Plexi {g['base_t']:g} mm", "base", qty=_qty(g))
-        for n_ in (nI, nB):
-            print("  " + n_["text"])
-            if n_.get("m2") is None:
-                K.SHEET_ERR.append(n_["text"])
-        K.FEAT.add("nest")
-        _m2 = lambda n_: "?" if n_.get("m2") is None else f"{n_['m2']:.3f} m²"
+        _n = lambda gs_, mat_, lab_: K.nest_m2(gs_, mat_, lab_, qty=_qty(g))      # v326: bendras K.nest_m2
+        mI = _n(list(getattr(g["logo"], "geoms", [g["logo"]])), f"Plexi {g['ins_t']:g} mm", "insert")
+        mB = _n(g["base_parts"], f"Plexi {g['base_t']:g} mm", "base")
         rows += [[3, f"Insert {g['ins_t']:g} mm, GLUED to base, +{g['prot']:g} mm", f"Plexi {g['ins_t']:g} mm {g['plexi']}",
-                  g["film"] or "-", f"1 pc. / {_m2(nI)}"],
+                  g["film"] or "-", f"1 pc. / {mI}"],
                  [4, f"Base {g['base_t']:g} mm, {len(g['studs'])} x Ø{g['hole_d']:g} mm (DXF)", f"Plexi {g['base_t']:g} mm {g['plexi']}",
-                  "-", f"1 pc. / {_m2(nB)}"],
+                  "-", f"1 pc. / {mB}"],
                  [5, "Stud (welded inside front) + nut", "?", "-", f"{len(g['studs'])} pcs."]]
     rows += [[6, "LED on back base (inside)", "LED", "-", "?"],                  # v262: be modelių / specifikacijų
              [7, f"Cable gland / rubber grommet Ø{unk(g['cab']['hole_d'])}", g["cab"].get("grommet") or "?", "-", "1 pc."],

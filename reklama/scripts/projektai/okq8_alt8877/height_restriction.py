@@ -788,10 +788,7 @@ def main(out):
         fn(G, pp)
         K.auto_begin(None)
         parts.append(pp)
-    d = fitz.open()
-    for p in parts:
-        d.insert_pdf(fitz.open(p))
-    d.save(out, garbage=3, deflate=True); d.close()
+    K.merge_sheets(parts, out)                       # v326: kartu su lapų .art.json (patikra tikrina visus lapus)
     K.pdf_fix_fonts(out)
     for p in parts:
         for q in (p, p + ".tmp"):

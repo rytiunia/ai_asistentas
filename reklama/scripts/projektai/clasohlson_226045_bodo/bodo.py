@@ -223,7 +223,7 @@ bom = [
     ["2", "Letter body P8, milled shell", "Plexi 20 mm white", "-", f"{PER:.2f} m / {N_BODY['m2']:.2f} m²"],
     ["3", "LED", "LED", "-", "?"],
     ["4", "Spacer Ø16 x 20 mm, Ø4 mm holes", "Aluminium", "-", f"{N_SP} pcs."],
-    ["5", f"Folded plate {PW} x {PH} x {PD} mm", "Alu 2 mm folded", "NCS S 0540-B", "1 pcs."],
+    ["5", f"Folded plate {PW} x {PH} x {PD} mm", "Alu 2 mm folded", "NCS S 0540-B", NE.folded_qty([(PW, PH)])[0]],   # v324 / v326: folded plate - gaminio m²
     ["6", "L profile 30 x 30 x 2 mm (top + bottom)", "Aluminium", "-", f"{2 * L_LEN / 1000:.2f} m"],
     ["7", "Wall fixing", "?", "-", "?"],
     ["8", "Letter fixing through plate", "?", "-", f"{N_SP} pcs."],

@@ -32,6 +32,9 @@ RULES = [
     # v317 (Rytis 2026-10-16: „kur dingo taisyklė raides tvirtinti pagal kvadrato ir trikampio principą?")
     ("TVIRTINIMAS NE PAGAL FORMĄ", re.compile(r"[\"']--press-fill[\"']"), True,
      "P6 D3.2 - formos principas (kvadratas 4, trikampis 3; p6_dxf numatyta), ne prispaudimo R (--press-fill tik paprašius)"),
+    # v326 (Rytis 2026-10-16: „klaidos neturi kartotis" - sviesdeze / p10 lapai jungti be .art.json, patikra nematė blokų)
+    ("LAPAI BE merge_sheets", re.compile(r"\.insert_pdf\(fitz\.open\(\w+\)\)\s*(#.*)?$"), False,
+     "lapai jungiami be jų .art.json (blokai, kliento grafika, NETELPA dingsta iš patikros) - K.merge_sheets(pages, out)"),
     ("BALTAS DANGTIS", re.compile(r"draw_rect\([^#\n]*fill\s*=\s*\(1,\s*1,\s*1\)[^#\n]*\)"), True,
      "senas turinys uždengiamas baltu (lieka faile) - ištrinti redakcija (add_redact_annot + apply_redactions)"),
 ]

@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v325 (2026-10-16)
+Atnaujinta: v326 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -45,12 +45,18 @@ REGRESIJA: `python3 scripts/test_p6.py` = OK (po kiekvieno p6_dxf / braizyti_beg
      šalia jo esančius to paties vardo DXF.
    - Patikra kartu paleidžia `taisykliu_lint.py` lapo generatoriui (kelias imamas iš `<lapas>.pdf.art.json`).
    - Paskui lapas peržiūrimas AKIMIS: PNG, visas lapas ir priartinti blokai.
+   - REGRESIJA (v326, Rytis 2026-10-16: „sistema turi veikti stabiliai ir klaidos neturi kartotis"): po KIEKVIENO bendro
+     generatoriaus / `lapas_core` / patikros pakeitimo, prieš commit - `python3 scripts/regresija.py` (visi etaloniniai /
+     testiniai projektai pergeneruojami laikiname veidrodyje, patikra_lapas / patikra_corel / patikra_dxf / test_p6 = 0).
+     Kiekviena ŽINOMA išimtis - `KNOWN` su priežastimi. Naujas tipinis projektas -> naujas `CASES` atvejis.
+   - Aplinka: `pip install -r requirements.txt` (+ sistemoje `qpdf`).
 6. Ryčio pataisa = nauja taisyklė. TAME PAČIAME commit'e:
    - (a) SKILL.md įrašas su priežastimi;
    - (b) ŠIS failas (B-D dalis + „Atnaujinta");
    - (c) vykdymas `lapas_core` / generatoriuje;
    - (d) patikros punktas `patikra_lapas.py` arba lint taisyklė `taisykliu_lint.py`;
-   - (e) pergeneruoti tos dienos / atviro užsakymo lapai, kad patikra = 0.
+   - (e) pergeneruoti tos dienos / atviro užsakymo lapai, kad patikra = 0;
+   - (f) `python3 scripts/regresija.py` - visi OK (v326).
 
    Versiją kelti `python3 scripts/versija.py "aprašas"`: pakelia SKILL ir šio failo versiją kartu.
 7. Atsakyme nurodyti „reklama vNNN, GitHub <hash>". Lapas siunčiamas tik su patikra = 0.
@@ -100,7 +106,11 @@ REGRESIJA: `python3 scripts/test_p6.py` = OK (po kiekvieno p6_dxf / braizyti_beg
   - kiekis „0,93 m", „6,64 m / 0,12 m²", „41 pcs.";
   - matmenų grupę be vieneto `K.cell_units` papildo „mm";
   - dviprasmybę (Ø su x: matmuo ar kiekis?) generatorius rašo aiškiai: „Ø16 x 20 mm", „Ø4 mm: 41 pcs.".
-- Lentelės langelio tekstas trumpinamas, kad tilptų (detalės - BOM eilutėje, ne MAIN DATA); patikra 16.
+- Lentelės langelio tekstas trumpinamas, kad tilptų (detalės - BOM eilutėje, ne MAIN DATA); patikra 16. Šrifto nemažinti.
+  v326: `K.wrap_cell` automatiškai (BOM, MAIN DATA, antraštės langeliai): 1) 3 dalių grupė kompaktiškai „30 x 30 x 2 mm" ->
+  „30x30x2 mm", „->" -> „>"; 2) dviem eilutėmis, kol blokas talpina (eilutė >= 11 pt + 9,5 pt kiekvienai papildomai);
+  vienetas neatskiriamas nuo skaičiaus, „RAL ___" - kartu. MAIN DATA etikečių stulpelis - ne platesnis nei ilgiausia
+  etiketė + 8 pt. Kas vis tiek netelpa - NETELPA LANGELYJE, generatorius trumpina tekstą (pvz. „inside white" - į MAIN DATA).
 - PLOTAS VISADA NESTING PRINCIPU (v304, Rytis: „tai taisyklė"). BOM m² = medžiagos sunaudojimas, ne grynasis plotas:
   - lakštai (akrilas, PC, Alu, AKP, PVC) - `scripts/nesting.py`: tikri kontūrai -> mažiausias pasuktas gabaritinis
     stačiakampis, pasukimas 90°, tarpas 10 mm, paraštė 10 mm;
@@ -115,6 +125,9 @@ REGRESIJA: `python3 scripts/test_p6.py` = OK (po kiekvieno p6_dxf / braizyti_beg
   - `braizyti_begeliai` BOM vietos žymos: `{A_x}` priekiai, `{BACK_x}` dugnai, `{RET_x}` šonai, `{FOIL_x}` plėvelė
     (x = 6 / 63 / ALL / grupė);
   - ranka įrašytas plotas - klaida 18; m² be nesting - patikra 19 PLOTAS NE NESTING;
+  - v326: BENDRA funkcija naujiems / šviesdėžių generatoriams - `K.nest_m2(geoms, medžiaga, žyma, qty=K.order_qty(spec qty))`
+    (nesting + FEAT „nest" + „?" ir lapo klaida, jei medžiaga nežinoma); sviesdeze stiklai A / B, p10 lightbox įdėklai /
+    pagrindai - per ją;
   - svoriui naudojamas grynasis plotas.
 - BOM kiekyje rašomas tik rezultatas: sunaudojimas su atliekomis. Lakšto matmenų ir formulių „2× ... =" nerašyti.
 - Spalvos kodas FINISH / MATERIAL langelyje rašomas su spalva langelyje (RAL / NCS / PMS / plėvelė / plexi).
@@ -134,6 +147,8 @@ REGRESIJA: `python3 scripts/test_p6.py` = OK (po kiekvieno p6_dxf / braizyti_beg
   - 12 NECENTRUOTA / NETELPA BLOKE;
   - 13 BLOKAS NECENTRUOJAMAS: juostos antraštė su SECTION / PROFILE / DETAIL nubraižyta ne per šias funkcijas.
 - Keli lapai viename PDF jungiami per `K.merge_sheets(pages, out)`, kad išliktų kiekvieno lapo patikros duomenys.
+  v326: `fitz insert_pdf` ciklas be sidecar - lint LAPAI BE merge_sheets (sviesdeze / p10 doublesided taip slėpė NETELPA,
+  blokus ir nesting žymą nuo patikros).
 - Vieno užsakymo kelios iškabos = VIENAS dokumentas `ALT0000_Order_<nr>.pdf` (Rytis v296, Order 33580): kiekviena iškaba -
   savas lapas (spec `"sheet": "1 / 2"`, `"2 / 2"`), sujungta `K.merge_sheets`; 1:1 failai - atskirai kiekvienai iškabai.
   Generatorius su 2 lapais (`braizyti_begeliai` akrilo rėmas / U laikikliai, `p10_lightbox_singlesided`): spec `"sheet": "a / n"`
@@ -251,6 +266,8 @@ failas apvalus, bet gaunasi kampuotas"; ta pati pastaba buvo v113, bet pataisa b
   `patikra_lapas.py` 23 KAMPUOTA KREIVĖ - lape kontūras iš >= 12 tokių atkarpų + to paties vardo DXF šalia lapo (v313);
   lint DXF BE LANKŲ - `.saveas(` ne per `KR.saveas` (v313). LED lapai (`led_km.py`), r3d 3D plokštumos - taip pat lankais.
   LEAP 33577: DXF mazgai 4107 -> 212 / 10542 -> 622, lapas 1: 31 394 atkarpos -> 2 025 + 1 422 kreivės.
+- v326: rastrinis logotipas (`vektorius.rings` -> `vektorius.draw_rl`, sviesdeze / p10 lightbox) braižomas per
+  `KR.ring_to_sub` - lankais, ne potrace laužte (anksčiau 1252 atkarpų kontūras, patikra 23 to nematė, nes lapai jungti be sidecar).
 
 ## E3c. Folded plokštės BOM kiekis - m² (v323, Rytis 2026-10-16: „folded plate QTY pažymėta kaip 1 pcs, o turi būti plate m2")
 
@@ -291,7 +308,7 @@ failas apvalus, bet gaunasi kampuotas"; ta pati pastaba buvo v113, bet pataisa b
 8. RODYKLĖS PERSIDENGIA.
 9. BALIONAI PERSIDENGIA.
 10. DEŠIMTAINIS TAŠKAS.
-11. VIENETAS NENURODYTAS.
+11. VIENETAS NENURODYTAS (BOM POS balione „1.1" - pozicijos numeris, ne kiekis; v326).
 12. NECENTRUOTA / NETELPA BLOKE.
 13. BLOKAS NECENTRUOJAMAS.
 14. SENA TAISYKLĖ (generatoriaus lint: fiksuotos vietos / mastelis projekto skripte, projekto lapas be `layout_engine`,
@@ -314,6 +331,12 @@ failas apvalus, bet gaunasi kampuotas"; ta pati pastaba buvo v113, bet pataisa b
 27. BALIONAS UŽDENGTAS (v325, Rytis 2026-10-16: „reikia taisyklės, kad vengtų tokių persidengimų, nes dabar vienas ant kito,
     neinformatyvu"): į baliono apskritimą nepatenka svetimas tekstas (matmens skaičius), matmens rodyklė ar antras užrašas.
     Generatoriuje: balionai dedami PRIEŠINGOJE pusėje nei laido išvestis / jos matmuo (braizyti_lapa galinis vaizdas).
+    v326: P1 pjūvio (K.p1_typical) šono balionas 2 - raidės viduje, ne ant gylio matmens.
+
+`taisykliu_lint.py` (generatoriaus kodas): FIKSUOTA VIETA, FIKSUOTAS MASTELIS, KIEKIS SU FORMULE, BLOKAS BE CENTRAVIMO,
+VISAS ŠALTINIO PUSLAPIS, DXF BE LANKŲ, TVIRTINIMAS NE PAGAL FORMĄ, LAPAI BE merge_sheets (v326), BALTAS DANGTIS, BE LAYOUT_ENGINE.
+
+`regresija.py` (v326): visi `CASES` - patikra_lapas / patikra_corel / patikra_dxf = 0 ir test_p6 OK.
 
 Ko automatika NEtikrina (tikrinama akimis kiekvieną kartą):
 - ar vaizdai proporcingi ir subalansuoti;

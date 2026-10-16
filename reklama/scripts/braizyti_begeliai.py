@@ -4033,7 +4033,7 @@ def draw_bracket_sheet():
     ys_ = [y0] + hy + [y0 + Hb * s]
     hv_ = [Hb * (2 * k_ + 1) / (2 * nw) for k_ in range(nw)]
     lab_ = [f"{v_:.0f}" for v_ in [hv_[0]] + [b_ - a_ for a_, b_ in zip(hv_[:-1], hv_[1:])] + [Hb - hv_[-1]]]
-    vchain(x0 - 26, ys_, [x0] * len(ys_), lab_)
+    vchain(x0 - 26, ys_, [x0] + [x0 - 6] * len(hy) + [x0], lab_)    # v326: iškėlimo linija baigiasi ties ašine (ne ant jos)
     vchain(x0 - 52, [y0, y0 + Hb * s], [x0, x0], [f"{Hb:.0f}"], size=12)
     T(x0 + Wb * s + 10, hy[len(hy) // 2] + 3, f"{nw} x Ø{hd} (facade)", 8)
     view_title(x0 + Wb * s / 2, y0 + Hb * s + 30, "VIEW FROM FACADE", f"SCALE 1:{n_sc:g}")
@@ -4078,7 +4078,7 @@ def draw_bracket_sheet():
     K.header(X_P6, BY0, W_P6, "NOTES")
     _nt = ["1. Hangers fixed to facade first (facade = concrete",
            "   unless specified), frame inserted, screwed",
-           "   to each hanger at top and bottom (Ø6).",
+           "   to each hanger at top and bottom (Ø6 mm).",
            f"2. Material {b0['mat']} (steel for heavy signs).",
            f"3. Inside = frame {b0['Hf']:.0f} + {gap_:g}; frame rests on bottom flange.",
            "4. Final screw positions - by production.",

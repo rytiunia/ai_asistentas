@@ -39,3 +39,10 @@ Procesinės (paskyros kopija sena, lygiagretūs pokalbiai, ASCII vardai, auseles
   ant kito (patikra netikrino teksto balione - balionų skaičiai buvo išimti iš 2 TEKSTAS ANT TEKSTO). Dabar patikra 27
   BALIONAS UŽDENGTAS; braizyti_lapa balionus deda priešingoje pusėje nei laido išvestis.
 
+- v326 (Rytis 2026-10-16, „sistema turi veikti stabiliai ir klaidos neturi kartotis"): A-Z regresija parodė, kad 9 iš 19
+  etaloninių projektų su DABARTINIAIS generatoriais nebeduoda patikra = 0. PRIEŽASTYS: (1) bendro kodo pakeitimai nebuvo
+  tikrinami ant visų projektų - dabar `scripts/regresija.py` privalomas prieš commit; (2) sviesdeze / p10 doublesided lapus
+  jungė `insert_pdf` be `.art.json` - patikra nematė NETELPA, blokų centravimo ir nesting žymos (lint LAPAI BE merge_sheets);
+  (3) ilgi langelių tekstai buvo mažinami šriftu / išlindo už rėmelio - dabar `K.wrap_cell`; (4) P1 pjūvio balionas ant
+  gylio matmens, PVC štrichai per clipPath, U laikiklio iškeltinės ant ašinių, p10 plokštės vaizde koja už lapo ribų;
+  (5) logotipas potrace laužte (1252 atkarpos) - dabar lankais.
