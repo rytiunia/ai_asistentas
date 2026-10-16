@@ -1480,6 +1480,17 @@ if MOUNTING != "none":
             g["rails"].append({"x0": x_, "x1": x_ + t_v, "y0": y0_, "y1": y1_, "kind": "v", "len": y1_ - y0_, "support": True,
                                "poly": [(x_, y0_), (x_ + t_v, y0_), (x_ + t_v, y1_), (x_, y1_)]})
             print(f"  {g['name']}: dalis x{o['bb'][0]:.0f}-{o['bb'][2]:.0f} be rėmo -> statmuo x{xc_:.0f} L{y1_ - y0_:.0f} (v297)")
+            # v299 (Rytis 2026-10-16: „po E reikia dar vieno horizontalaus rėmo, kad vidurinė dalis turėtų 2 taškus ir laido
+            #  išvestį"): pailga dalis (plotis >= 2 x aukštis) - horizontalus bėgelis per jos ašį (galai - 10 nuo krašto, v193),
+            #  prijungtas prie statmens: >= 2 tvirtinimo taškai + D11 bėgelio ašyje
+            bw_, bh_ = o["bb"][2] - o["bb"][0], o["bb"][3] - o["bb"][1]
+            if bw_ >= 2 * bh_ and bh_ >= t_v * 0.8:
+                yc_ = (o["bb"][1] + o["bb"][3]) / 2
+                hx0_, hx1_ = o["bb"][0] + 10, o["bb"][2] - 10
+                g["rails"].append({"x0": hx0_, "x1": hx1_, "y0": yc_ - t_v / 2, "y1": yc_ + t_v / 2, "kind": "h", "len": hx1_ - hx0_,
+                                   "support": True, "poly": [(hx0_, yc_ - t_v / 2), (hx1_, yc_ - t_v / 2), (hx1_, yc_ + t_v / 2),
+                                                             (hx0_, yc_ + t_v / 2)]})
+                print(f"  {g['name']}: dalis x{o['bb'][0]:.0f}-{o['bb'][2]:.0f} - + horizontalus bėgelis y{yc_:.0f} L{hx1_ - hx0_:.0f} (v299)")
 
 # v298 (Rytis 2026-10-16: „jei dedasi statmenys, jų turi būti 2 vnt., negali būti vienas - 2 ilgi profiliai, sujungti tik
 #  vienu statmeniu, neduoda stabilumo; šituo atveju antras dedasi po I raide gale"): rėmas iš >= 2 horizontalių bėgelių su
@@ -1497,20 +1508,23 @@ if MOUNTING != "none":
         xv_ = (v0_["x0"] + v0_["x1"]) / 2
         top_ = min(hs_, key=lambda r_: r_["y0"]); bot_ = max(hs_, key=lambda r_: r_["y1"])
         ya_, yb_ = top_["y1"], bot_["y0"]                    # tarpas tarp bėgelių
+        # v299 (Rytis 2026-10-16: „statmenas rėmas nuo I dedasi po X, taisyklė - kad kuo mažiau matytųsi"): antras statmuo -
+        #  po TOLIAUSIA (kraštine) raide, abiejų bėgelių siekiančia; joje - x, kur raidė uždengia didžiausią statmens dalį
         cands_ = []
-        for o in g["letters"]:
-            if o["bb"][1] > ya_ + 1 or o["bb"][3] < yb_ - 1:
-                continue                                     # raidė nesiekia abiejų bėgelių
-            iv_ = None
-            for f_ in (0.1, 0.3, 0.5, 0.7, 0.9):
-                cur_ = _stroke_centers(o["geom"], ya_ + (yb_ - ya_) * f_, o["bb"][0], o["bb"][2])
-                if iv_ is None:
-                    iv_ = cur_
-                else:
-                    iv_ = [(max(a0, b0), min(a1, b1)) for a0, a1 in iv_ for b0, b1 in cur_ if min(a1, b1) - max(a0, b0) > 0]
-            for a0, a1 in iv_ or []:
-                if a1 - a0 >= 0.8 * t_v:
-                    cands_.append(((a0 + a1) / 2, o))
+        lets_ = [o for o in g["letters"] if o["bb"][1] <= ya_ + 1 and o["bb"][3] >= yb_ - 1]
+        if lets_:
+            o_far = max(lets_, key=lambda o: abs((o["bb"][0] + o["bb"][2]) / 2 - xv_))
+            best_ = None
+            xx_ = o_far["bb"][0] + t_v / 2
+            while xx_ <= o_far["bb"][2] - t_v / 2:
+                strip_ = sbox(xx_ - t_v / 2, ya_, xx_ + t_v / 2, yb_)
+                cov_ = o_far["geom"].intersection(strip_).area / max(strip_.area, 1e-9)
+                if not best_ or cov_ > best_[0] + 1e-6:
+                    best_ = (cov_, xx_)
+                xx_ += 5
+            if best_:
+                cands_.append((best_[1], o_far))
+                print(f"  {g['name']}: antras statmuo po kraštine raide, uždengta {best_[0] * 100:.0f} % (v299)")
         if not cands_:
             m_ = f"{g['name']}: rėmas su vienu statmeniu, antram tiesaus stiebo nėra - spręsti ranka"
             print("  ! " + m_); K.SHEET_ERR.append(m_)
@@ -1633,6 +1647,7 @@ SUBS = {"{PER_6}": f"{P6:.2f}", "{A_6}": f"{A6:.2f}", "{RET_6}": f"{P6 * depth /
         "{PER_63}": f"{P63:.2f}", "{A_63}": f"{A63:.2f}", "{RET_63}": f"{P63 * depth / 1000:.2f}",
         "{PER_ALL}": f"{P6 + P63:.2f}", "{RAIL_N}": str(len(rail_len)),
         "{RAIL_LIST}": " + ".join(str(v) for v in rail_len), "{RAIL_TOTAL}": str(sum(rail_len)),
+        "{WALL_L_M}": f"{sum(max(r_['len'] - 100, 0) for g in groups if not g['plate'] for r_ in g['rails'] if r_['kind'] == 'h' and not r_.get('support')) / 1000:.2f}",   # v299: sienos L - 50 nuo galų
         "{RAIL_H_M}": f"{sum(r_['len'] for g in groups if not g['plate'] for r_ in g['rails'] if r_['kind'] == 'h') / 1000:.2f}",   # v297: tik horizontalūs (sienos L)
         "{RAIL_LIST_M}": " + ".join(f"{v / 1000:.2f}" for v in rail_len), "{RAIL_TOTAL_M}": f"{sum(rail_len) / 1000:.2f}",
         **{f"{{PER_{g['name']}}}": f"{g['per']:.2f}" for g in groups},
@@ -2345,6 +2360,8 @@ SEP_PTS = []
 
 
 # ============================================================ REAR VIEW (MIRRORED)
+WALL_BAL = None                                            # v299: sienos rėmo (l_hang) balionas
+WALL_DIM = []
 s2 = MM / SC2
 _TOPX = 20 if any(_stack(g)[1] and not _stack(g)[0] and _rail_n(g) > 1 for g in groups) else 0
 RVX, RVY = POS["R"][0] + 70, POS["R"][1] + 40 + _TOPX + (36 if LEDF else 0) + _AUTO.get("shift_r", 0)
@@ -2446,6 +2463,17 @@ for g in groups:
         continue
     for r_ in g["rails"]:
         poly([RV(*q) for q in r_["poly"]], fill=rcol(g), lw=0.4)
+    if MOUNTING == "l_hang":                            # v299 (Rytis): sienos rėmas (7) - PUNKTYRU, po 50 mm trumpesnis nuo galų
+        _wl = [r_ for r_ in g["rails"] if r_["kind"] == "h" and not r_.get("support")]
+        for r_ in _wl:                                  # kontūras 4 mm platesnis už raidžių L - matomas šalia jo
+            a_, b_ = RV(r_["x1"] - 50, r_["y0"] - 4), RV(r_["x0"] + 50, r_["y1"] + 4)
+            rect(min(a_[0], b_[0]), min(a_[1], b_[1]), abs(b_[0] - a_[0]), abs(b_[1] - a_[1]), stroke=HexColor("#333333"), lw=0.5,
+                 dash=([3, 2], 0))
+        if _wl:
+            _bw = max(_wl, key=lambda r_: r_["y1"])
+            _pp = RV(_bw["x0"] + 50, _bw["y1"] + 4)
+            WALL_BAL = (_pp[0], _pp[1])
+            WALL_DIM = [(r_["x0"] + 50, r_["x1"] - 50) for r_ in _wl]
     if g.get("zfr"):
         draw_zrear(g["zfr"], RV, strips=True, frame="dash")
     for fp_ in g["fplates"]:                            # ausėlės / plokštelės su skyle (pailgintos - aukštesnės)
@@ -2944,6 +2972,12 @@ for g in groups:
         #  matmens (viršus - apačia); statmenys pjaunami tarp bėgelių, ilgis aiškus iš rėmo matmenų
         if r_["kind"] == "v" and not spec.get("vert_labels"):      # originalo perdarymas su jo žymomis - "vert_labels": true
             continue
+        if r_["kind"] == "h" and r_.get("support"):     # v299: papildomas bėgelis dalies ašyje - matmuo virš jo (ne išvadinė per rėmą)
+            _ty = RV(0, r_["y0"])[1]
+            _xa, _xb = sorted((RV(r_["x0"], 0)[0], RV(r_["x1"], 0)[0]))
+            _av = [RV(xv, 0)[0] for q_ in g["rails"] if q_["kind"] in ("v", "d") for xv in (q_["x0"], (q_["x0"] + q_["x1"]) / 2, q_["x1"])]
+            hdim(_xa, _xb, _ty - 7, f"{round(r_['len'])}", _ty, _ty, size=K.F_DIM_FRAME, avoid=_av)   # tekstas - ne ant statmens
+            continue
         a_ = RV((r_["x0"] + r_["x1"]) / 2, (r_["y0"] + r_["y1"]) / 2)
         txt_ = f"{round(r_['len'])}" + {"h": "", "v": " vert.", "d": " diag."}.get(r_["kind"], "")
         w_ = K.pdfmetrics.stringWidth(txt_, "F", K.F_DIM_FRAME)
@@ -3252,6 +3286,15 @@ for _sx, _sy, _ in P10N_STUDS:                           # v249: ilgasriegiai Al
     line(_cc[0] - 3, _cc[1], _cc[0] + 3, _cc[1], 0.2); line(_cc[0], _cc[1] - 3, _cc[0], _cc[1] + 3, 0.2)
 VIEW_BOX["rear"] = (RVX, RVY, RVX + rw, RVY + rh)
 _callouts("rear", RV)
+if WALL_DIM:                                               # v299: sienos rėmo ilgis - po raidžių rėmo matmenimis
+    _wls = sorted(set(round(b - a) for a, b in WALL_DIM))
+    _xa, _xb = min(a for a, b in WALL_DIM), max(b for a, b in WALL_DIM)
+    _yb = max(VIEW_BOX["rear"][3], max(RV(0, r_["y1"])[1] for g in groups for r_ in g["rails"])) + 30
+    hdim(RV(_xb, 0)[0], RV(_xa, 0)[0], _yb, " / ".join(str(v) for v in _wls) + f"  (wall {_PFX}{RAIL['size']}, -50 / end)",
+         RV(0, max(r_["y1"] for g in groups for r_ in g["rails"] if r_["kind"] == "h") + 4)[1],
+         RV(0, max(r_["y1"] for g in groups for r_ in g["rails"] if r_["kind"] == "h") + 4)[1], size=K.F_DIM_FRAME)
+if WALL_BAL:                                               # v299: sienos rėmas (punktyras) - BOM pozicija pagal spec lhang.balloons
+    K.balloon_auto(WALL_BAL[0], WALL_BAL[1], str(spec.get("lhang", {}).get("balloons", {}).get("7", 7)), avoid=[VIEW_BOX["rear"]])
 if LEDF:
     for _bx, _by, _bn in LED_BALLOONS:                    # v176: originalo LED / PSU balionai - už LED vaizdo
         K.balloon_auto(_bx, _by, _bn, avoid=[VIEW_BOX_L])

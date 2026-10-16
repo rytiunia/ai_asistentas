@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v298 (2026-10-16)
+Atnaujinta: v299 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -109,8 +109,13 @@ SUVESTINĖ PASENUSI.
 - Neišsprendus: patikra 18 KONSTRUKCIJA / KABO ORE (`K.SHEET_ERR`).
 - BOM sienos rėmo (wall L) ilgis = tik horizontalūs (`{RAIL_H_M}`). Raidžių rėmas - su statmenimis.
 - Jei rėme yra statmenys, jų turi būti BENT 2 (v298). Du ilgi bėgeliai su vienu statmeniu nėra stabilūs.
-  Antras statmuo dedamas automatiškai per tiesų raidės stiebą (I, L, T, N), kuo toliau nuo pirmojo, kitame rėmo gale.
-  Jei stiebo nėra - patikra 18.
+  Antras statmuo dedamas po KRAŠTINE (toliausia nuo pirmojo) raide. Toje raidėje jis statomas ten, kur raidė jį uždengia
+  daugiausia, kad statmuo kuo mažiau matytųsi (v299, EXLANTIX - po X). Jei raidės nėra - patikra 18.
+- Pailga dalis be rėmo (E brūkšnelis, plotis >= 2 x aukštis) gauna HORIZONTALŲ bėgelį savo ašyje (galai 10 mm nuo krašto)
+  plius statmenį iki rėmo. Taip dalis turi >= 2 tvirtinimo taškus ir D11 laido išvestį bėgelio ašyje (v299).
+  Šio bėgelio matmuo dedamas virš jo, ne išvadine.
+- L profilių sistema (l_hang): sienos rėmas (wall L) galiniame vaizde rodomas PUNKTYRU, po 50 mm trumpesnis nuo
+  kiekvieno galo, su savo matmeniu ir pozicija. BOM kiekis - `{WALL_L_M}` (v299).
 - Spalvos: visa RAL Classic paletė (213 spalvų) yra `assets/ral_classic.json` (v298). Nežinomas RAL kodas nebėra tyli
   pilka spalva, o patikros 18 klaida. Naujas kodas įrašomas į paletę.
 

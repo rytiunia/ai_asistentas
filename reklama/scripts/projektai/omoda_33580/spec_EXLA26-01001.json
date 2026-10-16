@@ -98,7 +98,7 @@
    "Wall frame L 40x40x2",
    "Alu",
    "RAL 5008",
-   "{RAIL_H_M} m"
+   "{WALL_L_M} m"
   ],
   [
    8,
