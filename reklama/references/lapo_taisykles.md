@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v300 (2026-10-16)
+Atnaujinta: v301 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -111,11 +111,13 @@ SUVESTINĖ PASENUSI.
 - Jei rėme yra statmenys, jų turi būti BENT 2 (v298). Du ilgi bėgeliai su vienu statmeniu nėra stabilūs.
   Antras statmuo dedamas po KRAŠTINE (toliausia nuo pirmojo) raide. Toje raidėje jis statomas ten, kur raidė jį uždengia
   daugiausia, kad statmuo kuo mažiau matytųsi (v299, EXLANTIX - po X). Jei raidės nėra - patikra 18.
-- Pailga dalis be rėmo (E brūkšnelis, plotis >= 2 x aukštis) gauna HORIZONTALŲ bėgelį savo ašyje (galai 10 mm nuo krašto)
+- Pailga dalis be rėmo (E brūkšnelis, plotis >= 2 x aukštis) gauna HORIZONTALŲ bėgelį savo ašyje. Galai - pagal rėmo
+  tvirtinimo taisyklę: kraštinio štricho VIDURYJE (kraštas + pusė štricho), abu kampai >= 10 mm dalies viduje (v300)
   plius statmenį iki rėmo. Taip dalis turi >= 2 tvirtinimo taškus ir D11 laido išvestį bėgelio ašyje (v299).
   Šio bėgelio matmuo dedamas virš jo, ne išvadine.
-- L profilių sistema (l_hang): sienos rėmas (wall L) galiniame vaizde rodomas PUNKTYRU, po 50 mm trumpesnis nuo
-  kiekvieno galo, su savo matmeniu ir pozicija. BOM kiekis - `{WALL_L_M}` (v299).
+- L profilių sistema (l_hang): sienos rėmas (wall L) galiniame vaizde rodomas PUNKTYRU, su savo matmeniu ir pozicija.
+  Ilgis = atstumas tarp kraštinių rėmo statmenų ašių - 2 x 50 mm (v300; be statmenų - bėgelio ilgis - 2 x 50).
+  BOM kiekis - `{WALL_L_M}`.
 - Spalvos: visa RAL Classic paletė (213 spalvų) yra `assets/ral_classic.json` (v298). Nežinomas RAL kodas nebėra tyli
   pilka spalva, o patikros 18 klaida. Naujas kodas įrašomas į paletę.
 
