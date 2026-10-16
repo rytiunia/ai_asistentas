@@ -5,3 +5,4 @@ Bandymas_client.pdf - raidės iš ../p6_dxf_test/Bandymas_test_B.pdf (be kliento
     python3 ../../p6_dxf.py Bandymas_client.pdf dxf --scale 1.4077823 --rails-json rails.json --no-letters \
             --prefix TEST_Bandymas_3500 --cable bottom
 Laukiama: B a n d m a s - po 4 (kvadratas: 2 viršutiniame + 2 apatiniame bėgelyje), y - 3 (trikampis), viso 31.
+v318: drenažas - Ø8 puslankiai dugno kontūre (2_GALAS), ne skylutės; viso 17 puslankių.

@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v317 (2026-10-16)
+Atnaujinta: v318 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -205,6 +205,11 @@ SUVESTINĖ PASENUSI.
 
 ## E3. DXF failai (v302, Rytis 2026-10-16: „failai ne pagal mastelį, įkelti reikia 1:1000")
 
+- P6 ANT RĖMO - DRENAŽAS PUSLANKIU (v318, Rytis 2026-10-16: „drenažo išėmimas daromas kaip linijos puslankis, taupant
+  pjovimo laiką, nes skylutė - atskira opcija, o čia išpjaunama pjovimo metu. Ant folded plate lieka kaip yra - skylutės"):
+  Ø8 puslankis DUGNO KONTŪRE (2_GALAS) žemiausioje vietoje - centras kontūre, išpjova į raidės vidų, vienas uždaras kontūras
+  su dugnu (ne atskiras apskritimas). `p6_dxf.py` numatyta; sena skylutė - tik `--drain-hole`. patikra_dxf DRENAŽAS SKYLUTE.
+  Folded plate (folded_vinyl) - skylutės lieka. Etalonas: `assets/etalonai/drenazas_puslankis_P6.pdf`.
 - Visi gamybos DXF - geometrija mm IR antraštė `$INSUNITS = 4` (mm). Po `ezdxf.new()` VISADA `doc.units = ezdxf.units.MM`
   (ezdxf numatyta - metrai, Corel importuoja x1000).
 - Prieš siunčiant: `python3 scripts/patikra_dxf.py <failai>.dxf` = 0 (`dxf_combine.py` tikrina pats).
@@ -273,6 +278,7 @@ failas apvalus, bet gaunasi kampuotas"; ta pati pastaba buvo v113, bet pataisa b
 23. KAMPUOTA KREIVĖ (v313): lape - kontūras iš trumpų tiesių ten, kur turi būti lankas; šalia lapo esantys to paties
     vardo DXF - laužtės be lankų (patikra_dxf). Lint: DXF BE LANKŲ.
 24. UŽ RĖMELIO (v316): užrašas (ne zonų žymė) išeina už vidinio rėmelio.
+25. DRENAŽAS SKYLUTE (v318, patikra_dxf): P6 dugne Ø8 apskritimai vietoj puslankio kontūre.
 
 Ko automatika NEtikrina (tikrinama akimis kiekvieną kartą):
 - ar vaizdai proporcingi ir subalansuoti;

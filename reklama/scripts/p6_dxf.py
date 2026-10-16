@@ -83,6 +83,8 @@ ap.add_argument("--press-r", type=float, default=100, help="varžto prispaudimo 
 ap.add_argument("--rail-edge", type=float, default=10, help="bėgelio galas raidės viduje, mm")
 ap.add_argument("--interior", action="store_true", help="v98: vidaus iškaba - be drenažo išpjovų (numatyta - exterior, su drenažu)")
 ap.add_argument("--drain-d", type=float, default=8, help="v98: drenažo išpjovos skersmuo, mm")
+ap.add_argument("--drain-hole", action="store_true", help="v318: senas būdas - drenažas atskira Ø8 skylutė dugne "
+                "(numatyta - PUSLANKIS dugno kontūre, išpjaunamas kartu su kontūru)")
 ap.add_argument("--crop", default=None, help="v97: sritis pt x0,y0,x1,y1 (kaip spec crop_pt) - visas lapas su keliais vaizdais")
 ap.add_argument("--fill", default=None, help="v97: raidžių spalva r,g,b (kaip spec client_fill), kitos spalvos ignoruojamos; v112: kelios - 'r,g,b;r,g,b'")
 ap.add_argument("--plate-fill", default=None, help="v112: PLOKŠTĖS spalva r,g,b (pvz. EXTRA geltonas apskritimas po X) - plokštė + jos raidė(s) atskirai")
@@ -1053,7 +1055,7 @@ if A.rails_json and SEPARATE:
 # Ieškoma dugno IŠORINIO kontūro lokalių žemiausių taškų (vanduo raidės viduje teka ant šono žemyn), kai iš abiejų
 # pusių kontūras pakyla >= 5 mm; plokščia apačia - jos vidurys. Išpjova - Ø8 skylutė VISA dugno viduje prie pat žemiausio taško
 # (v99: neišeina už dugno linijos). Vidaus iškabai (`--interior`) - nėra.
-def drain_points(back, prom=5.0, step=1.0, merge=30.0, r=4.0, gap=1.0):
+def drain_points(back, prom=5.0, step=1.0, merge=30.0, r=4.0, gap=1.0, notch=False):
     out = []
     for poly in getattr(back, "geoms", [back]):
         if poly.is_empty or not hasattr(poly, "exterior"):
@@ -1089,6 +1091,10 @@ def drain_points(back, prom=5.0, step=1.0, merge=30.0, r=4.0, gap=1.0):
             if not (poly.contains(Point(q.x, q.y - 6)) and poly.contains(Point(q.x, q.y - 2.5))
                     and not poly.contains(Point(q.x, q.y + 2.5))):      # medžiaga virš taško, po juo - tuščia: raidės dugnas
                 continue                                               # (ne iš viršaus atviros įpjovos apačia)
+            if notch:                                   # v318: puslankio centras - PAČIAME kontūre (žemiausias taškas)
+                if all(math.hypot(q.x - a, q.y - b) > merge for a, b in out):
+                    out.append((round(q.x, 2), round(q.y, 2)))
+                continue
             # v99 (Rytis 2026-10-11): skylutė NEIŠEINA už dugno linijos - visa dugno viduje, prie pat žemiausio taško
             #  (centras r + 1 mm virš kontūro); netelpa - pastumiama aukštyn iki +4 mm, kitaip praleidžiama su perspėjimu
             c_ = None
@@ -1104,15 +1110,34 @@ def drain_points(back, prom=5.0, step=1.0, merge=30.0, r=4.0, gap=1.0):
     return out
 
 
+# v318 (Rytis 2026-10-16: „P6 ant rėmo - drenažo išėmimas daromas kaip linijos puslankis, taupant pjovimo laiką: skylutė -
+#  atskira opcija, o čia išpjaunama pjovimo metu. Ant folded plate lieka kaip yra - skylutės"): NUMATYTA - Ø8 PUSLANKIS
+#  dugno kontūre žemiausioje vietoje (centras kontūre, išpjova į raidės vidų), dugno kontūras ir išpjova - VIENA linija.
+#  Senas būdas (atskira Ø8 skylutė dugne) - tik --drain-hole. Etalonas: assets/etalonai/drenazas_puslankis_P6.pdf
+DRAIN_NOTCH = not A.drain_hole
+
+
+def apply_notch(o):
+    """o["drain"] (kontūro taškai) -> dugnas su Ø drain_d puslankiais; o["drain_notch"] - jų centrai, o["drain"] = []"""
+    if not DRAIN_NOTCH or not o.get("drain"):
+        return
+    cut = unary_union([Point(q).buffer(A.drain_d / 2, quad_segs=64) for q in o["drain"]])
+    o["back"] = o["back"].difference(cut)
+    o["drain_notch"], o["drain"] = o["drain"], []
+
+
 DRAIN = not A.interior
 if DRAIN:
     for o in letters:
-        o["drain"] = drain_points(o["back"], r=A.drain_d / 2)
-    print(f"  drenažas (exterior): Ø{A.drain_d:g} skylutės dugne prie žemiausių vietų - " +
+        o["drain"] = drain_points(o["back"], r=A.drain_d / 2, notch=DRAIN_NOTCH)
+    print(f"  drenažas (exterior): Ø{A.drain_d:g} " + ("PUSLANKIAI dugno kontūre" if DRAIN_NOTCH else "skylutės dugne")
+          + " prie žemiausių vietų - " +
           ", ".join(f"{o['id']} {len(o['drain'])}" for o in letters))
     for o in letters:
         if o["drain"]:
             print(f"    {o['id']}: " + ", ".join(f"({x - GX0:.0f}; {PH - y:.0f})" for x, y in o["drain"]))
+    for o in letters:
+        apply_notch(o)
 
 # ------------------------------------------------------------------ v112: plokštė + raidė ant jos (EXTRA X ant apskritimo)
 # Etalonas - Ryčio „extra_darbiniai" (Corel): X atskirai KAIRIAU apskritimo (stiklas + dugnas -3 + Ø4 distancerių skylės
@@ -1187,7 +1212,8 @@ if PLATES:
                             o["d11p"] = c_; break
                 if o["d11p"] is None:
                     print("  ! raidė ant plokštės: Ø11 laido skylei vietos nerasta - dėti ranka")
-            o["drain"] = drain_points(o["back"], r=A.drain_d / 2) if not A.interior else []
+            o["drain"] = drain_points(o["back"], r=A.drain_d / 2, notch=DRAIN_NOTCH) if not A.interior else []
+            apply_notch(o)
             # v118 (Rytis 2026-10-12): plokštėje pažymėti X tvirtinimo rėmai (H1800) -> vaizdas IŠ PRIEKIO (rėmo žymėjimas
             # iškart rodo pusę); rėmo žymėjimo nėra -> plokštė VEIDRODIŠKAI (iš galo) + C žyma galinėje pusėje
             mir_ = (lambda q: q) if A.plate_front else (lambda q: (pb_[0] + pb_[2] - q[0], q[1]))
@@ -1376,6 +1402,8 @@ def add_ring(msp, pts, layer):
 
 def new_doc():
     doc = ezdxf.new("R2010", setup=True)
+    if A.drain_hole:
+        doc.header["$PROJECTNAME"] = "--drain-hole"            # v318: paprašyta skylutė - patikra_dxf DRENAŽAS SKYLUTE netaiko
     doc.units = ezdxf.units.MM
     doc.header["$INSUNITS"] = 4
     for name, col in LAY:
