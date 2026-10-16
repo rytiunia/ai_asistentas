@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v318 (2026-10-16)
+Atnaujinta: v319 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -210,6 +210,11 @@ SUVESTINĖ PASENUSI.
   Ø8 puslankis DUGNO KONTŪRE (2_GALAS) žemiausioje vietoje - centras kontūre, išpjova į raidės vidų, vienas uždaras kontūras
   su dugnu (ne atskiras apskritimas). `p6_dxf.py` numatyta; sena skylutė - tik `--drain-hole`. patikra_dxf DRENAŽAS SKYLUTE.
   Folded plate (folded_vinyl) - skylutės lieka. Etalonas: `assets/etalonai/drenazas_puslankis_P6.pdf`.
+- P6 ANT FOLDED FONO (v319, Rytis 2026-10-16 „duok testą kaip ant folded plate P6"): `p6_dxf.py --folded` - be rėmo
+  (ašys separate), D3.2 kvadrato / trikampio principu, drenažas - Ø8 SKYLUTĖ (ne puslankis); fono išklotinėje
+  (`folded_dxf.py`) tos pačios skylės raidžių vietose (LETTER_FIX_D3.2 / HOLE_D11_CABLE / DRAIN_D8) + LETTER_POSITION.
+  braizyti_lapa išklotinė = (W + 2·(atlankas - t)) x (H + 2·(atlankas - t)) (buvo + 2·raidžių gylis). Testas
+  `scripts/projektai/bandymas_3500_folded/`.
 - Visi gamybos DXF - geometrija mm IR antraštė `$INSUNITS = 4` (mm). Po `ezdxf.new()` VISADA `doc.units = ezdxf.units.MM`
   (ezdxf numatyta - metrai, Corel importuoja x1000).
 - Prieš siunčiant: `python3 scripts/patikra_dxf.py <failai>.dxf` = 0 (`dxf_combine.py` tikrina pats).

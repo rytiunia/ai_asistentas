@@ -1,0 +1,121 @@
+{
+ "client_pdf": "Bandymas_folded_client.pdf",
+ "ref_mm": 3900,
+ "qty": 1,
+ "client": "TEST",
+ "title": "TEST Bandymas - P6 on folded plate 3900 x 1000 x 40",
+ "order_no": "ALT0000_00.00_RS",
+ "file_code": "TEST_Bandymas_folded",
+ "rev": "A",
+ "date": "2026-10-16",
+ "drawn": "",
+ "checked": "",
+ "company": "TEST",
+ "product": "P6 letters on folded panel",
+ "profile_no": "6",
+ "depth_mm": 80,
+ "bend_mm": 40,
+ "face": "Opal 8",
+ "face_hex": "#FFFFFF",
+ "return_ral": "9016",
+ "background_ral": "9005",
+ "environment": "Outdoor",
+ "led": "LED 6500K",
+ "mounting": "L{L_SIZE}, top+bottom",
+ "power": "12V cable top left, 3 m -> trafo box 220V",
+ "bom": [
+  [
+   1,
+   "Letter face P6",
+   "Plexi 8 mm white (opal)",
+   "white",
+   "{PER_L} m / {A_FACE} m²"
+  ],
+  [
+   2,
+   "Letter return P6",
+   "Alu 1 mm",
+   "RAL 9016",
+   "{PER_L} m / {A_RET} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "Alu 1.5 mm",
+   "-",
+   "{PER_L} m / {A_FACE} m²"
+  ],
+  [
+   4,
+   "LED modules",
+   "",
+   "6500K",
+   "?"
+  ],
+  [
+   5,
+   "Background, folded 40 mm",
+   "Alu 2 mm folded",
+   "RAL 9005",
+   "1 pcs."
+  ],
+  [
+   6,
+   "L profile {L_SIZE}",
+   "Aluminium",
+   "-",
+   "{L_QTY} x {L_LEN_M} = {L_TOTAL_M} m"
+  ],
+  [
+   7,
+   "Wall fixing",
+   "?",
+   "-",
+   "?"
+  ],
+  [
+   8,
+   "Letter fixing to background",
+   "?",
+   "-",
+   "?"
+  ],
+  [
+   9,
+   "Screw lid -> L, {S_SPEC}",
+   "{S_MAT}",
+   "-",
+   "{S_QTY} pcs. ({S_PER}/L)"
+  ]
+ ],
+ "l_profile": {
+  "size": "30x30x2",
+  "leg": 30,
+  "thk": 2,
+  "offset_mm": 25,
+  "positions": [
+   "top",
+   "bottom"
+  ]
+ },
+ "screw": {
+  "spec": "DIN 7504 N 4.2x16 T20",
+  "material": "Steel, hard.",
+  "edge_mm": 50,
+  "pitch_mm": 300
+ },
+ "element_colors": false,
+ "element_return": {},
+ "sheet": "1 / 1",
+ "drawing_no": "TEST Bandymas",
+ "front": "8mm",
+ "export_1to1": false,
+ "main_data_extra": [],
+ "callouts": {},
+ "cable_exit": {
+  "x_mm": 300,
+  "y_mm": 900,
+  "where": "bottom left",
+  "label": "12V, 3 m -> trafo box (220V)"
+ }
+}

@@ -103,7 +103,12 @@ ap.add_argument("--cable", default="both", choices=["top", "bottom", "both", "no
 ap.add_argument("--d11", type=float, default=11, help="laido skylės skersmuo")
 ap.add_argument("--d11-edge", type=float, default=20, help="D11 centras nuo dugno kontūro, mm")
 ap.add_argument("--d11-fix-clear", type=float, default=25, help="D11 centras nuo D3.2 centrų, mm")
+ap.add_argument("--folded", action="store_true", help="v319: P6 ant FOLDED fono - raidės per dugną į foną (be rėmo, ašys - "
+                "--rails-json separate), drenažas SKYLUTĖ Ø8 (Rytis: ant folded plate lieka kaip yra - skylutės)")
 A = ap.parse_args()
+if A.folded:                 # v319: ant folded fono - be bėgelių (3_REMAS nėra), drenažas skylutė, ne puslankis
+    A.separate = True
+    A.drain_hole = True
 # v116 (Rytis 2026-10-12): P1 - inside kontūras 0,7 mm, drenažo skylių nereikia (LED nesideda), laido skylių nėra
 if A.inset is None:
     A.inset = 0.7 if A.p1 else 3.0

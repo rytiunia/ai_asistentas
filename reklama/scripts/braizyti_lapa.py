@@ -720,8 +720,10 @@ if _L_ALL and L_BARS > math.ceil(sum(_L_ALL) / _STK["stock"]):
           f"(prapjova {_STK['kerf']:g} mm) - reikia {L_BARS}; L ilgis standartinis (plotis - 50) - nekeičiamas, Rytis sprendžia")
 _SHEET = spec.get("sheet_material", "alu"); _SHT = spec.get("sheet_thk_mm", 2)
 for _a, _b in PARTS:
-    _fl = MEDZ.sheet_fit((_b - _a) + 2 * depth, PH + 2 * depth, _SHEET, _SHT)     # išklotinė ~ (L + 2·gylis) x (H + 2·gylis), paraštė 10
-    print(f"  išklotinė {(_b - _a) + 2 * depth:.0f} x {PH + 2 * depth:.0f} ({_SHEET} {_SHT} mm): {MEDZ.sheet_text(_fl)}")
+    # v319: išklotinė pagal v173 - FONO atlankas (bend - t), ne raidžių gylis (buvo + 2·depth -> 3900 fonas „netelpa" į 4000)
+    _fla = bend - _SHT
+    _fl = MEDZ.sheet_fit((_b - _a) + 2 * _fla, PH + 2 * _fla, _SHEET, _SHT)
+    print(f"  išklotinė {(_b - _a) + 2 * _fla:.0f} x {PH + 2 * _fla:.0f} ({_SHEET} {_SHT} mm): {MEDZ.sheet_text(_fl)}")
 SUBS = {"{L_BARS}": str(L_BARS), "{BAR_M}": f"{_STK['stock'] / 1000:g}",
         "{L_LEN}": str(L_LEN), "{L_QTY}": str(L_QTY), "{L_TOTAL}": str(L_TOTAL), "{L_SIZE}": LP["size"],
         "{L_LEN_M}": f"{L_LEN / 1000:.2f}", "{L_TOTAL_M}": f"{L_TOTAL / 1000:.2f}",
@@ -1016,7 +1018,7 @@ if JOINTS:
         a_ = RP(x1_, 0); Lp = (x1_ - x0_) * s20
         ts = [0] + [t * s20 for t in lay["t"]] + [Lp]
         pts = [(a_[0] + t, a_[1]) for t in ts]
-        fp_ = f"{lay['pitch']:.0f}" if abs(lay["pitch"] - round(lay["pitch"])) < 0.05 else f"{lay['pitch']:.1f}"
+        fp_ = f"{lay['pitch']:.0f}" if abs(lay["pitch"] - round(lay["pitch"])) < 0.05 else f"{lay['pitch']:.1f}".replace(".", ",")   # v319: kablelis
         labs = [f"{SCR['edge_mm']:.0f}"] + [None] * (len(ts) - 3) + [f"{SCR['edge_mm']:.0f}"]
         achain(a_, (1, 0), (0, -1), ts, pts, labs, 14, mid=(1, len(ts) - 2, f"{lay['n']} x {fp_} = {lay['span']:.0f}"),
                ticks=tuple(range(2, len(ts) - 2)))
@@ -1073,7 +1075,7 @@ if REDGE and not JOINTS:
     lay = S_LAY[pos_s]
     ts = [0] + [t * s20 for t in lay["t"]] + [Lp]
     pts = [(a_[0] + u_[0] * t, a_[1] + u_[1] * t) for t in ts]
-    fp_ = f"{lay['pitch']:.0f}" if abs(lay["pitch"] - round(lay["pitch"])) < 0.05 else f"{lay['pitch']:.1f}"
+    fp_ = f"{lay['pitch']:.0f}" if abs(lay["pitch"] - round(lay["pitch"])) < 0.05 else f"{lay['pitch']:.1f}".replace(".", ",")   # v319: kablelis
     labs = [f"{SCR['edge_mm']:.0f}"] + [None] * (len(ts) - 3) + [f"{SCR['edge_mm']:.0f}"]
     achain(a_, u_, n_, ts, pts, labs, 14, mid=(1, len(ts) - 2, f"{lay['n']} x {fp_} = {lay['span']:.0f}"),
            ticks=tuple(range(2, len(ts) - 2)))
