@@ -732,6 +732,8 @@ def subst(v):
     v = str(v)
     # v90 (Rytis 2026-10-11): BOM - tik bendras rezultatas, be sudėties (ne "1 + 1 + 2 = 4")
     v = re.sub(r"\{(RAIL_LIST_M|RAIL_LIST|PRAIL_LIST|PRAIL_LIST_M|L_LIST_M)\}\s*=\s*", "", v)
+    # v316 (SPAR 225960 FRISK: „2 x 2,95 mm = 5,90 m" - cell_units pridėjo mm prie formulės): tik rezultatas
+    v = re.sub(r"\{L_QTY\}\s*x\s*\{L_LEN_M\}\s*=\s*", "", v)
     v = v.replace("{RAIL_LIST_M}", "{RAIL_TOTAL_M}").replace("{RAIL_LIST}", "{RAIL_TOTAL}")
     for k_, r_ in SUBS.items():
         v = v.replace(k_, r_)
