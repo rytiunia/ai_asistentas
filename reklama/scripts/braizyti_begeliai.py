@@ -2517,6 +2517,7 @@ for b_ in BRACKETS:                                     # v90: U laikikliai (ar�
         K.c.saveState(); K.c.setLineWidth(K.HAIR); K.c.setDash(1.5, 1)
         K.c.circle(cc_[0], K.Y(cc_[1]), max(0.6, b_["hd"] / 2 * s2), stroke=1, fill=0); K.c.restoreState()
 SEP_LINE = None
+SEP_END = None
 if MOUNTING == "none":                                  # v90: atskiros raidės - laidų išvestys vienoje horizontalioje linijoje
     from shapely.geometry import LineString as _LS
     _ls = [o for g in groups if not g["plate"] for o in g["letters"]]
@@ -2544,6 +2545,7 @@ if MOUNTING == "none":                                  # v90: atskiros raidės 
             SEP_LINE = _best[1]
             a_, b_ = RV(min(o["bb"][0] for o in _main) - 40, SEP_LINE), RV(max(o["bb"][2] for o in _main) + 40, SEP_LINE)
             line(a_[0], a_[1], b_[0], b_[1], 0.4, HexColor("#D0021B"), dash=([4, 2], 0))
+            SEP_END = (max(a_[0], b_[0]), a_[1], max(RV(0, o["bb"][3])[1] for o in _main))   # v302: -> trafo box
             for sg in _best[2]:
                 xm = (sg.coords[0][0] + sg.coords[-1][0]) / 2
                 SEP_PTS.append((xm, SEP_LINE))
@@ -3113,6 +3115,31 @@ def _wiggle(x0, y0, td, n=33):
     poly(pts, stroke=K.CABLE, lw=K.CABLE_LW, close=False)
     return pts[-1]
 
+
+# v302 (Rytis 2026-10-16, Order 33580 Sheet 1: „jei naudojamas trafo box, tai punktyrinė laido linija nueina į trafo box,
+#  kuris atvaizduojamas"): atskiros raidės (vienos linijos laidų išvestys) - linija tęsiama iki TRAFO BOX šalia galinio vaizdo
+if SEP_END and TB and not (TB_ON and CEX):
+    _trow = next((r_ for r_ in spec["bom"] if str(r_[1]).lower().startswith(("trafo", "transformer"))), None)
+    _tfin = str(_trow[3]) if _trow else ""
+    _tcol = HexColor(K.code_hex(_tfin) or (K.ralhex(_tfin) if re.search(r"\d{4}", _tfin) else "#8A8A8A"))
+    _tlab = ", ".join((["PWM"] if TB.get("pwm") else []) + ([_tfin] if _tfin.strip() not in ("", "-", "?") else []))
+    _tw = max(80, K.pdfmetrics.stringWidth("TRAFO BOX", "FB", K.F_INFO + 1) + 16, K.pdfmetrics.stringWidth(_tlab, "F", K.F_INFO) + 12)
+    _xe, _ye, _yl = SEP_END
+    _xb = _xe + 18
+    _yb = _yl + 16
+    line(_xe, _ye, _xb, _ye, 0.4, HexColor("#D0021B"), dash=([4, 2], 0))
+    line(_xb, _ye, _xb, _yb, 0.4, HexColor("#D0021B"), dash=([4, 2], 0))
+    rect(_xb - _tw / 2, _yb, _tw, 30, fill=_tcol, lw=K.HAIR)
+    _tc2 = white if (0.299 * _tcol.red + 0.587 * _tcol.green + 0.114 * _tcol.blue) < 0.55 else black
+    T(_xb, _yb + 12, "TRAFO BOX", K.F_INFO + 1, font="FB", align="c", color=_tc2, auto_red=False)
+    T(_xb, _yb + 23, _tlab, K.F_INFO, align="c", color=_tc2, auto_red=False)
+    if _trow and str(_trow[0]).strip():
+        leader(_xb + _tw / 2 - 4, _yb + 8, _xb + _tw / 2 + 20, _yb + 2, str(_trow[0]))
+    line(_xb, _yb + 30, _xb, _yb + 38, K.CABLE_LW, K.CABLE)
+    _ex, _ey = _wiggle(_xb, _yb + 38, 1, 25)
+    _bolt(_ex + 6, _ey)
+    TL(_ex + 11, _ey + 3, f"{TB.get('mains', '230V')}", K.F_INFO + 1, align="l", color=K.CABLE)
+    print(f"  atskiros raidės: laidų linija -> TRAFO BOX ({_tlab}) (v302)")
 
 _ranks = {}
 _bottom = [CAB_Y[0]]

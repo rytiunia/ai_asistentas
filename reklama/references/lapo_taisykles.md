@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v302 (2026-10-16)
+Atnaujinta: v303 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -120,6 +120,12 @@ SUVESTINĖ PASENUSI.
   BOM kiekis - `{WALL_L_M}`.
 - Spalvos: visa RAL Classic paletė (213 spalvų) yra `assets/ral_classic.json` (v298). Nežinomas RAL kodas nebėra tyli
   pilka spalva, o patikros 18 klaida. Naujas kodas įrašomas į paletę.
+
+## D3. Maitinimas (v302)
+
+- Jei naudojamas TRAFO BOX, punktyrinė laidų linija galiniame vaizde visada nueina iki TRAFO BOX, o pati dėžė yra
+  nubraižyta. Tai galioja ir atskiroms raidėms be rėmo (vienos linijos išvestys).
+- Ant dėžės užrašas: „TRAFO BOX", PWM (jei nurodyta) ir spalva iš BOM. Prie dėžės dedama pozicija ir 230V.
 
 ## E. Produktų / klientų taisyklės
 
