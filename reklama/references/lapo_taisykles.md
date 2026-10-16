@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v323 (2026-10-16)
+Atnaujinta: v324 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -254,8 +254,10 @@ failas apvalus, bet gaunasi kampuotas"; ta pati pastaba buvo v113, bet pataisa b
 
 ## E3c. Folded plokštės BOM kiekis - m² (v323, Rytis 2026-10-16: „folded plate QTY pažymėta kaip 1 pcs, o turi būti plate m2")
 
-- Folded plokštės (fono, back plate) BOM QTY - plokštės m² (lakšto sunaudojimas išklotinei, `nesting.folded_qty`), NE „1 pcs.".
-- Kelios dalys - „A1 - 4,19 m², A2 - 2,39 m²" (dalys A1, A2 ... iš viršaus; tie patys vardai lape - šoniniame vaizde
+- Folded plokštės (fono, back plate) BOM QTY - TIK GAMINIO PLOTAS W x H (v324, Rytis: „turi būti rašoma tik gaminio plotas,
+  jeigu plate 3,9 x 1 m - rašoma 3,9 m2"): 3900 x 1000 -> „3,90 m²". NE išklotinė, NE lakšto sunaudojimas (nesting išimtis),
+  NE „1 pcs." (`nesting.folded_qty`).
+- Kelios dalys - „A1 - 3,78 m², A2 - 1,89 m²" (dalys A1, A2 ... iš viršaus; tie patys vardai lape - šoniniame vaizde
   ir MAIN DATA „Parts": „A1 2700 x 1400 + A2 2700 x 700").
 - Vykdo `folded_vinyl.py` ir `braizyti_lapa.py` (eilutė su „folded" ir kiekiu „N pcs." -> m²). Patikra 26 FOLDED BE m².
 
@@ -308,7 +310,7 @@ failas apvalus, bet gaunasi kampuotas"; ta pati pastaba buvo v113, bet pataisa b
     vardo DXF - laužtės be lankų (patikra_dxf). Lint: DXF BE LANKŲ.
 24. UŽ RĖMELIO (v316): užrašas (ne zonų žymė) išeina už vidinio rėmelio.
 25. DRENAŽAS SKYLUTE (v318, patikra_dxf): P6 dugne Ø8 apskritimai vietoj puslankio kontūre.
-26. FOLDED BE m² (v323): folded plokštės BOM kiekis „N pcs." vietoj m² (A1 - m², A2 - m²).
+26. FOLDED BE m² (v323): folded plokštės BOM kiekis „N pcs." vietoj gaminio ploto m² (A1 - m², A2 - m²; v324 - W x H).
 
 Ko automatika NEtikrina (tikrinama akimis kiekvieną kartą):
 - ar vaizdai proporcingi ir subalansuoti;

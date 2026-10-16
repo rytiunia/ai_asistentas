@@ -221,17 +221,13 @@ def nest_strips(lengths_mm, width_mm, material_text, label="returns", qty=1):
     return r
 
 
-def folded_qty(flats_mm, material_text, prefix="A", qty=1):
-    """v323 (Rytis 2026-10-16: „folded plate QTY pažymėta kaip 1 pcs, o turi būti plate m2; jei kelios - A1 - m2, A2 - m2"):
-    folded plokštės BOM kiekis - m² (lakšto sunaudojimas, nesting kiekvienai išklotinei W x H mm). Viena dalis -> „1,23 m²",
-    kelios -> „A1 - 1,23 m², A2 - 0,98 m²". Grąžina (tekstas, [m2 ...])."""
-    from shapely.geometry import box as _box
-    m2 = []
-    for w_, h_ in flats_mm:
-        r_ = nest_parts([_box(0, 0, w_, h_)], material_text, label="folded", qty=qty)
-        m2.append(r_["m2"] if r_.get("m2") is not None else w_ * h_ / 1e6)
+def folded_qty(faces_mm, material_text=None, prefix="A", qty=1):
+    """v324 (Rytis 2026-10-16: „turi būti rašoma tik gaminio plotas, tai jeigu plate 3,9 x 1 m, tai rašoma 3,9 m2"):
+    folded plokštės BOM kiekis - GAMINIO (priekio) plotas W x H, NE išklotinė ir NE lakšto sunaudojimas (nesting
+    išimtis). faces_mm - dalių priekiai [(W, H) ...]. Viena dalis -> „3,90 m²", kelios -> „A1 - 3,78 m², A2 - 1,89 m²"
+    (v323). Grąžina (tekstas, [m2 ...])."""
+    m2 = [w_ * h_ / 1e6 for w_, h_ in faces_mm]
     f_ = lambda v: f"{v:.2f}".replace(".", ",") + " m²"
     if len(m2) == 1:
         return f_(m2[0]), m2
     return ", ".join(f"{prefix}{i + 1} - {f_(v)}" for i, v in enumerate(m2)), m2
-

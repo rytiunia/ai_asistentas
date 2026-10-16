@@ -389,7 +389,7 @@ def build(S, P, out, sheet_no, n_sheets):
     n_scr = 2 * (n + 1)
     part_txt = " + ".join(f"A{i + 1} {W:g} x {h:g}" for i, h in enumerate(hp))     # v323: dalys A1, A2 ... (kaip BOM)
     bom = [["1", f"Folded plate {W:g} x {H:g} x {depth:g} mm" + (f" ({len(hp)} parts)" if joint else ""), f"Alu {t:g} mm folded",
-            S.get("finish_short", f"RAL {S['plate_ral']}"), NE.folded_qty(flats, f"Alu {t:g} mm")[0]]]   # v323: m² (A1 / A2 ...)
+            S.get("finish_short", f"RAL {S['plate_ral']}"), NE.folded_qty([(W, h) for h in hp])[0]]]   # v324: gaminio plotas W x h (A1 / A2 ...)
     K.FEAT.add("nest")
     if PR:
         bom.append(["2", PR.get("part", "Print, front + edges"), PR.get("material", "original file"), "-", f"{W * H / 1e6:.2f} m²"])
