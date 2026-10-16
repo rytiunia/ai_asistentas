@@ -35,4 +35,7 @@ Procesinės (paskyros kopija sena, lygiagretūs pokalbiai, ASCII vardai, auseles
   atmesti, matėsi tik vidiniai. Dabar kiekvienas poligonas `orient(..., 1.0)` prieš šonų skaičiavimą; šonai tamsinami iki 80 %
   (balti šonai ant baltos raidės nesimatė), tamsaus fono (RAL 9005) atlankai - ne tamsesni už 30 % pilką. Bet koks naujas
   3D: po `buffer()` / `difference()` VISADA orient prieš normalių skaičiavimą (K.View3D.solid tai daro).
+- v325 (Rytis 2026-10-16, P6 ant folded galinis vaizdas): balionai 9 / 6 ir laido Ø11 briaunos matmuo „15" su rodyklėmis - vienas
+  ant kito (patikra netikrino teksto balione - balionų skaičiai buvo išimti iš 2 TEKSTAS ANT TEKSTO). Dabar patikra 27
+  BALIONAS UŽDENGTAS; braizyti_lapa balionus deda priešingoje pusėje nei laido išvestis.
 

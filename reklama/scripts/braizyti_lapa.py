@@ -1107,6 +1107,15 @@ if REDGE and not JOINTS:
     lx_, ly_ = (a_[0] + u_[0] * (Lp - ls_) - n_[0] * (tP + LP["leg"] / 2) * s20,
                 a_[1] + u_[1] * (Lp - ls_) - n_[1] * (tP + LP["leg"] / 2) * s20)
     bxr = max(RP(0, 0)[0], RP(PW, 0)[0]) + (18 if IS_RECT else 34)
+    # v325 (Rytis 2026-10-16: „reikia taisyklės, kad vengtų persidengimų" - balionai 9 / 6 užėjo ant laido Ø11 matmens „15"):
+    #  laido išvestis briaunoje (spec "cable" edge left / right) - toje galinio vaizdo pusėje balionų nededama, jie - priešingoje
+    _ce_ = (spec.get("cable") or {}).get("edge")
+    if IS_RECT and _ce_ == "left":                    # priekio kairė = galinio (veidrodinio) vaizdo dešinė -> balionai kairėje
+        t0_ = S_LAY[pos_s]["t"][0] * s20
+        sx_, sy_ = a_[0] + u_[0] * t0_, a_[1] + u_[1] * t0_
+        lx_, ly_ = (a_[0] + u_[0] * ls_ - n_[0] * (tP + LP["leg"] / 2) * s20,
+                    a_[1] + u_[1] * ls_ - n_[1] * (tP + LP["leg"] / 2) * s20)
+        bxr = min(RP(0, 0)[0], RP(PW, 0)[0]) - 18
     leader(sx_, sy_, bxr, sy_ + (-8 if IS_RECT else 6), 9)
     leader(lx_, ly_, bxr, sy_ + (10 if IS_RECT else 24), 6)
 _rv_top = min(RP(x, y)[1] for x, y in PANEL)

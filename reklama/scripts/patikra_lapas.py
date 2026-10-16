@@ -357,6 +357,32 @@ def check(pdf, band_y=None, skips=(), verbose=True):
                 dist = math.hypot((a_.x0 + a_.x1 - b_.x0 - b_.x1) / 2, (a_.y0 + a_.y1 - b_.y0 - b_.y1) / 2)
                 if dist < (a_.width + b_.width) / 2 + 0.5:
                     errs.append(f"BALIONAI PERSIDENGIA: ({a_.x0:.0f}, {a_.y0:.0f}) x ({b_.x0:.0f}, {b_.y0:.0f})")
+        # 27. v325 (Rytis 2026-10-16: „reikia taisyklės, kad vengtų tokių persidengimų, nes dabar vienas ant kito, neinformatyvu"
+        #  - FRISK / folded galinis vaizdas: matmuo „15" ir jo rodyklės ant baliono 6): BALIONAS UŽDENGTAS - į baliono apskritimą
+        #  (+1 pt) nepatenka joks svetimas tekstas, matmens rodyklė ar kitas balionas
+        _allsp_ = []
+        for b_ in pg.get_text("dict")["blocks"]:
+            for l_ in b_.get("lines", []):
+                for s_ in l_["spans"]:
+                    if s_["text"].strip():
+                        _allsp_.append((fitz.Rect(s_["bbox"]), s_["text"].strip()))
+        for c_ in bal:
+            cx_, cy_, rr_ = (c_.x0 + c_.x1) / 2, (c_.y0 + c_.y1) / 2, c_.width / 2 + 1.0
+            hit = lambda q: (max(q.x0, min(cx_, q.x1)) - cx_) ** 2 + (max(q.y0, min(cy_, q.y1)) - cy_) ** 2 < rr_ ** 2
+            own = [t_ for q_, t_ in _allsp_ if c_.contains(fitz.Rect((q_.x0 + q_.x1) / 2 - 0.1, (q_.y0 + q_.y1) / 2 - 0.1,
+                                                                       (q_.x0 + q_.x1) / 2 + 0.1, (q_.y0 + q_.y1) / 2 + 0.1))]
+            for q_, t_ in _allsp_:
+                qc = fitz.Rect((q_.x0 + q_.x1) / 2 - 0.1, (q_.y0 + q_.y1) / 2 - 0.1, (q_.x0 + q_.x1) / 2 + 0.1, (q_.y0 + q_.y1) / 2 + 0.1)
+                if c_.contains(qc) and len(own) <= 1:
+                    continue                                                     # paties baliono numeris
+                q2 = fitz.Rect(q_.x0 + 0.6, q_.y0 + 1.2, q_.x1 - 0.6, q_.y1 - 1.2)       # glifų dėžė be tarpų
+                if hit(q2) and not inskip(q_):
+                    errs.append(f"BALIONAS UŽDENGTAS: '{t_}' ant baliono ({c_.x0:.0f}, {c_.y0:.0f})")
+            if len(own) > 1:
+                errs.append(f"BALIONAS UŽDENGTAS: balione keli užrašai {own} ({c_.x0:.0f}, {c_.y0:.0f})")
+            for a_ in arr:
+                if hit(a_ + (0.3, 0.3, -0.3, -0.3)) and not inskip(a_):
+                    errs.append(f"BALIONAS UŽDENGTAS: matmens rodyklė ant baliono ({c_.x0:.0f}, {c_.y0:.0f})"); break
         # 10.-11. v291 (Rytis: „lentelėje nesuprasi kas kaip pažymėta - m ar mm? buvo įdėta taisyklė dėl matmenų ir informacijos")
         #  10 DEŠIMTAINIS TAŠKAS - visur kablelis (TAISYKLĖ 30); 11 VIENETAS NENURODYTAS - apatinėje juostoje (BOM / MAIN DATA /
         #  antraštė) matmenų grupė („515 x 2380", „Ø3,2", „30x30x2") privalo turėti vienetą (mm / m), kitaip neaišku m ar mm

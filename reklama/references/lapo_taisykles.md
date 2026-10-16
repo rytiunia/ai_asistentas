@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v324 (2026-10-16)
+Atnaujinta: v325 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -311,6 +311,9 @@ failas apvalus, bet gaunasi kampuotas"; ta pati pastaba buvo v113, bet pataisa b
 24. UŽ RĖMELIO (v316): užrašas (ne zonų žymė) išeina už vidinio rėmelio.
 25. DRENAŽAS SKYLUTE (v318, patikra_dxf): P6 dugne Ø8 apskritimai vietoj puslankio kontūre.
 26. FOLDED BE m² (v323): folded plokštės BOM kiekis „N pcs." vietoj gaminio ploto m² (A1 - m², A2 - m²; v324 - W x H).
+27. BALIONAS UŽDENGTAS (v325, Rytis 2026-10-16: „reikia taisyklės, kad vengtų tokių persidengimų, nes dabar vienas ant kito,
+    neinformatyvu"): į baliono apskritimą nepatenka svetimas tekstas (matmens skaičius), matmens rodyklė ar antras užrašas.
+    Generatoriuje: balionai dedami PRIEŠINGOJE pusėje nei laido išvestis / jos matmuo (braizyti_lapa galinis vaizdas).
 
 Ko automatika NEtikrina (tikrinama akimis kiekvieną kartą):
 - ar vaizdai proporcingi ir subalansuoti;
