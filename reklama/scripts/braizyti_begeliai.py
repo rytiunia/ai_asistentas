@@ -1660,7 +1660,8 @@ _ip += [V3.rot(x, y, ZMAX)[:2] for x in (0, PW) for y in (0, PH)]
 ISO_EW = max(p[0] for p in _ip) - min(p[0] for p in _ip); ISO_EH = max(p[1] for p in _ip) - min(p[1] for p in _ip)
 HAS_D = bool(G63)
 LAYS = [[["FS"], ["D", "R", "I"]], [["FS", "D"], ["R", "I"]], [["FS", "I"], ["D", "R"]], [["FS", "R"], ["D", "I"]],
-        [["FS", "R", "D"], ["I"]], [["FS", "D", "I"], ["R"]]]
+        [["FS", "R", "D"], ["I"]], [["FS", "D", "I"], ["R"]],
+        [["FS"], ["R"], ["D", "I"]]]                       # v295 TAISYKLĖ 33: ilga žema iškaba - trys eilės (didesnis mastelis)
 if not HAS_D:
     LAYS = [[[b for b in r if b != "D"] for r in lay] for lay in LAYS]
 if spec.get("layout") == "rows":                          # v279 (Rytis 2026-10-15): kairėje priekis, dešinėje galas, apačioje DIDELIS 3D
@@ -3159,7 +3160,7 @@ else:
         line(cx_ - r_ - 2, cy_, cx_ + r_ + 2, cy_, 0.2); line(cx_, cy_ - r_ - 2, cx_, cy_ + r_ + 2, 0.2)
         v_ = cb["voltage"] if not K.unk(cb["voltage"]) else "___ V"
         TL(cx_, cy_ + r_ + 9, f"D11 cable exit, {v_}, {cb['label']}", K.F_INFO + 1, align="c")
-    if not CABLES:
+    if not CABLES and spec.get("letters_power") != "per_letter":    # v295: per_letter - laidų legenda jau yra (ne tuščia eilutė)
         T(RVX, min(RVY - 34, RVY - ROW[0] - 20 * max(UPR[0], 1) - 6), spec.get("power_note", "Power / PSU / cable exits:"), K.F_INFO + 1)   # v29 / v276: virš matmenų eilių: pvz. „NO LIGHTS - no cable / PSU"
 for xj_, lj_ in JOINTS:
     _joint(RV(xj_, 0)[0], RVY - 8, RVY + rh + 8, lj_)
@@ -3190,7 +3191,10 @@ for g in groups:
     xc_ = (RV(gx0_, gy0_)[0] + RV(gx1_, gy0_)[0]) / 2
     sz_ = K.F_INFO + 2
     # virš visų galinio vaizdo matmenų eilučių (bėgelių ilgiai), kad nekirstų matmenų linijų
-    y_ = min(_vt - ROW[0] - 20 * max(UPR[0], 1) + 2, RV(0, gy0_)[1] - LED_GAP) - (len(lines_) - 1) * (sz_ + 2.5)
+    if MOUNTING != "none":
+        y_ = min(_vt - ROW[0] - 20 * max(UPR[0], 1) + 2, RV(0, gy0_)[1] - LED_GAP) - (len(lines_) - 1) * (sz_ + 2.5)
+    else:                                          # v295: be rėmo (atskiros raidės) - PO grupe, ne prie FRONT VIEW pavadinimo
+        y_ = max(RV(0, b_[3])[1] for b_ in bbs_) + 16
     w_ = max(K.pdfmetrics.stringWidth(str(ln_), "F", sz_) for ln_ in lines_)
     LED_BUSY.append((xc_ - w_ / 2 - 4, xc_ + w_ / 2 + 4))
     for i_, ln_ in enumerate(lines_):

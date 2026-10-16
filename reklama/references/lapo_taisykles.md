@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v294 (2026-10-16)
+Atnaujinta: v295 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -59,6 +59,10 @@ SUVESTINĖ PASENUSI.
   - užima 85-100 % zonos;
   - aukštam ir siauram gaminiui 3D dedamas dešinėje, tokio pat aukščio kaip projekcijos.
 - 3D žymos (SIDE A ir pan.) rašomos šalia objekto, niekada ant jo (taisyklė 27).
+- Ilga žema iškaba (pvz. 6712 x 375): `braizyti_begeliai` išdėstymas trimis eilėmis - FRONT + SIDE / REAR / didelis 3D
+  per visą plotį (v295, Order 33580); 3D nepaliekamas mažas kampe.
+- Užrašai be turinio („Power / PSU / cable exits:") nededami, kai ta informacija jau yra legendoje; grupės LED užrašas
+  atskiroms raidėms (be rėmo) - PO grupe galiniame vaizde (v295).
 
 ## C. Matmenys, tekstai, pozicijos (TAISYKLĖS 30, 34, `references/cad_matmenavimas_ISO.md`)
 

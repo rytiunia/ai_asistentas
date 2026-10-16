@@ -11,13 +11,13 @@
  "qty": "1",
  "client": "Alfa Neon AB / OMODA JAECOO",
  "company": "Alfa Neon AB",
- "title": "OMJE26-01001 OMODA | JAECOO 6712 x 375 - P6 separate letters",
+ "title": "Order 33580 OMODA | JAECOO 6712 x 375 mm - P6 separate letters",
  "project": "Alfa Neon PO 33580",
- "drawing_no": "OMJE26-01001",
+ "drawing_no": "Order 33580",
  "order_no": "ALT0000_00.00_RS",
- "file_code": "OMJE26-01001",
+ "file_code": "Order_33580_OMJE26-01001",
  "rev": "A",
- "date": "2026-10-15",
+ "date": "2026-10-16",
  "depth_mm": 80,
  "front": "P6",
  "auto_frame": true,
@@ -48,7 +48,7 @@
     0.9425
    ],
    "frame": "verticals",
-   "led": "LED"
+   "led": "White LED"
   }
  ],
  "bom": [
@@ -83,7 +83,7 @@
   [
    5,
    "Facade fixing screws (by fitter)",
-   "Ø3.2 holes",
+   "Ø3,2 mm holes",
    "-",
    "{STUDS} holes"
   ],
