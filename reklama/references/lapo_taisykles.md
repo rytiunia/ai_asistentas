@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v301 (2026-10-16)
+Atnaujinta: v302 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -23,7 +23,7 @@ SUVESTINĖ PASENUSI.
    - Jo koordinatės, masteliai ir užrašai NEkopijuojami. Kopijuojant iš karto pritaikyti šio failo B-D dalis.
 4. Braižoma TIK per `lapas_core` (K) ir `layout_engine` (LE) funkcijas, nurodytas žemiau. Ranka rašytos koordinatės, masteliai
    ar „gražinimai" negalimi: patikra juos randa.
-5. `python3 scripts/patikra_lapas.py lapas.pdf` turi duoti 0.
+5. `python3 scripts/patikra_lapas.py lapas.pdf` turi duoti 0; DXF - `python3 scripts/patikra_dxf.py *.dxf` = 0 (v302).
    - Patikra kartu paleidžia `taisykliu_lint.py` lapo generatoriui (kelias imamas iš `<lapas>.pdf.art.json`).
    - Paskui lapas peržiūrimas AKIMIS: PNG, visas lapas ir priartinti blokai.
 6. Ryčio pataisa = nauja taisyklė. TAME PAČIAME commit'e:
@@ -134,6 +134,17 @@ SUVESTINĖ PASENUSI.
 - Siunčiama TIK: maketo PDF (ORDER NO. = ALT), LED PDF (jei šviečia), VIENTISI DXF po vieną kiekvienam lapui / plokštei.
 - P6 / raidės: `p6_dxf.py --no-letters --rails-json`. Folded plate + lipdukai: `folded_vinyl.py` + `scripts/dxf_combine.py`
   (v299) - atskiri `_flat_` / `_vinyl_` failai NESIUNČIAMI.
+
+## E3. DXF failai (v302, Rytis 2026-10-16: „failai ne pagal mastelį, įkelti reikia 1:1000")
+
+- Visi gamybos DXF - geometrija mm IR antraštė `$INSUNITS = 4` (mm). Po `ezdxf.new()` VISADA `doc.units = ezdxf.units.MM`
+  (ezdxf numatyta - metrai, Corel importuoja x1000).
+- Prieš siunčiant: `python3 scripts/patikra_dxf.py <failai>.dxf` = 0 (`dxf_combine.py` tikrina pats).
+
+## E4. Folded plate + lipdukai - lenkimas (v302, Rytis 2026-10-16 Joker 226057)
+
+- `folded_vinyl.py` išklotinė: VIRŠUS / APAČIA LENKIASI Į VIDŲ (tarp šonų) - jų atlankai iš galų t trumpesni (W - 2t),
+  šonai per visą aukštį; spec `"tb_inside": false` - šonai į vidų. DXF TEXT sluoksnyje užrašas „TOP / BOTTOM INSIDE".
 
 ## F. Ką tikrina automatika (lapas neatiduodamas, kol ne 0)
 

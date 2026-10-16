@@ -424,6 +424,7 @@ def write_dxf(p, path):
     """ploterio failas: sluoksnis CUT (dalys), ROLL (rulono darbinio pločio ribos, ilgis)."""
     import ezdxf
     doc = ezdxf.new("R2010")
+    doc.units = ezdxf.units.MM; doc.header["$INSUNITS"] = 4; doc.header["$MEASUREMENT"] = 1   # v302: be to Corel importuoja metrais (x1000)
     msp = doc.modelspace()
     doc.layers.add("CUT", color=7)
     doc.layers.add("ROLL", color=1)

@@ -5,7 +5,8 @@ išklotinės kairėje viena po kita (CNC), plėvelės dešinėje (ploteris); slu
 geometrija tik perkeliama (be pasukimo / veidrodžio).
 python3 scripts/dxf_combine.py <out_dir> <prefix> [--panels A,B] [--gap 200]
 """
-import argparse, glob, ezdxf
+import argparse, glob, os, sys, ezdxf
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from ezdxf import bbox
 from ezdxf.math import Matrix44
 
@@ -38,6 +39,7 @@ for P in panels:
     if not flats and not vin:
         print(f"  ! {P}: failų nėra"); continue
     doc = ezdxf.new("R2010"); y = 0; xmax = 0
+    doc.units = ezdxf.units.MM; doc.header["$INSUNITS"] = 4; doc.header["$MEASUREMENT"] = 1   # v302: mm, ne metrai
     for f in flats:
         w, h = put(doc, f, "FLAT_" + f.rsplit("_flat_", 1)[1][:-4], 0, y); y -= h + A.gap; xmax = max(xmax, w)
     x = xmax + 2 * A.gap
@@ -47,4 +49,6 @@ for P in panels:
     n_src = sum(len(ezdxf.readfile(f).modelspace()) for f in flats + vin)
     n = len(ezdxf.readfile(fn).modelspace())
     assert n == n_src, f"{fn}: objektų {n} != šaltinių {n_src}"
+    import patikra_dxf
+    assert patikra_dxf.check(fn) == [], f"{fn}: {patikra_dxf.check(fn)}"
     print(f"OK {fn}: {len(flats)} išklotinės + {len(vin)} plėvelės, {n} objektų")

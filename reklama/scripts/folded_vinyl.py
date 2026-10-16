@@ -397,8 +397,10 @@ def build(S, P, out, sheet_no, n_sheets):
     return {"hp": hp, "flats": flats, "VIN": VIN, "G": G, "n": n, "pitch": pitch, "nj": nj, "pj": pj, "kg": kg}
 
 
-def flat_dxf(fn, W, h, depth, t, holes_top, holes_bot, bolts_top, bolts_bot):
-    """išklotinė (v173 gamybos praktika, FACE OUT): lenkimo linijos W x h, flanšai depth - t, šonai iš galų t trumpesni"""
+def flat_dxf(fn, W, h, depth, t, holes_top, holes_bot, bolts_top, bolts_bot, tb_inside=True):
+    """išklotinė (v173 gamybos praktika, FACE OUT): lenkimo linijos W x h, flanšai depth - t.
+    v302 (Rytis 2026-10-16, Joker 226057: „folded plates viršus / apačia lenkiasi į vidų"): NUMATYTA viršus / apačia TARP šonų -
+    jie iš galų t trumpesni (W - 2t), šonai per visą aukštį (kaip folded_dxf --tb-inside); tb_inside=False - šonai į vidų."""
     import ezdxf
     FL = depth - t
     F, WF = W + 2 * FL, h + 2 * FL
@@ -407,8 +409,13 @@ def flat_dxf(fn, W, h, depth, t, holes_top, holes_bot, bolts_top, bolts_bot):
                         ("HOLES_D6_JOINT", 4, "CONTINUOUS"), ("TEXT", 2, "CONTINUOUS")):
         doc.layers.add(nm, color=col, linetype=lt)
     x0, x1, y0, y1 = FL, FL + W, FL, FL + h
-    msp.add_lwpolyline([(x0, 0), (x1, 0), (x1, y0 + t), (F, y0 + t), (F, y1 - t), (x1, y1 - t), (x1, WF), (x0, WF),
-                        (x0, y1 - t), (0, y1 - t), (0, y0 + t), (x0, y0 + t)], close=True, dxfattribs={"layer": "CUT"})
+    if tb_inside:
+        pts = [(x0 + t, 0), (x1 - t, 0), (x1 - t, y0), (F, y0), (F, y1), (x1 - t, y1), (x1 - t, WF), (x0 + t, WF),
+               (x0 + t, y1), (0, y1), (0, y0), (x0 + t, y0)]
+    else:
+        pts = [(x0, 0), (x1, 0), (x1, y0 + t), (F, y0 + t), (F, y1 - t), (x1, y1 - t), (x1, WF), (x0, WF),
+               (x0, y1 - t), (0, y1 - t), (0, y0 + t), (x0, y0 + t)]
+    msp.add_lwpolyline(pts, close=True, dxfattribs={"layer": "CUT"})
     msp.add_lwpolyline([(x0, y0), (x1, y0), (x1, y1), (x0, y1)], close=True, dxfattribs={"layer": "BEND_UP_90"})
     span = W - 100; n = max(1, round(span / 300))
     for flag, v in ((holes_top, WF - 7), (holes_bot, 7)):
@@ -422,6 +429,9 @@ def flat_dxf(fn, W, h, depth, t, holes_top, holes_bot, bolts_top, bolts_bot):
                 msp.add_circle((x0 + 50 + span * k / nj, v), 3.0, dxfattribs={"layer": "HOLES_D6_JOINT"})
     msp.add_text(f"FOLDED {W:g} x {h:g} x {depth:g} - Al {t:g} - FLAT {F:.0f} x {WF:.0f} - FACE OUT", height=30,
                  dxfattribs={"layer": "TEXT"}).set_placement((0, -50))
+    msp.add_text((f"TOP / BOTTOM INSIDE: top/bottom flanges {W - 2 * t:g} (t shorter each end), sides {h:g}" if tb_inside
+                  else f"SIDES INSIDE: side flanges {h - 2 * t:g} (t shorter each end)") + f", flanges {FL:g} from bend line, 4 x 90 up",
+                 height=18, dxfattribs={"layer": "TEXT"}).set_placement((0, -90))
     doc.saveas(fn)
 
 
@@ -443,7 +453,8 @@ def main(spec_path, out):
         hp = r["hp"]
         for j, h in enumerate(hp):
             flat_dxf(f"{base}_flat_{P['name']}{'_' + str(j + 1) if len(hp) > 1 else ''}.dxf", P["w"], h, depth, t,
-                     holes_top=(j == 0), holes_bot=(j == len(hp) - 1), bolts_top=(j > 0), bolts_bot=(j < len(hp) - 1))
+                     holes_top=(j == 0), holes_bot=(j == len(hp) - 1), bolts_top=(j > 0), bolts_bot=(j < len(hp) - 1),
+                     tb_inside=S.get("tb_inside", True))
         for v, p_, a_ in r["VIN"]:
             PL.write_dxf(p_, f"{base}_vinyl_{P['name']}_{v['name'].split()[0].replace('/', '-')}.dxf")
         print(f"  {P['name']}: {P['w']} x {P['h']} parts {hp} flats {[(round(a), round(b)) for a, b in r['flats']]} "

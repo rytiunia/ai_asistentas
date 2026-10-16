@@ -69,3 +69,5 @@ Pirmas bandymas: Joker 226001 (`scripts/projektai/joker_reinslettveien/`, „Pat
 - VIENTISI DXF: `python3 scripts/dxf_combine.py out <ALT>_Order_<nr>` -> `<ALT>_Order_<nr>_<P>_combined.dxf` kiekvienai
   plokštei (išklotinės FLAT_* + plėvelės VINYL_<SPALVA>_*). Siunčiami tik lapo PDF + `_combined.dxf`.
 - LED lapo NĖRA (nešviečiantis) - ataskaitoje pasakyti.
+- v302 (Rytis 2026-10-16): folded_vinyl išklotinė - viršus / apačia į vidų (W - 2t), šonai per visą aukštį; visi DXF - mm
+  (`$INSUNITS` 4), `patikra_dxf.py` = 0 prieš siunčiant (buvo metrai -> Corel importavo 1:1000).

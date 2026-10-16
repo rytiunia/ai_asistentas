@@ -35,6 +35,8 @@ v37-v172 - NEBENAUDOTI; seni projektų skriptai jo nepakeisti.) max ilgis - lak�
     susiliečia priekiniu kraštu; kampai lape tik informaciniai („sketch, not measured") + raudonas perspėjimas
     „gamybai reikalingi tikslūs fasado kampai". Kai kampai žinomi - kampo dalies priekis trumpinamas
     gylis·tan(α/2).
+- **v302 (Rytis 2026-10-16, Joker 226057): folded plate + lipdukai (`folded_vinyl.py`) - VIRŠUS / APAČIA LENKIASI Į VIDŲ**
+  (atlankai W - 2t, šonai per visą aukštį, kaip `folded_dxf.py --tb-inside`); spec `"tb_inside": false` - šonai į vidų.
 - **Kelios dalys vienoje plokštumoje (back plate didesnis už lakštą, pvz. OKQ8 3200x2400, Rytis 2026-10-09):**
   * v284 (Rytis 2026-10-15, Joker 226057): dalys skaidomos taip, kad kiekvienos išklotinė tilptų MAŽIAUSIAME lakšte -
     pirmiausia 3000x1500 (paraštės 10), tik jei negalima - 4000x2000; sandūra tarpe, bet ne arčiau 50 mm nuo grafikos.
