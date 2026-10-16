@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v306 (2026-10-16)
+Atnaujinta: v307 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -164,6 +164,18 @@ SUVESTINĖ PASENUSI.
 - `folded_vinyl.py` išklotinė: VIRŠUS / APAČIA LENKIASI Į VIDŲ (tarp šonų) - jų atlankai iš galų t trumpesni (W - 2t),
   šonai per visą aukštį; spec `"tb_inside": false` - šonai į vidų. DXF TEXT sluoksnyje užrašas „TOP / BOTTOM INSIDE".
 
+## E5. Įdėta kliento / seno lapo grafika - faile TIK lape matomi objektai (v307, Rytis 2026-10-16 KIA 33597)
+
+- „dokumente daug pašalinių objektų, faile tik lape esantys objektai": CorelDRAW atidaro VISUS PDF objektus, ir tuos,
+  kurie paslėpti už iškarpos (clip) ar už lapo ribų.
+- Fragmentai įdedami TIK per `K.place_pdf` - jis per `K.clip_source(src, pno, clip)` iš šaltinio puslapio kopijos ištrina
+  viską, kas nesikerta su iškarpa (vektoriai, tekstas, paveikslėliai), tada įdeda. Tiesiai `show_pdf_page(..., clip=)` -
+  ne (lint VISAS ŠALTINIO PUSLAPIS); jei būtina - `show_pdf_page(r, K.clip_source(src, pno, clip), 0, clip=...)`.
+- Seno turinio likučiai iškarpos viduje (senas frontas, matmenys) IŠTRINAMI redakcija
+  (`add_redact_annot` + `apply_redactions(graphics=PDF_REDACT_LINE_ART_REMOVE_IF_TOUCHED)`), NE uždengiami baltu
+  stačiakampiu (lint BALTAS DANGTIS).
+- `K.save` - `garbage=4` (pasikartojantys ICC / šriftai vieną kartą; KIA 5,6 -> 1,5 MB).
+
 ## F. Ką tikrina automatika (lapas neatiduodamas, kol ne 0)
 
 `patikra_lapas.py`:
@@ -186,6 +198,8 @@ SUVESTINĖ PASENUSI.
 17. VIENETAS NENURODYTAS - ir lentelėje skaičius su kableliu be vieneto („10,00" -> „10,00 m"), v296.
 18. KONSTRUKCIJA (KABO ORE ir kt. - generatoriaus aptiktos klaidos), v297.
 19. PLOTAS NE NESTING (v304).
+20. PAŠALINIAI OBJEKTAI (v307): objektai paslėpti už iškarpos arba už lapo ribų (įdėtas visas šaltinio puslapis).
+    Lint: VISAS ŠALTINIO PUSLAPIS, BALTAS DANGTIS.
 16. NETELPA LANGELYJE (v294): tekstas netelpa lentelės langelyje; trumpinti tekstą, šrifto nemažinti.
 
 Ko automatika NEtikrina (tikrinama akimis kiekvieną kartą):

@@ -82,14 +82,18 @@ BLUE_TXT = [((2230, 5722, 2370, 5729), "THK 2mm Silver brushed Aluminum"), ((225
 REDACT_DIMS = [(1690, 5998, 1932, 6065)]    # seno fronto matmenys 176 / 310 (patenka į EXPLODED iškarpą)
 
 
-WHITEOUT = [(1876, 5968, 1992, 6004), (2064, 5968, 2092, 6004), (1992, 5968, 2040, 6008)]   # seno fronto / šono apačia EXPLODED iškarpoje
+# v307: seno fronto / šono apačia ir seno matmens likučiai EXPLODED iškarpoje - IŠTRINAMI (ne uždengiami baltu - faile tik
+#  lape matomi objektai, Rytis 2026-10-16)
+REMOVE = [(1876, 5968, 1992, 6004), (2064, 5968, 2092, 6004), (1992, 5968, 2040, 6008), (1876, 5968, 1940, 6066)]
 
 
 def make_frag_src():
     GF.prep(SRC, 0, [r for r, _ in BLUE_TXT] + REDACT_DIMS, FRAG)
     d = fitz.open(FRAG)
-    for r in WHITEOUT:
-        d[0].draw_rect(fitz.Rect(r), color=None, fill=(1, 1, 1), overlay=True)
+    for r in REMOVE:
+        d[0].add_redact_annot(fitz.Rect(r), fill=False)
+    d[0].apply_redactions(images=fitz.PDF_REDACT_IMAGE_REMOVE, graphics=fitz.PDF_REDACT_LINE_ART_REMOVE_IF_TOUCHED,
+                          text=fitz.PDF_REDACT_TEXT_REMOVE)
     d.save(FRAG + ".tmp.pdf", garbage=3, deflate=True); d.close(); os.replace(FRAG + ".tmp.pdf", FRAG)
     GF.hairline(FRAG, pages=[0])                         # v172: įdėto originalo linijos - hairline (lape objektai tik hairline)
 

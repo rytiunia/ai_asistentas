@@ -54,7 +54,8 @@ def finish(out):
         for o in OVER:
             if o[0] == "pdf":
                 _, r, src, pno, clip = o
-                p.show_pdf_page(fitz.Rect(r), fitz.open(src), pno, clip=fitz.Rect(clip), keep_proportion=False)
+                # v307: tik iškarpos objektai (K.clip_source) - faile ne visas šaltinio puslapis
+                p.show_pdf_page(fitz.Rect(r), K.clip_source(src, pno, clip), 0, clip=fitz.Rect(clip), keep_proportion=False)
             elif o[0] == "rect":
                 p.draw_rect(fitz.Rect(o[1]), color=None, fill=(1, 1, 1))
             else:

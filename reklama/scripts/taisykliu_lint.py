@@ -23,6 +23,11 @@ RULES = [
      "BOM kiekyje tik rezultatas ('0,93 m'), ne '2× 0.465 = 0.93 m' (v281 / TAISYKLĖ 34)"),
     ("BLOKAS BE CENTRAVIMO", re.compile(r"^\s*first_fn\(\s*X0\s*,"), False,
      "pjūvio blokas piešiamas tiesiai - K.centered / K.section_block (TAISYKLĖ 5 / 34)"),
+    # v307 (Rytis 2026-10-16, KIA 33597: „faile tik lape esantys objektai")
+    ("VISAS ŠALTINIO PUSLAPIS", re.compile(r"show_pdf_page\((?![^#\n]*clip_source)[^#\n]*clip\s*="), False,
+     "show_pdf_page su clip įdeda VISĄ šaltinio puslapį (paslėptą) - K.place_pdf arba K.clip_source(src, pno, clip)"),
+    ("BALTAS DANGTIS", re.compile(r"draw_rect\([^#\n]*fill\s*=\s*\(1,\s*1,\s*1\)[^#\n]*\)"), True,
+     "senas turinys uždengiamas baltu (lieka faile) - ištrinti redakcija (add_redact_annot + apply_redactions)"),
 ]
 
 

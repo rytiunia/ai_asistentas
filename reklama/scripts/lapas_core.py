@@ -179,15 +179,63 @@ def place_pdf(src_pdf, pno, clip, tl, tr, bl, outline=0.3, under=False):
     _PLACE.append((c.getPageNumber() - 1, src_pdf, pno, tuple(clip), tuple(tl), tuple(tr), tuple(bl), outline, under))
 
 
+def clip_source(src, pno, clip):
+    """v307 (Rytis 2026-10-16, KIA 33597: „dokumente daug pašalinių objektų, faile tik lape esantys objektai"):
+    show_pdf_page įdeda VISĄ šaltinio puslapį (paslėptą už clip) - CorelDRAW rodo viską. Todėl prieš įdedant iš šaltinio
+    puslapio kopijos IŠTRINAMA viskas, kas nesikerta su clip: vektoriai, tekstas, paveikslėliai, anotacijos.
+    Grąžina naują fitz.Document (1 psl.)."""
+    sd = src if isinstance(src, fitz.Document) else fitz.open(src)
+    nd = fitz.open()
+    nd.insert_pdf(sd, from_page=pno, to_page=pno, annots=False, links=False)
+    p = nd[0]
+    cl = fitz.Rect(clip) & p.rect
+    R = p.rect + (-1e4, -1e4, 1e4, 1e4)                        # ir objektai už puslapio ribų
+    outs = [fitz.Rect(R.x0, R.y0, R.x1, cl.y0), fitz.Rect(R.x0, cl.y1, R.x1, R.y1),
+            fitz.Rect(R.x0, cl.y0, cl.x0, cl.y1), fitz.Rect(cl.x1, cl.y0, R.x1, cl.y1)]
+    for r in outs:                                              # 1) juostos aplink clip: tekstas, paveikslėliai, vektoriai
+        p.add_redact_annot(r)
+    p.apply_redactions(images=fitz.PDF_REDACT_IMAGE_REMOVE_UNLESS_INVISIBLE,
+                       graphics=fitz.PDF_REDACT_LINE_ART_REMOVE_IF_COVERED, text=fitz.PDF_REDACT_TEXT_REMOVE)
+
+    def _outside(it):
+        return not (it["rect"] + (-0.05, -0.05, 0.05, 0.05)).intersects(cl)
+    for _ in range(4):                                          # 2) L formos / per kelias juostas einantys objektai -
+        bad = [it for it in p.get_drawings() if _outside(it)]   #    jų pačių gabaritu (+ linijos storis), tik vektoriai
+        if not bad:
+            break
+        for it in bad:
+            m = 0.5 + 2 * float(it.get("width") or 0)
+            rr = fitz.Rect(it["rect"])
+            for x in it["items"]:                               # Bezier valdymo taškai - MuPDF dengimą tikrina pagal juos
+                for q in x[1:]:
+                    if isinstance(q, fitz.Point):
+                        rr |= q
+                    elif isinstance(q, (fitz.Rect, fitz.Quad)):
+                        rr |= fitz.Rect(q.rect if isinstance(q, fitz.Quad) else q)
+            p.add_redact_annot(rr + (-m, -m, m, m))
+        p.apply_redactions(images=fitz.PDF_REDACT_IMAGE_NONE, graphics=fitz.PDF_REDACT_LINE_ART_REMOVE_IF_COVERED
+                           if _ < 2 else fitz.PDF_REDACT_LINE_ART_REMOVE_IF_TOUCHED, text=fitz.PDF_REDACT_TEXT_NONE)
+    for im in p.get_image_info(xrefs=True):                     # 3) paveikslėliai visiškai už clip
+        if not fitz.Rect(im["bbox"]).intersects(cl):
+            p.add_redact_annot(fitz.Rect(im["bbox"]))
+    p.apply_redactions(images=fitz.PDF_REDACT_IMAGE_REMOVE, graphics=fitz.PDF_REDACT_LINE_ART_NONE,
+                       text=fitz.PDF_REDACT_TEXT_NONE)
+    p.clean_contents()
+    buf = nd.tobytes(garbage=4, deflate=True)
+    return fitz.open("pdf", buf)
+
+
 def _apply_place(doc):
     srcs = {}
     for it_ in _PLACE:
         pi, src, pno, clip, tl, tr, bl, ol = it_[:8]
         und = it_[8] if len(it_) > 8 else False
-        srcs.setdefault(src, fitz.open(src))
+        key = (src, pno, tuple(round(v, 2) for v in clip))
+        if key not in srcs:
+            srcs[key] = clip_source(src, pno, clip)
         pg = doc[pi]; Hp = pg.rect.height
         old = {x[0] for x in pg.get_xobjects()}
-        pg.show_pdf_page(fitz.Rect(0, 0, 100, 100), srcs[src], pno, clip=fitz.Rect(clip), keep_proportion=False,
+        pg.show_pdf_page(fitz.Rect(0, 0, 100, 100), srcs[key], 0, clip=fitz.Rect(clip), keep_proportion=False,  # lint-ok: šaltinis jau išvalytas clip_source
                          overlay=not und)
         xr = next(x[0] for x in pg.get_xobjects() if x[0] not in old)
         m0 = [float(v) for v in doc.xref_get_key(xr, "Matrix")[1].strip("[]").split()]
@@ -212,7 +260,7 @@ def save(out_pdf):
     doc = fitz.open(_tmp)
     if _PLACE:
         _apply_place(doc)
-    doc.save(out_pdf, garbage=3, deflate=True)
+    doc.save(out_pdf, garbage=4, deflate=True)              # v307: 4 - pasikartojantys objektai (ICC, šriftai) vieną kartą
     doc.close()
     pdf_fix_fonts(out_pdf)                        # v20: CorelDRAW atpažįsta GOST Common - tekstas lieka tekstu
     art_json(out_pdf)

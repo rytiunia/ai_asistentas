@@ -139,6 +139,8 @@ def check(pdf, band_y=None, skips=(), verbose=True):
         # v182: iškarpos (clip) - atkarpos visiškai už savo iškarpos nematomos (pvz. įdėto fragmento turinys už rėmo) -> netikrinamos
         vis = []
         stack = []
+        hidden, outpg = [], []                       # 20. v307 pašaliniai objektai: paslėpti už iškarpos / už lapo ribų
+        PR = pg.rect
         for d in pg.get_drawings(extended=True):
             L = d.get("level", 0)
             while stack and stack[-1][0] >= L:
@@ -156,11 +158,25 @@ def check(pdf, band_y=None, skips=(), verbose=True):
             if cur is not None:
                 cr = fitz.Rect(cur.x0 - 0.05, cur.y0 - 0.05, cur.x1 + 0.05, cur.y1 + 0.05)
                 if cur.is_empty or not any(_seg_rect(sg, cr) for sg in _segs(d)):
+                    hidden.append(d["rect"])
                     continue                                                       # visa kelio dalis nematoma
                 d = dict(d); d["_clip"] = cr
+            if not (d["rect"] + (-0.05, -0.05, 0.05, 0.05)).intersects(PR):
+                outpg.append(d["rect"])
+                continue
             if any(a_.contains(d["rect"]) for a_ in ART):
                 continue                                                           # kliento grafika (v162 - neliečiama)
             vis.append(d)
+        # 20. v307 (Rytis 2026-10-16, KIA 33597: „dokumente daug pašalinių objektų, faile tik lape esantys objektai"):
+        #  CorelDRAW atidaro VISUS objektus - ir paslėptus už iškarpos (įdėto PDF likęs puslapis), ir už lapo ribų.
+        #  Įdėti fragmentai - tik per K.place_pdf (clip_source išvalo šaltinį); uždengti baltu - ne, ištrinti (redakcija).
+        _tf = fitz.TEXTFLAGS_TEXT & ~fitz.TEXT_MEDIABOX_CLIP
+        outpg += [fitz.Rect(b["bbox"]) for b in pg.get_text("dict", flags=_tf)["blocks"] if not fitz.Rect(b["bbox"]).intersects(PR)]
+        outpg += [fitz.Rect(i_["bbox"]) for i_ in pg.get_image_info() if not fitz.Rect(i_["bbox"]).intersects(PR)]
+        if hidden or outpg:
+            _ex = (hidden + outpg)[0]
+            errs.append(f"PAŠALINIAI OBJEKTAI: {len(hidden)} paslėpti už iškarpos, {len(outpg)} už lapo ribų (pvz. ({_ex.x0:.0f}, "
+                        f"{_ex.y0:.0f})) - faile tik lape matomi objektai (K.place_pdf / clip_source, ne baltas dangtis)")
         # v190 (Rytis 2026-10-13: „pasikartojančios klaidos: ne hairline projekcijose") - DVIGUBA LINIJA: du hairline
         #  kontūrai (vienas kito viduje) arčiau nei 0,6 pt per visą perimetrą spaudoje susilieja į storą liniją
         _hl = [d["rect"] for d in vis if d["type"] in ("s", "fs") and (d.get("width") or 0) <= 0.12
