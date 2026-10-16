@@ -230,7 +230,7 @@ def saveas(doc, path, tol=TOL):
     doc.units = ezdxf.units.MM
     doc.header["$INSUNITS"] = 4
     fit_dxf_doc(doc, tol)
-    doc.saveas(path)
+    doc.saveas(path)                                   # lint-ok: vienintelė leistina vieta (po fit_dxf_doc)
     return path
 
 
@@ -238,7 +238,7 @@ def fit_dxf(path, out=None, tol=TOL):
     import ezdxf
     doc = ezdxf.readfile(path)
     r = fit_dxf_doc(doc, tol)
-    doc.saveas(out or path)
+    doc.saveas(out or path)                            # lint-ok: po fit_dxf_doc
     return r
 
 

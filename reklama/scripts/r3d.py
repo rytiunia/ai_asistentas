@@ -197,11 +197,7 @@ class Scene:
                 c.setStrokeColor(f["edge"] or e["col"]); c.setLineWidth(K.HAIR)
                 p = c.beginPath()
                 for ring in [gg.exterior] + list(gg.interiors):
-                    cc = list(ring.coords)
-                    p.moveTo(*cc[0])
-                    for q in cc[1:]:
-                        p.lineTo(*q)
-                    p.close()
+                    K.ring_path(p, list(ring.coords))          # v313: lankai (Bezier), ne laužtė
                 c.drawPath(p, stroke=1, fill=1, fillMode=0); c.restoreState()
 
     @staticmethod

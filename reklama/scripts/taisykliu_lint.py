@@ -26,6 +26,9 @@ RULES = [
     # v307 (Rytis 2026-10-16, KIA 33597: „faile tik lape esantys objektai")
     ("VISAS ŠALTINIO PUSLAPIS", re.compile(r"show_pdf_page\((?![^#\n]*clip_source)[^#\n]*clip\s*="), False,
      "show_pdf_page su clip įdeda VISĄ šaltinio puslapį (paslėptą) - K.place_pdf arba K.clip_source(src, pno, clip)"),
+    # v313 (Rytis 2026-10-16: „išsaugok kaip taisyklę, kuri turi veikti visada" - kreivės lankais, suvestinė E3b)
+    ("DXF BE LANKŲ", re.compile(r"(?<!KR)\.saveas\((?![^#\n]*lint-ok)"), False,
+     "DXF išsaugomas tiesiai - laužtės lieka laužtėmis; tik KR.saveas(doc, kelias) (scripts/kreives.py: tiesės + lankai)"),
     ("BALTAS DANGTIS", re.compile(r"draw_rect\([^#\n]*fill\s*=\s*\(1,\s*1,\s*1\)[^#\n]*\)"), True,
      "senas turinys uždengiamas baltu (lieka faile) - ištrinti redakcija (add_redact_annot + apply_redactions)"),
 ]

@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v312 (2026-10-16)
+Atnaujinta: v313 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -24,6 +24,8 @@ SUVESTINĖ PASENUSI.
 4. Braižoma TIK per `lapas_core` (K) ir `layout_engine` (LE) funkcijas, nurodytas žemiau. Ranka rašytos koordinatės, masteliai
    ar „gražinimai" negalimi: patikra juos randa.
 5. `python3 scripts/patikra_lapas.py lapas.pdf` turi duoti 0; DXF - `python3 scripts/patikra_dxf.py *.dxf` = 0 (v302).
+   - KREIVĖS VISADA LANKAIS (v313, Rytis: „taisyklė, kuri turi veikti visada") - E3b; patikra_lapas tikrina ir lapą, ir
+     šalia jo esančius to paties vardo DXF.
    - Patikra kartu paleidžia `taisykliu_lint.py` lapo generatoriui (kelias imamas iš `<lapas>.pdf.art.json`).
    - Paskui lapas peržiūrimas AKIMIS: PNG, visas lapas ir priartinti blokai.
 6. Ryčio pataisa = nauja taisyklė. TAME PAČIAME commit'e:
@@ -191,7 +193,9 @@ failas apvalus, bet gaunasi kampuotas"; ta pati pastaba buvo v113, bet pataisa b
 - PDF: `K.path_of` / `K.poly` / `K.ring_path` / `View3D` / `p6_vaizdas.draw_geom` / `PD2.draw_geom` - lygios laužtės braižomos
   lankais (Bezier); 1:1 PDF dugnas / rėmas - `K.fitz_subs(K.geom_subs(geo))`; 3D (iliustracinis) - geometrija
   supaprastinama iki ~0,25 pt lape (`r3d.view_simplify`), gamybos geometrija nekeičiama.
-- Patikra: `patikra_dxf.py` KAMPUOTA KREIVĖ - laužtė su >= 6 iš eilės trumpomis atkarpomis ir mažais posūkiais, be lankų.
+- Patikra: `patikra_dxf.py` KAMPUOTA KREIVĖ - laužtė su >= 6 iš eilės trumpomis atkarpomis ir mažais posūkiais, be lankų;
+  `patikra_lapas.py` 23 KAMPUOTA KREIVĖ - lape kontūras iš >= 12 tokių atkarpų + to paties vardo DXF šalia lapo (v313);
+  lint DXF BE LANKŲ - `.saveas(` ne per `KR.saveas` (v313). LED lapai (`led_km.py`), r3d 3D plokštumos - taip pat lankais.
   LEAP 33577: DXF mazgai 4107 -> 212 / 10542 -> 622, lapas 1: 31 394 atkarpos -> 2 025 + 1 422 kreivės.
 
 ## E4. Folded plate + lipdukai - lenkimas (v302, Rytis 2026-10-16 Joker 226057)
@@ -239,6 +243,8 @@ failas apvalus, bet gaunasi kampuotas"; ta pati pastaba buvo v113, bet pataisa b
 21. SKIRTINGI MASTELIAI (v309): FRONT / SIDE / REAR lape skirtingais masteliais.
 22. COREL (v310): lape daugiau nei vienas GOST šriftas, „GOST-Common" vardas arba qpdf --check klaida - CorelDRAW
     „file corrupted" (`scripts/patikra_corel.py`, kviečiama iš patikra_lapas.py).
+23. KAMPUOTA KREIVĖ (v313): lape - kontūras iš trumpų tiesių ten, kur turi būti lankas; šalia lapo esantys to paties
+    vardo DXF - laužtės be lankų (patikra_dxf). Lint: DXF BE LANKŲ.
 
 Ko automatika NEtikrina (tikrinama akimis kiekvieną kartą):
 - ar vaizdai proporcingi ir subalansuoti;

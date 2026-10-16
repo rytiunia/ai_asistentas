@@ -26,6 +26,7 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import led_sim as LS  # noqa: E402  read_letters, skeleton_paths, _at, stroke_max
+import kreives as KR  # noqa: E402  v313: kreivės lankais
 
 # v127 (Rytis 2026-10-12: „pridedu papildomą informaciją dėl LED ... failai gauti gamyboje, laikyti kaip NAUJĄ VERSIJĄ"):
 # moduliai, PSU ir ryškumo lentelės - Kaisen Electric (assets/kaisen_led.json: kainoraštis 2023 Alt Reklama + Modules Depth
@@ -779,10 +780,13 @@ def sheet(spec, res, out):
             for poly in getattr(g, "geoms", [g]):
                 p_ = c.beginPath()
                 for ring in [poly.exterior] + list(poly.interiors):
-                    pts = [T(*q) for q in ring.coords]
-                    p_.moveTo(*pts[0])
-                    for q in pts[1:]:
-                        p_.lineTo(*q)
+                    for s_ in KR.ring_to_sub([T(*q) for q in ring.coords], True):     # v313: lankai, ne laužtė
+                        if s_[0] == "M":
+                            p_.moveTo(*s_[1])
+                        elif s_[0] == "L":
+                            p_.lineTo(*s_[1])
+                        else:
+                            p_.curveTo(*s_[1], *s_[2], *s_[3])
                     p_.close()
                 c.setFillColor(GREY); c.setStrokeColor(GREY); c.setLineWidth(0.1)
                 c.drawPath(p_, stroke=0, fill=1, fillMode=0)
@@ -865,6 +869,8 @@ def sheet(spec, res, out):
     c.setFillColor(ORANGE); c.rect(W - 40 * mm, 10 * mm, 30 * mm, 18 * mm, stroke=0, fill=1)
     c.setFillColor(black); c.setFont("Helvetica-Bold", 20); c.drawCentredString(W - 25 * mm, 15 * mm, "LED")
     c.showPage(); c.save()
+    import lapas_core as _K
+    _K.pdf_fix_fonts(out)                        # v313: GOST šriftas Corel'iui („GOST Common", patikra 22 COREL)
     return out
 
 

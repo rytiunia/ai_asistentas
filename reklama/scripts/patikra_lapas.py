@@ -16,6 +16,7 @@ v182: `<lapas>.pdf.art.json` (rašo lapas_core.save per place_pdf) - KLIENTO GRA
 netikrinama nieko (ir hairline); atkarpos, visiškai už savo iškarpos (clip), nematomos - netikrinamos.
 """
 import math
+import os
 import sys
 
 import pymupdf as fitz
@@ -93,6 +94,15 @@ def check(pdf, band_y=None, skips=(), verbose=True):
     #  „Atnaujinta: vNNN" turi sutapti su SKILL.md „Versija" (kiekvienas skill pakeitimas peržiūri galiojančių taisyklių suvestinę)
     glob_errs = [f"NETELPA LANGELYJE (trumpinti tekstą, ne mažinti šriftą): '{o_}'" for o_ in (ovf if "ovf" in dir() else [])]
     glob_errs += [f"KONSTRUKCIJA (18 KABO ORE ir kt.): {e_}" for e_ in (cerr if "cerr" in dir() else [])]
+    # 23. v313: to paties užsakymo DXF (šalia lapo, vardas prasideda lapo vardu) - KAMPUOTA KREIVĖ / VIENETAI (patikra_dxf)
+    try:
+        import glob as _gl
+        import patikra_dxf as _PD
+        _stem = os.path.splitext(pdf)[0]
+        for _dx in sorted(_gl.glob(_stem + "*.dxf")):
+            glob_errs += [f"DXF {os.path.basename(_dx)}: {e_}" for e_ in _PD.check(_dx)]
+    except Exception as e_:
+        glob_errs.append(f"DXF patikra nepavyko ({e_})")
     try:
         import taisykliu_lint as _TL
         glob_errs += _TL.lint(gen) if "gen" in dir() and gen else []
@@ -408,6 +418,28 @@ def check(pdf, band_y=None, skips=(), verbose=True):
         if len(set(_vsc.values())) > 1:
             errs.append("SKIRTINGI MASTELIAI: " + ", ".join(f"{k} 1:{v}" for k, v in _vsc.items())
                         + " - FRONT / SIDE / REAR turi vieną bendrą mastelį (suvestinė B)")
+        # 23. v313 (Rytis 2026-10-16: „kreivės lankais - taisyklė, kuri turi veikti visada", suvestinė E3b): KAMPUOTA KREIVĖ
+        #  lape - kontūras iš >= 12 iš eilės trumpų tiesių su mažais posūkiais (ne kliento grafika ART, ne 3D šonų juostelės)
+        import kreives as _KR
+        _kc = 0
+        for d_ in pg.get_drawings():
+            if any(a_.contains(d_["rect"]) for a_ in ART):
+                continue
+            run_, best_ = [], 0
+            for it_ in d_["items"] + [("x",)]:
+                if it_[0] == "l" and (not run_ or abs(run_[-1][0] - it_[1].x) + abs(run_[-1][1] - it_[1].y) < 0.01):
+                    if not run_:
+                        run_.append((it_[1].x, it_[1].y))
+                    run_.append((it_[2].x, it_[2].y))
+                    continue
+                if len(run_) > 12:
+                    best_ = max(best_, _KR.angular_runs(run_, closed=False, max_len=15))
+                run_ = [(it_[1].x, it_[1].y), (it_[2].x, it_[2].y)] if it_[0] == "l" else []
+            if best_ >= 12:
+                _kc += 1
+        if _kc:
+            errs.append(f"KAMPUOTA KREIVĖ: {_kc} kontūr. iš trumpų tiesių (lanku turi būti lankas) - braižyti per K.path_of / "
+                        f"K.poly / K.ring_path / K.geom_subs (scripts/kreives.py, suvestinė E3b)")
         if pno == 0:
             errs += glob_errs
         errs = sorted(set(errs))
