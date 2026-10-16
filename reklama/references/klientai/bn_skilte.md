@@ -173,3 +173,18 @@ aluminium profile. 7. Suport, 5mm aluminium (Coop - 3mm). 8. LED modules. 9. Han
   nuo sienos 1550 + 100 + 5 = 1655; padas 140 x 470). Logotipas išdidintas proporcingai (x1,567 -> 1086 x 246, 133 nuo viršaus) - PRIELAIDA.
   BN aprašymas: „let aluminium konstruktion med udfræsede logofelter og hvide RAL 9010 fronter, indvendigt hvid opal akryl med guld folie,
   blå fodplade" - Alu priekiai su išfrezuotu logotipu + opal akrilas su auksine plėvele viduje (ne 5S stiklas su lipduku) - KLAUSTA Ryčio.
+
+## PO 3311 Kvickly Skibhusvej 70 Odense - palaidos P6 raidės iš KELIŲ DALIŲ (Rytis 2026-10-16)
+- Rytis: „padaryti raides kaip pridėtame pavyzdyje ALT7782_11.17_Indkøbsordre 2261 Fra BN Skilte, iš kelių dalių".
+  Pavyzdys (2261, ALT7782): „Sign from 3 pieces" - **K | vick | ly**, Profile 6: front White 8 mm plexiglas, side Alu 1 mm,
+  back Alu 1,5 mm, body RAL 9016 gloss 80 %, LED white.
+- Kvickly logotipas kliento faile - VIENAS sulietas kontūras (raidės susijungusios) + i taškas + 2 skylės. Dalys:
+  K - per K viršutinės šakos kraštą (tęsiasi per v šakos viršų iki K kojos vidinio kampo, viena tiesė);
+  k | l - vertikalus pjūvis ties l stiebo kairiu kraštu (trikampė skylė tarp k šakų ir l tampa atvira); i taškas - atskiras.
+  Įgyvendinta `scripts/projektai/bnskilte_3311_kvickly/pieces.py` (dalys -> vektorinis šaltinis, kreivės lankais),
+  `build_order.py` -> `ALT0000_PO_3311_Kvickly.pdf` (2 lapai) + 1:1 kiekvienai pozicijai.
+- PO 3311: poz. 01 KV-1137 FAC-B-ML-P6-700 - 3322 x 892, gylis 70 (K h700); poz. 02 KV-1136 FAC-B-ML-P6-637 - 2373 x 637,
+  gylis 60 (K h500); po 1 vnt.; „order is only for the letters" (raudona 45 mm fono plokštė - BN). Pristatymas 2026-11-06, EX Works.
+- Palaidos raidės (mounting none): tvirtinimo skylės dugne Ø6 (BN raidžių standartas), 12 V 1,5 m laidas iš kiekvienos dalies
+  (D11), popierinis šablonas 1:1. Neatsakyta: LED modulis / kiekis, keitiklis (ar tiekiame), i taško tvirtinimas,
+  fasado brėžinyje F „B2372" vs PO / matmuo 2373.

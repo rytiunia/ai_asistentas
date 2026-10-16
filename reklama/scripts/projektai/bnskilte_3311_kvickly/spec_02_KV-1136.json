@@ -1,0 +1,151 @@
+{
+ "client_pdf": "Kvickly_pieces_02_KV-1136.pdf",
+ "scale": 1.0,
+ "crop_pt": [
+  14.17,
+  14.17,
+  6825.83,
+  1905.73
+ ],
+ "ignore_fills": [],
+ "qty": "1",
+ "client": "BN Skilte A/S / Kvickly Skibhusvej",
+ "company": "BN Skilte A/S",
+ "title": "Kvickly KV-1136 FAC-B-ML-P6-637 2373 x 637 mm - P6, 3 pieces + i dot",
+ "project": "BN Skilte PO 3311",
+ "drawing_no": "PO 3311 KV-1136",
+ "order_no": "ALT0000_00.00_RS",
+ "file_code": "PO_3311_KV-1136",
+ "rev": "A",
+ "date": "2026-10-16",
+ "depth_mm": 60,
+ "front": "P6",
+ "auto_frame": true,
+ "mounting": "none",
+ "letters_power": "per_letter",
+ "wall": "facade_panel",
+ "back_hole_d": 6,
+ "trafo_box": false,
+ "rail": {
+  "size": "30x30x2",
+  "depth": 30,
+  "ral": "9016"
+ },
+ "groups": [
+  {
+   "name": "Kvickly",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "9016",
+   "face_hex": "#FFFFFF",
+   "client_fill": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "frame": "verticals",
+   "led": "White LED"
+  }
+ ],
+ "bom": [
+  [
+   1,
+   "Letter face",
+   "Acrylic 8 mm white",
+   "-",
+   "{PER_6} m / {A_6} m²"
+  ],
+  [
+   2,
+   "Letter return",
+   "Alu 1 mm",
+   "RAL 9016",
+   "{PER_6} m / {RET_6} m²"
+  ],
+  [
+   3,
+   "Letter back (holes - DXF)",
+   "Alu 1.5 mm",
+   "RAL 9016",
+   "{PER_ALL} m / {BACK_ALL} m²"
+  ],
+  [
+   4,
+   "LED modules",
+   "White LED",
+   "-",
+   "?"
+  ],
+  [
+   5,
+   "Facade fixing screws (by fitter)",
+   "Ø6 mm holes",
+   "-",
+   "{STUDS} holes"
+  ],
+  [
+   6,
+   "Cable 12V 1.5 m from each part (D11 exit)",
+   "cable",
+   "-",
+   "4 pcs."
+  ],
+  [
+   7,
+   "Mounting template 1:1",
+   "paper",
+   "-",
+   "1 pcs."
+  ],
+  [
+   8,
+   "Converter 12V",
+   "?",
+   "-",
+   "?"
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "1 pcs."
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH} mm"
+  ],
+  [
+   "Profile",
+   "P6, front illuminated"
+  ],
+  [
+   "Parts",
+   "K | vick | ly + i dot"
+  ],
+  [
+   "Letter depth",
+   "60 mm"
+  ],
+  [
+   "Face",
+   "Acrylic 8 mm white"
+  ],
+  [
+   "Returns / back",
+   "RAL 9016 gloss 80 %"
+  ],
+  [
+   "Illumination",
+   "White LED"
+  ],
+  [
+   "Power",
+   "12V, 1,5 m from each part"
+  ],
+  [
+   "Wind qp",
+   "{WIND_QP} kN/m²"
+  ]
+ ],
+ "sheet": "2 / 2"
+}

@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v313 (2026-10-16)
+Atnaujinta: v314 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -164,6 +164,10 @@ SUVESTINĖ PASENUSI.
   VIRŠUJE, 50 mm nuo viršaus.
 - Etalonai: `assets/etalonai/`.
 - Konfliktas sprendžiamas taip: kliento taisyklė > produkto taisyklė > bendra; naujesnė vNNN > senesnė.
+- Logotipas, kurio raidės kliento faile SULIETOS į vieną kontūrą, P6 raidėms gaminamas IŠ KELIŲ DALIŲ (v314, Rytis 2026-10-16,
+  BN PO 3311 Kvickly, pavyzdys ALT7782 „Sign from 3 pieces"): pjūviai - raidžių kraštų tęsiniais ten, kur raidės susiliečia
+  (ne bet kur), atskiri kontūrai (i taškas) - atskiros dalys; dalys -> vektorinis šaltinis (kreivės lankais) -> braizyti_begeliai.
+  Analogas: `scripts/projektai/bnskilte_3311_kvickly/pieces.py`.
 
 ## E2. Patvirtinimas -> gamybos paketas (`references/patvirtinimas.md`)
 
