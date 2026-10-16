@@ -34,6 +34,7 @@ import sys
 from shapely.geometry import Polygon, MultiPolygon, box as sbox
 from shapely.ops import unary_union
 from shapely.affinity import rotate as srotate, translate as stranslate
+import kreives as KR  # noqa: E402  v312: kreivės lankais
 
 ROLL_COLOR = 1190.0     # spalvota plėvelė - standartas
 ROLL_WHITE = 1320.0     # balta / spaudos plėvelė
@@ -433,7 +434,7 @@ def write_dxf(p, path):
             msp.add_lwpolyline([(x, y) for x, y in ring], close=True, dxfattribs={"layer": "CUT"})
     L, W = p["length_mm"], p["roll"]
     msp.add_lwpolyline([(0, 0), (L, 0), (L, W), (0, W)], close=True, dxfattribs={"layer": "ROLL"})
-    doc.saveas(path)
+    KR.saveas(doc, path)   # v312: kreivės lankais
     return path
 
 

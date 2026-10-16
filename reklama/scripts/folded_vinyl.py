@@ -23,6 +23,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import lapas_core as K  # noqa: E402
+import kreives as KR  # noqa: E402  v312: kreivės lankais
 import plevele as PL  # noqa: E402
 import r3d  # noqa: E402
 import pymupdf as fitz  # noqa: E402
@@ -434,7 +435,7 @@ def flat_dxf(fn, W, h, depth, t, holes_top, holes_bot, bolts_top, bolts_bot, tb_
     msp.add_text((f"TOP / BOTTOM INSIDE: top/bottom flanges {W - 2 * t:g} (t shorter each end), sides {h:g}" if tb_inside
                   else f"SIDES INSIDE: side flanges {h - 2 * t:g} (t shorter each end)") + f", flanges {FL:g} from bend line, 4 x 90 up",
                  height=18, dxfattribs={"layer": "TEXT"}).set_placement((0, -90))
-    doc.saveas(fn)
+    KR.saveas(doc, fn)   # v312: kreivės lankais
 
 
 def main(spec_path, out):

@@ -11,6 +11,17 @@ import lapas_core as K
 from reportlab.lib.colors import Color, HexColor
 
 
+
+def view_simplify(geom, k=1500.0):
+    """v312: 3D vaizdui geometrija supaprastinama (paklaida = gabaritas / k, ~0,1 pt lape) - kreivės išlieka glotnios,
+    bet nebe tūkstančiai atkarpų (CorelDRAW mazgai). Gamybos geometrija (DXF, 1:1) nekeičiama."""
+    try:
+        x0, y0, x1, y1 = geom.bounds
+        tol = max(x1 - x0, y1 - y0) / k
+        return geom.simplify(tol, preserve_topology=True) if tol > 0 else geom
+    except Exception:
+        return geom
+
 class Scene:
     def __init__(self, yaw=32, pitch=17, light=(-0.45, 0.75, 0.55), tile=250.0):
         self.V = K.View3D(yaw=yaw, pitch=pitch, light=light)
@@ -50,6 +61,7 @@ class Scene:
     def extrude_xy(self, geom, z0, z1, side, face_col, edge=None, xf=None):
         """shapely (x, y) kūnas, ištemptas z0..z1 (+z į žiūrovą); xf(x, y, z) -> pasaulio taškas"""
         xf = xf or (lambda x, y, z: (x, y, z))
+        geom = view_simplify(geom)                      # v312: iliustracinis 3D - be tūkstančių šoninių juostelių
         for g in getattr(geom, "geoms", [geom]):
             from shapely.geometry.polygon import orient
             g = orient(g, 1.0)

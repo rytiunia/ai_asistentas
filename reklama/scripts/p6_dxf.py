@@ -56,6 +56,7 @@ import ezdxf
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import lapas_core as K  # noqa: E402  (drawing_to_subpaths, split_letters, bez)
+import kreives as KR  # noqa: E402  v312: kreivės lankais
 
 ap = argparse.ArgumentParser()
 ap.add_argument("pdf")
@@ -1391,14 +1392,14 @@ for var, suf in VARS:
             msp.add_circle((hx_ - GX0, GY1 - hy_), hd_ / 2, dxfattribs={"layer": "3_REMAS"})
     main = os.path.join(A.out_dir, f"{prefix}_P6_1-1{suf}.dxf")
     group_layers(doc)
-    doc.saveas(main); files.append(main); mains.append((var, suf, main))
+    KR.saveas(doc, main); files.append(main); mains.append((var, suf, main))
     if not A.no_letters:
         for o in letters:
             d2 = new_doc(); m2 = d2.modelspace()
             put(m2, o, [] if SEPARATE else rails, o["bb"][0], o["bb"][3], clip=(o["bb"][0] - 30, o["bb"][2] + 30), var=var)
             f = os.path.join(A.out_dir, f"{prefix}_{o['id']}{suf}.dxf")
             group_layers(d2)
-            d2.saveas(f); files.append(f)
+            KR.saveas(d2, f); files.append(f)
 
 # ------------------------------------------------------------------ patikra PNG (iš DXF)
 try:

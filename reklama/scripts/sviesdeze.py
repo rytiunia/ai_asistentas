@@ -22,6 +22,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import lapas_core as K  # noqa: E402
+import kreives as KR  # noqa: E402  v312: kreivės lankais
 import koju_uzdengimas as KU  # noqa: E402
 from lapas_core import T, line, rect, poly, circle, hdim, vchain, hchain, leader, view_title, MM  # noqa: E402
 from reportlab.lib.colors import HexColor, white  # noqa: E402
@@ -532,6 +533,8 @@ def detail_b(g):
 
 
 def _slab(sc, geo, w0, w1, col, xf, edge=None):
+    import r3d as _r3d
+    geo = _r3d.view_simplify(geo)                  # v312
     sc.extrude_xy(geo, w0, w1, col, col, edge=edge, xf=xf)
     for gg in getattr(geo, "geoms", [geo]):
         ext = [xf(x, y, w0) for x, y in list(gg.exterior.coords)[:-1]]
@@ -1393,7 +1396,7 @@ def write_dxf(g, path):
                  dxfattribs={"layer": "TEXT", "height": 8}).set_placement((0, -30))
     if g["covers"]:
         KU.write_flat(msp, g["covers"][0], Ltot + 100)
-    doc.saveas(path)
+    KR.saveas(doc, path)   # v312: kreivės lankais
     return path
 
 

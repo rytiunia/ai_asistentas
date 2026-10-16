@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v311 (2026-10-16)
+Atnaujinta: v312 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -179,6 +179,20 @@ SUVESTINĖ PASENUSI.
 - Visi gamybos DXF - geometrija mm IR antraštė `$INSUNITS = 4` (mm). Po `ezdxf.new()` VISADA `doc.units = ezdxf.units.MM`
   (ezdxf numatyta - metrai, Corel importuoja x1000).
 - Prieš siunčiant: `python3 scripts/patikra_dxf.py <failai>.dxf` = 0 (`dxf_combine.py` tikrina pats).
+
+## E3b. Kreivės - LANKAIS, ne laužtėmis (v312, Rytis 2026-10-16 Leapmotor: „daug taškų, tarp kurių tiesios linijos, nors
+failas apvalus, bet gaunasi kampuotas"; ta pati pastaba buvo v113, bet pataisa buvo tik p6_dxf.py)
+
+- Viena vieta - `scripts/kreives.py`. Kliento Bezier skaidomas ADAPTYVIAI (`flat_sub` / `bez_flat`, sagitta <= 0,01 mm),
+  ne 8 / 10 / 12 atkarpų kreivei (`K.shape_geom`, `K.split_letters`, `K.perim`, lightbox logotipas).
+- DXF išsaugomas TIK per `KR.saveas(doc, path)`: visi LWPOLYLINE -> tiesės + lankai (bulge), nuokrypis <= 0,02 mm
+  (didesnis nuo stygos - tik tolygiai išskaidytame lanke); tikri kampai (posūkis > 20°) lieka kampais. Senas DXF -
+  `python3 scripts/kreives_fit.py failas.dxf`.
+- PDF: `K.path_of` / `K.poly` / `K.ring_path` / `View3D` / `p6_vaizdas.draw_geom` / `PD2.draw_geom` - lygios laužtės braižomos
+  lankais (Bezier); 1:1 PDF dugnas / rėmas - `K.fitz_subs(K.geom_subs(geo))`; 3D (iliustracinis) - geometrija
+  supaprastinama iki ~0,25 pt lape (`r3d.view_simplify`), gamybos geometrija nekeičiama.
+- Patikra: `patikra_dxf.py` KAMPUOTA KREIVĖ - laužtė su >= 6 iš eilės trumpomis atkarpomis ir mažais posūkiais, be lankų.
+  LEAP 33577: DXF mazgai 4107 -> 212 / 10542 -> 622, lapas 1: 31 394 atkarpos -> 2 025 + 1 422 kreivės.
 
 ## E4. Folded plate + lipdukai - lenkimas (v302, Rytis 2026-10-16 Joker 226057)
 

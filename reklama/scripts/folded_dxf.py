@@ -12,6 +12,7 @@ NUMATYTA (Rytis 2026-10-13, bet kokiems matmenims): „sides inside" - šonai į
 Naudojimas: python3 folded_dxf.py PLOTIS AUKŠTIS out.dxf [GYLIS] [--t 2] [--no-holes] [--tb-inside]"""
 import sys, os
 import ezdxf
+import kreives as KR  # v312: kreivės lankais (skripto katalogas - sys.path[0])
 
 argv = sys.argv[1:]
 t = 2.0
@@ -51,7 +52,7 @@ msp.add_text(f"bend lines = {W:.0f} x {H:.0f}, flanges {FL:g} from bend line, "
              + ", 4 x 90 up"
              + (f" | D3.2 x 2 x {n + 1}: 50 | {n} x {span / n:.1f} | 50, 7 from edge" if HOLES else ""),
              height=th * 0.6, dxfattribs={"layer": "TEXT"}).set_placement((F / 2, -3.6 * th), align=ezdxf.enums.TextEntityAlignment.MIDDLE_CENTER)
-doc.saveas(OUT)
+KR.saveas(doc, OUT)   # v312: kreivės lankais
 print(f"flat {F:g} x {WF:g}, bend lines {W:g} x {H:g}, flanges {FL:g} from bend line, "
       + (f"top/bottom {W - 2 * t:g} inside, sides {H:g}" if TB_IN else f"side flanges {H - 2 * t:g}")
       + (f", holes 2 x {n + 1} pitch {span / n:.1f}" if HOLES else ", no holes"))

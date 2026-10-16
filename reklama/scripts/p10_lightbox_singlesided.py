@@ -27,6 +27,7 @@ from sviesdeze import HM, VM, D1, D2, face_label, band  # noqa: E402
 from sviesdeze import rect, poly, circle, line, T  # noqa: E402  CAD režimas (SV._CAD) 2 lapui
 import p10_lightbox_doublesided as PD2  # noqa: E402
 import nesting as NE  # noqa: E402
+import kreives as KR  # noqa: E402
 
 DEF = {"client": "", "title": "LIGHTBOX P10 SINGLE-SIDED - PUSH-THROUGH", "order_no": "ALT0000_00.00_RS", "drawing_no": "",
        "date": "", "rev": "A", "qty": "?",
@@ -75,12 +76,9 @@ def logo_from_pdf(L, base_dir):
                 cur = [(a.x, a.y)]
             if it[0] == "l":
                 cur.append((it[2].x, it[2].y))
-            elif it[0] == "c":
+            elif it[0] == "c":                       # v312: adaptyviai (sagitta <= 0,01 mm), ne 12 atkarpų
                 p0, p1, p2, p3 = it[1:5]
-                for i in range(1, 13):
-                    tt = i / 12
-                    cur.append(((1 - tt) ** 3 * p0.x + 3 * (1 - tt) ** 2 * tt * p1.x + 3 * (1 - tt) * tt ** 2 * p2.x + tt ** 3 * p3.x,
-                                (1 - tt) ** 3 * p0.y + 3 * (1 - tt) ** 2 * tt * p1.y + 3 * (1 - tt) * tt ** 2 * p2.y + tt ** 3 * p3.y))
+                cur += KR.bez_flat((p0.x, p0.y), (p1.x, p1.y), (p2.x, p2.y), (p3.x, p3.y), KR.FLAT_TOL / k)
         if cur:
             rings.append(cur)
         g_ = None
@@ -684,7 +682,7 @@ def write_dxf(g, path):
                 m.add_lwpolyline([(round(cx + x - bx0, 3), round(oy + (by1 - y), 3)) for x, y in ring.coords], close=True,
                                  dxfattribs={"layer": "PLEXI_INSERT"})
         m.add_text(f"BASE {g['base_t']:g} mm + INSERT {g['ins_t']:g} mm (GLUED)", dxfattribs={"layer": "TEXT", "height": 8}).set_placement((0, oy - 30))
-    doc.saveas(path)
+    KR.saveas(doc, path)   # v312: kreivės lankais
     return path
 
 

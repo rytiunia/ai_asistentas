@@ -9,6 +9,7 @@ import sys
 
 import ezdxf
 import pymupdf as fitz
+import kreives as KR  # noqa: E402  v312: kreivės lankais
 
 PT = 25.4 / 72
 
@@ -78,7 +79,7 @@ def main(a):
                     doc.layers.add(e.dxf.layer)
                 msp.add_foreign_entity(e.copy()) if hasattr(msp, "add_foreign_entity") else msp.add_entity(e.copy())
                 cnt[e.dxf.layer] = cnt.get(e.dxf.layer, 0) + 1
-    doc.saveas(out)
+    KR.saveas(doc, out)   # v312: kreivės lankais
     print("OK", out, cnt)
 
 

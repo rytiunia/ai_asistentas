@@ -78,11 +78,7 @@ def draw_geom(geom, tf, fill, stroke=None, lw=None, canvas=None):
         if g.is_empty:
             continue
         for ring in [g.exterior] + list(g.interiors):
-            pts = [tf(x, y) for x, y in ring.coords]
-            p.moveTo(*pts[0])
-            for q in pts[1:]:
-                p.lineTo(*q)
-            p.close()
+            K.ring_path(p, [tf(x, y) for x, y in ring.coords])         # v312: lankai, ne laužtė
     c.drawPath(p, stroke=stroke is not None, fill=fill is not None, fillMode=0)
     c.restoreState()
 

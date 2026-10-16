@@ -19,7 +19,8 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-import lapas_core as K  # noqa: E402
+import lapas_core as K
+import kreives as KR  # noqa: E402
 import koju_uzdengimas as KU  # noqa: E402
 from lapas_core import T, line, rect, poly, circle, hdim, vchain, hchain, view_title, MM  # noqa: E402
 from reportlab.lib.colors import HexColor, white  # noqa: E402
@@ -216,10 +217,13 @@ def draw_geom(geo, X, Y, fill=None, stroke=None, lw=0.1, dash=None):
         if pg.is_empty or not hasattr(pg, "exterior"):
             continue
         for ring in [pg.exterior] + list(pg.interiors):
-            pts = [(X(x), K.H - Y(y)) for x, y in ring.coords]
-            p.moveTo(*pts[0])
-            for q in pts[1:]:
-                p.lineTo(*q)
+            for s_ in KR.ring_to_sub(list(ring.coords), True):       # v312: lankai (Bezier), ne laužtė
+                if s_[0] == "M":
+                    p.moveTo(X(s_[1][0]), K.H - Y(s_[1][1]))
+                elif s_[0] == "L":
+                    p.lineTo(X(s_[1][0]), K.H - Y(s_[1][1]))
+                else:
+                    p.curveTo(X(s_[1][0]), K.H - Y(s_[1][1]), X(s_[2][0]), K.H - Y(s_[2][1]), X(s_[3][0]), K.H - Y(s_[3][1]))
             p.close()
     c.drawPath(p, stroke=1, fill=1 if fill is not None else 0, fillMode=0)
     c.restoreState()
@@ -933,7 +937,7 @@ def write_dxf(g, path):
                         msp.add_lwpolyline(pts, close=True, dxfattribs={"layer": "PLEXI_INSERT"})
                 txt(f"INSERT {side} {g['ins_t']:g} mm plexi - GLUED to base", cx, oy - 30)
                 cx += (lx1 - lx0) + gap
-    doc.saveas(path)
+    KR.saveas(doc, path)   # v312: kreivės lankais
     return path
 
 
@@ -943,6 +947,8 @@ COL_NUT = HexColor("#9C9C9C")
 
 def _slab(sc, geo, w0, w1, col, xf, edge=None):
     """shapely (u, v) kūnas w0..w1, abi plokštumos (r3d atmeta nugarines - plonoms detalėms reikia abiejų)"""
+    import r3d as _r3d
+    geo = _r3d.view_simplify(geo)                  # v312
     sc.extrude_xy(geo, w0, w1, col, col, edge=edge, xf=xf)
     for gg in getattr(geo, "geoms", [geo]):
         if gg.is_empty:

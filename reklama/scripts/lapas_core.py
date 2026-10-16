@@ -407,11 +407,8 @@ def poly(pts, fill=None, stroke=black, lw=0.5, close=True, dash=None):
         c.setStrokeColor(stroke); c.setLineWidth(_lw(lw))
     if dash:
         c.setDash(*dash)
-    p = c.beginPath(); p.moveTo(pts[0][0], Y(pts[0][1]))
-    for q in pts[1:]:
-        p.lineTo(q[0], Y(q[1]))
-    if close:
-        p.close()
+    p = c.beginPath()
+    ring_path(p, [(q[0], Y(q[1])) for q in pts], close)              # v312: lankai, ne laužtė
     c.drawPath(p, stroke=stroke is not None, fill=fill is not None)
     c.restoreState()
 
@@ -816,8 +813,10 @@ def flatten(sp, n=10):
 
 
 def path_of(sub, tf):
+    import kreives as _KR
     p = c.beginPath()
     for sp in sub:
+        sp = _KR.smooth_sub(sp)                 # v312: lygios laužtės (shapely geometrija) - lankais (Bezier), ne kampuotai
         for s_ in sp:
             if s_[0] == "M":
                 p.moveTo(*tf(*s_[1]))
@@ -871,8 +870,9 @@ def drawing_to_subpaths(d, tomm):
 def split_letters(subs):
     """vienas kelias gali turėti kelias raides: išoriniai kontūrai + jų skylės"""
     polys = []
+    import kreives as _KR
     for sp in subs:
-        f = flatten(sp, 8)
+        f = _KR.flat_sub(sp, 0.05)              # v312: adaptyvus Bezier skaidymas (buvo 8 atkarpos kreivei)
         if len(f) >= 3:
             polys.append((Polygon(f).buffer(0), sp, f))
     polys.sort(key=lambda t: -t[0].area)
@@ -894,14 +894,16 @@ def split_letters(subs):
 
 
 def shape_geom(sub):
-    ps = [Polygon(flatten(sp)).buffer(0) for sp in sub if len(flatten(sp)) >= 3]
+    import kreives as _KR                       # v312: Bezier - adaptyviai (sagitta <= 0,01 mm), ne 10 atkarpų kreivei
+    ps = [Polygon(f_).buffer(0) for f_ in (_KR.flat_sub(sp) for sp in sub) if len(f_) >= 3]
     return reduce(lambda a, b: a.symmetric_difference(b), ps) if ps else Polygon()
 
 
 def perim(sub):
     L = 0
+    import kreives as _KR
     for sp in sub:
-        f = flatten(sp, 16)
+        f = _KR.flat_sub(sp, 0.02)
         L += sum(math.dist(a, b) for a, b in zip(f, f[1:] + f[:1]))
     return L
 
@@ -1567,10 +1569,9 @@ class View3D:
         c.setFillColor(fill); c.setStrokeColor(stroke or fill); c.setLineWidth(HAIR)      # v63: 3D - hairline
         if alpha is not None:
             c.setFillAlpha(alpha)
-        p = c.beginPath(); p.moveTo(*self.S(*pts3[0]))
-        for q in pts3[1:]:
-            p.lineTo(*self.S(*q))
-        p.close(); c.drawPath(p, stroke=1 if (stroke is not None or alpha is None) else 0, fill=1)
+        p = c.beginPath()
+        ring_path(p, [self.S(*q) for q in pts3])                     # v312: lankai, ne laužtė
+        c.drawPath(p, stroke=1 if (stroke is not None or alpha is None) else 0, fill=1)
         c.restoreState()
 
     def wall(self, x0, y0, x1, y1, z, shadow_geoms=(), dz=60):
@@ -1592,6 +1593,9 @@ class View3D:
 
     def solid(self, geom, z0, z1, side, face, face_stroke=HexColor("#9A9A9A")):
         """geom - shapely (y aukštyn); šonai pagal šviesą, priekis z1"""
+        _a, _b = self.S(0, 0, 0), self.S(1, 0, 0)                    # v312: supaprastinti iki ~0,25 pt lape
+        _ppm = max(math.hypot(_b[0] - _a[0], _b[1] - _a[1]), 1e-6)
+        geom = geom.simplify(0.25 / _ppm, preserve_topology=True)
         for g in getattr(geom, "geoms", [geom]):
             g = orient(g, 1.0)
             quads = []
@@ -1615,11 +1619,7 @@ class View3D:
                 c.setStrokeColor(face_stroke)
             p = c.beginPath()
             for ring in [g.exterior] + list(g.interiors):
-                pts = list(ring.coords)
-                p.moveTo(*self.S(pts[0][0], pts[0][1], z1))
-                for q in pts[1:]:
-                    p.lineTo(*self.S(q[0], q[1], z1))
-                p.close()
+                ring_path(p, [self.S(q[0], q[1], z1) for q in ring.coords])   # v312: lankai
             c.drawPath(p, stroke=1 if face_stroke is not None else 0, fill=1, fillMode=0)
             c.restoreState()
 
@@ -2139,3 +2139,51 @@ def side_label_3d(V, face_pt, obj_pts, txt, size=8, gap=10, ymax=None):
     line(fx, fy + 1.5, fx, ty - size * 0.9, 0.25, GREY)
     c.saveState(); c.setFillColor(GREY); c.circle(fx, Y(fy + 1.5), 0.9, stroke=0, fill=1); c.restoreState()
     T(fx, ty + size * 0.35, txt, size, font="FB", align="c", color=GREY)
+
+
+def geom_subs(geo):
+    """v312: shapely (Multi)Polygon -> subpath'ai (M / L / C), lygios dalys lankais - PDF braižymui"""
+    import kreives as _KR
+    out = []
+    for pg in getattr(geo, "geoms", [geo]):
+        if pg.is_empty or not hasattr(pg, "exterior"):
+            continue
+        for ring in [pg.exterior] + list(pg.interiors):
+            sp = _KR.ring_to_sub(list(ring.coords), True)
+            if sp:
+                out.append(sp)
+    return out
+
+
+def fitz_subs(sh, subs, P):
+    """v312: subpath'ai (mm) -> PyMuPDF Shape (tiesės + Bezier); P(q) -> fitz.Point"""
+    for sp in subs:
+        cur = start = None
+        for s_ in sp:
+            if s_[0] == "M":
+                cur = start = P(s_[1])
+            elif s_[0] == "L":
+                q = P(s_[1]); sh.draw_line(cur, q); cur = q
+            else:
+                q = P(s_[3]); sh.draw_bezier(cur, P(s_[1]), P(s_[2]), q); cur = q
+        if cur is not None and start is not None and abs(cur.x - start.x) + abs(cur.y - start.y) > 1e-3:
+            sh.draw_line(cur, start)
+
+
+def ring_path(p, pts, close=True):
+    """v312: taškai (jau drobės koord.) -> reportlab kelias: lygios dalys lankais (Bezier), kampai lieka; >= 6 taškai"""
+    import kreives as _KR
+    if len(pts) < 6:
+        p.moveTo(*pts[0])
+        for q in pts[1:]:
+            p.lineTo(*q)
+    else:
+        for s_ in _KR.ring_to_sub(pts, close):
+            if s_[0] == "M":
+                p.moveTo(*s_[1])
+            elif s_[0] == "L":
+                p.lineTo(*s_[1])
+            else:
+                p.curveTo(*s_[1], *s_[2], *s_[3])
+    if close:
+        p.close()

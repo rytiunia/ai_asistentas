@@ -617,6 +617,7 @@ for g in bad_parts:
 
 # DXF (mm: 1 pt = 0.3528 mm), y aukštyn
 import ezdxf
+import kreives as KR  # noqa: E402  v312: kreivės lankais
 doc = ezdxf.new("R2010"); doc.units = ezdxf.units.MM
 msp = doc.modelspace()
 doc.layers.add("CENTERLINE", color=1); doc.layers.add("OUTLINE", color=7); doc.layers.add("GROOVE_8MM", color=3); doc.layers.add("PROBLEM", color=6)
@@ -632,7 +633,7 @@ for g in bad_parts:
 for L in lines:
     msp.add_spline([((x - x0) * MMk, (y1 - y) * MMk) for x, y in L], dxfattribs={"layer": "CENTERLINE"}) if len(L) > 3 else \
         msp.add_lwpolyline([((x - x0) * MMk, (y1 - y) * MMk) for x, y in L], dxfattribs={"layer": "CENTERLINE"})
-doc.saveas(OUT + ".dxf")
+KR.saveas(doc, OUT + ".dxf")   # v312: kreivės lankais
 
 # PDF: originalas + raudona centerline (vektoriai)
 out = fitz.open()

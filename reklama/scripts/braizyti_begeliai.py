@@ -16,6 +16,7 @@ from shapely.ops import unary_union
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import lapas_core as K
+import kreives as KR  # noqa: E402  v312: kreivės lankais
 import auseles as AUS
 import p6_vaizdas as PV
 import medziagos as MEDZ                     # v73: tiekėjų formatai, 6 m strypų taisyklė
@@ -4159,7 +4160,7 @@ def draw_acrylic_sheet():
     md_ = [("Material", f"clear acrylic {ACRY['thk']:g} mm"), ("Sheet", f"{ACRY['sheet'][0]:g} x {ACRY['sheet'][1]:g} mm"),
            ("Rails", f"{RAIL_W:g} mm wide, " + (f"{len(rp)} parts" if len(rp) > 1 else "1 part")), ("Verticals", f"{len(vp)} pcs., separate" if vp else "-"),
            ("Joints", f"puzzle, clearance {ACRY['joint_clear']:g} mm" if (AG["cuts"] or AG["vparts"]) else "none (1 part)"), ("Groove", f"{GW.get('w', '?')} x {GW.get('d', '?')} mm (back)"),
-           ("Holes", f"{len(AG['holes'])} x Ø{ACRY['hole_d']:g}; studs {len(AG['studs'])} x Ø{ACRY['stud']['d']:g}/{ACRY['stud']['cb_d']:g}"),
+           ("Holes", f"{len(AG['holes'])} x Ø{ACRY['hole_d']:g} mm, studs {len(AG['studs'])} x Ø{ACRY['stud']['d']:g} mm"),
            ("Quantity", f"{spec.get('qty', '?')} signs")]
     K.main_data(X_MD, BY0, W_MD, BH, md_, lab_w=58)
     sp2 = dict(spec, sheet=SHEET2, title=f"{spec.get('drawing_no', '')} Acrylic frame - parts & joints")
@@ -4243,7 +4244,7 @@ def export_1to1(path):
         sh.finish(width=HW, color=C_LET, fill=None, closePath=False, oc=L_LET); sh.commit()
     # 2 - dugnas: raidės kontūras 3 mm į vidų (smulkiai išlygintos kreivės)
     for o in uniq:
-        ps = [Polygon(K.flatten(sp, 32)).buffer(0) for sp in o["sub"] if len(K.flatten(sp, 32)) >= 3]
+        ps = [Polygon(f_).buffer(0) for f_ in (KR.flat_sub(sp) for sp in o["sub"]) if len(f_) >= 3]   # v312: adaptyviai
         if not ps:
             continue
         geo = ps[0]
@@ -4255,18 +4256,14 @@ def export_1to1(path):
         if bk.is_empty:
             continue
         sh = pg.new_shape()
-        for poly_ in getattr(bk, "geoms", [bk]):
-            for ring in [poly_.exterior] + list(poly_.interiors):
-                sh.draw_polyline([P(c_) for c_ in ring.coords])
+        K.fitz_subs(sh, K.geom_subs(bk), P)                    # v312: lankai (Bezier), ne laužtė
         sh.finish(width=HW, color=C_BACK, fill=None, closePath=True, oc=L_BACK); sh.commit()
     # 3 - rėmas
     sh = pg.new_shape()
     if ACR_GEO:                                         # v229: akrilinio rėmo dalys su puzzle, Ø8, griovelio ašys
         for AG in ACR_GEO.values():
             for P_ in AG["parts"] + AG["vparts"]:
-                for gg in getattr(P_, "geoms", [P_]):
-                    for ring in [gg.exterior] + list(gg.interiors):
-                        sh.draw_polyline([P(c_) for c_ in ring.coords])
+                K.fitz_subs(sh, K.geom_subs(P_), P)              # v312: puzzle galvutės - lankai
             for hx_, hy_ in AG["holes"]:
                 sh.draw_circle(P((hx_, hy_)), ACRY["hole_d"] / 2 * k)
             for a_, b_ in AG["grooves"]:
@@ -4342,5 +4339,5 @@ if ACR_GEO:                                             # v229: akrilinio rėmo 
                     f"{_GD.get('w', '?')} wide x {_GD.get('d', '?')} deep; view FROM FRONT", dxfattribs={"layer": "TEXT", "height": 12}).set_placement((0, _oy - 40))
         _oy -= (AG["F"].bounds[3] - AG["F"].bounds[1]) + 200
     _dp = os.path.splitext(OUT)[0].replace("_tech", "") + "_akrilinis_remas.dxf"
-    _doc.saveas(_dp)
+    KR.saveas(_doc, _dp)   # v312: kreivės lankais
     print("OK akrilinis rėmas DXF", _dp)

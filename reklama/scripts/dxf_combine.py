@@ -9,6 +9,7 @@ import argparse, glob, os, sys, ezdxf
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from ezdxf import bbox
 from ezdxf.math import Matrix44
+import kreives as KR  # noqa: E402  v312: kreivės lankais
 
 ap = argparse.ArgumentParser()
 ap.add_argument("out_dir"); ap.add_argument("prefix")
@@ -45,7 +46,7 @@ for P in panels:
     x = xmax + 2 * A.gap
     for f in vin:
         w, h = put(doc, f, "VINYL_" + f.rsplit("_vinyl_", 1)[1][:-4].split("_", 1)[1].upper(), x, 0); x += w + A.gap
-    fn = f"{A.out_dir}/{A.prefix}_{P}_combined.dxf"; doc.saveas(fn)
+    fn = f"{A.out_dir}/{A.prefix}_{P}_combined.dxf"; KR.saveas(doc, fn)   # v312: kreivės lankais
     n_src = sum(len(ezdxf.readfile(f).modelspace()) for f in flats + vin)
     n = len(ezdxf.readfile(fn).modelspace())
     assert n == n_src, f"{fn}: objektų {n} != šaltinių {n_src}"

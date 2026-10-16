@@ -21,6 +21,7 @@ import numpy as np
 from shapely.geometry import LineString, Polygon, Point
 from shapely.ops import unary_union
 from skimage.morphology import skeletonize
+import kreives as KR  # noqa: E402  v312: kreivės lankais
 
 ARG = lambda k, d: float(next((x.split("=")[1] for x in sys.argv if x.startswith(f"--{k}=")), d))
 
@@ -224,7 +225,7 @@ def main():
         ms.add_lwpolyline(list(b.exterior.coords), close=True, dxfattribs={"layer": "PROBLEM"})
     for a in lines:
         ms.add_lwpolyline([tuple(p) for p in a], dxfattribs={"layer": "CENTERLINE"})
-    doc.saveas(outp + ".dxf")
+    KR.saveas(doc, outp + ".dxf")   # v312: kreivės lankais
     print(f"OK {outp}.dxf: linijų {len(lines)}, juostos ilgis {sum(LineString(a).length for a in lines) / 1000:.2f} m, "
           f"probleminių zonų {len(bad)}")
 
