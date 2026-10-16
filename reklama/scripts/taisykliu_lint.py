@@ -29,6 +29,9 @@ RULES = [
     # v313 (Rytis 2026-10-16: „išsaugok kaip taisyklę, kuri turi veikti visada" - kreivės lankais, suvestinė E3b)
     ("DXF BE LANKŲ", re.compile(r"(?<!KR)\.saveas\((?![^#\n]*lint-ok)"), False,
      "DXF išsaugomas tiesiai - laužtės lieka laužtėmis; tik KR.saveas(doc, kelias) (scripts/kreives.py: tiesės + lankai)"),
+    # v317 (Rytis 2026-10-16: „kur dingo taisyklė raides tvirtinti pagal kvadrato ir trikampio principą?")
+    ("TVIRTINIMAS NE PAGAL FORMĄ", re.compile(r"[\"']--press-fill[\"']"), True,
+     "P6 D3.2 - formos principas (kvadratas 4, trikampis 3; p6_dxf numatyta), ne prispaudimo R (--press-fill tik paprašius)"),
     ("BALTAS DANGTIS", re.compile(r"draw_rect\([^#\n]*fill\s*=\s*\(1,\s*1,\s*1\)[^#\n]*\)"), True,
      "senas turinys uždengiamas baltu (lieka faile) - ištrinti redakcija (add_redact_annot + apply_redactions)"),
 ]

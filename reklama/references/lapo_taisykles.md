@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v316 (2026-10-16)
+Atnaujinta: v317 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -124,6 +124,14 @@ SUVESTINĖ PASENUSI.
 
 ## D2. Konstrukcija - rėmas (v297)
 
+- RAIDŽIŲ TVIRTINIMAS - KVADRATO / TRIKAMPIO PRINCIPAS (v245, VISIEMS rėmams nuo v317; Rytis 2026-10-16: „kur dingo
+  taisyklė raides tvirtinti pagal kvadrato ir trikampio principą?"): D3.2 / smeigių kiekis pagal raidės FORMĄ -
+  supaprastinto gaubto kampai (kvadratas / stačiakampis 4: B n d a s m; trikampis 3: A y P V), 2..6, platiems + 1 kas
+  500 mm, maža (< 200 mm) - iki 3. Taškai - štrichų, kertančių bėgelio ašį, CENTRE (centerline; išilginiame štriche -
+  galuose), parenkami kuo toliau vienas nuo kito; tame pačiame bėgelyje du taškai arčiau nei 0,3 raidės pločio (A viršūnė)
+  ar taškas tarp dviejų jau parinktų (P viršus) - nededamas. Kiekviena raidė >= 2. `p6_dxf.py` numatyta (senas
+  prispaudimo R būdas - tik `--press-fill`, lint TVIRTINIMAS NE PAGAL FORMĄ); akrilo rėmas - `braizyti_begeliai._acr_studs`.
+  Bandymas: `scripts/projektai/bandymas_3500/` (Bandymas L 3500, P6 ant U 30x30x2: B n d a s m - 4, y - 3).
 - KIEKVIENA raidės / elemento dalis (atskiras kontūras: E brūkšnelis, taškas, akcentas, kablelis) privalo liesti rėmą.
   Dalis be rėmo: `braizyti_begeliai` automatiškai deda statmenį per jos vidurį tarp artimiausių bėgelių. Jei bėgelis yra
   tik iš vienos pusės, statmuo daromas T forma (v193).

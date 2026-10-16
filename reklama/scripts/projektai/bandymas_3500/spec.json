@@ -1,0 +1,170 @@
+{
+ "scale": 1.4077823010617094,
+ "ignore_fills": [],
+ "qty": "1",
+ "order_no": "ALT0000_00.00_RS",
+ "rev": "A",
+ "date": "2026-10-16",
+ "company": "TEST",
+ "ears": {
+  "inset": 50,
+  "pitch": 1000,
+  "min_edge": 15
+ },
+ "client_pdf": "Bandymas_client.pdf",
+ "crop_pt": [
+  0,
+  0,
+  7049.44,
+  1474.2
+ ],
+ "client": "TEST",
+ "title": "TEST Bandymas - P6 on rails U 30x30x2",
+ "file_code": "TEST_Bandymas_3500",
+ "depth_mm": 80,
+ "front": "8mm",
+ "rail": {
+  "size": "30x30x2",
+  "depth": 30,
+  "ral": "9016",
+  "type": "u"
+ },
+ "cable_exits": [
+  {
+   "pt": [
+    2,
+    1470
+   ],
+   "voltage": "12V",
+   "label": "3 m"
+  }
+ ],
+ "groups": [
+  {
+   "name": "TEXT",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "9016",
+   "face_hex": "#FFFFFF",
+   "client_fill": [
+    0.102,
+    0.101,
+    0.095
+   ],
+   "frame": "verticals"
+  }
+ ],
+ "bom": [
+  [
+   1,
+   "Letter face",
+   "Plexi 8 mm white",
+   "white",
+   "{PER_6} m / {A_6} m²"
+  ],
+  [
+   2,
+   "Letter return",
+   "Alu 1 mm",
+   "RAL 9016",
+   "{PER_6} m / {RET_6} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "Alu 1.5 mm",
+   "-",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   4,
+   "LED modules",
+   "",
+   "",
+   "?"
+  ],
+  [
+   5,
+   "Rail U {RAIL_SIZE} with ears, one frame",
+   "Aluminium",
+   "RAL 9016",
+   "{RAIL_TOTAL_M} m ({RAIL_BARS} x {BAR_M} m bars)"
+  ],
+  [
+   6,
+   "Mounting ear {RAIL_SIZE}, Ø{EAR_HOLE} hole",
+   "Aluminium",
+   "RAL 9016",
+   "{PLATES_N} pcs. ({PLATES_EXT} extended)"
+  ],
+  [
+   7,
+   "Cable exit from rail end, 12V",
+   "cable ? m",
+   "-",
+   "1 pcs."
+  ],
+  [
+   8,
+   "PSU 12V",
+   "",
+   "",
+   "?"
+  ],
+  [
+   9,
+   "Wall fixing",
+   "?",
+   "-",
+   "?"
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "?"
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profile",
+   "P6 on rails, one frame"
+  ],
+  [
+   "Letter depth",
+   "80"
+  ],
+  [
+   "Face",
+   "P6_8mm white plexi"
+  ],
+  [
+   "Returns",
+   "RAL 9016"
+  ],
+  [
+   "Rails",
+   "U 30x30x2, RAL 9016"
+  ],
+  [
+   "Illumination",
+   "LED, ?"
+  ],
+  [
+   "Power",
+   "12V, cable ? m"
+  ],
+  [
+   "Wall",
+   "?"
+  ]
+ ],
+ "wall": "unknown",
+ "merge_rows": false,
+ "trafo_box": false,
+ "auto_frame": true,
+ "rails_json": "rails.json",
+ "export_1to1": true
+}

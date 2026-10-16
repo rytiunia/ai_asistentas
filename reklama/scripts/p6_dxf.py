@@ -67,6 +67,8 @@ g_.add_argument("--scale", type=float, default=None, help="brėžinio mastelis (
 g_.add_argument("--ref-mm", type=float, default=None, help="raidžių grupės bendras plotis mm")
 ap.add_argument("--names", default="", help="raidžių vardai iš kairės, pvz. TESTAS (failų pavadinimams)")
 ap.add_argument("--prefix", default=None, help="failų prefiksas (numatyta - PDF vardas)")
+ap.add_argument("--press-fill", action="store_true", help="v317: senas režimas - skylės pagal prispaudimo R (tolygiai per zoną + "
+                "neprispaustos dalys); numatyta - FORMOS principas (kvadratas 4, trikampis 3)")
 ap.add_argument("--stems", action="store_true", help="v195: senas režimas - skylė traukiama į kojelę (a / d / m); numatyta - tolygiai per zoną")
 ap.add_argument("--rail", type=float, default=30, help="bėgelio profilio plotis mm (U30 / U40)")
 ap.add_argument("--p1", action="store_true", help="v116: P1 NON-LIT - dugnas (inside kontūras) -0,7 mm, be drenažo, be D11 (LED nėra)")
@@ -533,6 +535,59 @@ def holes_valid(o, holes):
     return True
 
 
+# v317 (Rytis 2026-10-16: „kur dingo taisyklė raides tvirtinti pagal kvadrato ir trikampio principą? dabar vėl tvirtinimas
+#  neatitinka"; taisyklė v245, buvo įdiegta TIK akrilo rėmui): P6 ant bėgelių - D3.2 skaičius pagal RAIDĖS FORMĄ:
+#  supaprastinto gaubto kampai (kvadratas / stačiakampis 4, trikampis 3 ... 2..6, platiems + 1 kas 500 mm, maža < 200 mm
+#  - iki 3), taškai - štrichų, kertančių bėgelio ašį, CENTRE (centerline; išilginiame štriche - galuose), parenkami kuo
+#  toliau vienas nuo kito (nuo toliausio nuo centro - FPS), todėl taškai sudaro kvadratą / trikampį, o ne grandinę.
+def shape_n(o):
+    g, (x0, y0, x1, y1) = o["geom"], o["bb"]
+    hull = g.convex_hull.simplify(0.16 * max(x1 - x0, y1 - y0))   # 0,16: a / s apvalumai - ne papildomi kampai
+    nh = len(hull.exterior.coords) - 1 if hasattr(hull, "exterior") else 2
+    n_t = max(min(max(nh, 2), 6), 2 + int((x1 - x0) // 500))
+    if max(x1 - x0, y1 - y0) < 200:
+        n_t = min(n_t, 3)
+    return n_t
+
+
+def shape_holes(o, zones):
+    """zonos (holes_on_rail) -> D3.2 pagal formą: kandidatai štrichų centruose, FPS iki shape_n"""
+    thr = max(40.0, 2.2 * (A.hole_edge + 1.6) + 30)
+    cands = []
+    for z in zones:
+        a, b, cy = z["a"], z["b"], z["cy"]
+        if b - a < thr:
+            xs = [(a + b) / 2]
+        else:                                             # išilginis štrichas - galuose (+ kas ~400)
+            n_ = int((b - a) // 400)
+            xs = [a, b] + [a + (b - a) * k / (n_ + 1) for k in range(1, n_ + 1)]
+        for x in snap_all(xs, z["segs"]):
+            if all(abs(x - q[0]) >= A.min_gap or abs(cy - q[1]) > 1 for q in cands):
+                cands.append((round(x, 2), round(cy, 2)))
+    n_t = shape_n(o)
+    if len(cands) <= 2:
+        return cands, n_t
+    cx, cy = o["geom"].centroid.x, o["geom"].centroid.y
+    sel = [max(cands, key=lambda q: (q[0] - cx) ** 2 + (q[1] - cy) ** 2)]
+    w_ = o["bb"][2] - o["bb"][0]
+    dmin = max(20, 0.25 * min(w_, o["bb"][3] - o["bb"][1]))
+
+    def ok(q):
+        same = [s_ for s_ in sel if abs(s_[1] - q[1]) < 1]          # tas pats bėgelis
+        if any(abs(s_[0] - q[0]) < max(dmin, 0.3 * w_) for s_ in same):
+            return False                                            # A viršūnė: du kojų taškai - vienas (trikampis)
+        lo = [s_[0] for s_ in same if s_[0] < q[0]]; hi = [s_[0] for s_ in same if s_[0] > q[0]]
+        if lo and hi and min(hi) - max(lo) < 1000:
+            return False                                            # tarp dviejų to bėgelio taškų - nestabilina (P - trikampis)
+        return min((q[0] - s_[0]) ** 2 + (q[1] - s_[1]) ** 2 for s_ in sel) >= dmin ** 2
+    while len(sel) < min(n_t, len(cands)):
+        rest = [q for q in cands if q not in sel and ok(q)]
+        if not rest:
+            break
+        sel.append(max(rest, key=lambda q: min((q[0] - s_[0]) ** 2 + (q[1] - s_[1]) ** 2 for s_ in sel)))
+    return sel, n_t
+
+
 for o in letters:
     back = K.dugnas_inset(o["geom"], A.inset, A.blunt_len)   # v108: smailios įpjovos nukertamos (2 taškai)
     o["back"] = back
@@ -600,8 +655,14 @@ for o in letters:
             done.append(o)
             warn.append(f"{o['id']}: akcentas - {len(o['holes'])} skylės ant vertikalaus laikiklio ašies x{o['vrail']['cx']:.0f}")
             continue
-    ensure_min(segs_all, 4)                      # raidei >= 4: ilgiausi vienos skylės ruožai -> skylės galuose
-    o["holes"] = seg_holes(segs_all)
+    if A.press_fill:
+        ensure_min(segs_all, 4)                  # raidei >= 4: ilgiausi vienos skylės ruožai -> skylės galuose
+        o["holes"] = seg_holes(segs_all); o["n_shape"] = 4
+    else:                                        # v317: formos principas (kvadratas 4, trikampis 3)
+        o["holes"], o["n_shape"] = shape_holes(o, segs_all)
+        if len(o["holes"]) < 2:                  # >= 2 (v244) - atsarginis: senas tolygus būdas
+            ensure_min(segs_all, 2)
+            o["holes"] = seg_holes(segs_all)
     o["zones"] = segs_all
     # v194 (Rytis 2026-10-13, „Alytus," kablelis): raidė / elementas, per kurį eina LAIKIKLIS (acc statmuo nuo bėgelio), - skylės
     #  IR ant laikiklio ašies (tolimame gale ir, jei ilgas, viduryje), kad elementas nelaikytų tik ant 2 taškų bėgelyje
@@ -626,8 +687,8 @@ for o in letters:
         warn.append(f"{o['id']}: + {len(add)} skylės ant laikiklio ašies x{v_['cx']:.0f} (elementas ne tik ant bėgelio)")
     o["pressed"] = pressed_ratio(back, o["holes"])
     done.append(o)
-    if len(o["holes"]) < 4:
-        warn.append(f"{o['id']}: tik {len(o['holes'])} tvirtinimo skylės (< 4) - tikrinti / pridėti ranka")
+    if len(o["holes"]) < 2:                      # v317: >= 2 (v244); daugiau - kiek leidžia forma ir bėgelių kirtimai
+        warn.append(f"{o['id']}: tik {len(o['holes'])} tvirtinimo skylės (forma - {o.get('n_shape', 4)}) - tikrinti / pridėti ranka")
 
 # ------------------------------------------------------------------ D11 laido išvestis (Rytis 2026-10-09)
 # Viena skylė raidei, bėgelio ašyje (laidas pro dugną į U profilio vidų -> prie sienos), dugne >= d11_edge nuo krašto,
@@ -793,7 +854,8 @@ def d11_with_shift(o, r_, edge=None):
 # v69 (Rytis 2026-10-09, AAA „s"): raidės dugno dalis ant bėgelio, kurios neprispaudžia jokia skylė (už R nuo visų
 # to bėgelio skylių; pvz. „s" lanko galas prie bėgelio galo), VIS TIEK gauna tvirtinimo skylę. Ašyje vietos nėra - skylė
 # leidžiama U sienelėje iki --off-axis (8) nuo ašies, >= 7 mm nuo dugno krašto, >= 8 mm nuo bėgelio galo; perspėjimas.
-for o in letters:
+# v317: tik --press-fill režime (formos principas kiekį nustato pats - papildomos skylės kvadratą / trikampį gadintų)
+for o in (letters if A.press_fill else []):
     added = []
     for r_ in rails:
         band = o["back"].intersection(sbox(r_["x0"], r_["cy"] - A.rail / 2, r_["x1"], r_["cy"] + A.rail / 2))
