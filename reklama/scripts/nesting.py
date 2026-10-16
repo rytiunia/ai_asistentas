@@ -147,7 +147,8 @@ def _nest_rects(rects, material_text, parts_m2, label, qty=1):
                 m2 = ((n - 1) * L * S + min(min(L, lx + p) * S, min(S, ly + p) * L)) / 1e6 if n else 0.0
                 cand = {"m2": m2, "sheets": n, "format": (L0, S0), "supplier": f.get("tiekejas", "?"), "parts_m2": parts_m2,
                         "waste": (1 - parts_m2 / m2) if m2 else 0.0, "oversize": any(sh.get("oversize") for sh in sheets)}
-                if best is None or cand["m2"] < best["m2"] - 1e-9:
+                # v316: formatas, į kurį detalės TELPA, visada pirmesnis už mažesnį „sunaudojimą" su per didele detale
+                if best is None or (cand["oversize"], cand["m2"]) < (best["oversize"], best["m2"] - 1e-9):
                     best = cand
     best["qty"], best["m2_total"] = qty, best["m2"]
     best["m2"], best["parts_m2"] = best["m2_total"] / qty, parts_m2 / qty

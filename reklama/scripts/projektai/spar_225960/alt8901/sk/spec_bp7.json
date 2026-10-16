@@ -1,0 +1,52 @@
+{
+ "client_pdf": "Drawing_SPAR_order_225960_patvirtintas.pdf",
+ "client": "BrandFactory",
+ "order_no": "ALT8901_10.16_RS",
+ "drawing_no": "SPAR order 225960",
+ "date": "2026-10-16",
+ "rev": "A",
+ "depth": 40,
+ "t": 2,
+ "tb_inside": true,
+ "title": "SPAR order 225960",
+ "plate_ral": "9005",
+ "finish": "RAL 9005",
+ "finish_short": "RAL 9005",
+ "bg_fill": [
+  0.169,
+  0.169,
+  0.169
+ ],
+ "vinyl": [],
+ "panels": [
+  {
+   "name": "Back plate, box lid 40 mm, print",
+   "w": 2700,
+   "h": 2100,
+   "qty": 1,
+   "page": 6,
+   "rect": [
+    103.5,
+    136.0,
+    613.7,
+    532.8
+   ],
+   "joints_y": [
+    1400
+   ],
+   "sheet": "7 / 18",
+   "print": {
+    "image": "sk/print_bp7.png",
+    "rect_mm": [
+     0,
+     0,
+     2700,
+     2100
+    ],
+    "part": "Print Gel'UV + laminate, front + edges",
+    "material": "original file",
+    "md": "print, original file"
+   }
+  }
+ ]
+}

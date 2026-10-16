@@ -1,0 +1,375 @@
+{
+ "scale": 50,
+ "qty": "1 pcs.",
+ "order_no": "ALT8901_10.16_RS",
+ "rev": "A",
+ "date": "2026-10-16",
+ "client": "BrandFactory",
+ "title": "SPAR order 225960 - SPAR + logo, P6 on □ frame, 2 parts",
+ "drawing_no": "SPAR order 225960",
+ "file_code": "SPAR_225960_01_spar8000",
+ "sheet": "1 / 18",
+ "client_pdf": "/home/claude/ai_asistentas/reklama/scripts/projektai/spar_225960/alt8901/sk/client_s01_spar8000.pdf",
+ "crop_pt": [
+  30.0,
+  30.0,
+  805.8,
+  250.2
+ ],
+ "depth_mm": 80,
+ "front": "8mm",
+ "rail": {
+  "size": "40x40x2",
+  "depth": 40,
+  "ral": "7021",
+  "type": "square"
+ },
+ "groups": [
+  {
+   "name": "SPA",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "9016",
+   "face_hex": "#FFFFFF",
+   "client_fill": [
+    1,
+    1,
+    1
+   ],
+   "frame": "verticals",
+   "rails": [
+    {
+     "kind": "h",
+     "poly": [
+      [
+       129.10925971137203,
+       80.00480651855469
+      ],
+      [
+       4425.725229051378,
+       80.00480651855469
+      ],
+      [
+       4425.725229051378,
+       120.00128851996533
+      ],
+      [
+       129.10925971137203,
+       120.00128851996533
+      ]
+     ]
+    },
+    {
+     "kind": "h",
+     "poly": [
+      [
+       129.10925971137203,
+       877.8210957845054
+      ],
+      [
+       4425.725229051378,
+       877.8210957845054
+      ],
+      [
+       4425.725229051378,
+       917.8208075629341
+      ],
+      [
+       129.10925971137203,
+       917.8208075629341
+      ]
+     ]
+    }
+   ],
+   "cable": false,
+   "led": "White LED",
+   "ears_pt": {
+    "top": [
+     429.66,
+     506.26,
+     591.26,
+     599.86,
+     684.86,
+     727.26,
+     778.46
+    ],
+    "bottom": [
+     429.66,
+     506.26,
+     591.26,
+     599.86,
+     684.86,
+     727.26,
+     778.46
+    ]
+   }
+  },
+  {
+   "name": "R",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "9016",
+   "face_hex": "#FFFFFF",
+   "client_fill": [
+    0.85,
+    0.85,
+    0.85
+   ],
+   "frame": "verticals",
+   "rails": [
+    {
+     "kind": "h",
+     "poly": [
+      [
+       -145.44977823893169,
+       79.99942355685744
+      ],
+      [
+       3286.3142649332676,
+       79.99942355685744
+      ],
+      [
+       3286.3142649332676,
+       119.99913533528616
+      ],
+      [
+       -145.44977823893169,
+       119.99913533528616
+      ]
+     ]
+    },
+    {
+     "kind": "h",
+     "poly": [
+      [
+       -145.44977823893169,
+       877.8210957845049
+      ],
+      [
+       3286.319647894965,
+       877.8210957845049
+      ],
+      [
+       3286.319647894965,
+       917.8208075629336
+      ],
+      [
+       -145.44977823893169,
+       917.8208075629336
+      ]
+     ]
+    }
+   ],
+   "cable": {
+    "rail": "top",
+    "end": "last",
+    "out": "up"
+   },
+   "led": "White LED",
+   "ears_pt": {
+    "top": [
+     429.66,
+     506.26,
+     591.26,
+     599.86,
+     684.86,
+     727.26,
+     778.46
+    ],
+    "bottom": [
+     429.66,
+     506.26,
+     591.26,
+     599.86,
+     684.86,
+     727.26,
+     778.46
+    ]
+   }
+  },
+  {
+   "name": "LOGO",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "6029",
+   "face_hex": "#FFFFFF",
+   "client_fill": [
+    0,
+    0.66,
+    0.35
+   ],
+   "frame": "verticals",
+   "no_rails": true,
+   "lit": false
+  }
+ ],
+ "bom": [
+  [
+   1,
+   "Face letters SPAR",
+   "Plexi 8 mm white (opal)",
+   "white",
+   "{PER_SPA} + {PER_R} m"
+  ],
+  [
+   1,
+   "Face logo circle",
+   "Plexi 8 mm white + foil",
+   "ORACAL 8500 614",
+   "{PER_LOGO} m / {A_LOGO} m²"
+  ],
+  [
+   2,
+   "Return letters",
+   "Alu 1 mm",
+   "RAL 9016",
+   "{PER_SPA} + {PER_R} m"
+  ],
+  [
+   2,
+   "Return logo",
+   "Alu 1 mm",
+   "RAL 6029",
+   "{PER_LOGO} m / {RET_LOGO} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "Alu 1.5 mm",
+   "-",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   4,
+   "LED modules",
+   "",
+   "white",
+   "?"
+  ],
+  [
+   5,
+   "Frame, rectangular tube 40x40x2",
+   "Aluminium",
+   "RAL 7021",
+   "{RAIL_TOTAL_M} m"
+  ],
+  [
+   6,
+   "Mounting ear, welded, Ø{EAR_HOLE} hole",
+   "Alu 3 mm",
+   "RAL 7021",
+   "{PLATES_N} pcs. ({PLATES_EXT} extended)"
+  ],
+  [
+   7,
+   "Trafo box (PSU 12V)",
+   "",
+   "",
+   "1 pcs."
+  ],
+  [
+   8,
+   "Wall fixing",
+   "?",
+   "-",
+   "?"
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "1 pcs."
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profile",
+   "P6 on rectangular frame"
+  ],
+  [
+   "Letter depth",
+   "80"
+  ],
+  [
+   "Face",
+   "Opal 8 mm; logo foil 8500 614"
+  ],
+  [
+   "Returns",
+   "RAL 9016 / logo RAL 6029"
+  ],
+  [
+   "Frame",
+   "□40x40x2, ears, RAL 7021"
+  ],
+  [
+   "Illumination",
+   "LED white"
+  ],
+  [
+   "Power",
+   "12V at logo -> trafo box"
+  ],
+  [
+   "Wind qp",
+   "{WIND_QP} kN/m²"
+  ],
+  [
+   "Wall",
+   "?"
+  ],
+  [
+   "Perimeter",
+   "{PER_ALL} m"
+  ],
+  [
+   "Parts",
+   "2: SPA (4350) | R + logo (3650)"
+  ]
+ ],
+ "export_1to1": true,
+ "trafo_box": {
+  "voltage": "12V",
+  "mains": "220V",
+  "cable_len_m": 3.0
+ },
+ "ears": {
+  "hole_d": 8
+ },
+ "joints": [
+  {
+   "x_pt": 598.8,
+   "label": "FRAME JOINT"
+  }
+ ],
+ "page": 0,
+ "rail_fills": [
+  [
+   0.137,
+   0.157,
+   0.169
+  ]
+ ],
+ "client_frame": true,
+ "rails_json": "/home/claude/ai_asistentas/reklama/scripts/projektai/spar_225960/alt8901/sk/rails_bb_s01_spar8000.json",
+ "decals": [
+  {
+   "client_fill": [
+    0.2,
+    0.75,
+    0.45
+   ],
+   "hex": "#00A859",
+   "group": "LOGO"
+  }
+ ],
+ "ignore_fills": [
+  [
+   0.2,
+   0.75,
+   0.45
+  ]
+ ]
+}

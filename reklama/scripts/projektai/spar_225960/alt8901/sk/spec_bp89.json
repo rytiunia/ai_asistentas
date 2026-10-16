@@ -1,0 +1,89 @@
+{
+ "client_pdf": "Drawing_SPAR_order_225960_patvirtintas.pdf",
+ "client": "BrandFactory",
+ "order_no": "ALT8901_10.16_RS",
+ "drawing_no": "SPAR order 225960",
+ "date": "2026-10-16",
+ "rev": "A",
+ "depth": 40,
+ "t": 2,
+ "tb_inside": true,
+ "title": "SPAR order 225960",
+ "plate_ral": "3020",
+ "finish": "RAL 3020",
+ "finish_short": "RAL 3020",
+ "bg_fill": [
+  0.757,
+  0.071,
+  0.11
+ ],
+ "vinyl": [
+  {
+   "name": "white",
+   "code": "ORACAL 551 010 gloss",
+   "hex": "#FFFFFF",
+   "kind": "white",
+   "fills": [
+    [
+     0.996,
+     0.996,
+     0.996
+    ],
+    [
+     1,
+     1,
+     1
+    ]
+   ]
+  },
+  {
+   "name": "green",
+   "code": "ORACAL 8500 614",
+   "hex": "#00A859",
+   "kind": "color",
+   "fills": [
+    [
+     0.0,
+     0.53,
+     0.29
+    ]
+   ]
+  }
+ ],
+ "panels": [
+  {
+   "name": "Back plate, box lid 40 mm, SPAR logo",
+   "w": 2700,
+   "h": 2100,
+   "qty": 1,
+   "page": 7,
+   "rect": [
+    103.5,
+    129.7,
+    613.7,
+    526.6
+   ],
+   "joints_y": [
+    1400
+   ],
+   "sheet": "8 / 18"
+  },
+  {
+   "name": "Back plate, box lid 40 mm, SPAR logo",
+   "w": 2000,
+   "h": 2100,
+   "qty": 1,
+   "page": 8,
+   "rect": [
+    103.5,
+    119.0,
+    481.5,
+    515.8
+   ],
+   "joints_y": [
+    1400
+   ],
+   "sheet": "9 / 18"
+  }
+ ]
+}

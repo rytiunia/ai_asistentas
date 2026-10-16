@@ -1,0 +1,277 @@
+{
+ "scale": 15,
+ "qty": "1 pcs.",
+ "order_no": "ALT8901_10.16_RS",
+ "rev": "A",
+ "date": "2026-10-16",
+ "client": "BrandFactory",
+ "title": "SPAR order 225960 - SPAR letters + logo, P6 on rails",
+ "drawing_no": "SPAR order 225960",
+ "file_code": "SPAR_225960_04_spar3500",
+ "sheet": "4 / 18",
+ "client_pdf": "/home/claude/ai_asistentas/reklama/scripts/projektai/spar_225960/alt8901/sk/client_s04_spar3500.pdf",
+ "crop_pt": [
+  30.0,
+  30.0,
+  918.1,
+  278.8
+ ],
+ "depth_mm": 80,
+ "front": "8mm",
+ "rail": {
+  "size": "30x30x2",
+  "depth": 30,
+  "ral": "7021"
+ },
+ "groups": [
+  {
+   "name": "SPAR",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "9016",
+   "face_hex": "#FFFFFF",
+   "client_fill": [
+    1,
+    1,
+    1
+   ],
+   "frame": "horizontal",
+   "rails": [
+    {
+     "kind": "h",
+     "poly": [
+      [
+       71.34779294331861,
+       35.8889592488606
+      ],
+      [
+       3422.0565446217847,
+       35.8889592488606
+      ],
+      [
+       3422.0565446217847,
+       65.88906606038404
+      ],
+      [
+       71.34779294331861,
+       65.88906606038404
+      ]
+     ]
+    },
+    {
+     "kind": "h",
+     "poly": [
+      [
+       57.121674855550054,
+       377.88907877604163
+      ],
+      [
+       3417.730581283569,
+       377.88907877604163
+      ],
+      [
+       3417.730581283569,
+       407.88886260986317
+      ],
+      [
+       57.121674855550054,
+       407.88886260986317
+      ]
+     ]
+    }
+   ],
+   "cable": {
+    "rail": "top",
+    "end": "first",
+    "out": "left"
+   },
+   "led": "White LED",
+   "ears_pt": {
+    "top": [
+     330.82,
+     589.49,
+     863.49
+    ],
+    "bottom": [
+     330.82,
+     589.49,
+     863.49
+    ]
+   }
+  },
+  {
+   "name": "LOGO",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "6029",
+   "face_hex": "#FFFFFF",
+   "client_fill": [
+    0,
+    0.66,
+    0.35
+   ],
+   "frame": "verticals",
+   "no_rails": true,
+   "lit": false
+  }
+ ],
+ "bom": [
+  [
+   1,
+   "Face letters SPAR",
+   "Plexi 8 mm white (opal)",
+   "white",
+   "{PER_SPAR} m / {A_SPAR} m²"
+  ],
+  [
+   1,
+   "Face logo circle",
+   "Plexi 8 mm white + foil",
+   "ORACAL 8500 614",
+   "{PER_LOGO} m / {A_LOGO} m²"
+  ],
+  [
+   2,
+   "Return letters",
+   "Alu 1 mm",
+   "RAL 9016",
+   "{PER_SPAR} m / {RET_SPAR} m²"
+  ],
+  [
+   2,
+   "Return logo",
+   "Alu 1 mm",
+   "RAL 6029",
+   "{PER_LOGO} m / {RET_LOGO} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "Alu 1.5 mm",
+   "-",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   4,
+   "LED modules",
+   "",
+   "white",
+   "?"
+  ],
+  [
+   5,
+   "Rail U {RAIL_SIZE}",
+   "Aluminium",
+   "RAL 7021",
+   "{RAIL_TOTAL_M} m"
+  ],
+  [
+   6,
+   "Mounting ear {RAIL_SIZE}, Ø{EAR_HOLE} hole",
+   "Aluminium",
+   "RAL 7021",
+   "{PLATES_N} pcs. ({PLATES_EXT} extended)"
+  ],
+  [
+   7,
+   "Trafo box (PSU 12V)",
+   "",
+   "",
+   "1 pcs."
+  ],
+  [
+   8,
+   "Wall fixing",
+   "?",
+   "-",
+   "?"
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "1 pcs."
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profile",
+   "P6 on rails"
+  ],
+  [
+   "Letter depth",
+   "80"
+  ],
+  [
+   "Face",
+   "Opal 8 mm; logo foil 8500 614"
+  ],
+  [
+   "Returns",
+   "RAL 9016 / logo RAL 6029"
+  ],
+  [
+   "Frame",
+   "U 30x30x2, ears, RAL 7021"
+  ],
+  [
+   "Illumination",
+   "LED white"
+  ],
+  [
+   "Power",
+   "12V -> trafo box"
+  ],
+  [
+   "Wind qp",
+   "{WIND_QP} kN/m²"
+  ],
+  [
+   "Wall",
+   "?"
+  ],
+  [
+   "Perimeter",
+   "{PER_ALL} m"
+  ]
+ ],
+ "export_1to1": true,
+ "trafo_box": {
+  "voltage": "12V",
+  "mains": "220V",
+  "cable_len_m": 3.0
+ },
+ "ears": {
+  "smax": 1500
+ },
+ "page": 0,
+ "rail_fills": [
+  [
+   0.137,
+   0.157,
+   0.169
+  ]
+ ],
+ "client_frame": true,
+ "rails_json": "/home/claude/ai_asistentas/reklama/scripts/projektai/spar_225960/alt8901/sk/rails_bb_s04_spar3500.json",
+ "decals": [
+  {
+   "client_fill": [
+    0.2,
+    0.75,
+    0.45
+   ],
+   "hex": "#00A859",
+   "group": "LOGO"
+  }
+ ],
+ "ignore_fills": [
+  [
+   0.2,
+   0.75,
+   0.45
+  ]
+ ]
+}

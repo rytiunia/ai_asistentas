@@ -72,8 +72,22 @@ Pirmas bandymas: Joker 226001 (`scripts/projektai/joker_reinslettveien/`, „Pat
 - v302 (Rytis 2026-10-16): folded_vinyl išklotinė - viršus / apačia į vidų (W - 2t), šonai per visą aukštį; visi DXF - mm
   (`$INSUNITS` 4), `patikra_dxf.py` = 0 prieš siunčiant (buvo metrai -> Corel importavo 1:1000).
 
-## v308 - KELIŲ LAPŲ PATVIRTINTAS COREL PDF (SPAR 225960, ALT8901_10.16_RS, 2026-10-16)
-- Patvirtintas dokumentas Ryčio taisytas Corel'yje -> NEGENERUOTI iš naujo (prarastų patvirtintą turinį): pakeičiamas TIK
+## v316 - PATVIRTINTAS DOKUMENTAS = TIK DUOMENYS, VISKAS GENERUOJAMA DABARTINĖMIS TAISYKLĖMIS (SPAR 225960, 2026-10-16)
+Rytis: „blankas naudojamas senas. net jei įkeliamas dokumentas generuotas ankstesne data, visi pataisymai daromi jau pagal
+dabartines taisykles - buvo ne toks blankas, o dabar naudojamas naujas, jis ir pataisomas, buvo detalė daryta su *mm
+laisvumu, bet dabar taisyklės daro su **mm, tai ir naudoti pačią naujausią skill ir taisyklių redakciją."
+- Patvirtintas PDF (ir taisytas Corel'yje) - DUOMENŲ šaltinis: raidės / grafika (`svarus_lapas.py`), rėmas ir ausėlės
+  (`remas_is_lapo.py`), BOM / MAIN DATA / užrašai (`lenteles.py`, seni spec), kliento sprendimai (Ryčio Corel taisymai).
+- KIEKVIENAS lapas pergeneruojamas dabartiniu generatoriumi (braizyti_begeliai / folded_vinyl / braizyti_lapa /
+  lapas_core + layout_engine), dabartiniu blanku, ORDER NO. = ALT; `patikra_lapas.py` = 0 kiekvienam lapui ir rinkiniui,
+  `patikra_corel.py` = 0. Lapai -> vienas PDF per `K.merge_sheets` -> `pdf_fix_fonts` -> qpdf (alt8901/rinkinys.py).
+- DXF iš naujų lapų (alt8901/dxf_rinkinys.py: p6_dxf `--rails-json sk/rails_bb_<k>.json`, folded_vinyl + dxf_combine),
+  LED - led_km iš naujų raidžių; `patikra_dxf.py` = 0.
+- Ataskaita Ryčiui: SKIRTUMŲ SĄRAŠAS (blankas, ausėlių / jungčių žingsnis, m² nesting, masteliai, vienetai ...) + klausimai.
+- Žemiau esantis v308 / v310 būdas (keisti tik ORDER NO.) - ATŠAUKTAS gamybos paketui.
+
+## v308 - KELIŲ LAPŲ PATVIRTINTAS COREL PDF (SPAR 225960, ALT8901_10.16_RS, 2026-10-16) - ATŠAUKTA v316
+- (ATŠAUKTA v316) Patvirtintas dokumentas Ryčio taisytas Corel'yje -> NEGENERUOTI iš naujo (prarastų patvirtintą turinį): pakeičiamas TIK
   ORDER NO. (`scripts/projektai/spar_225960/alt8901/order_no.py`, v310: originalo šrifto glifų ID turinio sraute + qpdf;
   v308 redakcija + pymupdf insert_text sugadino failą Corel'iui - NENAUDOTI), patikra `patikra_corel.py` = 0,
   patikra: kiekvieno lapo žodžių aibė ir objektų kiekis = originalo.

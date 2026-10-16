@@ -1,0 +1,188 @@
+{
+ "scale": 15,
+ "qty": "1 pcs.",
+ "order_no": "ALT8901_10.16_RS",
+ "rev": "A",
+ "date": "2026-10-16",
+ "client": "BrandFactory",
+ "title": "SPAR order 225960 - OLE P. FJÆR, P6 on rails",
+ "drawing_no": "SPAR order 225960",
+ "file_code": "SPAR_225960_03_ole",
+ "sheet": "3 / 18",
+ "client_pdf": "/home/claude/ai_asistentas/reklama/scripts/projektai/spar_225960/alt8901/sk/client_s03_ole.pdf",
+ "crop_pt": [
+  30.0,
+  30.0,
+  1012.5,
+  264.8
+ ],
+ "depth_mm": 80,
+ "front": "8mm",
+ "rail": {
+  "size": "30x30x2",
+  "depth": 30,
+  "ral": "7021"
+ },
+ "groups": [
+  {
+   "name": "OLE",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "9016",
+   "face_hex": "#FFFFFF",
+   "client_fill": [
+    1,
+    1,
+    1
+   ],
+   "frame": "horizontal",
+   "cable": {
+    "rail": "top",
+    "end": "first",
+    "out": "left"
+   },
+   "led": "White LED",
+   "ears_pt": {
+    "top": [
+     187.81,
+     438.2,
+     688.59,
+     887.02
+    ],
+    "bottom": [
+     187.81,
+     438.2,
+     688.59,
+     945.6
+    ]
+   }
+  }
+ ],
+ "bom": [
+  [
+   1,
+   "Face letters",
+   "Plexi 8 mm white (opal)",
+   "white",
+   "{PER_OLE} m / {A_OLE} m²"
+  ],
+  [
+   2,
+   "Return letters",
+   "Alu 1 mm",
+   "RAL 9016",
+   "{PER_OLE} m / {RET_OLE} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "Alu 1.5 mm",
+   "-",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   4,
+   "LED modules",
+   "",
+   "white",
+   "?"
+  ],
+  [
+   5,
+   "Rail U {RAIL_SIZE}",
+   "Aluminium",
+   "RAL 7021",
+   "{RAIL_TOTAL_M} m"
+  ],
+  [
+   6,
+   "Mounting ear {RAIL_SIZE}, Ø{EAR_HOLE} hole",
+   "Aluminium",
+   "RAL 7021",
+   "{PLATES_N} pcs. ({PLATES_EXT} extended)"
+  ],
+  [
+   7,
+   "Trafo box (PSU 12V)",
+   "",
+   "",
+   "1 pcs."
+  ],
+  [
+   8,
+   "Wall fixing",
+   "?",
+   "-",
+   "?"
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "1 pcs."
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profile",
+   "P6 on rails"
+  ],
+  [
+   "Letter depth",
+   "80"
+  ],
+  [
+   "Face",
+   "Opal 8 mm"
+  ],
+  [
+   "Returns",
+   "RAL 9016"
+  ],
+  [
+   "Frame",
+   "U 30x30x2, ears, RAL 7021"
+  ],
+  [
+   "Illumination",
+   "LED white"
+  ],
+  [
+   "Power",
+   "12V -> trafo box"
+  ],
+  [
+   "Wind qp",
+   "{WIND_QP} kN/m²"
+  ],
+  [
+   "Wall",
+   "?"
+  ],
+  [
+   "Perimeter",
+   "{PER_ALL} m"
+  ]
+ ],
+ "export_1to1": true,
+ "trafo_box": {
+  "voltage": "12V",
+  "mains": "220V",
+  "cable_len_m": 3.0
+ },
+ "ears": {
+  "smax": 1450
+ },
+ "page": 0,
+ "rail_fills": [
+  [
+   0.137,
+   0.157,
+   0.169
+  ]
+ ],
+ "client_frame": true,
+ "rails_json": "/home/claude/ai_asistentas/reklama/scripts/projektai/spar_225960/alt8901/sk/rails_bb_s03_ole.json"
+}

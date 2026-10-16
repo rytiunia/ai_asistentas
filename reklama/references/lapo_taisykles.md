@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v315 (2026-10-16)
+Atnaujinta: v316 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -180,8 +180,17 @@ SUVESTINĖ PASENUSI.
 - Siunčiama TIK: maketo PDF (ORDER NO. = ALT), LED PDF (jei šviečia), VIENTISI DXF po vieną kiekvienam lapui / plokštei.
 - P6 / raidės: `p6_dxf.py --no-letters --rails-json`. Folded plate + lipdukai: `folded_vinyl.py` + `scripts/dxf_combine.py`
   (v299) - atskiri `_flat_` / `_vinyl_` failai NESIUNČIAMI.
-- Patvirtintas dokumentas taisytas Corel'yje (kelių lapų komplektas) - keičiamas TIK ORDER NO., nieko negeneruojama iš naujo;
-  DXF / LED - iš patvirtinto lapo FRONT VIEW (v308, SPAR 225960: `scripts/projektai/spar_225960/alt8901/`).
+- v316 (Rytis 2026-10-16, SPAR 225960: „blankas naudojamas senas. net jei įkeliamas dokumentas generuotas ankstesne data,
+  visi pataisymai daromi jau pagal dabartines taisykles ... naudoti pačią naujausią skill ir taisyklių redakciją"):
+  PATVIRTINTAS DOKUMENTAS - TIK DUOMENŲ ŠALTINIS (BOM, MAIN DATA, užrašai, matmenys, raidės, rėmas, ausėlės, grafika).
+  VISI lapai VISADA generuojami iš naujo DABARTINIAIS generatoriais, blanku (K.frame, v248 antraštė) ir taisyklėmis
+  (nesting m², vienetai, kablelis, bendras mastelis, hairline, ausėlių / jungčių žingsnis ...), net jei dokumentas senas
+  ar taisytas Corel'yje. ORDER NO. keitimas esamame PDF (v308 / v310 `order_no.py`) - NEBENAUDOJAMAS gamybos paketui.
+  DXF / LED - iš NAUJŲ lapų išvesties (`rails_bb` json, folded_vinyl išklotinės), ne iš patvirtinto lapo rėmo.
+  Ataskaitoje - skirtumų sąrašas (kas pasikeitė dėl naujesnių taisyklių) ir klausimai. Pavyzdys:
+  `scripts/projektai/spar_225960/alt8901/` (lapai.py, kiti_lapai.py, rinkinys.py, dxf_rinkinys.py, led_visi.py).
+- Seni generatoriai su savo blanku (pvz. `braizyti_lapa.py` - buvo 20 / 10 mm paraštės) taisomi PAČIAME generatoriuje
+  (v316: K.frame, K.centered pjūvis, nesting, bendras mastelis), ne projekto skripte.
 - Teksto keitimas ESAMAME PDF (ORDER NO. ir pan.) - TIK originalo šriftu: glifų ID iš jo ToUnicode, keičiami turinio srauto
   baitai, failas per qpdf (`alt8901/order_no.py`). pymupdf `insert_text` / TextWriter ir pymupdf `save` galutiniam failui
   NENAUDOTI - įterpia antrą Type0 šriftą, Corel „file corrupted" (v310, Rytis 2026-10-16).
@@ -255,6 +264,7 @@ failas apvalus, bet gaunasi kampuotas"; ta pati pastaba buvo v113, bet pataisa b
     „file corrupted" (`scripts/patikra_corel.py`, kviečiama iš patikra_lapas.py).
 23. KAMPUOTA KREIVĖ (v313): lape - kontūras iš trumpų tiesių ten, kur turi būti lankas; šalia lapo esantys to paties
     vardo DXF - laužtės be lankų (patikra_dxf). Lint: DXF BE LANKŲ.
+24. UŽ RĖMELIO (v316): užrašas (ne zonų žymė) išeina už vidinio rėmelio.
 
 Ko automatika NEtikrina (tikrinama akimis kiekvieną kartą):
 - ar vaizdai proporcingi ir subalansuoti;

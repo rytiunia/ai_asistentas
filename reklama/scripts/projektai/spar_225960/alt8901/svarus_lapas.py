@@ -43,8 +43,27 @@ def bbox(sp):
     return fitz.Rect(min(xs), min(ys), max(xs), max(ys))
 
 
+ARC_TOL_PT = 0.01     # v316 (v313 „kreivės lankais"): patvirtinto lapo laužtės (sena shapely geometrija) -> lankai, pt
+
+
 def draw(shape, sps):
+    import os as _os
+    sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "..", ".."))
+    import kreives as KR
     for sp in sps:
+        if len(sp) >= 5 and all(it[0] == "l" for it in sp):
+            pts = [(sp[0][1].x, sp[0][1].y)] + [(it[2].x, it[2].y) for it in sp]
+            closed = abs(pts[0][0] - pts[-1][0]) + abs(pts[0][1] - pts[-1][1]) < 0.01
+            sub = KR.ring_to_sub(pts, closed, ARC_TOL_PT)
+            cur = None
+            for s_ in sub:
+                if s_[0] == "M":
+                    cur = fitz.Point(*s_[1])
+                elif s_[0] == "L":
+                    shape.draw_line(cur, fitz.Point(*s_[1])); cur = fitz.Point(*s_[1])
+                else:
+                    shape.draw_bezier(cur, fitz.Point(*s_[1]), fitz.Point(*s_[2]), fitz.Point(*s_[3])); cur = fitz.Point(*s_[3])
+            continue
         for it in sp:
             if it[0] == "l":
                 shape.draw_line(it[1], it[2])
@@ -71,18 +90,36 @@ def main(pdf, cfg, key, out):
         r = d["rect"]
         if d["fill"] is None or not FR.contains(r) or any(e.contains(r) for e in EX):
             continue
+        if max(r.width, r.height) < C.get("min_pt", 0):              # v316: ausėlių skylės / žymekliai (< 20 mm) - ne raidės
+            continue
         if any(near(d["fill"], q) for q in C.get("plates", [])):
             sps = subpaths(d["items"]); outer = max(sps, key=lambda s: bbox(s).get_area())
             plates.append({"fill": list(d["fill"][:3]), "items": [[it[0]] + [[p.x, p.y] for p in it[1:]] if it[0] in "lc" else
                                                                  [it[0], [it[1].x0, it[1].y0, it[1].x1, it[1].y1]] for it in outer]})
             continue
+        if any(near(d["fill"], q, 0.012) for q in C.get("keep_fills", [])):          # v316: patvirtinti bėgeliai - kaip yra
+            sh = pg.new_shape(); draw(sh, subpaths(d["items"]))
+            sh.finish(fill=d["fill"][:3], color=None, even_odd=True, closePath=False); sh.commit(); n += 1
+            continue
         if not any(near(d["fill"], q) for q in C["fills"]):
             continue
         sps = subpaths(d["items"])
+        fill = d["fill"][:3]
+        for src_, dec_ in C.get("decal_from", []):                    # v316: P6 logotipas = vientisas kontūras + plėvelė (decal)
+            if near(d["fill"], src_):
+                sh = pg.new_shape(); draw(sh, [max(sps, key=lambda s_: bbox(s_).get_area())])
+                sh.finish(fill=fill, color=None, even_odd=True, closePath=False); sh.commit(); n += 1
+                fill = dec_                                            # pilnas kelias (su iškirpimais) - decal spalva
+        for x0, x1, col in C.get("recolor", []):                     # v316: grupė pagal x (pt) -> senų spec client_fill
+            if x0 <= (r.x0 + r.x1) / 2 <= x1:
+                fill = col
+        for src_, col in C.get("recolor_fill", []):                   # v316: plėvelė (decal) -> senų spec decal client_fill
+            if near(d["fill"], src_):
+                fill = col
         if any(near(d["fill"], q) for q in C.get("solid", [])):
             sps = [max(sps, key=lambda s: bbox(s).get_area())]
         sh = pg.new_shape(); draw(sh, sps)
-        sh.finish(fill=d["fill"][:3], color=None, even_odd=True, closePath=False); sh.commit(); n += 1
+        sh.finish(fill=fill, color=None, even_odd=True, closePath=False); sh.commit(); n += 1
     doc.save(out)
     if plates:
         json.dump(plates, open(out + ".plates.json", "w"))

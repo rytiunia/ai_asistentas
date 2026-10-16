@@ -45,7 +45,7 @@ def _match(f_, col, tol=0.03):
 
 def load_panel(S, P):
     """plokštės grafika iš kliento PDF: [(vinyl dict, sub (mm, y žemyn nuo viršaus), geom)] - PDF tvarka (sluoksniai)"""
-    pg = fitz.open(S["client_pdf"])[S.get("page", 0)]
+    pg = fitz.open(S["client_pdf"])[P.get("page", S.get("page", 0))]      # v316: plokštė gali būti kitame lape
     r = fitz.Rect(P["rect"])
     k = P["w"] / r.width
     tomm = lambda q: ((q[0] - r.x0) * k, (q[1] - r.y0) * k)
@@ -59,6 +59,10 @@ def load_panel(S, P):
             print(f"  ! {P['name']}: nežinoma grafikos spalva {tuple(round(x, 3) for x in f_[:3])} - spec 'vinyl' papildyti")
             continue
         sub = K.drawing_to_subpaths(d, tomm)
+        # v316 (v313 „kreivės lankais"): šaltinio laužtės (senas / patvirtintas lapas - jau suskaidyti lankai) -> lankai
+        #  šaltinio tikslumu (0,05 pt lape = 0,05 * k mm), kad DXF ir lapas būtų lankais, ne kampuoti
+        sub = [KR.ring_to_sub([tuple(s_[1]) for s_ in sp], True, 0.05 * k)
+               if len(sp) >= 6 and all(s_[0] in ("M", "L") for s_ in sp) else sp for sp in sub]
         g = K.shape_geom(sub).buffer(0)
         if not g.is_empty:
             out.append((v, sub, g))
@@ -250,6 +254,10 @@ def build(S, P, out, sheet_no, n_sheets):
     # ================= FRONT VIEW
     K.set_view(True)
     rect(X0, YT, W * s, H * s, fill=PLATE, lw=0.5)
+    PR = P.get("print")                                   # v316 (SPAR 225960): spauda ant plokštės - kliento paveikslas
+    if PR:
+        x0_, y0_, x1_, y1_ = PR.get("rect_mm", [0, 0, W, H])
+        K.c.drawImage(PR["image"], fx(x0_), K.Y(fy(y1_)), (x1_ - x0_) * s, (y1_ - y0_) * s, preserveAspectRatio=False, mask="auto")
     for v, sub, g in G:
         K.draw_shape(sub, lambda x, y: (fx(x), K.Y(fy(y))), fill=HexColor(v["hex"]), stroke=None)
     if joint:
@@ -367,7 +375,7 @@ def build(S, P, out, sheet_no, n_sheets):
         hdim(xf - (depth - t) * sc, xf + t * sc, yt - 14, f"{depth:g}", yt, yt, size=8)
         yn = yt + 70 * sc + 16                           # pastabos - po pjūviu
         T(x + w / 2, yn, f"Alu {t:g} mm folded, {S.get('finish_short', 'RAL ' + str(S['plate_ral']))}", 7, color=K.GREY, align="c", auto_red=False)
-        T(x + w / 2, yn + 10, "+ cut vinyl (front)", 7, color=K.GREY, align="c", auto_red=False)
+        T(x + w / 2, yn + 10, "+ print (front + edges)" if PR else "+ cut vinyl (front)", 7, color=K.GREY, align="c", auto_red=False)
 
     K.section_block(X_S, BY0, W_S, BH, "FOLDED PLATE - SECTION 1:2", section)
     A_flat = sum(a_ * b_ for a_, b_ in flats) / 1e6
@@ -377,6 +385,8 @@ def build(S, P, out, sheet_no, n_sheets):
     part_txt = " + ".join(f"{W:g} x {h:g}" for h in hp)
     bom = [["1", f"Folded plate {W:g} x {H:g} x {depth:g} mm" + (f" ({len(hp)} parts)" if joint else ""), f"Alu {t:g} mm folded",
             S.get("finish_short", f"RAL {S['plate_ral']}"), (f"{len(hp)} pcs." if joint else "1 pcs.")]]
+    if PR:
+        bom.append(["2", PR.get("part", "Print, front + edges"), PR.get("material", "original file"), "-", f"{W * H / 1e6:.2f} m²"])
     for i, (v, p_, a_) in enumerate(VIN):
         bom.append(["2" if i == 0 else "", f"Vinyl {v['name']}", v["code"], "-", f"{p_['m2']:.2f} m²"])
     bom += [["3", "L profile 30x30x2 (top + bottom)", "Aluminium", "-", f"{L_tot:.2f} m"],
@@ -387,13 +397,13 @@ def build(S, P, out, sheet_no, n_sheets):
     md = [["Quantity", f"{P.get('qty', 1)} pcs."], ["Overall size", f"{W:g} x {H:g}"], ["Depth", f"{depth:g}"],
           ["Parts", part_txt if joint else "1"], ["Plate", f"Alu {t:g} mm, folded 4 x 90°"],
           ["Plate finish", S.get("finish", f"RAL {S['plate_ral']}")],
-          ["Graphic", f"cut vinyl, {len(VIN)} colours"],
+          ["Graphic", PR.get("md", "print, original file") if PR else f"cut vinyl, {len(VIN)} colours"],
           ["Fixing holes", "Ø3,2 mm, 7 mm from edge, ~300 mm"], ["Mounting", "L30x30x2 top + bottom"],
           ["Illumination", "none"], ["Weight (calc.)", f"≈ {kg:.0f} kg / pcs"]]
     K.main_data(X_MD, BY0, W_MD, BH, md, lab_w=64)
     K.bom_table(X_BOM, BY0, W_BOM, BH, bom)
     tb = {"client": S["client"], "title": f"{S['title']} - {P['name']} {W:g} x {H:g}", "order_no": S.get("order_no", ""),
-          "drawing_no": S.get("drawing_no", ""), "sheet": f"{sheet_no} / {n_sheets}", "rev": S.get("rev", "A"),
+          "drawing_no": S.get("drawing_no", ""), "sheet": P.get("sheet") or f"{sheet_no} / {n_sheets}", "rev": S.get("rev", "A"),
           "date": S.get("date", ""), "qty": P.get("qty", 1)}
     K.title_block(X_TB, W_TB, tb, f"1:{n_} / 1:2")
     K.save(out)
@@ -443,7 +453,7 @@ def main(spec_path, out):
     base = os.path.splitext(out)[0]
     pages, res = [], []
     for i, P in enumerate(S["panels"]):
-        pp = f"{base}.{P['name']}.pdf"
+        pp = f"{base}.{i}.pdf"                               # v316: tarpinis failas pagal eilės nr. (vienodi plokščių vardai)
         r = build(S, P, pp, i + 1, len(S["panels"]))
         pages.append(pp); res.append((P, r))
     K.merge_sheets(pages, out)                            # v293: + lapų .art.json (patikra tikrina visus lapus)
@@ -452,8 +462,10 @@ def main(spec_path, out):
         for q in (p, p + ".tmp"):
             os.path.exists(q) and os.remove(q)
     depth, t = float(S["depth"]), float(S.get("t", 2))
-    for P, r in res:
+    _names = [P_["name"] for P_, _ in res]
+    for i_, (P, r) in enumerate(res):
         hp = r["hp"]
+        P = dict(P, name=P["name"] if _names.count(P["name"]) == 1 else f"{P['name']}_{i_ + 1}")   # v316: unikalūs DXF vardai
         for j, h in enumerate(hp):
             flat_dxf(f"{base}_flat_{P['name']}{'_' + str(j + 1) if len(hp) > 1 else ''}.dxf", P["w"], h, depth, t,
                      holes_top=(j == 0), holes_bot=(j == len(hp) - 1), bolts_top=(j > 0), bolts_bot=(j < len(hp) - 1),

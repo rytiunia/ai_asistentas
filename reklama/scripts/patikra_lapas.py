@@ -11,6 +11,7 @@ Tikrinama vaizdų zonoje (virš apatinės juostos):
   3. LINIJA PER TEKSTĄ - matmenų / išvadinių / laidų linijos (>= 0,2 pt) nekerta svetimo teksto (skaičių).
   4. MATMENYS VIENAS ANT KITO - lygiagrečios matmenų linijos toje pačioje eilėje (±1,5 pt) neužeina viena ant kitos.
   5. IŠVADINĖ PER IŠVADINĘ / MATMENĮ - nuorodų (išvadinių) linijos nesikerta su kitomis matmenų / išvadinių linijomis.
+  24. UŽ RĖMELIO (v316) - užrašai tik vidinio rėmelio viduje (zonų žymės 1-8 / A-F - paraštėje).
 --skip - sritys, kurių 2-5 netikrinti (įdėtas originalo fragmentas: jo turinys - originalo, ne mūsų išdėstymas).
 v182: `<lapas>.pdf.art.json` (rašo lapas_core.save per place_pdf) - KLIENTO GRAFIKA (spausdinama, v162 neliečiama): joje
 netikrinama nieko (ir hairline); atkarpos, visiškai už savo iškarpos (clip), nematomos - netikrinamos.
@@ -407,6 +408,12 @@ def check(pdf, band_y=None, skips=(), verbose=True):
         #  generatorius neskaičiavo nesting (nesting.py / plevele.plan) -> grynasis plotas, ne sunaudojimas
         if any("m²" in t_ for r_, t_ in allsp if r_.y0 > by) and "nest" not in (feat if "feat" in dir() else []):
             errs.append("PLOTAS NE NESTING: BOM m² turi būti lakšto / rulono sunaudojimas (nesting.py, plevele.plan), ne grynasis plotas")
+        # 24. v316 (SPAR 225960 lapas 18: laido užrašas išlindo už rėmelio): tekstas (ne zonų žymė) - tik vidinio rėmelio viduje
+        _fx0, _fy0 = 9 * 72 / 25.4, 9 * 72 / 25.4
+        _fx1, _fy1 = pg.rect.width - _fx0, pg.rect.height - _fy0
+        for r_, t_ in allsp:
+            if len(t_) > 1 and (r_.x1 > _fx1 + 0.5 or r_.x0 < _fx0 - 0.5 or r_.y0 < _fy0 - 0.5 or r_.y1 > _fy1 + 0.5):
+                errs.append(f"UŽ RĖMELIO: '{t_[:40]}' ({r_.x0:.0f}, {r_.y0:.0f}) - užrašas išeina už vidinio rėmelio")
         # 21. v309 (Rytis 2026-10-16, Leapmotor 33577; suvestinė B): FRONT / SIDE / REAR - VIENAS bendras mastelis
         _vsc = {}
         for r_, t_ in allsp:

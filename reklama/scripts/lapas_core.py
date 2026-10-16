@@ -710,7 +710,10 @@ def vchain(x, ys, ext_to, labels, size=8, bg=False, small=None):
             if free(yy - size * 0.8, yy + 1, x0, x1):
                 break
             off += w_ + 4
-        line(x, (a + b) / 2, (x0 - 1) if out > 0 else (x1 + 1), (a + b) / 2, 0.2, EXT)
+        # v316 (patikra 6 LINIJA ANT LINIJOS): tarpas < 1,2 pt (pvz. 4 mm 1:50) - rodyklės linija ta pačia tiese kaip
+        #  išvadinės užlaida (3 pt už grandinės) -> pradedama už užlaidos
+        _st = x + out * 3.3 if hi - lo < 1.2 else x
+        line(_st, (a + b) / 2, (x0 - 1) if out > 0 else (x1 + 1), (a + b) / 2, 0.2, EXT)
         TX(x0 if out > 0 else x1, yy, lab, size, align="l" if out > 0 else "r")
         placed.append((yy - size * 0.8, yy + 1, x0, x1))
 

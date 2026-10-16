@@ -1,0 +1,252 @@
+{
+ "scale": 5,
+ "qty": "1 pcs.",
+ "order_no": "ALT8901_10.16_RS",
+ "rev": "A",
+ "date": "2026-10-16",
+ "client": "BrandFactory",
+ "title": "SPAR order 225960 - KAFFEPAUSE, P00+6 on rails (indoor)",
+ "drawing_no": "SPAR order 225960",
+ "file_code": "SPAR_225960_17_kaffepause",
+ "sheet": "17 / 18",
+ "client_pdf": "/home/claude/ai_asistentas/reklama/scripts/projektai/spar_225960/alt8901/sk/client_s17_kaffepause.pdf",
+ "crop_pt": [
+  30.0,
+  30.0,
+  834.2,
+  304.8
+ ],
+ "depth_mm": 50,
+ "front": "8mm",
+ "rail": {
+  "size": "20x20x2",
+  "depth": 20,
+  "ral": "9005"
+ },
+ "groups": [
+  {
+   "name": "KAFFE",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "9003",
+   "face_hex": "#FFFFFF",
+   "client_fill": [
+    1,
+    1,
+    1
+   ],
+   "frame": "horizontal",
+   "z0": 22,
+   "cable": {
+    "rail": "bottom",
+    "end": "last",
+    "out": "right"
+   },
+   "ears": false,
+   "led": "White LED"
+  },
+  {
+   "name": "CIRCLE",
+   "profile": "6",
+   "on_plate": false,
+   "return_ral": "9005",
+   "face_hex": "#2B2B2B",
+   "client_fill": [
+    0.17,
+    0.17,
+    0.17
+   ],
+   "frame": "verticals",
+   "behind": true,
+   "no_rails": true,
+   "depth_mm": 2,
+   "z0": 20,
+   "lit": false
+  }
+ ],
+ "bom": [
+  [
+   1,
+   "Face letters",
+   "Plexi 8 mm white (opal)",
+   "white",
+   "{PER_KAFFE} m / {A_KAFFE} m²"
+  ],
+  [
+   2,
+   "Return letters",
+   "Alu 1 mm",
+   "RAL 9003",
+   "{PER_KAFFE} m / {RET_KAFFE} m²"
+  ],
+  [
+   3,
+   "Letter back",
+   "Alu 1.5 mm",
+   "-",
+   "{PER_ALL} m / {A_ALL} m²"
+  ],
+  [
+   4,
+   "LED modules",
+   "",
+   "white",
+   "?"
+  ],
+  [
+   5,
+   "Rail U {RAIL_SIZE}",
+   "Aluminium",
+   "RAL 9005",
+   "{RAIL_TOTAL_M} m"
+  ],
+  [
+   6,
+   "No ears - top rail screwed directly to wall",
+   "",
+   "",
+   "-"
+  ],
+  [
+   7,
+   "Trafo box (PSU 12V)",
+   "",
+   "",
+   "1 pcs."
+  ],
+  [
+   8,
+   "Wall fixing",
+   "?",
+   "-",
+   "?"
+  ],
+  [
+   9,
+   "Circle + frame replication, 1 part",
+   "Black alu composite 2 mm",
+   "RAL 9005",
+   "{A_CIRCLE} m²"
+  ],
+  [
+   10,
+   "Foil on circle (RAL 2008 tone)",
+   "Vinyl foil",
+   "ORACAL 551-035",
+   "1 pcs."
+  ]
+ ],
+ "main_data": [
+  [
+   "Quantity",
+   "1 pcs."
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profile",
+   "P00+6 on rails, indoor"
+  ],
+  [
+   "Letter depth",
+   "50"
+  ],
+  [
+   "Face",
+   "Opal 8 mm; circle foil 551-035"
+  ],
+  [
+   "Returns",
+   "RAL 9003"
+  ],
+  [
+   "Frame",
+   "U 20x20x2, RAL 9005 matt"
+  ],
+  [
+   "Illumination",
+   "LED white"
+  ],
+  [
+   "Power",
+   "cables at the bottom only"
+  ],
+  [
+   "Wind qp",
+   "{WIND_QP} kN/m²"
+  ],
+  [
+   "Wall",
+   "?"
+  ],
+  [
+   "Perimeter",
+   "{PER_ALL} m"
+  ],
+  [
+   "Mounting",
+   "top rail direct to wall, no ears"
+  ]
+ ],
+ "export_1to1": true,
+ "trafo_box": {
+  "voltage": "12V",
+  "mains": "220V",
+  "cable_len_m": 3.0,
+  "x": 300
+ },
+ "ears": {
+  "smax": 2000
+ },
+ "no_plates": true,
+ "callouts": {
+  "front": [
+   [
+    450,
+    12,
+    10,
+    -70,
+    -30
+   ]
+  ],
+  "rear": [
+   [
+    450,
+    150,
+    9,
+    90,
+    -62
+   ]
+  ]
+ },
+ "ignore_fills": [
+  [
+   1.0,
+   0.4,
+   0.0
+  ]
+ ],
+ "decals": [
+  {
+   "client_fill": [
+    1.0,
+    0.4,
+    0.0
+   ],
+   "hex": "#F75E25",
+   "group": "CIRCLE"
+  }
+ ],
+ "page": 0,
+ "rail_fills": [
+  [
+   0.05,
+   0.05,
+   0.06
+  ]
+ ],
+ "client_frame": true,
+ "rails_json": "/home/claude/ai_asistentas/reklama/scripts/projektai/spar_225960/alt8901/sk/rails_bb_s17_kaffepause.json"
+}

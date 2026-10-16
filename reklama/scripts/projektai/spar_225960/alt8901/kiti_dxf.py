@@ -17,7 +17,8 @@ from ezdxf import path as EP
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "..", ".."))
-import patikra_dxf  # noqa: E402
+import patikra_dxf
+import kreives as KR  # noqa: E402  v316: kreivės lankais  # noqa: E402
 
 PDF = os.path.join(HERE, "Drawing_SPAR_order_225960_patvirtintas.pdf")
 ALT = "ALT8901_10.16_RS"
@@ -99,7 +100,9 @@ def put_vec(msp, items, S, ox, oy, layer_of, ref):
         for p in ps:
             pts = [((q.x - ref.x0) * S + ox, (ref.y1 - q.y) * S + oy) for q in p.flattening(0.05 / S)]
             if len(pts) > 2:
-                msp.add_lwpolyline(pts, close=True, dxfattribs={"layer": lay}); n += 1
+                # v316 (v313 „kreivės lankais"): lapo laužtės -> lankai šaltinio tikslumu (0,01 pt lape)
+                msp.add_lwpolyline(KR.fit(pts, True, max(KR.TOL, 0.01 * S)), format="xyb", close=True,
+                                   dxfattribs={"layer": lay}); n += 1
     return n
 
 
@@ -140,7 +143,7 @@ def backplate(key, page, W, parts, n_holes, logo=None):
         lay = lambda f, c: "VINYL_GREEN_ORACAL_8500_614" if near(f, logo["green"]) else "VINYL_WHITE_ORACAL_551_010"
         n = put_vec(msp, items, S, xmax + 400, 0, lay, ref)
         rep.append(f"logotipas {ref.width * S:.0f} x {ref.height * S:.1f} mm, kontūrų {n}")
-    fn = os.path.join(OUT, f"{ALT}_{key}.dxf"); doc.saveas(fn)
+    fn = os.path.join(OUT, f"{ALT}_{key}.dxf"); KR.saveas(doc, fn)
     return fn, rep
 
 
@@ -153,7 +156,7 @@ def decor():
     n = put_vec(msp, items, S, 0, 0, lambda f, c: "VINYL_WHITE_ORACAL_551_101", ref)
     msp.add_text("WHITE DECOR SPAR LOGO - ORACAL 551 101 gloss - 7 pcs.", height=12,
                  dxfattribs={"layer": "TEXT"}).set_placement((0, -30))
-    fn = os.path.join(OUT, f"{ALT}_s13_decor.dxf"); doc.saveas(fn)
+    fn = os.path.join(OUT, f"{ALT}_s13_decor.dxf"); KR.saveas(doc, fn)
     return fn, [f"dekoras {ref.width * S:.0f} x {ref.height * S:.1f} mm, kontūrų {n}, 7 pcs."]
 
 
@@ -174,7 +177,7 @@ def bumper():
                 msp.add_lwpolyline(pts, dxfattribs={"layer": "BEND_90"}); nb += 1
     msp.add_text("STAINLESS STEEL BUMPER 1 mm - 505 x 160, bent 304 x 102 - 2 pcs.", height=12,
                  dxfattribs={"layer": "TEXT"}).set_placement((0, -30))
-    fn = os.path.join(OUT, f"{ALT}_s06_portal_bumper.dxf"); doc.saveas(fn)
+    fn = os.path.join(OUT, f"{ALT}_s06_portal_bumper.dxf"); KR.saveas(doc, fn)
     return fn, [f"buferis {ref.width * S:.0f} x {ref.height * S:.1f} mm, kontūrų {n}, lenkimo linijų {nb}, 2 pcs."]
 
 

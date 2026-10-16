@@ -8,6 +8,7 @@ from ezdxf.addons import Importer
 from ezdxf.math import Matrix44
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", ".."))
 import patikra_dxf
+import kreives as KR  # noqa: E402
 import kiti_dxf as K
 
 S = 20 * 25.4 / 72
@@ -27,7 +28,8 @@ for fill, col, ps in items:
     for p in ps:
         pts = [((q.x - BG.x0) * S + FL, (BG.y1 - q.y) * S + FL) for q in p.flattening(0.05 / S)]
         if len(pts) > 2:
-            msp.add_lwpolyline(pts, close=True, dxfattribs={"layer": "LETTER_POSITION"}); n += 1
+            msp.add_lwpolyline(KR.fit(pts, True, max(KR.TOL, 0.01 * S)), format="xyb", close=True,
+                               dxfattribs={"layer": "LETTER_POSITION"}); n += 1             # v316: lankais
 ox = F + 400
 for fn, tag in (("dxf_s18a/ALT8901_10.16_RS_s18_frisk_P6_P6_1-1.dxf", "P6"), ("dxf_s18b/ALT8901_10.16_RS_s18_frisk_P1_P6_1-1.dxf", "P1")):
     src = ezdxf.readfile(fn); imp = Importer(src, doc)
@@ -42,5 +44,5 @@ for fn, tag in (("dxf_s18a/ALT8901_10.16_RS_s18_frisk_P6_P6_1-1.dxf", "P6"), ("d
         e.transform(T_)
     ox += b.size.x + 300
 out = "out/ALT8901_10.16_RS_s18_frisk_sunn.dxf"
-doc.saveas(out)
+KR.saveas(doc, out)
 print(f"OK {out}: fonas FLAT {F:.0f} x {WF:.0f}, L skylės 2 x 11, padėties kontūrų {n}, {patikra_dxf.check(out) or 'mm OK'}")

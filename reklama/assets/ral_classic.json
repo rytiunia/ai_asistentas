@@ -1,5 +1,5 @@
 {
- "_source": "RAL Classic sRGB atitikmenys: w3schools.com/colors/colors_ral.asp (2026-10-16, Rytis: 'atnaujink RAL spalvų paletę, RAL 5008 vaizduojama labiau pilka nei mėlyna'); 9010 - #F1ECE1 (kreminė, ne #FFFFFF). Spalva ekrane orientacinė, ne gamybos etalonas.",
+ "_source": "RAL Classic sRGB atitikmenys: w3schools.com/colors/colors_ral.asp (2026-10-16, Rytis: 'atnaujink RAL spalvų paletę, RAL 5008 vaizduojama labiau pilka nei mėlyna'); 9010 - #F1ECE1 (kreminė, ne #FFFFFF). Spalva ekrane orientacinė, ne gamybos etalonas. 6039 (Fibrous green, nėra w3schools sąraše) - #B3C43E, plan-home.com (SPAR 225960, 2026-10-16).",
  "ral": {
   "1000": "#CCC58F",
   "1001": "#D1BC8A",
@@ -142,6 +142,7 @@
   "6036": "#005D4C",
   "6037": "#25E712",
   "6038": "#00F700",
+  "6039": "#B3C43E",
   "7000": "#7E8B92",
   "7001": "#8F999F",
   "7002": "#817F68",

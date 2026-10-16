@@ -13,10 +13,10 @@ import kreives as KR  # noqa: E402  v312: kreivės lankais
 
 ap = argparse.ArgumentParser()
 ap.add_argument("out_dir"); ap.add_argument("prefix")
-ap.add_argument("--panels", default=None, help="plokščių vardai (numatyta - iš _flat_ failų)")
+ap.add_argument("--panels", default=None, help="plokščių vardai (numatyta - iš _flat_ failų); vardams su kableliais - skirtukas |")
 ap.add_argument("--gap", type=float, default=200)
 A = ap.parse_args()
-panels = A.panels.split(",") if A.panels else sorted({f.rsplit("_flat_", 1)[1][:-4].split("_")[0]
+panels = [p_ for p_ in A.panels.split("|" if "|" in A.panels else ",") if p_] if A.panels else sorted({f.rsplit("_flat_", 1)[1][:-4].split("_")[0]
                                                      for f in glob.glob(f"{A.out_dir}/{A.prefix}_flat_*.dxf")})
 
 

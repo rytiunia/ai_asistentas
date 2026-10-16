@@ -1,0 +1,5 @@
+# tarpiniai (atkuriami lapai.py / kiti_lapai.py / folded_vinyl); saugomi tik įvesties spec / json / png
+*.pdf
+*.dxf
+*.tmp
+*.log

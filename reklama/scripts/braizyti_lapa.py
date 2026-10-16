@@ -233,13 +233,16 @@ PER_L = sum(perim(e["sub"]) for r in rows if not r["thin"] for e in r["els"]) / 
 PER_T = sum(perim(e["sub"]) for r in rows if r["thin"] for e in r["els"]) / 1000
 from functools import reduce as _red
 _A = 0.0
+LET_GEOMS, LET_PERIMS = [], []                          # v316: nesting (nesting.py) - raidžių kontūrai / perimetrai mm
 for r in rows:
     if r["thin"]:
         continue
     for e in r["els"]:
         _ps = [_Poly(_flat(sp)).buffer(0) for sp in e["sub"] if len(_flat(sp)) >= 3]
         if _ps:
-            _A += _red(lambda a, b: a.symmetric_difference(b), _ps).area
+            _g = _red(lambda a, b: a.symmetric_difference(b), _ps)
+            _A += _g.area
+            LET_GEOMS.append(_g); LET_PERIMS.append(perim(e["sub"]))
 A_FACE = _A / 1e6                                       # raidžių priekio plotas, m2
 A_RET = PER_L * spec["depth_mm"] / 1000                # raidžių šonų plotas, m2
 
@@ -247,8 +250,10 @@ A_RET = PER_L * spec["depth_mm"] / 1000                # raidžių šonų plotas
 
 
 def path_of(sub, tf):
+    import kreives as _KR
     p = c.beginPath()
     for sp in sub:
+        sp = _KR.smooth_sub(sp)            # v316 (v313 „kreivės lankais"): lygios laužtės (3D, ofsetai) - lankais, kaip K.path_of
         for s in sp:
             if s[0] == "M":
                 p.moveTo(*tf(*s[1]))
@@ -310,7 +315,8 @@ VIEW_MODE = False   # True - piešiamos projekcijos / pjūviai (storesni kontūr
 
 
 def _lw(w):
-    return HAIR if VIEW_MODE and w > HAIR else w      # v63: projekcijose VISOS linijos hairline
+    # v63: projekcijose VISOS linijos hairline; v316: išskyrus laidą 0,9 (patikra 1 - „laidas 0,9", buvo pilka plona linija)
+    return HAIR if VIEW_MODE and w > HAIR and not 0.89 <= w <= 0.91 else w
 
 
 def line(x1, y1, x2, y2, w=0.3, col=black, dash=None):
@@ -417,24 +423,14 @@ def hatch(x, y, w, h, step=5):
     rect(x, y, w, h, lw=0.4)
 
 
-# ============================================================ rėmelis + zonos (kairė paraštė 20 mm)
-OX0, OY0, OX1, OY1 = 20 * MM, 10 * MM, W - 10 * MM, H - 10 * MM
-B5 = 5 * MM
-IX0, IY0, IX1, IY1 = OX0 + B5, OY0 + B5, OX1 - B5, OY1 - B5
-rect(OX0, OY0, OX1 - OX0, OY1 - OY0, lw=0.5)
-rect(IX0, IY0, IX1 - IX0, IY1 - IY0, lw=1.0)
-for i in range(8):
-    x0, x1 = IX0 + (IX1 - IX0) * i / 8, IX0 + (IX1 - IX0) * (i + 1) / 8
-    for yb in ((OY0 + IY0) / 2 + 2.5, (OY1 + IY1) / 2 + 2.5):
-        T((x0 + x1) / 2, yb, i + 1, 8, align="c", color=GREY)
-    if i:
-        line(x0, OY0, x0, IY0, 0.3); line(x0, IY1, x0, OY1, 0.3)
-for j in range(6):
-    y0, y1 = IY0 + (IY1 - IY0) * j / 6, IY0 + (IY1 - IY0) * (j + 1) / 6
-    for xb in ((OX0 + IX0) / 2, (OX1 + IX1) / 2):
-        T(xb, (y0 + y1) / 2 + 2.5, "ABCDEF"[j], 8, align="c", color=GREY)
-    if j:
-        line(OX0, y0, IX0, y0, 0.3); line(IX1, y0, OX1, y0, 0.3)
+# ============================================================ rėmelis + zonos - DABARTINIS blankas (lapas_core.frame)
+# v316 (Rytis 2026-10-16, SPAR 225960: „blankas naudojamas senas ... naudoti pačią naujausią skill ir taisyklių redakciją"):
+#  buvo savas senas rėmelis (kairė paraštė 20 mm, kitos 10 mm) - dabar bendras K.frame (5 mm), kaip visuose lapuose
+import lapas_core as K
+K.c = c
+OX0, OY0, OX1, OY1 = K.OX0, K.OY0, K.OX1, K.OY1
+IX0, IY0, IX1, IY1 = K.IX0, K.IY0, K.IX1, K.IY1
+K.frame()
 
 RCX = IX1              # vaizdai naudoja visą plotį
 BAND_H = max(172, 32 + 11 * max(len(spec.get("bom", [])), 14))   # v18: eilutė >= 11 pt (8 pt tekstas, nesugrūsta)
@@ -493,7 +489,7 @@ best = None
 for lay in LAYS:
     for n1 in STD:
         for n2 in STD:
-            if n2 < n1 or n2 > n1 * 2.5:
+            if n2 != n1:                     # v316 (v309 suvestinė B, patikra 21): FRONT / SIDE / REAR - VIENAS bendras mastelis
                 continue
             sz = {"FS": fs_box(n1), "R": r_box(n2), "D": (D_W, D_H)}
             ok, rows_h, iso = True, [], None
@@ -640,8 +636,8 @@ if spec.get("element_colors"):          # v11: papildomi tūriniai elementai (pv
     for z_, e, _rc in sorted(_lays, key=lambda t: t[0]):
         y0_, h_ = FVY + e["bb"][1] * s10, (e["bb"][3] - e["bb"][1]) * s10
         x_ = lf - z_ * s10
-        rect(x_, y0_, depth * s10, h_, fill=Color(_rc.red * 0.86, _rc.green * 0.86, _rc.blue * 0.86), lw=0.6)
-        rect(x_, y0_, 0.9, h_, fill=Color(*e["fill"]), lw=0.4)
+        rect(x_, y0_, depth * s10, h_, fill=Color(_rc.red * 0.86, _rc.green * 0.86, _rc.blue * 0.86), lw=0.1)   # v316 hairline
+        rect(x_, y0_, 0.9, h_, fill=Color(*e["fill"]), lw=0.1)
     if _STACK:
         _top = min(e["bb"][1] for z_, e, _ in _lays if z_)
         hdim(lf - _STACK * s10, lf, FVY + _top * s10 - 10, f"{_STACK:.0f}", FVY + _top * s10, FVY + _top * s10,
@@ -655,7 +651,7 @@ else:
 hdim(lf, SVF, FVY - 18, f"{depth:.0f}", FVY + merged[0][0] * s10, FVY, small_side="l", size=12)
 hdim(SVF, bx, FVY - 18, f"{bend:.0f}", FVY, FVY, size=12)
 hdim(lf - _STACK * s10, bx, FVY + fh + 16, f"{depth + bend + _STACK:.0f}", FVY + merged[-1][1] * s10, FVY + fh, size=12)
-c.saveState(); c.setStrokeColor(black); c.setLineWidth(0.4); c.setDash(3, 1.5)
+c.saveState(); c.setStrokeColor(black); c.setLineWidth(0.3); c.setDash(3, 1.5)   # v316 detalės žymė - 0,3 (patikra 1)
 c.circle((SVF + bx) / 2 + 2, Y(FVY + 6), 12); c.restoreState()
 T((SVF + bx) / 2 - 16, FVY - 4, "A", 9, font="FB", align="c")
 # v13: balionai šoniniame vaizde - [atstumas nuo fono priekio mm, y_mm, poz., dx_pt, dy_pt]
@@ -742,6 +738,46 @@ def subst(v):
     return v
 
 
+# v316 (TAISYKLĖ v304 „plotą visada skaičiuok nesting principu"; Rytis 2026-10-16 SPAR 225960: senas generatorius rašė
+#  grynąjį plotą): {A_FACE} / {A_BACK} - raidžių detalių lakštų nesting pagal EILUTĖS medžiagą, {A_RET} - šonų juostos
+import nesting as _NE
+NEST_LOG = []
+
+
+def _nest_q(row):
+    row = list(row)
+    if len(row) < 5:
+        return row
+    q, mat = str(row[4]), str(row[2])
+    try:
+        _qty = max(1, int(re.sub(r"[^\d]", "", str(spec.get("qty", 1))) or 1))
+    except ValueError:
+        _qty = 1
+
+    _back = bool(re.search(r"letter back|\bback\b", str(row[1]), re.I))
+
+    def rep(m):
+        k_ = "BACK" if (_back and m.group(1) == "FACE") else m.group(1)      # „Letter back" eilutė su {A_FACE} - dugnai
+        if not _NE.parse_material(mat)[0]:
+            return m.group(0)
+        if k_ == "RET":
+            r_ = _NE.nest_strips(LET_PERIMS, spec["depth_mm"], mat, label=str(row[1]), qty=_qty)
+        else:
+            r_ = _NE.nest_parts([g.buffer(-3) if k_ == "BACK" else g for g in LET_GEOMS], mat, label=str(row[1]), qty=_qty)
+        NEST_LOG.append(f"{row[1]}: {r_['text']}")
+        if r_.get("m2") is None:
+            K.SHEET_ERR.append(f"BOM '{row[1]}': {r_['text']}")
+            return "?"
+        K.FEAT.add("nest")
+        return f"{r_['m2']:.2f}"
+    row[4] = re.sub(r"\{A_(FACE|RET|BACK)\}", rep, q)
+    return row
+
+
+import lapas_core as K
+spec["bom"] = [_nest_q(row) for row in spec["bom"]]
+for _l in NEST_LOG:
+    print("  nesting:", _l)
 spec["bom"] = [[subst(x) for x in row] for row in spec["bom"]]
 # v100 (Rytis 2026-10-11): „Letter back" - spalva = šonų spalva (standartas), kitokia - tik nurodžius (spec "back_ral")
 _back_ral = spec.get("back_ral") or spec.get("return_ral")
@@ -943,7 +979,7 @@ def achain(P, u, nrm, ts, ext_from, labels, off, mid=None, ticks=()):
                   align="l" if sgn > 0 else "r", rot=rot)
     for i in ticks:
         x_, y_ = D[i]
-        c.saveState(); c.setLineWidth(0.6)
+        c.saveState(); c.setLineWidth(0.3)                 # v316: matmens žymė - matmenų linijų storis (patikra 1)
         c.line(x_ - 1.6, Y(y_ - 1.6), x_ + 1.6, Y(y_ + 1.6)); c.restoreState()
     if mid:
         i0, i1, txt_ = mid
@@ -1090,7 +1126,7 @@ if _CB:   # v28 (Rytis 2026-10-08): laidas išeina TIK po raide (D11), už fono 
     line(px_ - r_ - 2, py_, px_ + r_ + 2, py_, 0.2); line(px_, py_ - r_ - 2, px_, py_ + r_ + 2, 0.2)
     T(px_, py_ + r_ + 10, f"D11 ({_CB.get('letter', 'letter')})", 8, align="c")
     hx_, hy_ = pp_[-1]                                   # skylė užlenktoje briaunoje
-    c.saveState(); c.setFillColor(white); c.setStrokeColor(black); c.setLineWidth(0.6)
+    c.saveState(); c.setFillColor(white); c.setStrokeColor(black); c.setLineWidth(0.1)   # v316 hairline
     c.circle(hx_, Y(hy_), 2.2, stroke=1, fill=1); c.restoreState()
     # laidas už gaminio ribų + uodega + prierašas
     _rx = max(RP(0, 0)[0], RP(PW, 0)[0]); _lx = min(RP(0, 0)[0], RP(PW, 0)[0])
@@ -1124,7 +1160,12 @@ elif _CE:   # v13 (Rytis 2026-10-08): laido išvestis kliento nurodytoje vietoje
     _CC = HexColor("#E2001A")                         # v15: laidas raudonas, storesnis (kaip lapas_core.CABLE)
     poly([(px_, py_ - r_), (px_, _yu), (_xe, _yu)], stroke=_CC, lw=0.9, close=False)
     T(px_ - 5 * _sd, py_ + r_ + 10, f"D11 cable exit ({_CE.get('where', '')})", 8, align="r" if _sd > 0 else "l")
-    T(_xe + 3 * _sd, _yu + 2.5, _CE.get("label", ""), 8, align="l" if _sd > 0 else "r", color=_CC, auto_red=False)
+    _lbw = pdfmetrics.stringWidth(_CE.get("label", ""), "F", 8)
+    if (_sd > 0 and _xe + 3 + _lbw > IX1 - 4) or (_sd < 0 and _xe - 3 - _lbw < IX0 + 4):
+        # v316: užrašas netelpa už laido galo (išlįstų už rėmelio) - virš laido, prie jo galo, rėmelio viduje
+        T(_xe - 2 * _sd, _yu - 3, _CE.get("label", ""), 8, align="r" if _sd > 0 else "l", color=_CC, auto_red=False)
+    else:
+        T(_xe + 3 * _sd, _yu + 2.5, _CE.get("label", ""), 8, align="l" if _sd > 0 else "r", color=_CC, auto_red=False)
 else:
     T(RVX, _rv_top - 32, f"LED / PSU / cable exits: {spec['power']}", 8)
 view_title(RVX + rw / 2, RVY + rh + 50, "REAR VIEW (MIRRORED)", f"SCALE 1:{SC2}  |  letters hidden - dashed")
@@ -1205,9 +1246,8 @@ def fpoly(pts3, fill, stroke=None, lw=0.2, alpha=None):
     c.setFillColor(fill); c.setStrokeColor(stroke or fill); c.setLineWidth(HAIR)
     if alpha is not None:
         c.setFillAlpha(alpha)
-    p = c.beginPath(); q0 = S3(*pts3[0]); p.moveTo(*q0)
-    for q in pts3[1:]:
-        p.lineTo(*S3(*q))
+    p = c.beginPath()
+    K.ring_path(p, [S3(*q) for q in pts3], True)          # v316 (v313): lygios dalys lankais (ne laužtė)
     p.close(); c.drawPath(p, stroke=1 if (stroke is not None or alpha is None) else 0, fill=1)
     c.restoreState()
 
@@ -1297,9 +1337,7 @@ for sol in sorted(solids, key=lambda p_: (SOLMETA.get(id(p_), (None, 0))[1], dep
     p = c.beginPath()
     for ring in [sol.exterior] + list(sol.interiors):
         pts = list(ring.coords)
-        p.moveTo(*S3(pts[0][0], pts[0][1], _z0 + depth))
-        for q in pts[1:]:
-            p.lineTo(*S3(q[0], q[1], _z0 + depth))
+        K.ring_path(p, [S3(q[0], q[1], _z0 + depth) for q in pts], True)   # v316 (v313): lankais
         p.close()
     c.drawPath(p, stroke=1, fill=1, fillMode=0)
     c.restoreState()
@@ -1329,8 +1367,6 @@ K.c = c
 
 # --- P6 profilio pjūvis (pagal Rytio P6 pavyzdį, perpieštas dokumento CAD stiliumi)
 _PNAME = "5S" if (str(spec.get("profile_no")) == "6" and not P6F.milled(spec.get("front", "5S"))) else f"P{spec['profile_no']}"   # v210
-header(X_P6, BY0, W_P6, f"PROFILE {_PNAME} - TYPICAL SECTION")
-rect(X_P6, BY0 + 12, W_P6, BH - 12, lw=0.6)
 # Rytio etaloninis pjūvis (assets/p6_profiliai.pdf) - vektorinis įterpimas po c.save(), scripts/p6_ref.py
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import p6_ref as _P6R
@@ -1342,8 +1378,11 @@ def _ld6(x1, y1, x2, y2, n, r=6):
     balloon(x2, y2, n, r)
 
 
-_P6R.draw(c, H, X_P6, BY0 + 12, W_P6, BH - 12, "folded", spec.get("front", "5S"), depth, leader=_ld6,
-          balloon=balloon, T=T, hdim=hdim, hair=0.1)
+# v316 TAISYKLĖ 5: pjūvis centruojamas savo bloke (K.centered, frame=True - antraštė ir rėmelis lieka vietoje)
+K.c = c
+K.centered(X_P6, BY0, W_P6, BH, lambda x_, y_, w_, h_: K.p6_reference(x_, y_, w_, h_, depth, kind="folded",
+           front=spec.get("front", "5S"), title=f"PROFILE {_PNAME} - TYPICAL SECTION"), f"PROFILE {_PNAME} - TYPICAL SECTION", frame=True)
+c = K.c
 
 # --- MAIN DATA
 md = [("Quantity", f"{spec.get('qty', 1)} pcs."), ("Overall size", f"{PW:.0f} x {PH:.0f}" + ("" if IS_RECT else f", {SLOPE_DEG:.0f}°")),
@@ -1421,5 +1460,6 @@ doc.save(OUT, garbage=3, deflate=True)
 doc.close()
 import lapas_core as _K
 _K.pdf_fix_fonts(OUT)                              # v20: tekstas CorelDRAW lieka tekstu (GOST Common)
+_K.art_json(OUT)                                   # v316: sidecar (generatorius, nesting, centruoti blokai) -> patikra_lapas
 print("OK", OUT, f"scales 1:{SC1}/1:{SC2}, perimeter letters {PER_L:.2f} m, thin {PER_T:.2f} m; rows",
       [(round(r['x1'] - r['x0']), round(r['h'])) for r in rows], "marks", marks)

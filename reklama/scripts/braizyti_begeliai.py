@@ -2067,6 +2067,29 @@ def extreme(geom, which, near=None):
 
 ALL_G = unary_union([g["geom"] for g in groups] + [g["plate"]["geom"] for g in groups if g["plate"]])
 
+
+def clear_tangent(p, axis, sgn, tol_pt=1.2):
+    """v316 (SPAR 225960 ALT8901, patikra 6 LINIJA ANT LINIJOS, taisyklė C „iškeltinė baigiasi pirmame kontūre nuo matmens
+    pusės"): nuo kraštinio taško p einama link matmens eilės (axis "x" / "y", sgn -1 / +1 mm) iki objektų gabarito ribos;
+    išvadinės galas - už PASKUTINIO taško, kur iki bet kurio kontūro < tol_pt (kreivės liestinė - apskritimas, S lankas;
+    lygiagretus kitos detalės kraštas - pvz. raidė 3 mm nuo plokštės krašto). ext_line dar palieka 2 pt tarpą."""
+    from shapely.geometry import Point as _P
+    b_ = ALL_G.boundary
+    bx0, by0, bx1, by1 = ALL_G.bounds
+    st = 0.25 / s1
+    last, k_ = 0, 0
+    while True:
+        q = (p[0] + sgn * k_ * st, p[1]) if axis == "x" else (p[0], p[1] + sgn * k_ * st)
+        if b_.distance(_P(q)) * s1 < tol_pt:
+            last = k_
+        if not (bx0 - 2 / s1 <= q[0] <= bx1 + 2 / s1 and by0 - 2 / s1 <= q[1] <= by1 + 2 / s1) or k_ > 4000:
+            break
+        k_ += 1
+    k_ = last + 1
+    return (p[0] + sgn * k_ * st, p[1]) if axis == "x" else (p[0], p[1] + sgn * k_ * st)
+
+
+
 # ============================================================ FRONT VIEW
 K.set_view(True)
 s1 = MM / SC1
@@ -2124,14 +2147,15 @@ top_gs = [g for g in groups if (g["y0"] + g["y1"]) / 2 < PH / 2]
 bot_gs = [g for g in groups if (g["y0"] + g["y1"]) / 2 >= PH / 2] + [g for g in groups if g["plate"]]
 pmin, pmax = extreme(ALL_G, "minx"), extreme(ALL_G, "maxx")
 # viršus: bendras plotis + grupių pločiai
-hdim(FVX, FVX + fw, FVY - 44, f"{PW:.0f}", FV(*pmin)[1], FV(*pmax)[1], size=K.F_DIM_MAIN)
+hdim(FVX, FVX + fw, FVY - 44, f"{PW:.0f}", FV(*clear_tangent(pmin, "y", -1))[1], FV(*clear_tangent(pmax, "y", -1))[1],
+     size=K.F_DIM_MAIN)
 pr = [(0, pmin), (PW, pmax)]
 for g in top_gs:
     gg = unary_union([g["geom"]] + ([g["plate"]["geom"]] if g["plate"] else []))
     pr += [(g["x0"], extreme(gg, "minx")), (g["x1"], extreme(gg, "maxx"))]
 m = chain_marks(pr)
 if len(m) > 2:                                   # grandinė, kartojanti bendrą matmenį, nededama
-    hchain(FVY - 20, [FV(v, 0)[0] for v, _ in m], [FV(*p)[1] for _, p in m],
+    hchain(FVY - 20, [FV(v, 0)[0] for v, _ in m], [FV(*clear_tangent(p, "y", -1))[1] for _, p in m],
            [f"{round(b[0]) - round(a[0])}" for a, b in zip(m[:-1], m[1:])], K.F_DIM_MAIN)
 # apačia: plokštės raidė + apatinės grupės
 pr = [(0, pmin), (PW, pmax)]
@@ -2142,7 +2166,8 @@ for g in bot_gs:
 m = chain_marks(pr)
 yb = FVY + fh + 20
 if len(m) > 2:                                   # v172: išvadinės nuo objekto -> hchain žino kryptį (maži tarpai - toliau nuo objekto)
-  hchain(yb, [FV(v, 0)[0] for v, _ in m], [FV(*p)[1] for _, p in m], [f"{round(b[0]) - round(a[0])}" for a, b in zip(m[:-1], m[1:])], K.F_DIM_MAIN)
+  hchain(yb, [FV(v, 0)[0] for v, _ in m], [FV(*clear_tangent(p, "y", 1))[1] for _, p in m],
+         [f"{round(b[0]) - round(a[0])}" for a, b in zip(m[:-1], m[1:])], K.F_DIM_MAIN)
 # kairė: plokštės grupė (plokštė, raidė) + bendras aukštis
 pmn_y, pmx_y = extreme(ALL_G, "miny"), extreme(ALL_G, "maxy")
 pr = [(0, pmn_y), (PH, pmx_y)]
@@ -2199,9 +2224,10 @@ def first_hit(p, side="l"):
 
 
 if len(m) > 2:
-    vchain(FVX - 24, [FV(0, v)[1] for v, _ in m], [FV(*first_hit(p))[0] for _, p in m],
+    vchain(FVX - 24, [FV(0, v)[1] for v, _ in m], [FV(*clear_tangent(first_hit(p), "x", -1))[0] for _, p in m],
            [f"{round(b[0]) - round(a[0])}" for a, b in zip(m[:-1], m[1:])], K.F_DIM_MAIN)
-vchain(FVX - 48, [FVY, FVY + fh], [FV(*first_hit(pmn_y))[0], FV(*first_hit(pmx_y))[0]], [f"{PH:.0f}"], K.F_DIM_MAIN)
+vchain(FVX - 48, [FVY, FVY + fh], [FV(*clear_tangent(first_hit(pmn_y), "x", -1))[0],
+                                   FV(*clear_tangent(first_hit(pmx_y), "x", -1))[0]], [f"{PH:.0f}"], K.F_DIM_MAIN)
 # dešinė: grupės ant bėgelių
 pr = [(0, pmn_y)]
 for g in groups:
@@ -2209,7 +2235,7 @@ for g in groups:
         pr += [(g["ly0"], extreme(g["geom"], "maxx")), (g["ly1"], extreme(g["geom"], "maxx"))]
 m = chain_marks(pr)
 if len(m) > 2:
-  vchain(FVX + fw + 20, [FV(0, v)[1] for v, _ in m], [FV(*first_hit(p, "r"))[0] for _, p in m],
+  vchain(FVX + fw + 20, [FV(0, v)[1] for v, _ in m], [FV(*clear_tangent(first_hit(p, "r"), "x", 1))[0] for _, p in m],
          [f"{round(b[0]) - round(a[0])}" for a, b in zip(m[:-1], m[1:])], K.F_DIM_MAIN)
 # profilių žymos
 for g in groups:
@@ -2221,13 +2247,41 @@ for g in groups:
 JOINTS = [((j_["x_pt"] - OX) * S if "x_pt" in j_ else j_["x_mm"], j_.get("label", "FRAME JOINT")) for j_ in spec.get("joints", [])]
 
 
-def _joint(x_, y0_, y1_, lab_):
-    line(x_, y0_, x_, y1_, 0.5, black, dash=([6, 2, 1.5, 2], 0))
-    K._Tbg(x_ + 3, (y0_ + y1_) / 2, lab_, 8, align="c", rot=90, font="FB", auto_red=False)
+def _joint(x_, y0_, y1_, lab_, bars=()):
+    """v316 (SPAR 225960 ALT8901, patikra 3 LINIJA PER TEKSTĄ): užrašas - didžiausiame tarpe tarp bėgelių sandūros x vietoje
+    (bars - (y0, y1) lapo pt), jei telpa; kitaip - už vaizdo, sandūros linijos tęsinyje (šrifto nemažinti)."""
+    w_ = K.pdfmetrics.stringWidth(lab_, "FB", 8)
+    cuts = sorted([(a, b) for a, b in bars if b > y0_ and a < y1_])
+    gaps, cur = [], y0_
+    for a, b in cuts:
+        if a > cur:
+            gaps.append((cur, a))
+        cur = max(cur, b)
+    gaps.append((cur, y1_))
+    big = max(gaps, key=lambda q: q[1] - q[0])
+    if cuts:                                                   # v316 patikra 6: virš rėmo - matmenų iškėlimo linijos
+        y0_ = max(y0_, cuts[0][0] - 2)                         #  (sandūros x) - ašis nuo viršutinio bėgelio, ne per jas
+    parts = lab_.split()
+    w2_ = max(K.pdfmetrics.stringWidth(p_, "FB", 8) for p_ in parts)
+    if big[1] - big[0] >= w_ + 6:
+        line(x_, y0_, x_, y1_, 0.5, black, dash=([6, 2, 1.5, 2], 0))
+        K._Tbg(x_ + 3, (big[0] + big[1]) / 2, lab_, 8, align="c", rot=90, font="FB", auto_red=False)
+    elif len(parts) > 1 and big[1] - big[0] >= w2_ + 6:        # dvi eilutės tame pačiame tarpe („FRAME" / „JOINT")
+        line(x_, y0_, x_, y1_, 0.5, black, dash=([6, 2, 1.5, 2], 0))
+        for i_, p_ in enumerate(parts):
+            K._Tbg(x_ + 3 + 9 * i_, (big[0] + big[1]) / 2, p_, 8, align="c", rot=90, font="FB", auto_red=False)
+    else:
+        line(x_, y0_, x_, y1_ + w_ + 6, 0.5, black, dash=([6, 2, 1.5, 2], 0))
+        K._Tbg(x_ + 3, y1_ + 4 + w_ / 2, lab_, 8, align="c", rot=90, font="FB", auto_red=False)
+
+
+def _bars(F):
+    """horizontalių bėgelių (y0, y1) lapo pt sandūros vietai"""
+    return [(F(0, r_["y0"])[1], F(0, r_["y1"])[1]) for g in groups for r_ in g["rails"] if r_["kind"] == "h"]
 
 
 for xj_, lj_ in JOINTS:
-    _joint(FV(xj_, 0)[0], FVY - 8, FVY + fh + 8, lj_)
+    _joint(FV(xj_, 0)[0], FVY - 8, FVY + fh + 8, lj_, _bars(FV))
 
 
 def _callouts(view, F):
@@ -2246,7 +2300,9 @@ PIECES = spec.get("pieces_view")
 PIECE_IDX = {}
 # v315: liečiasi kelios dalys (reklama iš DALIŲ) - dalys PRIVALO būti parodytos (pieces_view), o tvirtinimo taškai -
 #  kiekvienai raidei (fix_split_x), kitaip lapo klaida (patikra 18 KONSTRUKCIJA)
-_tl_ = [o for g in groups if not g["plate"] for o in g["letters"]]
+# v316 (SPAR 225960 KAFFEPAUSE): „behind" grupė (fono apskritimas / plokštė už raidžių, kitas z) - ne dalis, raidės
+#  ją dengia, o ne liečia -> į dalių paiešką neįtraukiama
+_tl_ = [o for g in groups if not g["plate"] and not g["spec"].get("behind") for o in g["letters"]]
 _touch = any(a_["geom"].buffer(0.3).intersection(b_["geom"].boundary).length > 20
              for i_, a_ in enumerate(_tl_) for b_ in _tl_[i_ + 1:]
              if a_["bb"][0] <= b_["bb"][2] and b_["bb"][0] <= a_["bb"][2])
@@ -3259,6 +3315,14 @@ for g in groups:
             if not any(abs(_alt - px_) < 22 for px_ in _pcx):
                 ex_ = RV(g["x0"], 0)[0] if ex_ == RV(g["x1"], 0)[0] else RV(g["x1"], 0)[0]
                 xg = _alt
+        # v316 (SPAR 225960 ALT8901, patikra „TEKSTAS ANT TEKSTO" 798 x FRAME JOINT): dviejų dalių rėme grupės galas sutampa
+        #  su rėmo sujungimu - ašių grandinė keliama į kitą (išorinį) grupės galą
+        _jx = [RV(xj_, 0)[0] for xj_, _ in JOINTS]
+        if any(abs(xg - jx_) < 26 for jx_ in _jx):
+            _alt = RV(g["x0"], 0)[0] + 14 if ex_ == RV(g["x1"], 0)[0] else RV(g["x1"], 0)[0] - 14
+            if not any(abs(_alt - jx_) < 26 for jx_ in _jx):
+                ex_ = RV(g["x0"], 0)[0] if ex_ == RV(g["x1"], 0)[0] else RV(g["x1"], 0)[0]
+                xg = _alt
         _yv = [RV(0, y)[1] for y in ys_]
         AXIS_X.append(xg)
         AXIS_TXT.extend(((a + b) / 2, K.pdfmetrics.stringWidth(f"{round(b1 - a1)}", "F", K.F_DIM_FRAME))
@@ -3505,7 +3569,7 @@ else:
     if not CABLES and spec.get("letters_power") != "per_letter":    # v295: per_letter - laidų legenda jau yra (ne tuščia eilutė)
         T(RVX, min(RVY - 34, RVY - ROW[0] - 20 * max(UPR[0], 1) - 6), spec.get("power_note", "Power / PSU / cable exits:"), K.F_INFO + 1)   # v29 / v276: virš matmenų eilių: pvz. „NO LIGHTS - no cable / PSU"
 for xj_, lj_ in JOINTS:
-    _joint(RV(xj_, 0)[0], RVY - 8, RVY + rh + 8, lj_)
+    _joint(RV(xj_, 0)[0], RVY - 8, RVY + rh + 8, lj_, _bars(RV))
 for _sx, _sy, _ in P10N_STUDS:                           # v249: ilgasriegiai Alu dugnelyje
     _cc = RV(_sx, _sy)
     K.circle(_cc[0], _cc[1], max(1.2, P10_ROD["d"] / 2 * s2), fill=white, lw=0.3)

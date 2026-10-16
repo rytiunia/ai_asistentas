@@ -3,7 +3,10 @@ P6 DXF atskiru BLOCK / sluoksniu 4_PLOKSTE_ACM3 (ta pati koordinačių sistema k
 Tvirtinimo skylių plokštėje lape nėra - nededama (klausti).
 python3 plokste_dxf.py <svarus.pdf> <plates.json> <scale N> <in.dxf>"""
 import json, sys
+import os
 import ezdxf, pymupdf as fitz
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", ".."))
+import kreives as KR  # noqa: E402
 from ezdxf.math import BSpline  # noqa
 src, pj, N, fn = sys.argv[1], sys.argv[2], float(sys.argv[3]), sys.argv[4]
 S = N * 25.4 / 72
@@ -35,8 +38,9 @@ for pl in json.load(open(pj)):
                 x = u**3 * p0[0] + 3 * u * u * t * p1[0] + 3 * u * t * t * p2[0] + t**3 * p3[0]
                 y = u**3 * p0[1] + 3 * u * u * t * p1[1] + 3 * u * t * t * p2[1] + t**3 * p3[1]
                 pts.append((X(x), Y(y)))
-    blk.add_lwpolyline(pts, close=True, dxfattribs={"layer": "4_PLOKSTE_ACM3"})
+    blk.add_lwpolyline(KR.fit(pts, True, max(KR.TOL, 0.01 * S)), format="xyb", close=True,
+                       dxfattribs={"layer": "4_PLOKSTE_ACM3"})                       # v316 (v313): lankais
     xs, ys = [p[0] for p in pts], [p[1] for p in pts]
     print(f"plokštė {max(xs) - min(xs):.0f} x {max(ys) - min(ys):.0f} mm, x {min(xs):.0f}..{max(xs):.0f}, y {min(ys):.0f}..{max(ys):.0f}")
 doc.modelspace().add_blockref("PLOKSTE", (0, 0), dxfattribs={"layer": "4_PLOKSTE_ACM3"})
-doc.saveas(fn)
+KR.saveas(doc, fn)
