@@ -220,14 +220,36 @@ def save(out_pdf):
 def art_json(out_pdf, pages_offset=0):
     """v182: kliento grafikos sritys šalia lapo (`<lapas>.pdf.art.json`) - patikra_lapas.py jų netikrina (kliento grafika
     neliečiama, v162); sąrašas išvalomas."""
+    import json, sys
+    # v293: šalia lapo VISADA - kliento grafika, centruojami blokai, generatorius ir naudotos taisyklių funkcijos
+    #  (patikra_lapas.py pagal tai tikrina, ar lapas darytas DABARTINĖMIS taisyklėmis, ne seno projekto kopija)
+    with open(out_pdf + ".art.json", "w") as fh:
+        json.dump({"art": [list(a[:4]) + [a[4] + pages_offset] for a in ART],
+                   "blocks": [list(b[:4]) + [b[4] + pages_offset, b[5]] for b in BLOCKS],
+                   "gen": os.path.abspath(sys.argv[0]) if sys.argv and sys.argv[0] else "",
+                   "feat": sorted(FEAT)}, fh)
+    ART.clear(); BLOCKS.clear(); FEAT.clear()
+
+
+def merge_sheets(pages, out):
+    """v293: atskirų lapų PDF -> vienas PDF KARTU su jų `.art.json` (kliento grafika, centruojami blokai, generatorius,
+    funkcijos - su puslapių poslinkiu), kad patikra_lapas.py tikrintų visus lapus pagal dabartines taisykles."""
     import json
-    if ART or BLOCKS:                                     # v291: + centruojami blokai (TAISYKLĖ 5) - patikra 12 CENTRAVIMAS
-        with open(out_pdf + ".art.json", "w") as fh:
-            json.dump({"art": [list(a[:4]) + [a[4] + pages_offset] for a in ART],
-                       "blocks": [list(b[:4]) + [b[4] + pages_offset, b[5]] for b in BLOCKS]}, fh)
-    elif os.path.exists(out_pdf + ".art.json"):
-        os.remove(out_pdf + ".art.json")
-    ART.clear(); BLOCKS.clear()
+    d, acc, off = fitz.open(), {"art": [], "blocks": [], "gen": "", "feat": []}, 0
+    for p_ in pages:
+        src = fitz.open(p_); n_ = len(src); d.insert_pdf(src); src.close()
+        sc_ = p_ + ".art.json"
+        if os.path.exists(sc_):
+            j_ = json.load(open(sc_))
+            acc["art"] += [a_[:4] + [a_[4] + off] for a_ in j_.get("art", [])]
+            acc["blocks"] += [b_[:4] + [b_[4] + off, b_[5]] for b_ in j_.get("blocks", [])]
+            acc["gen"] = acc["gen"] or j_.get("gen", "")
+            acc["feat"] = sorted(set(acc["feat"]) | set(j_.get("feat", [])))
+            os.remove(sc_)
+        off += n_
+    d.save(out, garbage=3, deflate=True); d.close()
+    with open(out + ".art.json", "w") as fh:
+        json.dump(acc, fh)
 
 
 def set_view(on):
@@ -866,15 +888,19 @@ def frame():
     pass                                                  # juostos viršų formuoja patys blokai (vientisas blokas)
 
 
+FEAT = set()           # v293: naudotos taisyklių funkcijos (layout = layout_engine.report) -> sidecar -> patikra
 BLOCKS = []            # v291: (x, y, w, h, psl., pavadinimas) - turinys centruojamas savo bloke (TAISYKLĖ 5)
 
 
-def centered(x, y, w, h, fn, name=""):
+def centered(x, y, w, h, fn, name="", frame=False):
     """v291 TAISYKLĖ 5 (Rytis 2026-10-15: „profilio pjūvis visada centruojamas savo bloke, tai galioja visiems profiliams ir
     pjūviams, kurie turi savo bloką"): fn(x, y, w, h) nubraižoma bandomajame PDF, išmatuojamas tikras turinio gabaritas
     (geometrija + tekstai), tada braižoma su poslinkiu, kad gabarito centras = bloko centras. Blokas įrašomas į
-    `<lapas>.pdf.art.json` - patikra_lapas.py 12 CENTRAVIMAS tikrina rezultatą."""
-    global c
+    `<lapas>.pdf.art.json` - patikra_lapas.py 12 CENTRAVIMAS tikrina rezultatą.
+    frame=False - (x, y, w, h) yra turinio sritis, fn piešia tik turinį (fn gauna paslinktus x, y).
+    frame=True (v293) - SENOS bloko funkcijos, kurios pačios piešia antraštę (header, 12 pt) ir rėmelį (K.p6_reference,
+    p1_typical, p10_raides.section ...): turinys paslenkamas drobės transformacija, antraštė ir rėmelis lieka vietoje."""
+    global c, header
     import copy
     snap = (copy.deepcopy(EXT_REG), list(TEXT_BOXES), list(OVERFLOW), list(_PLACE), list(ART), list(BALLOONS), VIEW_MODE)
     real, tmp = c, tempfile.mktemp(suffix=".pdf")
@@ -886,9 +912,11 @@ def centered(x, y, w, h, fn, name=""):
         c = real
         EXT_REG.clear(); EXT_REG.update(snap[0]); TEXT_BOXES[:] = snap[1]; OVERFLOW[:] = snap[2]
         _PLACE[:] = snap[3]; ART[:] = snap[4]; BALLOONS[:] = snap[5]; set_view(snap[6])
+    cy0, ch = (y + 12, h - 12) if frame else (y, h)
     d = fitz.open(tmp)
-    rs = [fitz.Rect(dr["rect"]) for dr in d[0].get_drawings() if dr["rect"].width < W * 0.9]
-    rs += [fitz.Rect(b[:4]) for b in d[0].get_text("blocks")]
+    rs = [fitz.Rect(dr["rect"]) for dr in d[0].get_drawings() if dr["rect"].width < W * 0.9
+          and not (frame and (dr["rect"].width >= 0.95 * w or dr["rect"].y1 <= cy0 + 0.5))]
+    rs += [fitz.Rect(b[:4]) for b in d[0].get_text("blocks") if not (frame and b[3] <= cy0 + 0.5)]
     d.close(); os.remove(tmp)
     dx = dy = 0.0
     if rs:
@@ -896,10 +924,37 @@ def centered(x, y, w, h, fn, name=""):
         for r_ in rs[1:]:
             bb |= r_
         dx = x + w / 2 - (bb.x0 + bb.x1) / 2
-        dy = y + h / 2 - (bb.y0 + bb.y1) / 2
-    fn(x + dx, y + dy, w, h)
-    BLOCKS.append((x, y, w, h, c.getPageNumber() - 1, name))
+        dy = cy0 + ch / 2 - (bb.y0 + bb.y1) / 2
+    if not frame:
+        fn(x + dx, y + dy, w, h)
+    else:
+        h0, r0 = header, c.rect
+        def _hdr(*a, **k):                               # antraštė - vietoje (atšaukiamas poslinkis)
+            rr = c.rect; c.rect = r0
+            c.saveState(); c.translate(-dx, dy); h0(*a, **k); c.restoreState()
+            c.rect = rr
+        def _rect(rx, ry, rw, rh, *a, **k):              # bloko rėmelis (tas pats x ir plotis) - vietoje
+            if abs(rx - x) < 0.05 and abs(rw - w) < 0.05:
+                c.saveState(); c.translate(-dx, dy); r0(rx, ry, rw, rh, *a, **k); c.restoreState()
+            else:
+                r0(rx, ry, rw, rh, *a, **k)
+        c.saveState(); c.translate(dx, -dy)
+        header, c.rect = _hdr, _rect
+        try:
+            fn(x, y, w, h)
+        finally:
+            header = h0; c.rect = r0
+            c.restoreState()
+    BLOCKS.append((x, cy0, w, ch, c.getPageNumber() - 1, name))
     return dx, dy
+
+
+def section_block(x, y, w, h, title, fn):
+    """v293 STANDARTAS naujiems pjūvio / profilio / DETAIL blokams: antraštė + rėmelis + turinys bloko centre.
+    fn(x, y, w, h) piešia TIK turinį (pastabos - prie turinio, ne prie bloko apačios)."""
+    header(x, y, w, title)
+    rect(x, y + 12, w, h - 12, lw=0.6)
+    return centered(x, y + 12, w, h - 12, fn, title)
 
 
 def header(x, y, w, title):

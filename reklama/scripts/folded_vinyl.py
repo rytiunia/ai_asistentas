@@ -350,11 +350,9 @@ def build(S, P, out, sheet_no, n_sheets):
     W_S, W_MD, W_TB = 170, 214, 272
     X_S = K.IX0; X_TB = K.IX1 - W_TB; X_MD = X_TB - W_MD; X_BOM = X_S + W_S; W_BOM = X_MD - X_BOM
 
-    def section(x, y, w, h):
-        K.header(x, y, w, "FOLDED PLATE - SECTION 1:2")
-        rect(x, y + 12, w, h - 12, lw=0.6)
+    def section(x, y, w, h):                             # v293: tik turinys - K.section_block centruoja bloke
         sc = MM / 2
-        xf, yt = x + w / 2 + 10, y + 50
+        xf, yt = x + w / 2 + 10, y + 30
         K.set_view(True)
         rect(xf, yt, t * sc, 70 * sc, fill=black, lw=0.35)
         rect(xf - (depth - t) * sc, yt, (depth - t) * sc, t * sc, fill=black, lw=0.35)
@@ -364,10 +362,11 @@ def build(S, P, out, sheet_no, n_sheets):
         leader(xf + t * sc + 1, yt + 70, xf + 50, yt + 80, 2)
         leader(xf + 1, yt + 40, xf + 50, yt + 46, 1)
         hdim(xf - (depth - t) * sc, xf + t * sc, yt - 14, f"{depth:g}", yt, yt, size=8)
-        T(x + w / 2, y + h - 18, f"Alu {t:g} mm folded, {S.get('finish_short', 'RAL ' + str(S['plate_ral']))}", 7, color=K.GREY, align="c", auto_red=False)
-        T(x + w / 2, y + h - 7, "+ cut vinyl (front)", 7, color=K.GREY, align="c", auto_red=False)
+        yn = yt + 70 * sc + 16                           # pastabos - po pjūviu
+        T(x + w / 2, yn, f"Alu {t:g} mm folded, {S.get('finish_short', 'RAL ' + str(S['plate_ral']))}", 7, color=K.GREY, align="c", auto_red=False)
+        T(x + w / 2, yn + 10, "+ cut vinyl (front)", 7, color=K.GREY, align="c", auto_red=False)
 
-    section(X_S, BY0, W_S, BH)
+    K.section_block(X_S, BY0, W_S, BH, "FOLDED PLATE - SECTION 1:2", section)
     A_flat = sum(a_ * b_ for a_, b_ in flats) / 1e6
     L_tot = 2 * (W - 50) / 1000
     kg = A_flat * t * 2.70 + L_tot * 0.000116 * 2700
@@ -434,10 +433,7 @@ def main(spec_path, out):
         pp = f"{base}.{P['name']}.pdf"
         r = build(S, P, pp, i + 1, len(S["panels"]))
         pages.append(pp); res.append((P, r))
-    d = fitz.open()
-    for p in pages:
-        d.insert_pdf(fitz.open(p))
-    d.save(out, garbage=3, deflate=True); d.close()
+    K.merge_sheets(pages, out)                            # v293: + lapų .art.json (patikra tikrina visus lapus)
     K.pdf_fix_fonts(out)
     for p in pages:
         for q in (p, p + ".tmp"):

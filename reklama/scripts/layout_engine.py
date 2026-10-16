@@ -70,5 +70,7 @@ def title_w(title, scale):
 
 def report(name, sc_ortho, gap, fills):
     """fills: {vaizdas: (užimta, zona)} - spausdina užpildymą (3D tikslas 85-100 % dominuojančio matmens)."""
+    import lapas_core as K
+    K.FEAT.add("layout")                                       # v293: patikra žino, kad išdėstymas skaičiuotas (TAISYKLĖ 33)
     s = ", ".join(f"{k} {100 * a / b:.0f}%" for k, (a, b) in fills.items())
     print(f"LAYOUT {name}: ortho 1:{sc_ortho}, tarpas {gap:.0f} pt, {s}")

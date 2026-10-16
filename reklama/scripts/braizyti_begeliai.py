@@ -3455,26 +3455,31 @@ try:                                                       # v162: □ profilio 
 except Exception:
     _P6REF.RAIL_RATIO = 1.0
 _P6REF.LABEL_MAP.update({str(k_): str(v_) for k_, v_ in spec.get("section_labels", {}).items()})
+def _blk(x_, w_, name_, f_):                              # v293 TAISYKLĖ 5 / 34: pjūvis - bloko centre (patikra 12)
+    K.centered(x_, BY0, w_, BH, f_, name_, frame=True)
+
+
 if FRONT == "P1":
-    K.p1_typical(X_P6, BY0, W_P6, BH, depth, variant="rail", title="PROFILE P1 ON RAILS - TYPICAL SECTION",
+    _blk(X_P6, W_P6, "PROFILE P1", lambda x_, y_, w_, h_: K.p1_typical(x_, y_, w_, h_, depth, variant="rail", title="PROFILE P1 ON RAILS - TYPICAL SECTION",
                  numbers={"fit": _EAR_POS or 6, "mount": _rail_pos()}, ears=_HAS_EARS,
-                 bracket=(next((str(r_[0]) for r_ in _BOM_ROWS if re.search(r"bracket|hanger", str(r_[1]), re.I)), "") if BRACKETS else None))
+                 bracket=(next((str(r_[0]) for r_ in _BOM_ROWS if re.search(r"bracket|hanger", str(r_[1]), re.I)), "") if BRACKETS else None)))
 elif FRONT == "P10":                                     # v242: P10 blokas ant akrilinio rėmo (etalonas Boots ALT6739)
     import p10_raides as _P10R
     import auto_remas as _ARs
     _strk = sorted(_ARs.stroke_t(o["geom"]) for g in groups for o in g["letters"])
-    _P10R.section(K, X_P6, BY0, W_P6, BH, spec, ACRY if RAIL_ACR else None, RAIL_W if RAIL_ACR else None, rod=P10_ROD,
+    _blk(X_P6, W_P6, "PROFILE P10", lambda x_, y_, w_, h_: _P10R.section(K, x_, y_, w_, h_, spec, ACRY if RAIL_ACR else None, RAIL_W if RAIL_ACR else None, rod=P10_ROD,
                   stroke=_strk[len(_strk) // 2] if _strk else None,
                   title=(f"PROFILE P10 ON {'CLEAR ACRYLIC FRAME ' + RAIL['size'] if RAIL_ACR else 'FRAME'}" if MOUNTING != "none"
-                         else "PROFILE P10 - THREADED RODS TO FACADE"))
+                         else "PROFILE P10 - THREADED RODS TO FACADE")))
 elif MOUNTING == "l_hang":                               # v269 (Rytis 2026-10-15): P6 ant L profilių kaip VOLVO BILB26-01001
     import p6_lhang as _LH
-    _LH.section(K, X_P6, BY0, W_P6, BH, depth, spec, title=f"PROFILE {_PNAME} ON L-PROFILES - TYPICAL SECTION")
+    _blk(X_P6, W_P6, "PROFILE L", lambda x_, y_, w_, h_: _LH.section(K, x_, y_, w_, h_, depth, spec,
+                                                                     title=f"PROFILE {_PNAME} ON L-PROFILES - TYPICAL SECTION"))
 elif RAIL_ACR:                                           # v232 (Rytis: „kodėl senas pjūvis?"): etaloninis P6 pjūvis
     _P6REF.ACRYLIC = True                                #  (square wallframe) su skaidriu pilnaviduriu akrilo bėgeliu 40x20
     _P6REF.RAIL_RATIO = float(ACRY["thk"]) / RAIL_W
-    K.p6_reference(X_P6, BY0, W_P6, BH, depth, kind="square", front=FRONT,
-                   title=f"PROFILE {_PNAME} ON CLEAR ACRYLIC FRAME {RAIL['size']}")
+    _blk(X_P6, W_P6, "PROFILE ACRYLIC", lambda x_, y_, w_, h_: K.p6_reference(x_, y_, w_, h_, depth, kind="square", front=FRONT,
+                   title=f"PROFILE {_PNAME} ON CLEAR ACRYLIC FRAME {RAIL['size']}"))
 else:
     # v276 (Rytis 2026-10-15, Securitas): VIENOJE iškaboje skirtingi priekiai (pvz. P6 color + 5S+foil) - po pjūvį kiekvienam,
     #  pusė pjūvio langelio kiekvienam, pavadinimas su grupe
@@ -3496,12 +3501,13 @@ else:
     for _iq, (_k, _code, _names) in enumerate(_fr_list):
         _pn = _code.split()[0].split("+")[0] if _names else _PNAME
         _who = f" ({', '.join(_names)})" if _names else ""
-        K.p6_reference(X_P6 + _iq * _wq, BY0, _wq, BH, depth, kind=("folded" if MOUNTING == "none" else _P6R.kind_of("rail", spec.get("rail", {}).get("type"))), front=_k,
+        _blk(X_P6 + _iq * _wq, _wq, f"PROFILE {_k}", lambda x_, y_, w_, h_, _k=_k, _pn=_pn, _who=_who, _names=_names:
+             K.p6_reference(x_, y_, w_, h_, depth, kind=("folded" if MOUNTING == "none" else _P6R.kind_of("rail", spec.get("rail", {}).get("type"))), front=_k,
                        title=(f"PROFILE {_pn} - FIXED TO FACADE (SEPARATE LETTERS)" if MOUNTING == "none" else
                               (f"PROFILE {_pn}{_who}" if _names else f"PROFILE {_pn} ON RAILS - TYPICAL SECTION")),
                        ears=(_EAR_POS if _HAS_EARS else None),
                        ear_hole=EAR_HOLE / float(RAIL.get("depth", 30)),
-                       bracket=(next((str(r_[0]) for r_ in _BOM_ROWS if re.search(r"bracket|hanger", str(r_[1]), re.I)), "") if BRACKETS else None))
+                       bracket=(next((str(r_[0]) for r_ in _BOM_ROWS if re.search(r"bracket|hanger", str(r_[1]), re.I)), "") if BRACKETS else None)))
     _P6REF.K_FIX = None
 if spec.get("bom_cols"):                                   # v160: originalo lentelės stulpeliai (perkeliama iš org. dokumento)
     K.bom_table(X_BOM, BY0, W_BOM, BH, [[subst(x) for x in row] for row in spec["bom"]],

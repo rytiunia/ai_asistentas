@@ -78,12 +78,31 @@ def _cross(a, b):
 
 def check(pdf, band_y=None, skips=(), verbose=True):
     doc = fitz.open(pdf)
-    arts, blocks = [], []
+    arts, blocks, gen = [], [], ""
     import json, os
     if os.path.exists(pdf + ".art.json"):                                          # v182: K.place_pdf kliento grafikos sritys
         _j = json.load(open(pdf + ".art.json"))
         arts = _j.get("art", [])
         blocks = _j.get("blocks", [])
+        gen = _j.get("gen", "")
+    # v293 (Rytis 2026-10-16: „kad kitą kartą vėl nebūtų daroma su senomis taisyklėmis ir nustatymais"):
+    #  14 SENA TAISYKLĖ - generatoriaus lint (taisykliu_lint.py), 15 SUVESTINĖ PASENUSI - references/lapo_taisykles.md
+    #  „Atnaujinta: vNNN" turi sutapti su SKILL.md „Versija" (kiekvienas skill pakeitimas peržiūri galiojančių taisyklių suvestinę)
+    glob_errs = []
+    try:
+        import taisykliu_lint as _TL
+        glob_errs += _TL.lint(gen) if "gen" in dir() and gen else []
+    except Exception as e_:
+        glob_errs.append(f"SENA TAISYKLĖ: lint nepavyko ({e_})")
+    _root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+    try:
+        _sv = re.search(r"Versija: \S+ v(\d+)", open(os.path.join(_root, "SKILL.md"), encoding="utf-8").read()).group(1)
+        _dv = re.search(r"Atnaujinta: v(\d+)", open(os.path.join(_root, "references", "lapo_taisykles.md"), encoding="utf-8").read()).group(1)
+        if int(_dv) < int(_sv):
+            glob_errs.append(f"SUVESTINĖ PASENUSI: references/lapo_taisykles.md v{_dv} < SKILL v{_sv} - įrašyti naujas taisykles "
+                             f"(scripts/versija.py)")
+    except Exception as e_:
+        glob_errs.append(f"SUVESTINĖ NERASTA: references/lapo_taisykles.md ({e_})")
     total = 0
     for pno, pg in enumerate(doc):
         errs = []
@@ -346,6 +365,13 @@ def check(pdf, band_y=None, skips=(), verbose=True):
             ddx, ddy = (bb.x0 + bb.x1 - B.x0 - B.x1) / 2, (bb.y0 + bb.y1 - B.y0 - B.y1) / 2
             if abs(ddx) > max(3, 0.03 * bw) or abs(ddy) > max(3, 0.03 * bh):
                 errs.append(f"NECENTRUOTA BLOKE '{bn}': poslinkis x {ddx:+.0f}, y {ddy:+.0f} pt")
+        # 13. v293: pjūvio / profilio / DETAIL bloko antraštė apatinėje juostoje -> blokas privalo būti per K.centered / section_block
+        for r_, t_ in allsp:
+            if by - 3 <= r_.y0 and r_.y1 <= by + 15 and re.search(r"SECTION|PROFILE|DETAIL", t_) \
+                    and not any(bp == pno and bx - 1 <= r_.x0 <= bx + bw for bx, by_, bw, bh, bp, bn in blocks):
+                errs.append(f"BLOKAS NECENTRUOJAMAS: '{t_}' - piešti per K.centered / K.section_block (TAISYKLĖ 5 / 34)")
+        if pno == 0:
+            errs += glob_errs
         errs = sorted(set(errs))
         total += len(errs)
         if verbose:

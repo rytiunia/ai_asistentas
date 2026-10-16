@@ -121,6 +121,14 @@ def score(txt, terms):
 def main(argv):
     if not argv or argv[0] in ("-h", "--help"):
         print(__doc__); return
+    # v293: pirmiausia - galiojančių lapo taisyklių suvestinė (kad nebūtų daroma senomis taisyklėmis / nustatymais)
+    _dg = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "references", "lapo_taisykles.md")
+    if os.path.exists(_dg):
+        _st = re.search(r"Atnaujinta: (v\d+)", open(_dg, encoding="utf-8").read())
+        print("!" * 100)
+        print(f"!! PRIVALOMA: references/lapo_taisykles.md ({_st.group(1) if _st else '?'}) - galiojančios lapo taisyklės + darbo eiga;")
+        print("!! braižyti tik per lapas_core / layout_engine; seno projekto skriptas - tik duomenų analogas; patikra = 0.")
+        print("!" * 100)
     N = 25
     if "--n" in argv:
         i = argv.index("--n"); N = int(argv[i + 1]); argv = argv[:i] + argv[i + 2:]

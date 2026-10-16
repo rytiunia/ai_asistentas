@@ -234,8 +234,8 @@ md = [["Quantity", f"{QTY} pcs."], ["Overall size", f"{PW} x {PH} x {PD} mm"], [
       ["Letter holes", f"Ø4 mm: {N_SP} pcs., slots: {N_SLOT} pcs." if not N_D8 else f"Ø4 mm: {N_SP}, slots: {N_SLOT}, Ø8 mm: {N_D8} pcs."], ["Weight (calc.)", f"≈ {WT:.0f} kg / pcs., excl. PSU"]]
 band("P8 SPECIAL - SECTION A-A (1:2)", p8_band, bom, md, "Order 226045 Clas Ohlson Bodø - LED sign 515 x 2380 mm, P8 special", "1 / 1",
      f"1:{SC} / 1:2", qty=QTY)
-K.save(OUT)
-K.pdf_fix_fonts(OUT)
 LE.report("Bodø 226045", SC, G_, {"ortho H": (PH * s, K.VIEW_BOT - YT - A_BOT), "3D H": (h3, YB - YT),
           f"logo 1:{SCL} H": (L_TOP + LG_H * sl + L_BOT, _lh)})
+K.save(OUT)
+K.pdf_fix_fonts(OUT)
 print("logo", [round(v) for v in LBB], "letters", len(LET), "spacers", N_SP, "flat", FLAT, "W", round(WT, 1), "overflow", K.OVERFLOW)
