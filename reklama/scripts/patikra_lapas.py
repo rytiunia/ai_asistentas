@@ -339,6 +339,9 @@ def check(pdf, band_y=None, skips=(), verbose=True):
         for r_, t_ in allsp:
             if _DEC.search(t_):
                 errs.append(f"DEŠIMTAINIS TAŠKAS (turi būti kablelis): '{t_}' ({r_.x0:.0f}, {r_.y0:.0f})")
+            if r_.y0 > by and re.fullmatch(r"\d+,\d+", t_) and not any(bp == pno and fitz.Rect(bx, by_, bx + bw, by_ + bh).contains(r_)
+                                                                       for bx, by_, bw, bh, bp, bn in blocks):
+                errs.append(f"VIENETAS NENURODYTAS (m / m² / mm?): lentelėje skaičius be vieneto '{t_}' ({r_.x0:.0f}, {r_.y0:.0f})")
             if r_.y0 > by and re.fullmatch(r"\d+(?:,\d+)?", t_):
                 lab_ = [t2 for r2, t2 in allsp if abs(r2.y0 - r_.y0) < 2 and r2.x1 <= r_.x0 + 1 and r_.x0 - r2.x1 < 40]
                 if lab_ and re.search(r"depth|size|width|height|length|thick", lab_[-1], re.I):

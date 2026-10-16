@@ -60,7 +60,7 @@ def section(K, x, y, w, h, depth, spec, title="PROFILE P6 ON L-PROFILES - TYPICA
             K.leader(px, py, bxl, by, n, 6)
         hdim(X(wx), X(bx), Yp(top - mm(10)) - 6, f"~{l + gap:g}", Yp(top - mm(10)), Yp(top), size=7)
         T(G["x0"] + 4, G["y0"] + 9,
-          f"L {l:g}x{l:g}x{t:g} (letters) hooks onto L {l:g}x{l:g}x{t:g} (facade); U {u:g}x{u:g}x{ut:g} - wires", 5.5,
+          f"L {l:g} x {l:g} x {t:g} mm (letters) hooks onto L (facade); U {u:g} x {u:g} x {ut:g} mm - wires", 5.5,
           color=K.GREY)
 
     K.p6_reference(x, y, w, h, depth, kind="u", front=spec.get("front", "P6"), title=title, no_rail=True,
