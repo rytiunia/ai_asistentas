@@ -15,6 +15,9 @@ Plėvelės nesting - plevele.py (rulonas).
     import nesting as NE
     r = NE.nest_parts(geoms, "Acrylic 8 mm white")      # -> {"m2", "sheets", "format", "parts_m2", "waste", "text"}
     r = NE.nest_strips([perimeter_mm...], 80, "Alu 1 mm")
+v309 (Rytis 2026-10-16, Leapmotor 33577 - 40 / 20 vnt.): KIEKIS. Užsakymo kiekis gaminamas kartu - detalės dėliojamos
+VISAM kiekiui (qty kopijų), BOM „per 1 pcs." = viso sunaudojimas / qty (ne vienos iškabos lakštas su 70 % atliekų).
+    r = NE.nest_parts(geoms, mat, qty=40)    # -> r["m2"] per 1 vnt., r["m2_total"], r["qty"]
 """
 import math
 import re
@@ -121,7 +124,10 @@ def _place(sh, r):
                                            and g[1] + g[3] >= f[1] + f[3] for g in nf)]
 
 
-def _nest_rects(rects, material_text, parts_m2, label):
+def _nest_rects(rects, material_text, parts_m2, label, qty=1):
+    qty = max(1, int(qty or 1))
+    rects = list(rects) * qty
+    parts_m2 = parts_m2 * qty
     fm, key, thk = formats(material_text)
     if not fm:
         return {"m2": None, "text": f"! nesting: medžiagos '{material_text}' lakštų formatų nėra (medziagos.json) - plotas neapskaičiuotas",
@@ -143,24 +149,72 @@ def _nest_rects(rects, material_text, parts_m2, label):
                         "waste": (1 - parts_m2 / m2) if m2 else 0.0, "oversize": any(sh.get("oversize") for sh in sheets)}
                 if best is None or cand["m2"] < best["m2"] - 1e-9:
                     best = cand
-    best["text"] = (f"nesting {label}: {best['sheets']} x {best['format'][0]:.0f}x{best['format'][1]:.0f} ({best['supplier']}) -> "
-                    f"{best['m2']:.2f} m² (detalės {parts_m2:.2f} m², atliekos {best['waste'] * 100:.0f} %)"
+    best["qty"], best["m2_total"] = qty, best["m2"]
+    best["m2"], best["parts_m2"] = best["m2_total"] / qty, parts_m2 / qty
+    best["text"] = ((f"nesting {label} ({qty} pcs.): " if qty > 1 else f"nesting {label}: ")
+                    + f"{best['sheets']} x {best['format'][0]:.0f}x{best['format'][1]:.0f} ({best['supplier']}) -> "
+                    f"{best['m2_total']:.2f} m²" + (f" = {best['m2']:.3f} m² / pcs." if qty > 1 else "")
+                    + f" (detalės {parts_m2:.2f} m², atliekos {best['waste'] * 100:.0f} %)"
                     + (" ! detalė didesnė už lakštą - dalinti" if best["oversize"] else "")
                     + (f" ({fm[0]['pastaba']})" if fm and fm[0].get("pastaba", "").startswith("storis") else ""))
     return best
 
 
-def nest_parts(geoms, material_text, label="parts"):
+def nest_parts(geoms, material_text, label="parts", qty=1):
     gs = [g for g in geoms if g is not None and not g.is_empty]
     rects = [_rect_of(g) for g in gs]
-    return _nest_rects(rects, material_text, sum(g.area for g in gs) / 1e6, label)
+    return _nest_rects(rects, material_text, sum(g.area for g in gs) / 1e6, label, qty)
 
 
-def nest_strips(lengths_mm, width_mm, material_text, label="returns"):
+def _ffd_strips(lengths, w, material_text, qty):
+    """v309: juostos - 1D dėliojimas eilėmis (First Fit Decreasing): lakšte eilių = (S - 2p + gap) // (w + gap),
+    eilės ilgis L - 2p; ilgesnė už eilę juosta dalijama. Abi lakšto kryptys, visi formatai, mažiausias sunaudojimas."""
+    fm, _, _ = formats(material_text)
+    p = float(MEDZ.data()["lakstai"].get("parastė_mm", 10))
+    best = None
+    for f in fm:
+        L0, S0 = f["formatas_mm"]
+        for (L, S) in ((L0, S0), (S0, L0)):
+            rl, nr = L - 2 * p, int((S - 2 * p + GAP) // (w + GAP))
+            if nr < 1 or rl <= GAP:
+                continue
+            pieces = []
+            for x in list(lengths) * qty:                  # ilgesnė už eilę - pilnos eilės + likutis (šono sandūra bet kur)
+                while x + GAP > rl + 1e-6:
+                    pieces.append(rl - GAP); x -= rl - GAP
+                if x > 1:
+                    pieces.append(x)
+            rows = []
+            for x in sorted(pieces, reverse=True):
+                for i, r in enumerate(rows):
+                    if r + x + GAP <= rl + 1e-6:
+                        rows[i] = r + x + GAP; break
+                else:
+                    rows.append(x + GAP)
+            n_sh = math.ceil(len(rows) / nr)
+            last = len(rows) - (n_sh - 1) * nr
+            m2 = ((n_sh - 1) * L * S + min(S, p + last * (w + GAP)) * L) / 1e6   # paskutinis - panaudotų eilių juosta
+            if best is None or m2 < best["m2"]:
+                best = {"m2": m2, "sheets": n_sh, "format": (L0, S0), "supplier": f.get("tiekejas", "?"), "oversize": False}
+    return best
+
+
+def nest_strips(lengths_mm, width_mm, material_text, label="returns", qty=1):
     fm, _, _ = formats(material_text)
     Lmax = max((f["formatas_mm"][0] for f in fm), default=3000) - 2 * 10 - GAP
     rects = []
     for L in lengths_mm:
         n = max(1, math.ceil(L / Lmax))
         rects += [(L / n, width_mm)] * n
-    return _nest_rects(rects, material_text, sum(lengths_mm) * width_mm / 1e6, label)
+    r = _nest_rects(rects, material_text, sum(lengths_mm) * width_mm / 1e6, label, qty)
+    q = max(1, int(qty or 1))
+    f_ = _ffd_strips(lengths_mm, width_mm, material_text, q) if r.get("m2") is not None else None
+    if f_ and f_["m2"] < r["m2_total"] - 1e-9:                 # eilėmis - mažesnis sunaudojimas
+        pm = r["parts_m2"] * q
+        r.update(sheets=f_["sheets"], format=f_["format"], supplier=f_["supplier"], m2_total=f_["m2"], m2=f_["m2"] / q,
+                 waste=1 - pm / f_["m2"])
+        r["text"] = ((f"nesting {label} ({q} pcs.): " if q > 1 else f"nesting {label}: ")
+                     + f"{r['sheets']} x {r['format'][0]:.0f}x{r['format'][1]:.0f} ({r['supplier']}) juostos eilėmis -> "
+                     f"{r['m2_total']:.2f} m²" + (f" = {r['m2']:.3f} m² / pcs." if q > 1 else "")
+                     + f" (detalės {pm:.2f} m², atliekos {r['waste'] * 100:.0f} %)")
+    return r

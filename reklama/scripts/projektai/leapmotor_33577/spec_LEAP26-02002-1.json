@@ -1,15 +1,40 @@
 {
  "client": "Alfa Neon AB / LEAPMOTOR",
- "title": "LEAP26-02002-1 Lightbox 1+10 750x750 - P10_lightbox_singlesided",
+ "title": "LEAP26-02002-1 Lightbox 1+10 750 x 750 mm - P10_lightbox_singlesided",
  "order_no": "ALT0000_00.00_RS",
  "drawing_no": "LEAP26-02002-1",
- "date": "2026-10-14",
+ "date": "2026-10-16",
  "qty": "20",
- "w": 750, "h": 750, "depth": 80, "t": 2.0,
- "back_t": 1.5, "back_depth": 30, "back_off": 3.0,
+ "w": 750,
+ "h": 750,
+ "depth": 50,
+ "t": 2.0,
+ "back_t": 1.5,
+ "back_depth": 30,
+ "back_off": 3.0,
  "glass": "3+8",
  "body_finish": "RAL 7021",
  "back_finish": "",
- "cable": {"from_back_front": 23, "y": null, "hole_d": null, "slot_w": null},
- "logo": {"pdf": "Leap_Motors_signs_2026-10-14.pdf", "page": 0, "clip": [2976.158, 8239.162, 5102.142, 10365.146], "fill": [1, 1, 1]}
+ "cable": {
+  "from_back_front": 23,
+  "y": null,
+  "hole_d": null,
+  "slot_w": null
+ },
+ "logo": {
+  "pdf": "Leap_Motors_signs_2026-10-14.pdf",
+  "page": 0,
+  "clip": [
+   2976.158,
+   8239.162,
+   5102.142,
+   10365.146
+  ],
+  "fill": [
+   1,
+   1,
+   1
+  ]
+ },
+ "sheet": "5 / 6"
 }

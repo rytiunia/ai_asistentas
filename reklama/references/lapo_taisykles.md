@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v308 (2026-10-16)
+Atnaujinta: v309 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -43,7 +43,9 @@ SUVESTINĖ PASENUSI.
   - `CX, G = LE.distribute(K.IX0, K.IX1, [stulpelių pločiai], margin=(0.5, 1.0))`
   - `LE.report(...)` iškviečiamas PRIEŠ `K.save`.
 - FRONT / SIDE / REAR turi vieną bendrą didžiausią telpantį mastelį: pirmiausia ISO 5455, 1:15 / 1:25 tik nurodžius lape.
-  Joks vaizdas nedidinamas ir nemažinamas atskirai.
+  Joks vaizdas nedidinamas ir nemažinamas atskirai. `braizyti_begeliai` renkasi TIK n(galas) = n(priekis) (v309; iki tol
+  galui leista iki 2,5 x smulkiau - LEAP26-01002 gavosi 1:15 / 1:20); patikra 21 SKIRTINGI MASTELIAI. Antraštėje - vienas
+  mastelis („1:20", ne „1:20 / 1:20"); 2 lape - tik tikrai nubraižytų vaizdų masteliai.
 - Stulpelio plotis = geometrija + matmenų / pozicijų juostos, bet ne mažiau už pavadinimo ir mastelio eilutę
   (`LE.title_w`). Tarpai vienodi.
 - Paraštė prie rėmo: kairėje 0,5 tarpo, DEŠINĖJE 1 tarpas (Rytis v292).
@@ -86,7 +88,10 @@ SUVESTINĖ PASENUSI.
   - dėliojama MaxRects (BSSF ir bottom-left), lakštas abiem kryptimis, visi tiekėjo formatai (`assets/medziagos.json`),
     imamas mažiausias sunaudojimas;
   - sunaudojimas = pilni lakštai + paskutinio lakšto panaudota juosta;
-  - šonai - juostos perimetras x gylis;
+  - KIEKIS (v309, Leapmotor 33577 - 40 / 20 vnt.): dėliojama VISAM užsakymo kiekiui (spec „qty"; `nest_parts(..., qty=)`),
+    BOM „per 1 pcs." = viso sunaudojimas / kiekis (ne vienos iškabos lakštas su 70 % atliekų);
+  - šonai - juostos perimetras x gylis; juostos dėliojamos ir eilėmis (1D FFD, ilgesnė už eilę - pilnos eilės + likutis),
+    imamas mažesnis iš MaxRects / eilių (v309);
   - plėvelė - `plevele.plan` (rulonas 1320 / 1190);
   - `braizyti_begeliai` BOM vietos žymos: `{A_x}` priekiai, `{BACK_x}` dugnai, `{RET_x}` šonai, `{FOIL_x}` plėvelė
     (x = 6 / 63 / ALL / grupė);
@@ -112,6 +117,8 @@ SUVESTINĖ PASENUSI.
 - Keli lapai viename PDF jungiami per `K.merge_sheets(pages, out)`, kad išliktų kiekvieno lapo patikros duomenys.
 - Vieno užsakymo kelios iškabos = VIENAS dokumentas `ALT0000_Order_<nr>.pdf` (Rytis v296, Order 33580): kiekviena iškaba -
   savas lapas (spec `"sheet": "1 / 2"`, `"2 / 2"`), sujungta `K.merge_sheets`; 1:1 failai - atskirai kiekvienai iškabai.
+  Generatorius su 2 lapais (`braizyti_begeliai` akrilo rėmas / U laikikliai, `p10_lightbox_singlesided`): spec `"sheet": "a / n"`
+  = PIRMO lapo numeris, antras - (a+1) / n (v309). Pavyzdys - `projektai/leapmotor_33577/build_order.py` (3 iškabos, 6 lapai).
 
 ## D2. Konstrukcija - rėmas (v297)
 
@@ -200,6 +207,7 @@ SUVESTINĖ PASENUSI.
 17. VIENETAS NENURODYTAS - ir lentelėje skaičius su kableliu be vieneto („10,00" -> „10,00 m"), v296.
 18. KONSTRUKCIJA (KABO ORE ir kt. - generatoriaus aptiktos klaidos), v297.
 19. PLOTAS NE NESTING (v304).
+21. SKIRTINGI MASTELIAI (v309): FRONT / SIDE / REAR lape skirtingais masteliais.
 20. PAŠALINIAI OBJEKTAI (v307): objektai paslėpti už iškarpos arba už lapo ribų (įdėtas visas šaltinio puslapis).
     Lint: VISAS ŠALTINIO PUSLAPIS, BALTAS DANGTIS.
 16. NETELPA LANGELYJE (v294): tekstas netelpa lentelės langelyje; trumpinti tekstą, šrifto nemažinti.

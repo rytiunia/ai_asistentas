@@ -10,6 +10,7 @@ Koordinatės: x - į dešinę, y - žemyn (nuo dėžės viršaus), z - gylis (0 
 Naudojimas: python3 p10_lightbox_singlesided.py spec.json out.pdf   (-> out.pdf 2 lapai + out_gamyba.dxf)"""
 import json
 import math
+import re
 import os
 import sys
 
@@ -25,6 +26,7 @@ import sviesdeze as SV  # noqa: E402
 from sviesdeze import HM, VM, D1, D2, face_label, band  # noqa: E402
 from sviesdeze import rect, poly, circle, line, T  # noqa: E402  CAD režimas (SV._CAD) 2 lapui
 import p10_lightbox_doublesided as PD2  # noqa: E402
+import nesting as NE  # noqa: E402
 
 DEF = {"client": "", "title": "LIGHTBOX P10 SINGLE-SIDED - PUSH-THROUGH", "order_no": "ALT0000_00.00_RS", "drawing_no": "",
        "date": "", "rev": "A", "qty": "?",
@@ -251,7 +253,7 @@ def sheet1(g, out):
     K.set_view(False)
     line(U(-6), Ya(-10), U(-6), Ya(H + 10), 1.2, HexColor("#888888"))
     hchain(Ya(H) + D1, [U(0), U(DB), U(D), U(D + pr)], [Ya(H)] * 4, [f"{DB:g}", f"{D - DB:g}", f"{pr:g}"], size=K.F_DIM_MAIN)
-    HM(U(0), U(D + pr), Ya(H) + D2 + 10, f"{D + pr:g}", Ya(H), Ya(H))
+    HM(U(0), U(D + pr), Ya(0) - D1 - 6, f"{D + pr:g}", Ya(0), Ya(0))      # v309: bendras gylis VIRŠ pjūvio - iškeltinės nekerta grandinės užrašų
     VM(U(D + pr) + D2, Ya(0), Ya(H), U(D), f"{H:g}")
     VM(U(-6) - 26, Ya(off), Ya(H - off), U(0), f"{g['BH']:g} (back)")
     bal = [(U(D - t / 2), Ya(H * 0.9), 1), (U(tb / 2), Ya(H * 0.85), 2), (U(DB * 0.6), Ya(off + tb / 2), 2),
@@ -268,7 +270,7 @@ def sheet1(g, out):
         rect(U(tb), Ya(ym_ - 20), 10 * s5, 40 * s5, fill=HexColor("#F2E28C"), lw=0.3)
     K.set_view(False)
     K.balloon_auto(U(tb + 5), Ya(off + g["BH"] * 0.625), 6)
-    T(U(DB) + 4, Ya(H / 2), "LED on back base: ?", 7, align="c", color=RED, rot=90)
+    T(U(DB) + 4, Ya(H / 2), "LED on back base", 7, align="c", color=RED, rot=90)   # v309: tipas - BOM 6 („?"), be rašymo linijos ant kontūro
     view_title(U(D / 2), top - 84, "SECTION A-A", f"1:{n5:g}")
     # ---------------------------------------------------------------- v232 (Rytis): EXPLODED - kuo didesnis (dešinė kolona per
     #  visą aukštį); TOP VIEW mažiau svarbus - 2 eilėje šalia 3D
@@ -302,23 +304,32 @@ def sheet1(g, out):
     hchain(Zt(0) + D1, [Xt(v) for v in xs_], [Zt(g["screw_edge"])] * len(xs_), [f"{b - a:.0f}" for a, b in zip(xs_, xs_[1:])],
            size=K.F_DIM_MAIN)
     vchain(Xt(W) + D1, [Zt(g["screw_edge"]), Zt(0)], [Xt(W)] * 2, [f"{g['screw_edge']:g}"], size=K.F_DIM_MAIN)
-    T(Xt(W / 2), Zt(0) + D2 + 12, f"screws (8) on PERIMETER (all 4 flanges): {g['n_scr']} pcs., holes Ø3.2, "
-      f"{g['screw_edge']:g} from edge", 7, align="c", color=K.GREY)
+    T(Xt(W / 2), Zt(0) + D2 + 12, f"screws (8) on PERIMETER (all 4 flanges): {g['n_scr']} pcs., holes Ø3,2 mm, "
+      f"{g['screw_edge']:g} mm from edge", 7, align="c", color=K.GREY)
     view_title(Xt(W / 2), Zt(0) + D2 + 48, "TOP VIEW", sl)
-    band(g, "1 / 2", "", main_data1(g), bom1(g), detail_b(g), f"{sl} / 1:{n5:g}")
+    band(g, sheet_no(g, 0), "", main_data1(g), bom1(g), detail_b(g), " / ".join(dict.fromkeys([sl, f"1:{n5:g}"])))
     K.save(out)
 
 
 def bom1(g):
     W, H = g["w"], g["h"]
-    rows = [[1, f"Front tray {W:g}x{H:g}x{g['depth']:g}, in white", f"Alu {g['t']:g} mm", g["body_finish"] or "", "1 pc."],
-            [2, f"Back tray {g['BW']:g}x{g['BH']:g}x{g['back_depth']:g}, in white", f"Alu {g['back_t']:g} mm",
+    rows = [[1, f"Front tray {W:g} x {H:g} x {g['depth']:g} mm, in white", f"Alu {g['t']:g} mm", g["body_finish"] or "", "1 pc."],
+            [2, f"Back tray {g['BW']:g} x {g['BH']:g} x {g['back_depth']:g} mm, in white", f"Alu {g['back_t']:g} mm",
              g["back_finish"] or "", "1 pc."]]
     if g["logo"] is not None:
-        rows += [[3, f"Insert {g['ins_t']:g} mm, GLUED to base (protr. {g['prot']:g})", f"Plexi {g['plexi']}", g["film"] or "-",
-                  f"1 pc. {g['logo'].area / 1e6:.3f} m²"],
-                 [4, f"Base {g['base_t']:g} mm, {len(g['studs'])} x Ø{g['hole_d']:g} (DXF)", f"Plexi {g['plexi']}", "-",
-                  f"1 pc. {g['base'].area / 1e6:.3f} m²"],
+        # v309 (TAISYKLĖ v304): plexi plotas - nesting visam užsakymo kiekiui (nesting.py), ne grynasis plotas
+        nI = NE.nest_parts(list(getattr(g["logo"], "geoms", [g["logo"]])), f"Plexi {g['ins_t']:g} mm", "insert", qty=_qty(g))
+        nB = NE.nest_parts(g["base_parts"], f"Plexi {g['base_t']:g} mm", "base", qty=_qty(g))
+        for n_ in (nI, nB):
+            print("  " + n_["text"])
+            if n_.get("m2") is None:
+                K.SHEET_ERR.append(n_["text"])
+        K.FEAT.add("nest")
+        _m2 = lambda n_: "?" if n_.get("m2") is None else f"{n_['m2']:.3f} m²"
+        rows += [[3, f"Insert {g['ins_t']:g} mm, GLUED to base, +{g['prot']:g} mm", f"Plexi {g['ins_t']:g} mm {g['plexi']}",
+                  g["film"] or "-", f"1 pc. / {_m2(nI)}"],
+                 [4, f"Base {g['base_t']:g} mm, {len(g['studs'])} x Ø{g['hole_d']:g} mm (DXF)", f"Plexi {g['base_t']:g} mm {g['plexi']}",
+                  "-", f"1 pc. / {_m2(nB)}"],
                  [5, "Stud (welded inside front) + nut", "?", "-", f"{len(g['studs'])} pcs."]]
     rows += [[6, "LED on back base (inside)", "LED", "-", "?"],                  # v262: be modelių / specifikacijų
              [7, f"Cable gland / rubber grommet Ø{unk(g['cab']['hole_d'])}", g["cab"].get("grommet") or "?", "-", "1 pc."],
@@ -327,15 +338,28 @@ def bom1(g):
     return rows
 
 
+def _qty(g):
+    try:
+        return max(1, int(re.sub(r"[^\d]", "", str(g.get("qty", 1))) or 1))
+    except ValueError:
+        return 1
+
+
+def sheet_no(g, k):
+    """v309: spec "sheet": "a / n" - pirmo lapo numeris užsakymo dokumente (viena užsakymo byla); be jo 1 / 2, 2 / 2"""
+    m_ = re.match(r"\s*(\d+)\s*/\s*(\d+)", str(g.get("sheet", "")))
+    return f"{int(m_.group(1)) + k} / {m_.group(2)}" if m_ else f"{k + 1} / 2"
+
+
 def main_data1(g):
     return [["Product", "P10_lightbox_singlesided"],
-            ["Size", f"{g['w']:g} x {g['h']:g} x {g['depth']:g} (+ {g['prot']:g})"],
-            ["Front", f"Alu {g['t']:g}, {g['body_finish'] or '?'}"],
-            ["Back", f"Alu {g['back_t']:g}, {g['back_depth']:g} deep, -{g['back_off']:g}/side"],
-            ["Glass", f"{g['glass']} mm, cut-out + {g['cut_gap']:g}"],
+            ["Size", f"{g['w']:g} x {g['h']:g} x {g['depth']:g} mm (+ {g['prot']:g} mm)"],
+            ["Front", f"Alu {g['t']:g} mm, {g['body_finish'] or '?'}"],
+            ["Back", f"Alu {g['back_t']:g} mm, {g['back_depth']:g} mm deep, -{g['back_off']:g} mm/side"],
+            ["Glass", f"{g['glass']} mm, cut-out + {g['cut_gap']:g} mm"],
             ["LED / PSU", "?"],
             ["Cable", f"right side, top; Ø{unk(g['cab']['hole_d'])} + grommet"],
-            ["Qty", f"{g['qty']}"],
+            ["Qty", K.qty_txt(g["qty"]) or "?"],
             ["Weight (calc.)", f"≈ {g['kg']:.1f} kg / pcs, excl. PSU"]]
 
 
@@ -556,8 +580,8 @@ def _sheet2(g, out):
     n = nice_scale(min(avail_w * Fh / max(Fw, 1), K.VIEW_BOT - top - 120), Fh, (5, 6, 8, 10, 12, 15))
     s = MM / n
     blk = (K.IX1 - K.IX0) / 2
-    for i, (ttl, d, mat) in enumerate((("FRONT 1 - FLAT PATTERN (face out)", fr, f"Alu {g['t']:g}"),
-                                       ("BACK 2 - FLAT PATTERN (inside view)", bk, f"Alu {g['back_t']:g}"))):
+    for i, (ttl, d, mat) in enumerate((("FRONT 1 - FLAT PATTERN (face out)", fr, f"Alu {g['t']:g} mm"),
+                                       ("BACK 2 - FLAT PATTERN (inside view)", bk, f"Alu {g['back_t']:g} mm"))):
         Fw_, Fh_ = d["size"]
         ox = K.IX0 + i * blk + (blk - Fw_ * s) / 2
         oy = top + (K.VIEW_BOT - top - 90 - Fh_ * s) / 2
@@ -592,23 +616,23 @@ def _sheet2(g, out):
         xs_ = [0] + [hx for hx, _ in d["holes"][len(g["scr_x"]):]] + [Fw_]
         hchain(Y(Fh_) + D1, [X(v) for v in xs_], [Y(hy0)] * len(xs_), [f"{b - a:.0f}" for a, b in zip(xs_, xs_[1:])],
                size=K.F_DIM_FRAME)
-        T(X(Fw_ / 2), Y(Fh_) + D2 + 14, f"{mat}, folded v173 (bend lines = outside), flanges {d['FL']:g}, holes Ø3.2", 7,
+        T(X(Fw_ / 2), Y(Fh_) + D2 + 14, f"{mat}, folded v173 (bend lines = outside), flanges {d['FL']:g} mm, holes Ø3,2 mm", 7,
           align="c", color=K.GREY)
         view_title(X(Fw_ / 2), top - 84, ttl, f"1:{n:g}")
     K.set_view(False)
 
     def detail(X_P6, BY0, W_P6, BH):
         K.main_data(X_P6, BY0, W_P6, BH, [
-            ["Front", f"{W:g}x{H:g}x{D:g}, Alu {t:g}"],
-            ["Back", f"{g['BW']:g}x{g['BH']:g}x{g['back_depth']:g}, Alu {g['back_t']:g}"],
+            ["Front", f"{W:g} x {H:g} x {D:g} mm, Alu {t:g} mm"],
+            ["Back", f"{g['BW']:g} x {g['BH']:g} x {g['back_depth']:g} mm, Alu {g['back_t']:g} mm"],
             ["Gap", f"{g['gap']:g} mm / side (back in front)"],
-            ["Screws", f"{g['n_scr']} x, perimeter, {g['screw_edge']:g} from flange edge"],
-            ["Cable", f"z {g['cab']['z']:g} from facade, y {unk(g['cab']['y_'])}"]], title="TRAYS", lab_w=64)
-    md = [["Bend rule", "folded v173, no K-factor"], ["Flanges front", f"{D - t:g}"],
-          ["Flanges back", f"{g['back_depth'] - g['back_t']:g}"], ["Qty", f"{g['qty']}"]]
-    rows = [[1, "Front tray (DXF)", f"Alu {t:g}", g["body_finish"] or "", "1 pc."],
-            [2, "Back tray (DXF)", f"Alu {g['back_t']:g}", g["back_finish"] or "", "1 pc."]]
-    band(g, "2 / 2", "", md, rows, detail, f"1:{n:g}")
+            ["Screws", f"{g['n_scr']} pcs., perimeter, {g['screw_edge']:g} mm from flange edge"],
+            ["Cable", f"z {g['cab']['z']:g} mm from facade, y {unk(g['cab']['y_'], '{:g} mm')}"]], title="TRAYS", lab_w=64)
+    md = [["Bend rule", "folded v173, no K-factor"], ["Flanges front", f"{D - t:g} mm"],
+          ["Flanges back", f"{g['back_depth'] - g['back_t']:g} mm"], ["Qty", K.qty_txt(g["qty"]) or "?"]]
+    rows = [[1, "Front tray (DXF)", f"Alu {t:g} mm", g["body_finish"] or "", "1 pc."],
+            [2, "Back tray (DXF)", f"Alu {g['back_t']:g} mm", g["back_finish"] or "", "1 pc."]]
+    band(g, sheet_no(g, 1), "", md, rows, detail, f"1:{n:g}", center_detail=False)   # TRAYS - lentelė, ne pjūvis
     K.save(out)
 
 
@@ -681,11 +705,7 @@ def main(spec_path, out):
         K.auto_begin("draw", pl); K.AUTO["region"] = None
         fn(g, pp)
         K.auto_begin(None)
-    import pymupdf as fitz
-    d = fitz.open()
-    for pp in (p1, p2):
-        d.insert_pdf(fitz.open(pp))
-    d.save(out, garbage=3, deflate=True); d.close()
+    K.merge_sheets([p1, p2], out)                         # v309: + lapų .art.json (patikra - visi lapai, generatorius)
     K.pdf_fix_fonts(out)
     for pp in (p1, p2, p1 + ".tmp", p2 + ".tmp"):
         os.path.exists(pp) and os.remove(pp)

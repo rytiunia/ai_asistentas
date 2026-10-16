@@ -11,13 +11,13 @@
  "qty": "40",
  "client": "Alfa Neon AB / LEAPMOTOR",
  "company": "Alfa Neon AB",
- "title": "LEAP26-01002 Outdoor Logo 4500 x 585 - P6 on clear acrylic frame",
+ "title": "LEAP26-01002 Outdoor Logo 4500 x 585 mm - P6 on clear acrylic frame",
  "project": "LEAPMOTOR PO 33577",
  "drawing_no": "LEAP26-01002",
  "order_no": "ALT0000_00.00_RS",
  "file_code": "LEAP26-01002",
  "rev": "A",
- "date": "2026-10-14",
+ "date": "2026-10-16",
  "depth_mm": 60,
  "front": "P6",
  "auto_frame": true,
@@ -83,14 +83,14 @@
    "Letter back",
    "Alu 1.5 mm",
    "",
-   "{PER_ALL} m / {A_ALL} m²"
+   "{PER_6} m / {BACK_6} m²"
   ],
   [
    4,
    "LED modules 6500K",
-   "",
-   "",
-   ""
+   "?",
+   "-",
+   "?"
   ],
   [
    5,
@@ -125,7 +125,7 @@
    "Wall fixing through Ø8 holes in frame",
    "screws + anchors",
    "-",
-   ""
+   "{ACR_HOLES} pcs."
   ]
  ],
  "main_data": [
@@ -135,7 +135,7 @@
   ],
   [
    "Overall size",
-   "{PW} x {PH}"
+   "{PW} x {PH} mm"
   ],
   [
    "Profile",
@@ -143,7 +143,7 @@
   ],
   [
    "Letter depth",
-   "60"
+   "60 mm"
   ],
   [
    "Face",
@@ -155,7 +155,7 @@
   ],
   [
    "Rails",
-   "clear acrylic 40x20, puzzle"
+   "clear acrylic {RAIL_SIZE} mm, puzzle"
   ],
   [
    "Illumination",
@@ -163,11 +163,12 @@
   ],
   [
    "Power",
-   "12V, 1.5 m -> TRAFO BOX, 230V"
+   "12V, 1,5 m -> TRAFO BOX, 230V"
   ],
   [
    "Wind qp",
    "{WIND_QP} kN/m²"
   ]
- ]
+ ],
+ "sheet": "1 / 6"
 }

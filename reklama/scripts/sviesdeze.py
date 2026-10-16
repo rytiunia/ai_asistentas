@@ -262,11 +262,14 @@ def bom_rows(g):
            if g["covers"] else [])
 
 
-def band(g, sheet, title_extra, md, bom, detail_fn, scales="1:5 / 1:2 / 1:1"):
+def band(g, sheet, title_extra, md, bom, detail_fn, scales="1:5 / 1:2 / 1:1", center_detail=True):
     BY0 = K.BAND_Y; BH = K.IY1 - BY0
     W_P6, W_MD, W_TB = 214, 214, 272
     X_P6 = K.IX0; X_TB = K.IX1 - W_TB; X_MD = X_TB - W_MD; X_BOM = X_P6 + W_P6; W_BOM = X_MD - X_BOM
-    detail_fn(X_P6, BY0, W_P6, BH)
+    if center_detail:      # v309 TAISYKLĖ 5: pjūvis / detalė - savo bloko CENTRE (patikra 12 / 13); lentelė - ne
+        K.centered(X_P6, BY0, W_P6, BH, detail_fn, "DETAIL", frame=True)
+    else:
+        detail_fn(X_P6, BY0, W_P6, BH)
     K.main_data(X_MD, BY0, W_MD, BH, md, lab_w=64)
     K.bom_table(X_BOM, BY0, W_BOM, BH, bom)
     spec = {"client": g["client"], "title": g["title"] + title_extra, "order_no": g["order_no"],

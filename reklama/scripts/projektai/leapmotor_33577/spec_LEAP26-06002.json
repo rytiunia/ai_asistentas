@@ -11,15 +11,15 @@
  "qty": "20",
  "client": "Alfa Neon AB / LEAPMOTOR",
  "company": "Alfa Neon AB",
- "title": "LEAP26-06002 Indoor Logo 1730 x 225 - P10 on clear acrylic frame",
+ "title": "LEAP26-06002 Indoor Logo 1730 x 225 mm - P6 on clear acrylic frame",
  "project": "LEAPMOTOR PO 33577",
  "drawing_no": "LEAP26-06002",
  "order_no": "ALT0000_00.00_RS",
  "file_code": "LEAP26-06002",
  "rev": "A",
- "date": "2026-10-15",
- "depth_mm": 30,
- "front": "P10",
+ "date": "2026-10-16",
+ "depth_mm": 60,
+ "front": "P6",
  "auto_frame": true,
  "merge_rows": true,
  "mounting": "acrylic",
@@ -59,45 +59,38 @@
   "hole_d": 8,
   "holes_every_gap": 2,
   "groove": {
-   "w": 6,
-   "d": 3.5
-  },
-  "stud": {
-   "d": 5,
-   "cb_d": 12,
-   "cb_depth": 15,
-   "edge": 5,
-   "two_if": 400
+   "w": 8,
+   "d": 10
   }
  },
  "bom": [
   [
    1,
-   "Letter block (LED groove from back, DXF)",
-   "Acrylic 30 mm white",
-   "sides RAL 7021",
-   "{PER_ALL} m / {A_ALL} m²"
+   "Letter face",
+   "Acrylic 8 mm white",
+   "-",
+   "{PER_6} m / {A_6} m²"
   ],
   [
    2,
-   "LED strip 6500K in groove",
-   "-",
-   "-",
-   "?"
+   "Letter return",
+   "Alu 1 mm",
+   "RAL 7021",
+   "{PER_6} m / {RET_6} m²"
   ],
   [
    3,
    "Letter back",
    "Alu 1.5 mm",
    "",
-   "{A_ALL} m²"
+   "{PER_6} m / {BACK_6} m²"
   ],
   [
    4,
-   "Welded stud + nut -> counterbore",
+   "LED modules 6500K",
+   "?",
    "-",
-   "-",
-   "{STUDS} pcs."
+   "?"
   ],
   [
    5,
@@ -122,10 +115,17 @@
   ],
   [
    8,
+   "Welded stud + nut -> counterbore",
+   "-",
+   "-",
+   "{STUDS} pcs."
+  ],
+  [
+   9,
    "Wall fixing through Ø8 holes in frame",
    "screws + anchors",
    "-",
-   "-"
+   "{ACR_HOLES} pcs."
   ]
  ],
  "main_data": [
@@ -135,39 +135,36 @@
   ],
   [
    "Overall size",
-   "{PW} x {PH}"
+   "{PW} x {PH} mm"
   ],
   [
    "Profile",
-   "P10 on clear acrylic frame"
+   "P6 on clear acrylic frame"
   ],
   [
-   "Depth",
-   "30 + 20 frame = 50"
+   "Letter depth",
+   "60 mm"
   ],
   [
    "Face",
-   "Acrylic 30 mm white"
+   "Acrylic 8 mm white"
   ],
   [
-   "Sides",
+   "Returns",
    "RAL 7021"
   ],
   [
    "Rails",
-   "clear acrylic {RAIL_SIZE}, single rail"
+   "clear acrylic {RAIL_SIZE} mm"
   ],
   [
    "Illumination",
-   "LED strip 6500K in groove"
+   "LED 6500K"
   ],
   [
    "Power",
-   "12V, 1.5 m -> TRAFO BOX, 230V"
+   "12V, 1,5 m -> TRAFO BOX, 230V"
   ]
  ],
- "p10_groove": {
-  "w": 8,
-  "d": null
- }
+ "sheet": "3 / 6"
 }

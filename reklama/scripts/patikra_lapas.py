@@ -397,6 +397,17 @@ def check(pdf, band_y=None, skips=(), verbose=True):
         #  generatorius neskaičiavo nesting (nesting.py / plevele.plan) -> grynasis plotas, ne sunaudojimas
         if any("m²" in t_ for r_, t_ in allsp if r_.y0 > by) and "nest" not in (feat if "feat" in dir() else []):
             errs.append("PLOTAS NE NESTING: BOM m² turi būti lakšto / rulono sunaudojimas (nesting.py, plevele.plan), ne grynasis plotas")
+        # 21. v309 (Rytis 2026-10-16, Leapmotor 33577; suvestinė B): FRONT / SIDE / REAR - VIENAS bendras mastelis
+        _vsc = {}
+        for r_, t_ in allsp:
+            if re.fullmatch(r"(FRONT VIEW|REAR VIEW|SIDE VIEW|RIGHT SIDE VIEW|LEFT SIDE VIEW)( \(.*\))?", t_):
+                sub_ = [t2 for r2, t2 in allsp if 0 < r2.y0 - r_.y1 < 22 and abs((r2.x0 + r2.x1) / 2 - (r_.x0 + r_.x1) / 2) < 60]
+                m_ = next((re.search(r"\b1:(\d+(?:[.,]\d+)?)", t2) for t2 in sub_ if re.search(r"\b1:\d", t2)), None)
+                if m_:
+                    _vsc[t_] = m_.group(1)
+        if len(set(_vsc.values())) > 1:
+            errs.append("SKIRTINGI MASTELIAI: " + ", ".join(f"{k} 1:{v}" for k, v in _vsc.items())
+                        + " - FRONT / SIDE / REAR turi vieną bendrą mastelį (suvestinė B)")
         if pno == 0:
             errs += glob_errs
         errs = sorted(set(errs))

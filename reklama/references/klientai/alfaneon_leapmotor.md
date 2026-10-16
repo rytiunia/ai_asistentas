@@ -14,8 +14,8 @@ Leapmotor NETAIKOMAS - čia 12 V 1,5 m + TRAFO BOX, Rytis).
 | Poz. | Kodas | Gaminys | Kiekis | Sprendimas (Rytis 2026-10-14) |
 |---|---|---|---|---|
 | 10 | LEAP26-01002 | Outdoor Logo 4500 x 585 (tekstas 294) | 40 | **P6, tūris 60 mm**, šonai RAL 7021, balti priekiai, 6500K; **12 V 1,5 m + TRAFO BOX**; sumontuota ant **skaidraus orgstiklo rėmo** |
-| 20 | LEAP26-06002 | Indoor Logo 1730 x 225 (tekstas 113) | 20 | kaip 10; **P6 tik jei padarius dugną lieka >= 16 mm raidžių ploto tarp kraštinių** (PO eilutės „Size 4500 x 585" - kliento klaida, tikras 1730 x 225) |
-| 30 | LEAP26-02002-1 | Ljusdåda 1+10, 750 x 750 | 20 | **P10_lightbox_singlesided** (`moduliai_p10_lightbox_singlesided.md`): įdėklas 8 mm (išsikišimas 6), RAL 7021 |
+| 20 | LEAP26-06002 | Indoor Logo 1730 x 225 (tekstas 113) | 20 | **P6, tūris 60 mm** (Rytis 2026-10-16; buvęs P10 30 mm sprendimas atšauktas), kaip 10 (PO eilutės „Size 4500 x 585" - kliento klaida, tikras 1730 x 225) |
+| 30 | LEAP26-02002-1 | Ljusdåda 1+10, 750 x 750 | 20 | **P10_lightbox_singlesided** (`moduliai_p10_lightbox_singlesided.md`): įdėklas 8 mm (išsikišimas 6), RAL 7021; **gylis 50 mm pagal PO** („visa kita pagal užklausą", 2026-10-16; buvo 80) |
 
 ## Skaidrus orgstiklo rėmas (poz. 10 / 20)
 - Rėmas iš **skaidraus orgstiklo 20 mm**; dalys tarpusavyje jungiamos **„puzzle" tipo jungtimis, laisvumas 0,2 mm**.
@@ -50,3 +50,11 @@ Leapmotor NETAIKOMAS - čia 12 V 1,5 m + TRAFO BOX, Rytis).
     viduje tolygumui svarbiausi.
 - Neatsakyta: P10 LED griovelio gylis; simbolio LED - dvi tiesios eilės ar žiedas; ar ~8 mm Alu dugnelio juostelė
   siauruose štrichuose tinka smeigei privirinti; poz. 30 kabelio skylė (y, Ø, tarpinė).
+
+## Order 33577 dokumentas (v309, Rytis 2026-10-16: „raidės P6, tūris 60mm, visa kita pagal užklausą")
+- VIENAS dokumentas `ALT0000_Order_33577.pdf`, 6 lapai: 1-2 poz. 10 (lapas + akrilo rėmo dalys), 3-4 poz. 20, 5-6 poz. 30;
+  surenkama `scripts/projektai/leapmotor_33577/build_order.py`; 1:1 PDF ir DXF - kiekvienai iškabai.
+- Poz. 10 / 20: P6 60 mm, priekis akrilas 8 mm baltas, šonai Alu 1 RAL 7021, dugnas Alu 1,5 (RAL 7021), LED 6500K (tipas „?"),
+  12 V 1,5 m + TRAFO BOX, skaidrus akrilo rėmas 20 mm (poz. 20 - vienas bėgelis 70 mm, vientisas, be jungčių).
+- BOM plotai - nesting visam kiekiui (40 / 20 vnt.), per 1 vnt.
+- Neatsakyta: LED tipas (poz. 10 / 20 / 30); poz. 30 kabelio skylė (y, Ø, tarpinė); ar poz. 30 gylis tikrai 50 (PO „approx").

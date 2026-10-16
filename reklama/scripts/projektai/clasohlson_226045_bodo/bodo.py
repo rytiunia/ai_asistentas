@@ -213,8 +213,8 @@ view_title(x3 + w3 / 2, YB + 30, "3D VIEW", "ILLUSTRATIVE - NOT TO SCALE")
 W_pl = FLAT[0] * FLAT[1] / 1e6 * TS * 2.70
 # v304 (Rytis: „plotą visada skaičiuok nesting principu") - BOM plotas = lakšto sunaudojimas (nesting.py), svoris - grynasis
 import nesting as NE
-N_FACE = NE.nest_parts([L["geom"] for L in LET], "Alu 3 mm", "P8 face")
-N_BODY = NE.nest_parts([L["geom"] for L in LET], "Plexi 20 mm", "P8 body")
+N_FACE = NE.nest_parts([L["geom"] for L in LET], "Alu 3 mm", "P8 face", qty=QTY)      # v309: nesting visam kiekiui
+N_BODY = NE.nest_parts([L["geom"] for L in LET], "Plexi 20 mm", "P8 body", qty=QTY)
 K.FEAT.add("nest")
 print(N_FACE["text"]); print(N_BODY["text"])
 WT = W_pl + A_FACE * 3 * 2.70 + A_FACE * 20 * 1.19 + 2 * L_LEN / 1000 * 116e-6 * 2700
