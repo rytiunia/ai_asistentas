@@ -74,7 +74,8 @@ Pirmas bandymas: Joker 226001 (`scripts/projektai/joker_reinslettveien/`, „Pat
 
 ## v308 - KELIŲ LAPŲ PATVIRTINTAS COREL PDF (SPAR 225960, ALT8901_10.16_RS, 2026-10-16)
 - Patvirtintas dokumentas Ryčio taisytas Corel'yje -> NEGENERUOTI iš naujo (prarastų patvirtintą turinį): pakeičiamas TIK
-  ORDER NO. (`scripts/projektai/spar_225960/alt8901/order_no.py` - redakcija tik teksto, GOST Common, paryškinta kaip originale),
+  ORDER NO. (`scripts/projektai/spar_225960/alt8901/order_no.py`, v310: originalo šrifto glifų ID turinio sraute + qpdf;
+  v308 redakcija + pymupdf insert_text sugadino failą Corel'iui - NENAUDOTI), patikra `patikra_corel.py` = 0,
   patikra: kiekvieno lapo žodžių aibė ir objektų kiekis = originalo.
 - Kliento valytų failų nėra -> rėmas iš patvirtinto FRONT VIEW (`remas_is_lapo.py`: rėmo / ausėlių spalvos stačiakampiai,
   mastelis = bendras plotis / raidžių gabaritas, pritrauktas prie 1:N), raidės - `svarus_lapas.py` (tik raidžių kontūrai, logotipo

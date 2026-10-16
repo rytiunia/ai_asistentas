@@ -32,9 +32,15 @@ for k, depth, nm in JOBS:
         print(r.stderr[-500:])
     else:
         pages.append(out)
-doc = fitz.open()
-for p in pages:
-    doc.insert_pdf(fitz.open(p))
+# v310: Corel - kaip visi lapai: lapas_core.merge_sheets -> pdf_fix_fonts („GOST Common") -> qpdf be object streams
+import sys
+sys.path.insert(0, os.path.join(HERE, "..", "..", ".."))
+import lapas_core as K
 os.makedirs("out", exist_ok=True)
-doc.save("out/ALT8901_10.16_RS_SPAR_order_225960_LED.pdf")
+OUTL = "out/ALT8901_10.16_RS_SPAR_order_225960_LED.pdf"
+K.merge_sheets(pages, OUTL + ".tmp.pdf")
+K.pdf_fix_fonts(OUTL + ".tmp.pdf")
+subprocess.run(["qpdf", "--object-streams=disable", OUTL + ".tmp.pdf", OUTL], check=True)
+for q in (OUTL + ".tmp.pdf", OUTL + ".tmp.pdf.art.json"):
+    os.path.exists(q) and os.remove(q)
 print("OK LED lapų", len(pages))

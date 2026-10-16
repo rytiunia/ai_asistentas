@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v309 (2026-10-16)
+Atnaujinta: v310 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -161,6 +161,9 @@ SUVESTINĖ PASENUSI.
   (v299) - atskiri `_flat_` / `_vinyl_` failai NESIUNČIAMI.
 - Patvirtintas dokumentas taisytas Corel'yje (kelių lapų komplektas) - keičiamas TIK ORDER NO., nieko negeneruojama iš naujo;
   DXF / LED - iš patvirtinto lapo FRONT VIEW (v308, SPAR 225960: `scripts/projektai/spar_225960/alt8901/`).
+- Teksto keitimas ESAMAME PDF (ORDER NO. ir pan.) - TIK originalo šriftu: glifų ID iš jo ToUnicode, keičiami turinio srauto
+  baitai, failas per qpdf (`alt8901/order_no.py`). pymupdf `insert_text` / TextWriter ir pymupdf `save` galutiniam failui
+  NENAUDOTI - įterpia antrą Type0 šriftą, Corel „file corrupted" (v310, Rytis 2026-10-16).
 
 ## E3. DXF failai (v302, Rytis 2026-10-16: „failai ne pagal mastelį, įkelti reikia 1:1000")
 
@@ -210,6 +213,8 @@ SUVESTINĖ PASENUSI.
 21. SKIRTINGI MASTELIAI (v309): FRONT / SIDE / REAR lape skirtingais masteliais.
 20. PAŠALINIAI OBJEKTAI (v307): objektai paslėpti už iškarpos arba už lapo ribų (įdėtas visas šaltinio puslapis).
     Lint: VISAS ŠALTINIO PUSLAPIS, BALTAS DANGTIS.
+20. COREL (v310): lape daugiau nei vienas GOST šriftas, „GOST-Common" vardas arba qpdf --check klaida - CorelDRAW
+    „file corrupted" (`scripts/patikra_corel.py`, kviečiama iš patikra_lapas.py).
 16. NETELPA LANGELYJE (v294): tekstas netelpa lentelės langelyje; trumpinti tekstą, šrifto nemažinti.
 
 Ko automatika NEtikrina (tikrinama akimis kiekvieną kartą):
