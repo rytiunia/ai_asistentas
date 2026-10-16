@@ -500,7 +500,9 @@ def sheet1(g, out):
     ex0 = K.IX0 + 30 + 2 * w3 + 30 + 50
     exploded_view(g, (ex0, y3, tx0 - 60 - ex0, h3 + 8))
 
-    band(g, "1 / 2", "", main_data1(g), bom1(g), detail_b(g))
+    # v326: antraštėje - TIKRI lapo masteliai (anksčiau sviesdeze.band numatyti „1:5 / 1:2 / 1:1"), lapų Nr. - spec "sheets"
+    band(g, (g.get("sheets") or ["1 / 2", "2 / 2"])[0], "", main_data1(g), bom1(g), detail_b(g),
+         " / ".join(dict.fromkeys([sl, f"1:{n5:g}"])))
     K.save(out)
 
 
@@ -1307,7 +1309,7 @@ def _sheet2(g, out):
           ["Joints", "welded (TIG), ground"],
           ["Finish", f"legs + plate {g['frame_finish'] or ''}; frame white".strip()],
           ["Qty", f"{g['qty']} set"]]
-    band(g, "2 / 2", " - FRAME (CAD)", md, rows, detail, f"1:{nsc:g} / 1:{npl:g}")
+    band(g, (g.get("sheets") or ["1 / 2", "2 / 2"])[1], " - FRAME (CAD)", md, rows, detail, f"1:{nsc:g} / 1:{npl:g}")
     K.save(out)
 
 

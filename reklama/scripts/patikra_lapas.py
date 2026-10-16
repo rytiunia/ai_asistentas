@@ -11,7 +11,8 @@ Tikrinama vaizdų zonoje (virš apatinės juostos):
   3. LINIJA PER TEKSTĄ - matmenų / išvadinių / laidų linijos (>= 0,2 pt) nekerta svetimo teksto (skaičių).
   4. MATMENYS VIENAS ANT KITO - lygiagrečios matmenų linijos toje pačioje eilėje (±1,5 pt) neužeina viena ant kitos.
   5. IŠVADINĖ PER IŠVADINĘ / MATMENĮ - nuorodų (išvadinių) linijos nesikerta su kitomis matmenų / išvadinių linijomis.
-  24. UŽ RĖMELIO (v316) - užrašai tik vidinio rėmelio viduje (zonų žymės 1-8 / A-F - paraštėje).
+  6-27 - žr. references/lapo_taisykles.md F (VISAS sąrašas su numeriais; v326: šis docstring jo nekartoja, kad nesiskirtų),
+     pvz. 24 UŽ RĖMELIO (v316) - užrašai tik vidinio rėmelio viduje (zonų žymės 1-8 / A-F - paraštėje).
 --skip - sritys, kurių 2-5 netikrinti (įdėtas originalo fragmentas: jo turinys - originalo, ne mūsų išdėstymas).
 v182: `<lapas>.pdf.art.json` (rašo lapas_core.save per place_pdf) - KLIENTO GRAFIKA (spausdinama, v162 neliečiama): joje
 netikrinama nieko (ir hairline); atkarpos, visiškai už savo iškarpos (clip), nematomos - netikrinamos.
@@ -432,7 +433,11 @@ def check(pdf, band_y=None, skips=(), verbose=True):
                 errs.append(f"BLOKAS NECENTRUOJAMAS: '{t_}' - piešti per K.centered / K.section_block (TAISYKLĖ 5 / 34)")
         # 19. v304 (Rytis 2026-10-16: „plotą visada skaičiuok nesting principu. tai taisyklė."): lentelėje yra m², o
         #  generatorius neskaičiavo nesting (nesting.py / plevele.plan) -> grynasis plotas, ne sunaudojimas
-        if any("m²" in t_ for r_, t_ in allsp if r_.y0 > by) and "nest" not in (feat if "feat" in dir() else []):
+        # v326: folded plokštės eilutė (gaminio m², v324) - ne nesting; tikrinamos kitos m² eilutės
+        _fold_y = [(r_.y0 + r_.y1) / 2 for r_, t_ in allsp if r_.y0 > by and re.search(r"folded", t_, re.I)]
+        _m2_ = [r_ for r_, t_ in allsp if r_.y0 > by and "m²" in t_
+                and not any(abs((r_.y0 + r_.y1) / 2 - fy_) < 3 for fy_ in _fold_y)]
+        if _m2_ and "nest" not in (feat if "feat" in dir() else []):
             errs.append("PLOTAS NE NESTING: BOM m² turi būti lakšto / rulono sunaudojimas (nesting.py, plevele.plan), ne grynasis plotas")
         # 24. v316 (SPAR 225960 lapas 18: laido užrašas išlindo už rėmelio): tekstas (ne zonų žymė) - tik vidinio rėmelio viduje
         _fx0, _fy0 = 9 * 72 / 25.4, 9 * 72 / 25.4
@@ -458,6 +463,20 @@ def check(pdf, band_y=None, skips=(), verbose=True):
         if len(set(_vsc.values())) > 1:
             errs.append("SKIRTINGI MASTELIAI: " + ", ".join(f"{k} 1:{v}" for k, v in _vsc.items())
                         + " - FRONT / SIDE / REAR turi vieną bendrą mastelį (suvestinė B)")
+        # 28. v326 (A-Z peržiūra: p10 doublesided antraštėje buvo numatyti „1:5 / 1:2 / 1:1", lape - 1:8 / 1:4): ANTRAŠTĖS
+        #  MASTELIS - kiekvienas SCALE langelio mastelis turi būti bent viename lapo vaizde / bloke
+        _scv = lambda t: {re.sub(r"\.", ",", m_) for m_ in re.findall(r"\b1:(\d+(?:[.,]\d+)?)", t)}
+        _lab = [r_ for r_, t_ in allsp if r_.y0 > by and t_.strip() == "SCALE"]
+        _tcell = [(r_, t_) for r_, t_ in allsp if any(abs(r_.x0 - l_.x0) < 4 and 0 < r_.y0 - l_.y0 < 22 for l_ in _lab)]
+        _tsc = [t_ for r_, t_ in _tcell if re.search(r"\b1:\d", t_)]
+        _vsc_all = set()
+        for r_, t_ in allsp:
+            if (r_, t_) not in _tcell:
+                _vsc_all |= _scv(t_)
+        for t_ in _tsc:
+            _miss = sorted(_scv(t_) - _vsc_all)
+            if _miss and _vsc_all:
+                errs.append(f"ANTRAŠTĖS MASTELIS: '{t_}' - lape nėra vaizdo 1:{', 1:'.join(_miss)} (SCALE = tikri lapo masteliai)")
         # 23. v313 (Rytis 2026-10-16: „kreivės lankais - taisyklė, kuri turi veikti visada", suvestinė E3b): KAMPUOTA KREIVĖ
         #  lape - kontūras iš >= 12 iš eilės trumpų tiesių su mažais posūkiais (ne kliento grafika ART, ne 3D šonų juostelės)
         import kreives as _KR

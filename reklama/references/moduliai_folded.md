@@ -17,6 +17,8 @@ v37-v172 - NEBENAUDOTI; seni projektų skriptai jo nepakeisti.) max ilgis - lak�
 - **L profilis 30x30x2 Alu** (Rytis patvirtino): ilgis = tvirtinamos kraštinės ilgis - 50 mm
   (po 25 mm nuo galų), pagal nutylėjimą 2 vnt. (viršus + apačia). Ilgis VISADA galiniame vaizde
   (`25 | ilgis | 25` + bendras), BOM - bėginiais metrais `2 x 2.25 = 4.50 m` (`{L_QTY} x {L_LEN_M} = {L_TOTAL_M} m`).
+  **PAKEISTA v90 / v291 (suvestinė C):** lape BOM kiekyje tik rezultatas „4,50 m" - `braizyti_lapa.py` „{L_QTY} x {L_LEN_M} = "
+  ir „{L_LIST_M} = " išmeta pats; formulės ranka nerašyti (lint KIEKIS SU FORMULE).
 - **Fonas -> L: varžtai DIN 7504 N 4.2x16 T20 (St. gehärtet)**: 50 mm nuo kraštų, žingsnis ~300 mm,
   tolygiai: n = round((kraštinė - 100) / 300). Galiniame vaizde ašys ir `50 | n x žingsnis = ilgis | 50`,
   BOM - bendras kiekis (`14 pcs. (7/L)`).
@@ -40,6 +42,8 @@ v37-v172 - NEBENAUDOTI; seni projektų skriptai jo nepakeisti.) max ilgis - lak�
   ne „1 pcs." / „2 pcs."; dalys lape pažymėtos A1, A2 (`nesting.folded_qty`, patikra 26 FOLDED BE m²).
 - **v302 (Rytis 2026-10-16, Joker 226057): folded plate + lipdukai (`folded_vinyl.py`) - VIRŠUS / APAČIA LENKIASI Į VIDŲ**
   (atlankai W - 2t, šonai per visą aukštį, kaip `folded_dxf.py --tb-inside`); spec `"tb_inside": false` - šonai į vidų.
+  (v326 pastaba: DABAR du generatoriai turi skirtingą numatytą lenkimą - `folded_dxf.py` SIDES INSIDE (v173, aukščiau),
+  `folded_vinyl.py` TOP / BOTTOM INSIDE (v302). Nesuvienodinta - Ryčio sprendimas; iki tol nurodyti aiškiai.)
 - **Kelios dalys vienoje plokštumoje (back plate didesnis už lakštą, pvz. OKQ8 3200x2400, Rytis 2026-10-09):**
   * v284 (Rytis 2026-10-15, Joker 226057): dalys skaidomos taip, kad kiekvienos išklotinė tilptų MAŽIAUSIAME lakšte -
     pirmiausia 3000x1500 (paraštės 10), tik jei negalima - 4000x2000; sandūra tarpe, bet ne arčiau 50 mm nuo grafikos.
@@ -54,14 +58,22 @@ v37-v172 - NEBENAUDOTI; seni projektų skriptai jo nepakeisti.) max ilgis - lak�
   dugno) ir ~15 mm nuo viršaus** (`folded_dxf.py --cable-edge=...`); P6 raidžių D3.2 / D11 / Ø8 skylės atsikartoja fone 1:1,
   tvirtinama gamyboje pagal faktą.
 - **Laidas folded fone (bendra):** TIK po raide - D11 raidės gale (>= 30 mm nuo kontūro, >= 20 nuo tvirtinimo
-  skylių) -> už fono -> pro Ø11 skylę UŽLENKTOJE BRIAUNOJE (viršutinėje / apatinėje / ŠONINĖJE) kliento nurodytoje
+  skylių; v326 pastaba: P6 ant folded D11 vietą DXF'e dabar parenka `p6_dxf.py --folded` - `--d11-edge` 20, `--d11-fix-clear` 25)
+  -> už fono -> pro Ø11 skylę UŽLENKTOJE BRIAUNOJE (viršutinėje / apatinėje / ŠONINĖJE) kliento nurodytoje
   vietoje; matmuo iki skylės lape; ant fono išvesties niekada. Kurią briauną - pagal kliento failą / standartą.
 - **Išklotinės ir DXF:** lape išklotinė su lenkimo ašimis, Ø3.2 skylėmis, grandinėmis; DXF -
-  `scripts/folded_dxf.py PLOTIS AUKŠTIS out.dxf [GYLIS] [--t 2] [--no-holes]` (gamybos išklotinė v173, Ø3.2 7
-  nuo krašto atskirame sluoksnyje); dalims su sandūra - `scripts/projektai/okq8_vaster/okq8.py: flat_dxf(fn, W, H, holes_top, holes_bot,
-  bolts_top, bolts_bot)`. Sluoksniai: CUT / BEND_UP_90_R2 / HOLES_D3.2 / HOLES_D6_JOINT / HOLE_D11_CABLE /
-  LETTER_FIX_POINTS / SHEET_2000x4000 / TEXT (ezdxf R2010). Išklotinė braižoma FACE OUT (vaizdas iš priekio).
-- **NESTING - išklotinių išdėstymas lakšte (v37):** pirmiausia užpildomas lapo AUKŠTIS nuo krašto (dalys viena virš kitos), tik tada
+  `scripts/folded_dxf.py PLOTIS AUKŠTIS out.dxf [GYLIS] [--t 2] [--no-holes] [--tb-inside] [--cable-edge=left|right|top|bottom]
+  [--cable-mm=15]` (gamybos išklotinė v173, Ø3.2 7 nuo krašto atskirame sluoksnyje, Ø11 laidui v321); dalims su sandūra -
+  `scripts/projektai/okq8_vaster/okq8.py: flat_dxf(fn, W, H, holes_top, holes_bot, bolts_top, bolts_bot)`.
+  Sluoksniai (v326 pataisyta pagal kodą): `folded_dxf.py` - CUT / BEND_UP_90 / HOLES_D3.2 / TEXT (+ HOLE_D11_CABLE su
+  `--cable-edge`); P6 ant folded vientisas DXF (`bandymas_3500_folded/folded_test.py`) papildomai - LETTER_POSITION /
+  LETTER_FIX_D3.2 / DRAIN_D8; seni projektų skriptai (okq8 / clasohlson_horten) - CUT / BEND_UP_90_R2 / HOLES_D3.2 /
+  HOLES_D6_JOINT / HOLE_D11_CABLE / LETTER_FIX_POINTS / SHEET_2000x4000 / TEXT (ezdxf R2010). Išklotinė braižoma FACE OUT
+  (vaizdas iš priekio). Visi DXF - mm (`$INSUNITS` 4) ir per `KR.saveas` (lankais).
+- **PAKEISTA v304 / v324:** lakštų sunaudojimas skaičiuojamas `scripts/nesting.py` (MaxRects, visi tiekėjo formatai, suvestinė C);
+  folded plokštės BOM QTY - gaminio plotas W x H m² (ne nesting, E3c). Žemiau - senas rankinis v37 išdėstymo principas (CNC lapo
+  išdėstymui, ne BOM).
+  **NESTING - išklotinių išdėstymas lakšte (v37):** pirmiausia užpildomas lapo AUKŠTIS nuo krašto (dalys viena virš kitos), tik tada
   einama link lapo galo; CNC paraštė 10 mm. Pvz. 900 aukščio plokštė (išklotinė 973) - 2 juostos per
   2000 aukštį, ilgiausios dalys pirmos (`scripts/projektai/clasohlson_horten/sheet2.py`).
 - **Atskiras išklotinių lapas** - tik jei prašoma; pagrindiniame dokumente vietoje išklotinių - 3D ant fasado.
@@ -80,7 +92,8 @@ Pavyzdys `assets/spec_folded_2parts.json`, eiga `scripts/projektai/spar_type670/
   >= 30 mm nuo kontūro), už fono iki užlenktos briaunos (trasa ne per L: šone x = 12, kur L dar nėra), pro Ø11 skylę
   UŽLENKTOJE BRIAUNOJE kliento nurodytoje vietoje (`edge`: left/right/top/bottom, `edge_mm` - padėtis išilgai
   briaunos, matmuo lape) ir įtampa. Bet kur ant fono išvesties NEDĖTI. Spec:
-  `"cable": {"d11_mm": [600, 160], "letter": "letter F", "edge": "left", "edge_mm": 29, "label": "12V, 3 m -> PSU (220V)"}`
+  `"cable": {"d11_mm": [600, 160], "letter": "letter F", "edge": "left", "edge_mm": 15, "label": "12V, 3 m -> PSU (220V)"}`
+  (v326: `edge_mm` 29 -> 15 - v321 standartas 15 mm nuo viršaus, `braizyti_lapa.py` numatyta 15; 29 buvo SPAR TYPE 670)
   (senas `cable_exit` - tik suderinamumui). Laidas - 0,9 pt raudonas (`_cpoly`, VIEW_MODE hairline netaikomas);
   balionai 9 / 6 - priešingoje pusėje nei laidas.
 - **DETAIL A pagal `front`:** `8mm` - plexi 8 mm (3 mm priekis ant šonų galo + 5 mm liežuvis šonų viduje, 45° štrichai),
@@ -116,6 +129,12 @@ Bendra visoms folded plokštėms su vinilo grafika (ORACAL, Avery, 3M ...):
 
 ### P6 raidės ant folded plokštės (įgyvendinta: `scripts/braizyti_lapa.py`)
 Fonas, L, skylės, varžtai, išklotinės - „Folded plate - bendrinės taisyklės" (aukščiau). Čia - tik P6 raidžių dalis.
+**v319-v321 (P6 PAGRINDINĖ TAISYKLĖ, suvestinė P6 / E3; v326 įrašyta čia):** raidžių DXF - `p6_dxf.py --folded --no-letters
+--rails-json <ašys separate> --cable bottom|top` (be rėmo, D3.2 kvadrato / trikampio principu, drenažas Ø8 SKYLUTĖS);
+fono išklotinė - `folded_dxf.py ... --cable-edge=<briauna>` (Ø11 15 mm nuo lenkimo linijos ir 15 mm nuo viršaus);
+raidžių D3.2 / D11 / Ø8 skylės ir LETTER_POSITION perkeliamos į išklotinę 1:1 - vienas vientisas DXF (analogas
+`scripts/projektai/bandymas_3500_folded/folded_test.py`); raidės prie fono tvirtinamos gamyboje pagal faktą (BOM 8
+„per production / holes = letter back"). Regresija `python3 scripts/test_p6.py`.
 - **Fonas:** bet kokios formos kontūras iš kliento failo (stačiakampis, lygiagretainis ...).
   Ne stačiakampiui: kontūras, grandinė nuo aukščiausio taško, kraštinių ilgiai, kampas; galiniame vaizde
   aligned matmenys išilgai pasvirusių kraštų.
@@ -139,3 +158,5 @@ Fonas, L, skylės, varžtai, išklotinės - „Folded plate - bendrinės taisykl
   sieną, 8 raidės tvirtinimas prie fono, 9 varžtas fonas-L.
 - **BOM kiekiai:** face / back = `{PER_L} m / {A_FACE} m²`, return = `{PER_L} m / {A_RET} m²`
   (perimetras x gylis), PVC = `{PER_L} m`; `{L_SIZE} {L_QTY} {L_LEN} {L_TOTAL}`, `{S_SPEC} {S_MAT} {S_QTY} {S_PER}`.
+  (v326: `{A_FACE}` / `{A_BACK}` / `{A_RET}` nuo v316 - lakšto / juostų NESTING sunaudojimas, ne grynasis plotas; 5 folded fono
+  eilutės kiekis - gaminio plotas W x H m² (`nesting.folded_qty`, E3c), ne „1 pcs.".)

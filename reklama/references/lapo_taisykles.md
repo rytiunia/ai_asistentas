@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v326 (2026-10-16)
+Atnaujinta: v327 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -21,13 +21,15 @@ Galioja VISIEMS P6 darbams. Testai: `scripts/projektai/bandymas_3500/` (P6 ant U
 |---|---|---|
 | Tvirtinimas D3.2 | kvadrato / trikampio principas (4 / 3, štrichų centrai ant bėgelio ašies) | tas pats principas, ašys be rėmo (`--folded`) |
 | Drenažas Ø8 | PUSLANKIS dugno kontūre (išpjaunamas su kontūru) | SKYLUTĖ dugne + ta pati skylė fone |
-| DXF | `p6_dxf.py --rails-json` (raidės + rėmas) | `p6_dxf.py --folded` + `folded_dxf.py` -> vienas DXF (išklotinė su raidžių vieta ir skylėmis + raidės) |
+| DXF | `p6_dxf.py --rails-json` (raidės + rėmas) | `p6_dxf.py --folded` (raidės) -> `scripts/p6_folded.py` (v327, BENDRAS: `folded_dxf.py` išklotinė + LETTER_POSITION + LETTER_FIX_D3.2 / HOLE_D11_CABLE / DRAIN_D8 1:1 kaip raidžių dugne + raidės) -> vienas DXF |
 | Lapas | `braizyti_begeliai.py` | `braizyti_lapa.py` |
 | Skylės fone | - | D3.2, D11, Ø8 - TOS PAČIOS vietos kaip raidžių dugne (1:1); tvirtinama gamyboje pagal faktą |
 | Laidas iš fono | - | Ø11 briaunoje: 15 mm nuo lenkimo linijos (fono priekio) ir 15 mm nuo viršaus (v321) |
 
 Detalės: D2 (tvirtinimas), E3 (drenažas, P6 ant folded). Laukiamas rezultatas - testų README.
 REGRESIJA: `python3 scripts/test_p6.py` = OK (po kiekvieno p6_dxf / braizyti_begeliai / braizyti_lapa / folded_dxf pakeitimo).
+Formos principas (taškų skaičius iš supaprastinto gaubto, pirmas - toliausiai nuo centro, toliau FPS) - VIENA vieta
+`scripts/tvirtinimas.py` (v327): p6_dxf D3.2 (gaubtas 0,16) ir akrilo rėmo smeigės braizyti_begeliai (0,12).
 
 ## A. Darbo eiga - PRIVALOMA kiekvieną kartą
 
@@ -111,7 +113,8 @@ REGRESIJA: `python3 scripts/test_p6.py` = OK (po kiekvieno p6_dxf / braizyti_beg
   „30x30x2 mm", „->" -> „>"; 2) dviem eilutėmis, kol blokas talpina (eilutė >= 11 pt + 9,5 pt kiekvienai papildomai);
   vienetas neatskiriamas nuo skaičiaus, „RAL ___" - kartu. MAIN DATA etikečių stulpelis - ne platesnis nei ilgiausia
   etiketė + 8 pt. Kas vis tiek netelpa - NETELPA LANGELYJE, generatorius trumpina tekstą (pvz. „inside white" - į MAIN DATA).
-- PLOTAS VISADA NESTING PRINCIPU (v304, Rytis: „tai taisyklė"). BOM m² = medžiagos sunaudojimas, ne grynasis plotas:
+- PLOTAS VISADA NESTING PRINCIPU (v304, Rytis: „tai taisyklė"). BOM m² = medžiagos sunaudojimas, ne grynasis plotas
+  (IŠIMTIS - folded plokštė: BOM QTY = gaminio plotas W x H m², ne nesting, v324 - E3c):
   - lakštai (akrilas, PC, Alu, AKP, PVC) - `scripts/nesting.py`: tikri kontūrai -> mažiausias pasuktas gabaritinis
     stačiakampis, pasukimas 90°, tarpas 10 mm, paraštė 10 mm;
   - dėliojama MaxRects (BSSF ir bottom-left), lakštas abiem kryptimis, visi tiekėjo formatai (`assets/medziagos.json`),
@@ -125,6 +128,10 @@ REGRESIJA: `python3 scripts/test_p6.py` = OK (po kiekvieno p6_dxf / braizyti_beg
   - `braizyti_begeliai` BOM vietos žymos: `{A_x}` priekiai, `{BACK_x}` dugnai, `{RET_x}` šonai, `{FOIL_x}` plėvelė
     (x = 6 / 63 / ALL / grupė);
   - ranka įrašytas plotas - klaida 18; m² be nesting - patikra 19 PLOTAS NE NESTING;
+  - folded plokštės eilutė (gaminio m², v324) - FEAT „folded_qty", patikra 19 jos netaiko; „nest" žymima TIK kai nesting
+    tikrai skaičiuotas (po `K.init`, kuris FEAT išvalo) (v327);
+  - nežinoma medžiaga nesting'ui (`braizyti_lapa` {A_FACE} / {A_RET} / {A_BACK}) - „?" + lapo klaida, ne grynasis plotas (v327);
+  - `plevele.bom_text` - tik rezultatas „1,74 m² (roll 1190 mm)" (v327);
   - v326: BENDRA funkcija naujiems / šviesdėžių generatoriams - `K.nest_m2(geoms, medžiaga, žyma, qty=K.order_qty(spec qty))`
     (nesting + FEAT „nest" + „?" ir lapo klaida, jei medžiaga nežinoma); sviesdeze stiklai A / B, p10 lightbox įdėklai /
     pagrindai - per ją;
@@ -134,7 +141,8 @@ REGRESIJA: `python3 scripts/test_p6.py` = OK (po kiekvieno p6_dxf / braizyti_beg
   NCS ir PMS kodai be „RAL".
 - Pozicijų balionai nepersidengia. `K.leader` pats atitraukia balioną, BOM balionai mažinami pagal eilutę.
   Numeriai = galutinės BOM pozicijos.
-- Nežinoma reikšmė rašoma „?": tuščias langelis ir klausimas Ryčiui. Nieko neišgalvoti.
+- Nežinoma reikšmė spec'e / generatoriuje rašoma „?": `K.T()` „?" pašalina - lape tuščias langelis (tekstas su „:" - rašymo
+  linija), atsakyme klausimas Ryčiui. Nieko neišgalvoti. (Lape „?" ar „RAL ? matt" nematomas - SKILL 7, stilius.md.)
 - Užrašai angliškai, GOST šriftas visur.
 - Objektų geometrija vaizduose piešiama hairline (`K.set_view(True)`). Dvigubų linijų būti neturi.
 
@@ -217,8 +225,9 @@ REGRESIJA: `python3 scripts/test_p6.py` = OK (po kiekvieno p6_dxf / braizyti_beg
 
 ## E2. Patvirtinimas -> gamybos paketas (`references/patvirtinimas.md`)
 
-- Siunčiama TIK: maketo PDF (ORDER NO. = ALT), LED PDF (jei šviečia), VIENTISI DXF po vieną kiekvienam lapui / plokštei.
-- P6 / raidės: `p6_dxf.py --no-letters --rails-json`. Folded plate + lipdukai: `folded_vinyl.py` + `scripts/dxf_combine.py`
+- Siunčiama TIK: maketo PDF (ORDER NO. = ALT), LED PDF (jei šviečia), VIENTISI (visos iškabos) DXF - po vieną kiekvienam
+  lapui / plokštei; failų po raidę / dalį, laido variantų poros, ZIP, patikros PNG - NESIUNČIAMA.
+- P6 / raidės: `p6_dxf.py --no-letters --rails-json --cable bottom|top` (v326: be `--cable` numatyta `both` = 2 failai). Folded plate + lipdukai: `folded_vinyl.py` + `scripts/dxf_combine.py`
   (v299) - atskiri `_flat_` / `_vinyl_` failai NESIUNČIAMI.
 - v316 (Rytis 2026-10-16, SPAR 225960: „blankas naudojamas senas. net jei įkeliamas dokumentas generuotas ankstesne data,
   visi pataisymai daromi jau pagal dabartines taisykles ... naudoti pačią naujausią skill ir taisyklių redakciją"):
@@ -244,7 +253,10 @@ REGRESIJA: `python3 scripts/test_p6.py` = OK (po kiekvieno p6_dxf / braizyti_beg
   Folded plate (folded_vinyl) - skylutės lieka. Etalonas: `assets/etalonai/drenazas_puslankis_P6.pdf`.
 - P6 ANT FOLDED FONO (v319, Rytis 2026-10-16 „duok testą kaip ant folded plate P6"): `p6_dxf.py --folded` - be rėmo
   (ašys separate), D3.2 kvadrato / trikampio principu, drenažas - Ø8 SKYLUTĖ (ne puslankis); fono išklotinėje
-  (`folded_dxf.py`) tos pačios skylės raidžių vietose (LETTER_FIX_D3.2 / HOLE_D11_CABLE / DRAIN_D8) + LETTER_POSITION.
+  tos pačios skylės raidžių vietose (LETTER_FIX_D3.2 / HOLE_D11_CABLE / DRAIN_D8) + LETTER_POSITION. v326 patikslinta:
+  `folded_dxf.py` pats šių sluoksnių NEDEDA (tik išklotinė, Ø3.2 L tvirtinimui, Ø11 briaunoje su `--cable-edge`); raidžių
+  dugno kontūrus ir skyles iš `p6_dxf --folded` DXF į išklotinę perkelia `scripts/projektai/bandymas_3500_folded/folded_test.py`
+  (analogas naujam užsakymui).
   braizyti_lapa išklotinė = (W + 2·(atlankas - t)) x (H + 2·(atlankas - t)) (buvo + 2·raidžių gylis). Testas
   `scripts/projektai/bandymas_3500_folded/`.
 - Visi gamybos DXF - geometrija mm IR antraštė `$INSUNITS = 4` (mm). Po `ezdxf.new()` VISADA `doc.units = ezdxf.units.MM`
@@ -282,6 +294,8 @@ failas apvalus, bet gaunasi kampuotas"; ta pati pastaba buvo v113, bet pataisa b
 
 - `folded_vinyl.py` išklotinė: VIRŠUS / APAČIA LENKIASI Į VIDŲ (tarp šonų) - jų atlankai iš galų t trumpesni (W - 2t),
   šonai per visą aukštį; spec `"tb_inside": false` - šonai į vidų. DXF TEXT sluoksnyje užrašas „TOP / BOTTOM INSIDE".
+- v326 pastaba (dabartinis kodas, nesuvienodinta): `folded_dxf.py` (fonas be lipdukų, P6 ant folded, pilonų / šviesdėžių
+  lovelės) numatyta priešingai - SIDES INSIDE (v173), top / bottom į vidų - tik `--tb-inside`. Laukia Ryčio sprendimo.
 
 ## E5. Įdėta kliento / seno lapo grafika - faile TIK lape matomi objektai (v307, Rytis 2026-10-16 KIA 33597)
 
@@ -326,12 +340,17 @@ failas apvalus, bet gaunasi kampuotas"; ta pati pastaba buvo v113, bet pataisa b
 23. KAMPUOTA KREIVĖ (v313): lape - kontūras iš trumpų tiesių ten, kur turi būti lankas; šalia lapo esantys to paties
     vardo DXF - laužtės be lankų (patikra_dxf). Lint: DXF BE LANKŲ.
 24. UŽ RĖMELIO (v316): užrašas (ne zonų žymė) išeina už vidinio rėmelio.
-25. DRENAŽAS SKYLUTE (v318, patikra_dxf): P6 dugne Ø8 apskritimai vietoj puslankio kontūre.
+25. DRENAŽAS SKYLUTE (v318) - TAI `patikra_dxf.py` punktas, ne lapo PDF tikrinimas: P6 dugne (2_GALAS) Ø8 apskritimai vietoj
+    puslankio kontūre. patikra_lapas.py jį parodo tik per šalia lapo esančius to paties vardo DXF (kaip 23).
 26. FOLDED BE m² (v323): folded plokštės BOM kiekis „N pcs." vietoj gaminio ploto m² (A1 - m², A2 - m²; v324 - W x H).
 27. BALIONAS UŽDENGTAS (v325, Rytis 2026-10-16: „reikia taisyklės, kad vengtų tokių persidengimų, nes dabar vienas ant kito,
     neinformatyvu"): į baliono apskritimą nepatenka svetimas tekstas (matmens skaičius), matmens rodyklė ar antras užrašas.
     Generatoriuje: balionai dedami PRIEŠINGOJE pusėje nei laido išvestis / jos matmuo (braizyti_lapa galinis vaizdas).
     v326: P1 pjūvio (K.p1_typical) šono balionas 2 - raidės viduje, ne ant gylio matmens.
+28. ANTRAŠTĖS MASTELIS (v327): antraštės SCALE langelyje - tik masteliai, kurie yra lapo vaizduose / blokuose (p10 doublesided
+    rašė numatytus „1:5 / 1:2 / 1:1"); sviesdeze.band `scales` - privalomas. Vienas bendras mastelis - vienas įrašas.
+- (be numerio) DVIGUBA LINIJA (v190, SKILL bendrinė 9): du įdėti hairline kontūrai arčiau nei 0,6 pt - spaudoje susilieja į
+  storą liniją (tikrinama kartu su 1 HAIRLINE).
 
 `taisykliu_lint.py` (generatoriaus kodas): FIKSUOTA VIETA, FIKSUOTAS MASTELIS, KIEKIS SU FORMULE, BLOKAS BE CENTRAVIMO,
 VISAS ŠALTINIO PUSLAPIS, DXF BE LANKŲ, TVIRTINIMAS NE PAGAL FORMĄ, LAPAI BE merge_sheets (v326), BALTAS DANGTIS, BE LAYOUT_ENGINE.

@@ -19,7 +19,7 @@ Funkcijos:
   roll_for(film, allow_1500)             -> (darbinis plotis mm, pastaba)
   plan(objs, film, gap_mm, ...)          -> {"roll", "pieces", "placements", "length_mm", "m2", "split", "notes", "text"}
                                             objs - shapely geometrijos (vienas elementas = vienas nekarpomas objektas), mm
-  bom_text(p, qty)                       -> „1190 mm x 1.46 m = 1.74 m²" (+ x qty)
+  bom_text(p, qty)                       -> „1,74 m² (roll 1190 mm)" (v326: tik rezultatas, be formulės)
   objects_from_pdf(pdf, page, rect_pt, width_mm, fill)  -> objektai iš kliento PDF (kiekvienas piešinys - objektas)
   write_dxf(p, path), preview_pdf(p, path)  -> ploterio failas / peržiūra (rulono kraštai, dalys su numeriais)
 
@@ -320,11 +320,10 @@ def _plan_separate(objs, film, gap_mm, allow_1500, kind, roll_mm):
 
 
 def bom_text(p, qty=1):
-    """BOM / MAIN DATA eilutė (angliškai): '1190 mm x 1.46 m = 1.74 m² (x 6 = 10.44 m²)'"""
-    s = f"{p['roll']:.0f} mm x {p['length_mm'] / 1000:.2f} m = {p['m2']:.2f} m²"
-    if qty and qty > 1:
-        s += f" (x {qty} = {p['m2'] * qty:.2f} m²)"
-    return s
+    """BOM kiekis (v326, TAISYKLĖ 34 / suvestinė C: tik rezultatas, be formulės, dešimtainis kablelis): '1,74 m² (roll 1190 mm)';
+    qty > 1 - viso kiekio sunaudojimas. Ilgis / formulė - tik konsolės ataskaitai (p['text'])."""
+    m2 = p["m2"]                                    # plano sunaudojimas (planas jau sudarytas reikiamam kiekiui)
+    return f"{m2:.2f}".replace(".", ",") + f" m² (roll {p['roll']:.0f} mm)"
 
 
 # ------------------------------------------------------------------ kliento PDF -> objektai

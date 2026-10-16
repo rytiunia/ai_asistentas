@@ -184,13 +184,9 @@ def _acr_studs(letters, hs_, ST, g_off, gw, cuts=(), holes=(), vjoints=(), grid=
             fail.append(round(o["bb"][0]))
             out += [(x, y, id(o)) for x, y in pts]
             continue
-        hull = o["geom"].convex_hull.simplify(0.12 * max(o["bb"][2] - o["bb"][0], o["bb"][3] - o["bb"][1]))
-        nh = len(hull.exterior.coords) - 1 if hasattr(hull, "exterior") else 2
-        n_t = max(min(max(nh, 2), 6), 2 + int((o["bb"][2] - o["bb"][0]) // 500))
-        if max(o["bb"][2] - o["bb"][0], o["bb"][3] - o["bb"][1]) < 200:   # v246: maža raidė (M ~170) - užtenka 3
-            n_t = min(n_t, 3)
-        cx, cy = o["geom"].centroid.x, o["geom"].centroid.y
-        sel = [max(pts, key=lambda q: (q[0] - cx) ** 2 + (q[1] - cy) ** 2)]   # toliausiai nuo centro, toliau - FPS
+        import tvirtinimas as TV                                  # v326: bendras formos principas (ir P6 D3.2)
+        n_t = TV.shape_n(o["geom"], o["bb"], 0.12)                # v245: akrilo rėmas 0,12; v246: maža raidė - iki 3
+        sel = [TV.fps_start(pts, o["geom"])]                      # toliausiai nuo centro, toliau - FPS
         while len(sel) < min(n_t, len(pts)):
             q_ = max(pts, key=lambda q: min((q[0] - s_[0]) ** 2 + (q[1] - s_[1]) ** 2 for s_ in sel))
             if min((q_[0] - s_[0]) ** 2 + (q_[1] - s_[1]) ** 2 for s_ in sel) < max(20, 0.25 * min(o["bb"][2] - o["bb"][0], o["bb"][3] - o["bb"][1])) ** 2:

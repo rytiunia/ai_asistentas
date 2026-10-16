@@ -9,7 +9,9 @@ PAGRINDINIS kelių pozicijų komplekto etalonas - `assets/etalonai/SPAR_225960_k
 Prieš kuriant naujo tipo lapą - peržiūrėk bent vieną etaloną (pdftoppm -> PNG).
 
 ## Lapas
-- A3 gulsčias. Rėmelis: kairė paraštė 20 mm, kitos 10 mm, 5 mm zonų juosta 1-8 / A-F.
+- A3 gulsčias. Rėmelis: 5 mm iki išorinio rėmelio iš visų pusių, 4 mm zonų juosta 1-8 / A-F - vidinis rėmelis 9 mm nuo lapo
+  krašto (`K.frame`, `lapas_core` OX0 / IX0; v326 pataisyta pagal kodą - buvo „kairė 20 mm, kitos 10 mm, 5 mm juosta", senas
+  `braizyti_lapa` blankas, panaikintas v316).
 - Šriftas GOST Common (`assets/gost_common.ttf`) visam lapui (atsarginis - osifont). Lapo užrašai - angliškai.
 - Spalvos: juoda + pilka. Spalvos tik ten, kur jos yra informacija (RAL užpildai vaizduose, RAL
   pavyzdėliai BOM, 3D vaizdas). Jokių dekoratyvinių perėjimų, šešėlių ar paveikslų lentelėse.
@@ -27,6 +29,8 @@ Prieš kuriant naujo tipo lapą - peržiūrėk bent vieną etaloną (pdftoppm ->
 - Antraštės lentelė apatiniame dešiniame kampe (ISO 7200 principu): CLIENT, TITLE, ORDER NO.,
   FILE / DRAWING NO., SCALE (DIM. mm), FORMAT, SHEET, REV., PROJECTION (ISO 5456-2 trečiojo kampo
   simbolis), DRAWN, CHECKED, DATE, įmonės pavadinimas.
+  **PAKEISTA v248:** DRAWN / CHECKED ir įmonės pavadinimo nebėra; antraštė - `lapas_core.title_body` (žr. „Bėgelių lapas -
+  vaizdai ir antraštė" žemiau, blankas `assets/blankas_A3.pdf`).
 - NOTES bloko NĖRA (informacija kartojasi). Lentelių antraštės - šviesiai pilka juosta, ne juodas fonas.
 
 ## Vaizdai (projekcijos)
@@ -34,6 +38,7 @@ Prieš kuriant naujo tipo lapą - peržiūrėk bent vieną etaloną (pdftoppm ->
 - Sienos NEVAIZDUOTI nei projekcijose, nei pjūviuose (jokios brūkšniuotės „WALL").
 - SIDE VIEW (RIGHT) - realus vaizdas iš dešinės, NE pjūvis. Dedamas dešinėje nuo priekio (3-iasis kampas).
   Tarpas iki priekio vaizdo proporcingas: max(50 pt, 11 % priekio vaizdo pločio).
+  **PAKEISTA v289 / v292:** tarpai tarp vaizdų stulpelių - vienodi, skaičiuoja `LE.distribute` (suvestinė B), ne fiksuota formulė.
 - REAR VIEW (MIRRORED) - TIKRAS vaizdas iš nugaros originaliomis spalvomis (raidės, bėgeliai, plokštės);
   tvirtinimo elementai, jų ilgiai ir žingsniai; nematomi elementai - punktyru. BENDRŲ matmenų (plotis, aukštis)
   galiniame vaizde NEDĖTI - jie priekiniame. Galiniame vaizde TIK bendriniai rėmo matmenys (v8):
@@ -69,6 +74,9 @@ Prieš kuriant naujo tipo lapą - peržiūrėk bent vieną etaloną (pdftoppm ->
 - Visi matmenys mm, sveiki skaičiai (žingsnis gali būti su 1 skaitmeniu po kablelio).
 
 ## Masteliai ir išdėstymas
+**PAKEISTA v289 / v309 (TAISYKLĖ 33, suvestinė B):** mastelį renka `LE.pick_scale` - FRONT / SIDE / REAR VIENAS bendras
+didžiausias telpantis mastelis (pirmiausia ISO 5455, 1:15 / 1:25 tik nurodžius), stulpeliai ir tarpai - `LE.distribute`;
+žemiau aprašytas „blokų kombinacijų ir geometrinio vidurkio" vertinimas - istorija.
 - Masteliai: 1:2, 1:5, 1:10, 1:15, 1:20, 1:25, 1:50 (ISO 5455 eilė + praktiniai 1:15, 1:25).
 - Išdėstymą parenka skriptas: perrenka blokų kombinacijas ir mastelius, renkasi tą, kur vaizdai
   didžiausi IR panašaus dydžio (geometrinis vidurkis), mažiausiai tuščios vietos; laisvą vietą
@@ -83,8 +91,12 @@ Prieš kuriant naujo tipo lapą - peržiūrėk bent vieną etaloną (pdftoppm ->
   `Vinyl foil, cast`, FINISH `3M <kodas>` (spalva iš `VINYL` lentelės `lapas_core.py`; naują kodą įrašyti ten).
 - Kiekiai skaičiuojami automatiškai iš geometrijos: perimetras (m) + plotas (m²) paviršiams,
   ilgis (mm) profiliams, vnt. tvirtinimams. Formulės užrašomos (`2 x 2250 = 4500 mm`).
+  **PAKEISTA v90 / v304 / v324 (suvestinė C, E3c):** BOM kiekyje - TIK rezultatas su vienetu, be formulių („4,50 m");
+  lakštų / plėvelės m² - nesting sunaudojimas (`scripts/nesting.py`, `plevele.plan`); folded plokštė - gaminio plotas W x H m²;
+  profiliai - bėginiais metrais (ne mm).
 - Nežinomos reikšmės - TUŠČIA vieta įrašymui pagal faktą (ne „?", ne raudona). Tekstas su „:"
-  gauna rašymo liniją.
+  gauna rašymo liniją. (v326 suderinta su suvestine C: spec'e rašoma „?", `K.T()` ją pašalina - lape tuščia vieta; atsakyme
+  klausimas Ryčiui.)
 
 ## Kliento grafika lape (v151, visiems produktams)
 Kliento maketas / logotipas / tekstas lape - `lapas_core.place_pdf(src_pdf, pno, clip, tl, tr, bl)`: tikslus kliento PDF
@@ -178,6 +190,7 @@ vazonai, suolas) - `scripts/projektai/clasohlson_horten/sheet2v.py: environment(
 Nauji produktų moduliai rašomi su juo (rėmelis, primityvai su hairline, matmenys, balionai, lentelės,
 antraštė, P6 tipiniai pjūviai `p6_typical(variant=rail|folded|plate)`, 3D `View3D`). Senasis
 `braizyti_lapa.py` (folded) dar savarankiškas - stilius tas pats.
+**PAKEISTA v316:** `braizyti_lapa.py` naudoja `lapas_core` (K.frame, K.centered pjūvis, nesting, vienas mastelis) - nebe savarankiškas.
 
 
 
@@ -194,6 +207,8 @@ antraštė, P6 tipiniai pjūviai `p6_typical(variant=rail|folded|plate)`, 3D `Vi
   apačioje 1 eilė - ausėlių grandinė, 2 eilė - bėgelio ilgis „L (U..)", 3 eilė - žymos su išvadine (statmenys,
   vidurinis bėgelis, i taško laikiklis); ašių grandinė - šone už grupės; matmenų tekstai pasislenka nuo išvadinių.
   Galinio vaizdo mastelis ne smulkesnis nei 1,5 x priekio.
+  **PAKEISTA v309:** galinis vaizdas - TO PATIES mastelio kaip priekis ir šonas (FRONT / SIDE / REAR bendras mastelis,
+  patikra 21 SKIRTINGI MASTELIAI, suvestinė B).
 
 
 ## (iš SKILL.md v85) Lapas (v9) -> `references/stilius.md` („Lapas (v9)": paraštės 5 / 4 mm, ORDER NO. 14 pt bold, pjūvio spalvos = DETAIL A)

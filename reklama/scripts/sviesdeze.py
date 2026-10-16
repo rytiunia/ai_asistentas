@@ -269,7 +269,7 @@ def bom_rows(g):
            if g["covers"] else [])
 
 
-def band(g, sheet, title_extra, md, bom, detail_fn, scales="1:5 / 1:2 / 1:1", center_detail=True):
+def band(g, sheet, title_extra, md, bom, detail_fn, scales, center_detail=True):   # v326: scales privalomas (ne išgalvoti numatytieji)
     BY0 = K.BAND_Y; BH = K.IY1 - BY0
     W_P6, W_MD, W_TB = 214, 214, 272
     X_P6 = K.IX0; X_TB = K.IX1 - W_TB; X_MD = X_TB - W_MD; X_BOM = X_P6 + W_P6; W_BOM = X_MD - X_BOM

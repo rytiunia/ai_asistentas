@@ -17,7 +17,10 @@ Procesinės (paskyros kopija sena, lygiagretūs pokalbiai, ASCII vardai, auseles
 - Bezier valdymo taškai išsikiša už kontūro - nulis ir gabaritai skaičiuojami iš tikros geometrijos
   (įgyvendinta; MATKROKEN 703, ne 708).
 - Trūkstamą RAL spalvą įrašyti į RAL lentelę (`lapas_core.py` ir `braizyti_lapa.py`), kitaip piešiama pilka.
+  **PAKEISTA v298:** visa RAL Classic paletė (213) - VIENA vieta `assets/ral_classic.json` (ją skaito ir `lapas_core`, ir
+  `braizyti_lapa`); nežinomas kodas per `K.ralhex` - ne tyli pilka, o lapo klaida (patikra 18); naujas kodas įrašomas į paletę.
   Trūkstamą 3M plėvelės kodą - į `VINYL` (`lapas_core.py`), kitaip FINISH langelis lieka neužpildytas.
+  (v142 / v260: plėvelių paletės - `assets/pleveles.json`, `lapas_core.code_hex()` / `film_lookup`.)
 - PyMuPDF `rect` CorelDRAW sudėtiniams keliams gali būti klaidingas - gabaritus skaičiuoti iš taškų;
   viename kelyje gali būti visos raidės - skaidyti į raides (įgyvendinta).
 - Šoninis vaizdas - realus vaizdas, ne pjūvis. 3D - tikras 3D, ne pasvirusios kopijos.
@@ -46,3 +49,7 @@ Procesinės (paskyros kopija sena, lygiagretūs pokalbiai, ASCII vardai, auseles
   (3) ilgi langelių tekstai buvo mažinami šriftu / išlindo už rėmelio - dabar `K.wrap_cell`; (4) P1 pjūvio balionas ant
   gylio matmens, PVC štrichai per clipPath, U laikiklio iškeltinės ant ašinių, p10 plokštės vaizde koja už lapo ribų;
   (5) logotipas potrace laužte (1252 atkarpos) - dabar lankais.
+- v327 (A-Z tęsinys): p10 doublesided antraštėje - numatyti `sviesdeze.band` masteliai „1:5 / 1:2 / 1:1", lape - 1:8 / 1:4
+  (patikra 28 ANTRAŠTĖS MASTELIS, `scales` privalomas); folded_vinyl žymėjo „nest" BESĄLYGIŠKAI (net be plėvelės) - patikra 19
+  buvo apeinama (dabar „nest" tik po tikro nesting, folded eilutė - „folded_qty"); P6 ant folded vientisas DXF buvo tik projekto
+  skripte (dabar bendras `p6_folded.py`); formos tvirtinimo kodas dviejose vietose (dabar `tvirtinimas.py`).

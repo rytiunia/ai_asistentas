@@ -47,6 +47,12 @@ CASES = [
     ("order bodo folded", "clasohlson_226045_bodo", [["python3", "bodo.py", "ALT0000_Order_226045.pdf"]], ["ALT0000_Order_226045.pdf"], []),
     ("p6 folded bandymas", "bandymas_3500_folded", [["python3", "folded_test.py"]], ["TEST_Bandymas_folded.pdf"],
      ["TEST_Bandymas_folded_combined.dxf"]),
+    # v326: patvirtintas SPAR 225960 (18 lapų: P6 ant rėmo, folded back plate + vinyl, portalas, grafika, FRISK P6 ant folded)
+    ("order spar 225960", "spar_225960", [["python3", "lapai.py"],
+                                          ["python3", "../../../folded_vinyl.py", "sk/spec_bp7.json", "sk/bp7.pdf"],
+                                          ["python3", "../../../folded_vinyl.py", "sk/spec_bp89.json", "sk/bp89.pdf"],
+                                          ["python3", "kiti_lapai.py"], ["python3", "rinkinys.py"], ["python3", "dxf_rinkinys.py"]],
+     ["out/ALT8901_10.16_RS_SPAR_order_225960.pdf"], ["out/*.dxf"], "alt8901"),
 ]
 # žinomi, dar neišspręsti (Ryčio sprendimas) - rodomi, bet regresijos nesugadina; kiekvienas su priežastimi
 KNOWN = {
@@ -73,8 +79,9 @@ def mirror(proj):
 
 
 def run_case(case):
-    name, proj, cmds, pdfs, dxfs = case
+    name, proj, cmds, pdfs, dxfs = case[:5]
     tmp, cwd, scr = mirror(proj)
+    cwd = os.path.join(cwd, case[5]) if len(case) > 5 else cwd          # projekto pakatalogis (pvz. spar_225960/alt8901)
     errs = []
     try:
         for c in cmds:

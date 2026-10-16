@@ -74,6 +74,8 @@ bėgeliai, statmenys, vertikalūs laikikliai - VISŲ grupių kartu) dėliojamos 
 `2 x 6 m: [2995+2995] [600+600]` ir atlieka; BOM placeholderiai `{RAIL_BARS}` (strypų kiekis), `{RAIL_PLAN}`,
 `{BAR_M}` (6), `{PRAIL_BARS}` (plokštės bėgelis), folded `{L_BARS}`. Naujuose spec'uose bėgelių eilutėje rašyti
 `{RAIL_LIST_M} = {RAIL_TOTAL_M} m ({RAIL_BARS} x {BAR_M} m bars)`; esamų etalonų BOM nekeičiamas.
+(v326 pastaba: „{RAIL_LIST_M} = " generatoriai išmeta patys - lape kiekyje tik rezultatas „{RAIL_TOTAL_M} m (N x 6 m bars)",
+v90 / suvestinė C; etalonai pergeneruojami dabartinėmis taisyklėmis, v316.)
 Dalis ilgesnė už 6 m -> strypų plane skaidoma į 6000 + likutis (likutis dėliojamas su kitomis dalimis) ir perspėjimas „jungti iš 2 dalių (sandūra po raide, prie statmens)" - sandūros vietą parenka Rytis (v74).
 
 ## 2. 6 m taisyklė rėmui po raidėmis (PAGRINDINĖ, Rytis 2026-10-10)

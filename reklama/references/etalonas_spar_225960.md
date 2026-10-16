@@ -38,6 +38,8 @@ Ką daryti naujame užsakyme - pirmiausia žiūrėti, kaip tai padaryta čia.
 - Juostos eilutė >= 11 pt, tekstas 8 pt; juostos aukštis = max(172, 32 + 11 x eilučių). Nesuspausta.
 - Antraštė (ISO 7200): CLIENT 14 pt bold, TITLE, ORDER NO. 14 pt bold (`ALT0000_00.00_RS`, kol nežinomas),
   FILE / DRAWING NO. = projekto pavadinimas, SCALE, FORMAT, SHEET „n / N", REV., PROJECTION, DRAWN, CHECKED, DATE.
+  **PAKEISTA v248:** DRAWN / CHECKED nebėra; DATE + juodas kiekio blokas „N pcs." + didelė „Sheet x / y" (`lapas_core.title_body`,
+  blankas `assets/blankas_A3.pdf`). v316: etalono lapai perdaromi dabartiniu blanku.
 - Projekto pavadinimas - pagal užsakymą („SPAR order 225960"), lapų TITLE „<projektas> - <gaminys>",
   failas `Drawing_<projektas>.pdf` užsakymo aplanke NAS.
 
@@ -58,6 +60,8 @@ Ką daryti naujame užsakyme - pirmiausia žiūrėti, kaip tai padaryta čia.
 - **Plėvelių kodai - VISADA spalvotame langelyje** (FINISH ir MATERIAL): ORACAL 8500 614 žalia, 551-035 oranžinė,
   551 010 balta, Avery 777-002CF / PMS 185 raudona, sandblast pilka. Naujas kodas - į `lapas_core.FOIL`.
   Plėvelės eilutėje FINISH = plėvelės kodas (RAL atspalvis - pavadinime).
+  **PAKEISTA v260 (SKILL 28):** plėvelė (lipdukas) - MATERIAL = plėvelės kodas (nuspalvintas), FINISH = „-"; spalvos -
+  `assets/pleveles.json` / `lapas_core.code_hex` (ne tik `FOIL` lentelė).
 - Kiekviena BOM pozicija pažymėta balionu BENDRAME brėžinyje (priekis / šonas / galas), numeriai nesikartoja.
 
 ### Laidai ir maitinimas
@@ -74,6 +78,8 @@ Ką daryti naujame užsakyme - pirmiausia žiūrėti, kaip tai padaryta čia.
   (vidaus: viršutinis bėgelis tiesiai į sieną). Aiškus Ryčio nurodymas - viršesnis.
 - Bėgelių galai paslėpti už raidžių: pradžia = pirmos raidės kontūras ties bėgelio briaunomis + 30 mm,
   galas prie apskritimo = styga - 30 mm. Pailgintų ausėlių („trumpų statmenų") prie krašto nedėti.
+  **PAKEISTA (v67 / v204, `rail_edge_mm` 10):** bėgelio galas - abu kampai >= 10 mm KRAŠTINĖS raidės viduje, kiekvienas bėgelis
+  atskirai; rėmas neuždaromas galiniais statmenimis bėgelių galuose; stabilumas > paslėpimas (SKILL bendrinė 2, 12).
 - Rėmas iš 2 dalių - punktyras + „FRAME JOINT" priekio ir galiniame vaizde.
 
 ### Ne iškabų lapai (spauda, plėvelės, dekoras, back plate, portalas)
@@ -93,7 +99,8 @@ Ką daryti naujame užsakyme - pirmiausia žiūrėti, kaip tai padaryta čia.
 - Vidaus kategorijos (225721 KAFFEBAR): U 20x20x2, laidai tik apačioje, be ausėlių. P00 apskritimas -
   2 mm juodas Alu kompozitas VIENA detale su rėmo atkartojimu, z 20 | 2 | 50, plėvelė ORACAL 551-035.
 - FRISK & SUNN TYPE 670 (3600 x 670, 2026-10-08): box lid iš 2 dalių 1500 + 2100 (`panel_joints`), Opal 8 (P6_8mm),
-  laidas D11 po F -> Ø11 skylė kairėje užlenktoje briaunoje 29 nuo viršaus, PSU be dėžės; „PANEL JOINT" - pastaba už
+  laidas D11 po F -> Ø11 skylė kairėje užlenktoje briaunoje 29 nuo viršaus (PAKEISTA v321: standartas 15 mm nuo viršaus ir
+  15 mm nuo lenkimo linijos), PSU be dėžės; „PANEL JOINT" - pastaba už
   reklamos ribų. Kodas `scripts/projektai/spar_type670/`. 18 lapo (225960) DETAIL A (3 mm) ir „D11 ant fono" - pasenę.
 - FRISK & SUNN (225400 / 225724): folded box lid 33, P1 apskritimas - atskiras tūrinis elementas
   (priekis 2 mm Alu RAL 6039, šonas 1 mm, dugnas 10 mm PVC), „&" P6 ant jo; laidas viršuje kairėje.

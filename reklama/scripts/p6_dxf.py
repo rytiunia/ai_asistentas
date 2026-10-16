@@ -7,7 +7,12 @@
     3_REMAS    raudona (ACI 1) - bėgeliai: kliento pilka grafika -> tikras profilio plotis (`--rail` 30 / 40),
                                  ašis išlaikoma, galai 10 mm raidės viduje (rail_edge)
 
-  TVIRTINIMO SKYLĖS (dugne, ten kur už raidės eina bėgelis) - PRISPAUDIMO LOGIKA (Rytis 2026-10-09):
+  v326 PASTABA - GALIOJA P6 PAGRINDINĖ TAISYKLĖ (v317-v321, suvestinė references/lapo_taisykles.md „P6 - PAGRINDINĖ TAISYKLĖ"):
+    NUMATYTA - D3.2 FORMOS principu (kvadrato forma - 4, trikampio - 3 skylės); drenažas ant rėmo - Ø8 PUSLANKIS dugno
+    kontūre (--drain-hole - senas būdas), --folded - be rėmo, drenažas Ø8 skylutės (fone - tos pačios skylės, scripts/p6_folded.py).
+    Žemiau aprašyta PRISPAUDIMO logika - TIK su --press-fill (senas režimas, tik Ryčiui paprašius).
+
+  TVIRTINIMO SKYLĖS (dugne, ten kur už raidės eina bėgelis) - PRISPAUDIMO LOGIKA (Rytis 2026-10-09; v317 - tik --press-fill):
     varžtas prispaudžia dugną prie bėgelio zonoje spinduliu R = `--press-r` (100 mm, Rytis 2026-10-09); skylės paskirstomos
     taip, kad prispaustų KUO DIDESNĮ dugno plotą - ne tik kraštus, bet ir vidurį.
     Kandidatų linija = bėgelio ašis, `--rail-end-clear` (15) nuo bėgelio galų, SUKIRSTA su dugnu, įtrauktu
@@ -33,7 +38,8 @@
     v68 (Rytis): visi variantai pirma tikrinami su PILNU --d11-edge visoje ašyje; mažinama tik kai plačios vietos nėra.
     Vis tiek netelpa (test_B „s") - D11 VISADA BĖGELIO AŠYJE (Rytis): dedama ašyje arčiausiai raidės centro,
     o tos zonos varžtai perstatomi į likusias saugias vietas. Šalia bėgelio - NIEKADA.
-    `both` - DU rinkiniai: *_laidas_virsus.dxf (viršutinis bėgelis) ir *_laidas_apacia.dxf (apatinis).
+    `both` (numatyta) - DU rinkiniai: *_laidas_virsus.dxf (viršutinis bėgelis) ir *_laidas_apacia.dxf (apatinis);
+    patvirtintam užsakymui siunčiamas VIENAS DXF - nurodyti --cable bottom|top (suvestinė E2).
   IŠVESTIS: <prefix>_P6_1-1.dxf (visa iškaba, nulis - raidžių kairė apačia, y aukštyn) + <prefix>_L01_T.dxf ...
     (po vieną raidei, nulis - raidės kairė apačia, bėgeliai apkirpti ±30 mm už raidės) + <prefix>_patikra.png.
     Kontūrai - uždaros LWPOLYLINE (kreivės išlygintos 0,01 mm tikslumu - CNC / lazeris / Corel), skylės - CIRCLE.
@@ -69,7 +75,7 @@ ap.add_argument("--names", default="", help="raidžių vardai iš kairės, pvz. 
 ap.add_argument("--prefix", default=None, help="failų prefiksas (numatyta - PDF vardas)")
 ap.add_argument("--press-fill", action="store_true", help="v317: senas režimas - skylės pagal prispaudimo R (tolygiai per zoną + "
                 "neprispaustos dalys); numatyta - FORMOS principas (kvadratas 4, trikampis 3)")
-ap.add_argument("--stems", action="store_true", help="v195: senas režimas - skylė traukiama į kojelę (a / d / m); numatyta - tolygiai per zoną")
+ap.add_argument("--stems", action="store_true", help="v195: senas režimas (tik su --press-fill) - skylė traukiama į kojelę (a / d / m); numatyta (v317) - FORMOS principas")
 ap.add_argument("--rail", type=float, default=30, help="bėgelio profilio plotis mm (U30 / U40)")
 ap.add_argument("--p1", action="store_true", help="v116: P1 NON-LIT - dugnas (inside kontūras) -0,7 mm, be drenažo, be D11 (LED nėra)")
 ap.add_argument("--inset", type=float, default=None, help="dugnas mažesnis už stiklą, mm į vidų (back_inset)")
@@ -548,13 +554,8 @@ def holes_valid(o, holes):
 #  - iki 3), taškai - štrichų, kertančių bėgelio ašį, CENTRE (centerline; išilginiame štriche - galuose), parenkami kuo
 #  toliau vienas nuo kito (nuo toliausio nuo centro - FPS), todėl taškai sudaro kvadratą / trikampį, o ne grandinę.
 def shape_n(o):
-    g, (x0, y0, x1, y1) = o["geom"], o["bb"]
-    hull = g.convex_hull.simplify(0.16 * max(x1 - x0, y1 - y0))   # 0,16: a / s apvalumai - ne papildomi kampai
-    nh = len(hull.exterior.coords) - 1 if hasattr(hull, "exterior") else 2
-    n_t = max(min(max(nh, 2), 6), 2 + int((x1 - x0) // 500))
-    if max(x1 - x0, y1 - y0) < 200:
-        n_t = min(n_t, 3)
-    return n_t
+    import tvirtinimas as TV                                        # v326: bendras principas (ir akrilo rėmui)
+    return TV.shape_n(o["geom"], o["bb"], 0.16)                     # 0,16: a / s apvalumai - ne papildomi kampai
 
 
 def shape_holes(o, zones):
@@ -574,8 +575,8 @@ def shape_holes(o, zones):
     n_t = shape_n(o)
     if len(cands) <= 2:
         return cands, n_t
-    cx, cy = o["geom"].centroid.x, o["geom"].centroid.y
-    sel = [max(cands, key=lambda q: (q[0] - cx) ** 2 + (q[1] - cy) ** 2)]
+    import tvirtinimas as TV
+    sel = [TV.fps_start(cands, o["geom"])]
     w_ = o["bb"][2] - o["bb"][0]
     dmin = max(20, 0.25 * min(w_, o["bb"][3] - o["bb"][1]))
 

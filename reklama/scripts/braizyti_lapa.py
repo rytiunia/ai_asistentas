@@ -43,7 +43,9 @@ c.setTitle(spec.get("file_code", "drawing"))
 
 
 def ralhex(code):
-    return RAL.get(str(code).replace("RAL", "").strip(), "#888888")
+    """v326: bendra K.ralhex (v298 - nežinomas RAL -> lapo klaida, ne tyli pilka; „RAL 9005 matt" -> 9005)"""
+    import lapas_core as _K
+    return _K.ralhex(code)
 
 
 def unk(s):
@@ -762,8 +764,9 @@ def _nest_q(row):
 
     def rep(m):
         k_ = "BACK" if (_back and m.group(1) == "FACE") else m.group(1)      # „Letter back" eilutė su {A_FACE} - dugnai
-        if not _NE.parse_material(mat)[0]:
-            return m.group(0)
+        if not _NE.parse_material(mat)[0]:                     # v326: nežinoma medžiaga - „?" + lapo klaida (ne grynasis plotas)
+            K.SHEET_ERR.append(f"BOM '{row[1]}': medžiaga '{mat}' nežinoma nesting (assets/medziagos.json) - plotas nežinomas")
+            return "?"
         if k_ == "RET":
             r_ = _NE.nest_strips(LET_PERIMS, spec["depth_mm"], mat, label=str(row[1]), qty=_qty)
         else:
@@ -792,7 +795,7 @@ spec["bom"] = [[subst(x) for x in row] for row in spec["bom"]]
 for _r in spec["bom"]:
     if len(_r) >= 5 and re.search(r"folded", f"{_r[1]} {_r[2]}", re.I) and re.fullmatch(r"\s*\d+\s*pcs\.?\s*", str(_r[4])):
         _r[4] = _NE.folded_qty([(_b - _a, PH) for _a, _b in PARTS])[0]      # v324: gaminio plotas, ne išklotinė
-        K.FEAT.add("nest")
+        K.FEAT.add("folded_qty")                     # v326: atskira žyma (ne „nest" - patikra 19 folded eilučių netaiko)
 # v100 (Rytis 2026-10-11): „Letter back" - spalva = šonų spalva (standartas), kitokia - tik nurodžius (spec "back_ral")
 _back_ral = spec.get("back_ral") or spec.get("return_ral")
 if _back_ral:
@@ -1481,7 +1484,7 @@ while yy + 0.5 < ty:
     yy += hh_
 rect(RX0, rvy + 12, tw, ty - rvy - 12, lw=0.6)
 _kc = K.c; K.c = c                                 # v248: bendra antraštės apačia (juodas kiekio blokas, didelė Sheet)
-K.title_body(RX0, ty, tw, dict(spec, drawing_no=spec.get("drawing_no", spec.get("file_code", ""))), f"1:{SC1} / 1:{SC2}", rows_h)
+K.title_body(RX0, ty, tw, dict(spec, drawing_no=spec.get("drawing_no", spec.get("file_code", ""))), f"1:{SC1}" if SC1 == SC2 else f"1:{SC1} / 1:{SC2}", rows_h)   # v326: vienas bendras mastelis - vienas įrašas
 K.c = _kc
 line(IX0, BY0 - 6, IX1, BY0 - 6, 0.7)   # juostos skirtukas
 

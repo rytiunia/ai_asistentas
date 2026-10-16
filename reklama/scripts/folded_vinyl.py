@@ -236,7 +236,8 @@ def build(S, P, out, sheet_no, n_sheets):
     rows = max(10, 5 + len(VIN) + (1 if joint else 0))
     K.set_band(rows)
     K.init(out + ".tmp", P["name"])
-    K.FEAT.add("nest")                                   # v304: plėvelių plotas skaičiuotas rulono nesting (plevele.plan)
+    if VIN:
+        K.FEAT.add("nest")                               # v304: plėvelių plotas - rulono nesting (plevele.plan); po K.init (jis valo FEAT)
     K.frame()
     # ---- mastelis: viršutinė eilė FRONT | SIDE | REAR, apačioje DETAIL A (B) + 3D
     ROW2 = 196                                          # apatinė eilė: DETAIL A / B 1:2 + 3D
@@ -390,8 +391,11 @@ def build(S, P, out, sheet_no, n_sheets):
     part_txt = " + ".join(f"A{i + 1} {W:g} x {h:g}" for i, h in enumerate(hp))     # v323: dalys A1, A2 ... (kaip BOM)
     bom = [["1", f"Folded plate {W:g} x {H:g} x {depth:g} mm" + (f" ({len(hp)} parts)" if joint else ""), f"Alu {t:g} mm folded",
             S.get("finish_short", f"RAL {S['plate_ral']}"), NE.folded_qty([(W, h) for h in hp])[0]]]   # v324: gaminio plotas W x h (A1 / A2 ...)
-    K.FEAT.add("nest")
+    K.FEAT.add("folded_qty")                             # v326: atskira žyma; patikra 19 folded eilutės netaiko
     if PR:
+        # v326: tiesioginė spauda ant plokštės - spausdinamas gaminio plotas (ne lakšto / rulono nesting); KLAUSIMAS Ryčiui
+        #  (moduliai_folded „SPAUDA" (W+80) x (H+80)?) - kol neatsakyta, žyma „nest" sąmoningai (spaudos plotas = sunaudojimas)
+        K.FEAT.add("nest")
         bom.append(["2", PR.get("part", "Print, front + edges"), PR.get("material", "original file"), "-", f"{W * H / 1e6:.2f} m²"])
     for i, (v, p_, a_) in enumerate(VIN):
         bom.append(["2" if i == 0 else "", f"Vinyl {v['name']}", v["code"], "-", f"{p_['m2']:.2f} m²"])

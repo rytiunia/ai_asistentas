@@ -1,12 +1,16 @@
 # Patvirtinimas -> gamybos paketas (v104, Rytis 2026-10-11)
 
 Ryčio komanda: įkeliamas (kliento patvirtintas) dokumentas + žinutė **„Patvirtinta, ALT5432_10.12_RS"**.
-Tada BE papildomų klausimų sukuriama:
-1. **Gamybinis dokumentas** - tas pats lapas(-ai), ORDER NO. = ALT numeris (`spec "order_no"`), visi lapai į vieną PDF
-   `<ALT>_<užsakymas>.pdf`;
-2. **DXF 1:1** (`p6_dxf.py --no-letters`, su `--rails-json` - rėmas, ausėlės / hangers, D3.2, D11, drenažas) -
-   TIK VIENTISI failai `<ALT>_<lapas>_P6_1-1_*.dxf` po vieną lapui (be failų po raidę, be ZIP, be patikros PNG);
-3. **LED dėliojimo lapas** (v119: `led_km.py` - KM-P2; `led_sim.py` tik paprašius) - visi lapai į `<ALT>_..._LED.pdf`.
+Tada BE papildomų klausimų sukuriama - ir SIUNČIAMA TIK TAI (v326 suvienodinta su suvestine E2 ir Ryčio taisykle):
+1. **Gamybinis (maketo) dokumentas** - tas pats lapas(-ai), ORDER NO. = ALT numeris (`spec "order_no"`), visi lapai į vieną PDF
+   `<ALT>_<užsakymas>.pdf`; **PAKEISTA v316:** lapai PERGENERUOJAMI dabartiniais generatoriais ir taisyklėmis (patvirtintas
+   PDF - tik duomenų šaltinis), žr. „v316" žemiau;
+2. **VIENTISAS DXF 1:1** (visa iškaba viename faile; `p6_dxf.py --no-letters --cable bottom|top`, su `--rails-json` - rėmas,
+   ausėlės / hangers, D3.2, D11, drenažas; folded + lipdukai - `dxf_combine.py` `_combined.dxf`) - po vieną lapui / plokštei,
+   `<ALT>_<lapas>_P6_1-1_laidas_<variantas>.dxf`; atskirų dalių failų (po raidę, `_flat_` / `_vinyl_`), abiejų laido variantų,
+   ZIP, patikros PNG - NESIUNČIAMA;
+3. **LED dėliojimo lapas** (v119: `led_km.py` - KM-P2; `led_sim.py` tik paprašius) - visi lapai į `<ALT>_..._LED.pdf`
+   (nešviečiančiam - nėra, ataskaitoje pasakyti).
 
 ## ALT numerio normalizavimas
 - Formatas `ALT<nr>_<MM.DD>_<inicialai>` (lapo šablonas `ALT0000_00.00_RS`).
@@ -24,11 +28,14 @@ Tada BE papildomų klausimų sukuriama:
    - leidžiami, PRANEŠTI Ryčiui sąraše.
 4. `p6_dxf.py patvirtintas.pdf dxf --page N --scale S --crop ... --fill 1,1,1 --names ... --prefix <ALT>_<lapas>
    --rail <profilis> --cable top --rails-json rails_N.json` (ausėlių Ø baltos skylės < 20 mm praleidžiamos, v104).
-5. `led_sim.py` spec: `pdf` = patvirtintas, `"page"`, `crop_pt`, `scale_mm_per_pt` = mastelis x 0.35278, `fill_rgb` [1,1,1],
+5. **PAKEISTA v119 / v127:** LED - `led_km.py` (Kaisen), `led_sim.py` - tik paprašius; v316 - iš NAUJŲ lapų raidžių.
+   `led_sim.py` spec: `pdf` = patvirtintas, `"page"`, `crop_pt`, `scale_mm_per_pt` = mastelis x 0.35278, `fill_rgb` [1,1,1],
    `order_no` = ALT; laidas iš raidės - `"feed_at": ["letter:<indeksas>-top"]` (v104).
 6. Sujungti PDF, perkelti į outputs. **Siųsti TIK 3 rūšis (Rytis v105):** PDF su maketu, PDF su LED dėliojimu,
-   vientisus DXF. `reklama.zip` NESIŲSTI - tik atnaujinti iCloud, jei skill'as keitėsi. Ataskaitoje: kas pakeista nuo patvirtinto, DXF perspėjimai
+   vientisus DXF. `reklama.zip` NESIŲSTI - tik atnaujinti iCloud, jei skill'as keitėsi. (PAKEISTA 2026-10-12: iCloud
+   nebenaudojamas - skill'o pakeitimai tik commit + push į GitHub `rytiunia/ai_asistentas`, SKILL.md viršus.) Ataskaitoje: kas pakeista nuo patvirtinto, DXF perspėjimai
    (rankiniai taisymai), LED modulis / kiekis / W (LED į gamybinį lapą - tik Ryčiui patvirtinus modulį), PSU / trafo modelis.
+   (v262: gamybiniame lape - tik „LED" / „PSU" su kiekiu; modelis / W - tik ataskaitoje arba Ryčiui paklausus.)
 
 Pirmas bandymas: Joker 226001 (`scripts/projektai/joker_reinslettveien/`, „Patvirtinta, ALT 8872_10.12").
 
@@ -87,6 +94,8 @@ laisvumu, bet dabar taisyklės daro su **mm, tai ir naudoti pačią naujausią s
 - Žemiau esantis v308 / v310 būdas (keisti tik ORDER NO.) - ATŠAUKTAS gamybos paketui.
 
 ## v308 - KELIŲ LAPŲ PATVIRTINTAS COREL PDF (SPAR 225960, ALT8901_10.16_RS, 2026-10-16) - ATŠAUKTA v316
+**PAKEISTA v316:** ORDER NO. keitimas esamame PDF gamybos paketui NENAUDOJAMAS; `remas_is_lapo.py` / `svarus_lapas.py` lieka
+tik kaip DUOMENŲ ištraukimas naujiems lapams (v316 skyrius aukščiau).
 - (ATŠAUKTA v316) Patvirtintas dokumentas Ryčio taisytas Corel'yje -> NEGENERUOTI iš naujo (prarastų patvirtintą turinį): pakeičiamas TIK
   ORDER NO. (`scripts/projektai/spar_225960/alt8901/order_no.py`, v310: originalo šrifto glifų ID turinio sraute + qpdf;
   v308 redakcija + pymupdf insert_text sugadino failą Corel'iui - NENAUDOTI), patikra `patikra_corel.py` = 0,
