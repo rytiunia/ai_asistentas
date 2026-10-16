@@ -9,7 +9,9 @@
 7 mm nuo viršaus / apačios flanšo krašto, 50 nuo galų, žingsnis ~300 (`--no-holes` - be jų).
 NUMATYTA (Rytis 2026-10-13, bet kokiems matmenims): „sides inside" - šonai įsilenkia į vidų, viršus / apačia užsilenkia ant jų.
 `--tb-inside` (v174, tik nurodžius „top/bottom inside"): viršus / apačia įsilenkia TARP šonų - jie t trumpesni iš galų (W - 2t), šonai per visą aukštį H.
-Naudojimas: python3 folded_dxf.py PLOTIS AUKŠTIS out.dxf [GYLIS] [--t 2] [--no-holes] [--tb-inside]"""
+Laido Ø11 skylė briaunoje (v321): `--cable-edge=left|right|top|bottom` [`--cable-mm=15`] - 15 mm nuo lenkimo linijos
+(fono priekio) ir 15 mm nuo viršaus (šone) / nuo kairės (viršuje / apačioje).
+Naudojimas: python3 folded_dxf.py PLOTIS AUKŠTIS out.dxf [GYLIS] [--t 2] [--no-holes] [--tb-inside] [--cable-edge=left]"""
 import sys, os
 import ezdxf
 import kreives as KR  # v312: kreivės lankais (skripto katalogas - sys.path[0])
@@ -23,6 +25,14 @@ W, H, OUT = float(args[0]), float(args[1]), args[2]
 PD = float(args[3]) if len(args) > 3 else 40.0
 HOLES = "--no-holes" not in sys.argv
 TB_IN = "--tb-inside" in sys.argv          # v174: viršus / apačia tarp šonų
+# v321 (Rytis 2026-10-16: „laido skylė briaunoje daroma, kaip standartas kuo arčiau dugno ir viršutinės dalies ~15mm"):
+#  Ø11 laido skylė užlenktoje briaunoje - 15 mm nuo lenkimo linijos (fono priekio = padėklo dugno) ir 15 mm nuo viršaus
+#  (šoninėje briaunoje - nuo viršutinės lenkimo linijos; viršutinėje / apatinėje - nuo kairės / dešinės lenkimo linijos)
+CAB = None
+for a_ in sys.argv:
+    if a_.startswith("--cable-edge="):
+        CAB = a_.split("=", 1)[1]
+CAB_MM = next((float(a_.split("=", 1)[1]) for a_ in sys.argv if a_.startswith("--cable-mm=")), 15.0)
 FL = PD - t                                  # flanšas nuo lenkimo linijos (40 -> 38)
 F, WF = W + 2 * FL, H + 2 * FL               # išklotinė
 
@@ -44,6 +54,11 @@ if HOLES:
     for v in (7, WF - 7):
         for k in range(n + 1):
             msp.add_circle((x0 + 50 + span * k / n, v), 1.6, dxfattribs={"layer": "HOLES_D3.2"})
+if CAB:
+    doc.layers.add("HOLE_D11_CABLE", color=1)
+    cxy = {"left": (x0 - 15, y1 - CAB_MM), "right": (x1 + 15, y1 - CAB_MM),
+           "top": (x0 + CAB_MM, y1 + 15), "bottom": (x0 + CAB_MM, y0 - 15)}[CAB]
+    msp.add_circle(cxy, 5.5, dxfattribs={"layer": "HOLE_D11_CABLE"})
 th = min(30, H / 20)
 msp.add_text(f"FOLDED PLATE {W:.0f} x {H:.0f} x {PD:.0f} - Al {t:g} mm - FLAT {F:.0f} x {WF:.0f} - FACE OUT",
              height=th, dxfattribs={"layer": "TEXT"}).set_placement((F / 2, -2 * th), align=ezdxf.enums.TextEntityAlignment.MIDDLE_CENTER)

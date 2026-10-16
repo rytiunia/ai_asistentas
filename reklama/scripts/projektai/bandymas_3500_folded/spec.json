@@ -112,10 +112,14 @@
  "export_1to1": false,
  "main_data_extra": [],
  "callouts": {},
- "cable_exit": {
-  "x_mm": 300,
-  "y_mm": 900,
-  "where": "bottom left",
+ "cable": {
+  "d11_mm": [
+   508,
+   322
+  ],
+  "letter": "letter B",
+  "edge": "left",
+  "edge_mm": 15,
   "label": "12V, 3 m -> trafo box (220V)"
  }
 }

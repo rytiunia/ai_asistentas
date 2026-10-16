@@ -5,7 +5,9 @@ Vienas vientisas DXF:
     dugne: LETTER_FIX_D3.2 (raidė prie fono - kvadrato / trikampio principu), HOLE_D11_CABLE (laidas pro foną),
     DRAIN_D8 (drenažas - skylutė, ant folded lieka skylutės);
   - dešinėje - P6 raidės (p6_dxf --folded: 1_PRIEKIS, 2_GALAS su D3.2 / D11 / Ø8 skylutėmis).
-python3 folded_test.py   (prieš tai: braizyti_lapa.py spec.json ...; p6_dxf.py ... --folded -> dxf/)"""
+Laido Ø11 skylė fono briaunoje - 15 mm nuo lenkimo linijos ir 15 mm nuo viršaus (v321). Raidės prie fono tvirtinamos
+gamyboje pagal faktą - esminis skylių atitikimas raidėse ir fone (v321).
+python3 folded_test.py   (viskas: p6_dxf --folded, lapas, išklotinė, vientisas DXF)"""
 import glob
 import os
 import sys
@@ -36,6 +38,25 @@ for ly, col, lt in (("CUT", 7, "CONTINUOUS"), ("BEND_UP_90", 1, "DASHED"), ("HOL
                     ("DRAIN_D8", 5, "CONTINUOUS"), ("TEXT", 7, "CONTINUOUS")):
     if ly not in doc.layers:
         doc.layers.add(ly, color=col, linetype=lt)
+# v321: pilna eiga - p6_dxf (raidės) -> spec "cable" (D11 raidėje, Ø11 briaunoje 15 / 15) -> lapas -> išklotinė -> vientisas DXF
+import json  # noqa: E402
+import re  # noqa: E402
+import subprocess  # noqa: E402
+SCR = os.path.join(HERE, "..", "..")
+r_ = subprocess.run(["python3", os.path.join(SCR, "p6_dxf.py"), "Bandymas_folded_client.pdf", "dxf", "--scale", "1.4077823",
+                     "--fill", "1,1,1", "--rails-json", "axes.json", "--folded", "--no-letters", "--prefix", "TEST_Bandymas_folded",
+                     "--cable", "bottom"], cwd=HERE, capture_output=True, text=True)
+d11 = [(float(a), float(b)) for a, b in re.findall(r"L01: .*D11 \w+: \(([\d.]+); ([\d.]+)\)", r_.stdout)][0]
+CAB_EDGE = "left"                                    # kliento laido išvestis - kairėje (žiūrint iš priekio)
+sp = json.load(open(os.path.join(HERE, "spec.json")))
+sp.pop("cable_exit", None)
+sp["cable"] = {"d11_mm": [round((LT.x0 - PL.x0) * S + d11[0]), round((LT.y1 - PL.y0) * S - d11[1])], "letter": "letter B",
+               "edge": CAB_EDGE, "edge_mm": 15, "label": "12V, 3 m -> trafo box (220V)"}
+json.dump(sp, open(os.path.join(HERE, "spec.json"), "w"), indent=1, ensure_ascii=False)
+subprocess.run(["python3", os.path.join(SCR, "braizyti_lapa.py"), "spec.json", "TEST_Bandymas_folded.pdf"], cwd=HERE,
+               capture_output=True, text=True, check=True)
+subprocess.run(["python3", os.path.join(SCR, "folded_dxf.py"), str(W), str(H), "flat.dxf", str(DEPTH), f"--cable-edge={CAB_EDGE}"],
+               cwd=HERE, capture_output=True, text=True, check=True)
 flat = ezdxf.readfile(os.path.join(HERE, "flat.dxf"))
 for e in flat.modelspace():
     c = e.copy()

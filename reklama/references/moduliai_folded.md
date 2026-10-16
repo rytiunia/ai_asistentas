@@ -47,6 +47,9 @@ v37-v172 - NEBENAUDOTI; seni projektų skriptai jo nepakeisti.) max ilgis - lak�
     50 nuo galų, 20 nuo briaunos krašto), varžtai + veržlės (dydis - klausti, kol nepatvirtinta). DETAIL B -
     sandūros pjūvis. „PANEL JOINT" užrašas - tik už reklamos ribų.
   * Jei Rytis nurodo atskirus padėklus be jungimo (pvz. SPAR TYPE 670) - žr. „Folded iš kelių dalių - spec" žemiau.
+- **v321 (Rytis 2026-10-16): Ø11 laido skylė briaunoje - STANDARTAS ~15 mm nuo lenkimo linijos (fono priekio / padėklo
+  dugno) ir ~15 mm nuo viršaus** (`folded_dxf.py --cable-edge=...`); P6 raidžių D3.2 / D11 / Ø8 skylės atsikartoja fone 1:1,
+  tvirtinama gamyboje pagal faktą.
 - **Laidas folded fone (bendra):** TIK po raide - D11 raidės gale (>= 30 mm nuo kontūro, >= 20 nuo tvirtinimo
   skylių) -> už fono -> pro Ø11 skylę UŽLENKTOJE BRIAUNOJE (viršutinėje / apatinėje / ŠONINĖJE) kliento nurodytoje
   vietoje; matmuo iki skylės lape; ant fono išvesties niekada. Kurią briauną - pagal kliento failą / standartą.

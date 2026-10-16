@@ -780,6 +780,11 @@ def _nest_q(row):
 
 import lapas_core as K
 spec["bom"] = [_nest_q(row) for row in spec["bom"]]
+# v321 (Rytis 2026-10-16: „tvirtina gamyboje pagal faktą, esminis dalykas skylučių atitikimas tiek raidėse, tiek fone"):
+#  raidės -> fono tvirtinimas - ne „?", o gamyboje pagal faktą; DXF skylės raidėse ir fone sutampa 1:1
+for _r in spec["bom"]:
+    if len(_r) >= 5 and re.search(r"fixing to background", str(_r[1]), re.I) and str(_r[4]).strip() in ("?", ""):
+        _r[2], _r[4] = "per production", "holes = letter back"
 for _l in NEST_LOG:
     print("  nesting:", _l)
 spec["bom"] = [[subst(x) for x in row] for row in spec["bom"]]
@@ -1112,7 +1117,7 @@ def _cpoly(pts):   # laidas - VISADA 0,9 pt raudona (VIEW_MODE hairline netaikom
 if _CB:   # v28 (Rytis 2026-10-08): laidas išeina TIK po raide (D11), už fono iki užlenktos briaunos, pro Ø11 skylę briaunoje
     _CC = HexColor("#E2001A")
     dx_, dy_ = _CB["d11_mm"]
-    ed_, ey_ = _CB.get("edge", "left"), _CB["edge_mm"]
+    ed_, ey_ = _CB.get("edge", "left"), _CB.get("edge_mm", 15)    # v321: standartas ~15 mm nuo viršaus
     runx = _CB.get("run_x_mm", 12)
     if ed_ == "left":
         path_m = [(dx_, dy_), (runx, dy_), (runx, ey_), (0, ey_)]
