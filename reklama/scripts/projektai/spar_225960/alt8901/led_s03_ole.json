@@ -1,0 +1,25 @@
+{
+ "pdf": "svarus_s03_ole.pdf",
+ "page": 0,
+ "crop_pt": [
+  131.39930725097656,
+  123.67315673828125,
+  966.8994750976562,
+  226.74859619140625
+ ],
+ "scale_mm_per_pt": 5.291666666666667,
+ "depth": 80,
+ "qty": 1,
+ "title": "ALT8901_10.16_RS SPAR order 225960_3_LED OLE P. FJ\u00c6R",
+ "groups": [
+  {
+   "fill_rgb": [
+    1,
+    1,
+    1
+   ],
+   "led": "white",
+   "name": "OLE P. FJ\u00c6R"
+  }
+ ]
+}

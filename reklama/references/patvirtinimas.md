@@ -71,3 +71,12 @@ Pirmas bandymas: Joker 226001 (`scripts/projektai/joker_reinslettveien/`, „Pat
 - LED lapo NĖRA (nešviečiantis) - ataskaitoje pasakyti.
 - v302 (Rytis 2026-10-16): folded_vinyl išklotinė - viršus / apačia į vidų (W - 2t), šonai per visą aukštį; visi DXF - mm
   (`$INSUNITS` 4), `patikra_dxf.py` = 0 prieš siunčiant (buvo metrai -> Corel importavo 1:1000).
+
+## v308 - KELIŲ LAPŲ PATVIRTINTAS COREL PDF (SPAR 225960, ALT8901_10.16_RS, 2026-10-16)
+- Patvirtintas dokumentas Ryčio taisytas Corel'yje -> NEGENERUOTI iš naujo (prarastų patvirtintą turinį): pakeičiamas TIK
+  ORDER NO. (`scripts/projektai/spar_225960/alt8901/order_no.py` - redakcija tik teksto, GOST Common, paryškinta kaip originale),
+  patikra: kiekvieno lapo žodžių aibė ir objektų kiekis = originalo.
+- Kliento valytų failų nėra -> rėmas iš patvirtinto FRONT VIEW (`remas_is_lapo.py`: rėmo / ausėlių spalvos stačiakampiai,
+  mastelis = bendras plotis / raidžių gabaritas, pritrauktas prie 1:N), raidės - `svarus_lapas.py` (tik raidžių kontūrai, logotipo
+  dugnas - išorinis kontūras, ne raidės - `exclude_pt`), tada `p6_dxf.py --rails-json`. Lyginti gabaritus su lapo matmenimis.
+- Ko lape nėra (tvirtinimas prie fono, plokščių dalijimas) - DXF nededama, klausimas ataskaitoje.

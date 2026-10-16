@@ -1,0 +1,25 @@
+{
+ "pdf": "svarus_s17_kaffepause.pdf",
+ "page": 0,
+ "crop_pt": [
+  299.6871032714844,
+  121.98626708984375,
+  813.9193115234375,
+  238.52764892578125
+ ],
+ "scale_mm_per_pt": 1.7638888888888888,
+ "depth": 50,
+ "qty": 1,
+ "title": "ALT8901_10.16_RS SPAR order 225960_17_LED KAFFEPAUSE",
+ "groups": [
+  {
+   "fill_rgb": [
+    1,
+    1,
+    1
+   ],
+   "led": "white",
+   "name": "KAFFEPAUSE"
+  }
+ ]
+}

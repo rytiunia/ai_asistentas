@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v307 (2026-10-16)
+Atnaujinta: v308 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -152,6 +152,8 @@ SUVESTINĖ PASENUSI.
 - Siunčiama TIK: maketo PDF (ORDER NO. = ALT), LED PDF (jei šviečia), VIENTISI DXF po vieną kiekvienam lapui / plokštei.
 - P6 / raidės: `p6_dxf.py --no-letters --rails-json`. Folded plate + lipdukai: `folded_vinyl.py` + `scripts/dxf_combine.py`
   (v299) - atskiri `_flat_` / `_vinyl_` failai NESIUNČIAMI.
+- Patvirtintas dokumentas taisytas Corel'yje (kelių lapų komplektas) - keičiamas TIK ORDER NO., nieko negeneruojama iš naujo;
+  DXF / LED - iš patvirtinto lapo FRONT VIEW (v308, SPAR 225960: `scripts/projektai/spar_225960/alt8901/`).
 
 ## E3. DXF failai (v302, Rytis 2026-10-16: „failai ne pagal mastelį, įkelti reikia 1:1000")
 

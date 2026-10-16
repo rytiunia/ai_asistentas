@@ -1,0 +1,25 @@
+{
+ "pdf": "svarus_s16_smagodt.pdf",
+ "page": 0,
+ "crop_pt": [
+  178.431396484375,
+  123.1785888671875,
+  465.894287109375,
+  226.875
+ ],
+ "scale_mm_per_pt": 3.5277777777777777,
+ "depth": 50,
+ "qty": 1,
+ "title": "ALT8901_10.16_RS SPAR order 225960_16_LED SM\u00c5GODT",
+ "groups": [
+  {
+   "fill_rgb": [
+    1,
+    1,
+    1
+   ],
+   "led": "white",
+   "name": "SM\u00c5GODT"
+  }
+ ]
+}

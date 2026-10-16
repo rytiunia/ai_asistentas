@@ -1,0 +1,25 @@
+{
+ "pdf": "svarus_s18_frisk.pdf",
+ "page": 0,
+ "crop_pt": [
+  204.00790405273438,
+  111.45416259765625,
+  633.2044067382812,
+  257.18646240234375
+ ],
+ "scale_mm_per_pt": 7.055555555555555,
+ "depth": 70,
+ "qty": 1,
+ "title": "ALT8901_10.16_RS SPAR order 225960_18_LED FRISK & SUNN",
+ "groups": [
+  {
+   "fill_rgb": [
+    0.98,
+    1,
+    1
+   ],
+   "led": "white",
+   "name": "FRISK & SUNN"
+  }
+ ]
+}

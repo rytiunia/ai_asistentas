@@ -1,0 +1,25 @@
+{
+ "pdf": "svarus_s15_pant.pdf",
+ "page": 0,
+ "crop_pt": [
+  230.01910400390625,
+  86.97760009765625,
+  878.4619750976562,
+  261.05889892578125
+ ],
+ "scale_mm_per_pt": 3.5277777777777777,
+ "depth": 80,
+ "qty": 1,
+ "title": "ALT8901_10.16_RS SPAR order 225960_15_LED EUROSPAR PANT",
+ "groups": [
+  {
+   "fill_rgb": [
+    1,
+    1,
+    1
+   ],
+   "led": "white",
+   "name": "EUROSPAR PANT"
+  }
+ ]
+}
