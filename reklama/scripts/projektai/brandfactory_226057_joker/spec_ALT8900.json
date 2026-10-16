@@ -1,0 +1,121 @@
+{
+ "client_pdf": "Joker_Sandviken-2_eskelokk.pdf",
+ "client": "BrandFactory",
+ "title": "Order 226057 Joker Sandviken - eskelokk",
+ "order_no": "ALT8900_10.16_RS",
+ "drawing_no": "Order 226057",
+ "date": "2026-10-16",
+ "rev": "A",
+ "depth": 40,
+ "t": 2,
+ "plate_ral": "1020",
+ "finish": "RAL 1020 semi matt, wet paint",
+ "finish_short": "RAL 1020",
+ "bg_fill": [
+  0.546,
+  0.552,
+  0.291
+ ],
+ "vinyl": [
+  {
+   "name": "white",
+   "code": "ORACAL 551 010",
+   "alt": "3M 100-383",
+   "hex": "#FFFFFF",
+   "kind": "white",
+   "fills": [
+    [
+     1.0,
+     1.0,
+     1.0
+    ],
+    [
+     0.996,
+     0.996,
+     0.996
+    ]
+   ]
+  },
+  {
+   "name": "red",
+   "code": "ORACAL 551 321",
+   "alt": "3M 100-13",
+   "hex": "#D10008",
+   "kind": "color",
+   "fills": [
+    [
+     0.883,
+     0.149,
+     0.109
+    ]
+   ]
+  },
+  {
+   "name": "yellow",
+   "code": "ORACAL 551 022",
+   "alt": "3M 100-15",
+   "hex": "#FFD500",
+   "kind": "color",
+   "fills": [
+    [
+     1.0,
+     0.822,
+     0.0
+    ]
+   ]
+  },
+  {
+   "name": "green",
+   "code": "ORACAL 551 603",
+   "alt": "3M 100-46",
+   "hex": "#008C5C",
+   "kind": "color",
+   "fills": [
+    [
+     0.0,
+     0.6,
+     0.273
+    ]
+   ]
+  },
+  {
+   "name": "black outline",
+   "code": "ORACAL 551 701",
+   "hex": "#060608",
+   "kind": "color",
+   "fills": [
+    [
+     0.125,
+     0.118,
+     0.118
+    ]
+   ]
+  }
+ ],
+ "panels": [
+  {
+   "name": "A",
+   "w": 2400,
+   "h": 2200,
+   "qty": 1,
+   "rect": [
+    347.1,
+    101.0,
+    1027.4,
+    724.6
+   ]
+  },
+  {
+   "name": "B",
+   "w": 1200,
+   "h": 2200,
+   "qty": 1,
+   "rect": [
+    1077.7,
+    101.0,
+    1417.8,
+    724.6
+   ]
+  }
+ ]
+}

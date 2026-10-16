@@ -60,3 +60,12 @@ Pirmas bandymas: Joker 226001 (`scripts/projektai/joker_reinslettveien/`, „Pat
   šonai įsilenkia, Ø3.2 7 nuo krašto; sluoksniai CUT / BEND_UP_90 / HOLES_D3.2), flanšai, PMMA plokštė; failo vardas su kiekiu (`_x8`).
   Skylių Ø, kurių kliento lape nėra (csk / kniedės) - PRIELAIDA atskirame sluoksnyje, ataskaitoje paprašyti patvirtinti.
 - LED lapo NĖRA (nešviečiantis) - ataskaitoje pasakyti.
+
+## v299 - FOLDED PLATE + LIPDUKAI (BrandFactory Joker 226057, ALT8900_10.16_RS, 2026-10-16)
+- Patvirtintas = mūsų `ALT0000_Order_<nr>.pdf`. Prieš generuojant palyginti su repo lapu: geometrija (objektų kiekis),
+  tekstai; skirtumai tik dėl naujesnių taisyklių (kablelis, vienetai) leidžiami - PRANEŠTI.
+- `spec` kopija `spec_<ALT>.json` (`order_no` = ALT, `date`), `folded_vinyl.py spec_<ALT>.json out/<ALT>_Order_<nr>.pdf`,
+  `patikra_lapas.py` = 0.
+- VIENTISI DXF: `python3 scripts/dxf_combine.py out <ALT>_Order_<nr>` -> `<ALT>_Order_<nr>_<P>_combined.dxf` kiekvienai
+  plokštei (išklotinės FLAT_* + plėvelės VINYL_<SPALVA>_*). Siunčiami tik lapo PDF + `_combined.dxf`.
+- LED lapo NĖRA (nešviečiantis) - ataskaitoje pasakyti.

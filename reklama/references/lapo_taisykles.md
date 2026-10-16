@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v299 (2026-10-16)
+Atnaujinta: v300 (2026-10-16)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -126,6 +126,12 @@ SUVESTINĖ PASENUSI.
   VIRŠUJE, 50 mm nuo viršaus.
 - Etalonai: `assets/etalonai/`.
 - Konfliktas sprendžiamas taip: kliento taisyklė > produkto taisyklė > bendra; naujesnė vNNN > senesnė.
+
+## E2. Patvirtinimas -> gamybos paketas (`references/patvirtinimas.md`)
+
+- Siunčiama TIK: maketo PDF (ORDER NO. = ALT), LED PDF (jei šviečia), VIENTISI DXF po vieną kiekvienam lapui / plokštei.
+- P6 / raidės: `p6_dxf.py --no-letters --rails-json`. Folded plate + lipdukai: `folded_vinyl.py` + `scripts/dxf_combine.py`
+  (v299) - atskiri `_flat_` / `_vinyl_` failai NESIUNČIAMI.
 
 ## F. Ką tikrina automatika (lapas neatiduodamas, kol ne 0)
 
