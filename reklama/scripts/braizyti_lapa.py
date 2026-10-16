@@ -1286,8 +1286,12 @@ for i_ in range(len(PU)):
         continue
     qd = [(a3[0], a3[1], -bend), (b3[0], b3[1], -bend), (b3[0], b3[1], 0), (a3[0], a3[1], 0)]
     rets.append((sum(rot(*v)[2] for v in qd) / 4, qd, n3, (a3, b3)))
+# v322 (Rytis 2026-10-16: „blogas 3d atvaizdavimas"): tamsus fonas (RAL 9005) - užlenkimai buvo juodi ant juodo, dėžės gylis
+#  nematomas -> atlankų spalva ne tamsesnė už 30 % pilką, briaunos šviesios
+_bl = max(bgc.red, bgc.green, bgc.blue)
+_flc = bgc if _bl >= 0.3 else Color(min(1, bgc.red + 0.3 - _bl), min(1, bgc.green + 0.3 - _bl), min(1, bgc.blue + 0.3 - _bl))
 for _, qd, n3, _e in sorted(rets, key=lambda t: t[0]):
-    fpoly(qd, shade(_mix(bgc, 1.25), n3, 0.62))
+    fpoly(qd, shade(_mix(_flc, 1.25), n3, 0.62), HexColor("#6E6E6E"))
 c.saveState()
 fp = c.beginPath(); q0 = S3(PU[0][0], PU[0][1], 0); fp.moveTo(*q0)
 for q in PU[1:]:
@@ -1326,6 +1330,7 @@ for sol in sorted(solids, key=lambda p_: (SOLMETA.get(id(p_), (None, 0))[1], dep
       for _pp in getattr(_pg, "geoms", [_pg]):
         if _pp.is_empty:
             continue
+        _pp = orient(_pp, 1.0)       # v322: buffer() grąžina CW - normalės buvo atvirkščios, išoriniai šonai nesimatė
         for ring in [_pp.exterior] + list(_pp.interiors):
             pts = list(ring.coords)
             for (x0_, y0_), (x1_, y1_) in zip(pts[:-1], pts[1:]):
@@ -1339,10 +1344,13 @@ for sol in sorted(solids, key=lambda p_: (SOLMETA.get(id(p_), (None, 0))[1], dep
                 qd = [(x0_, y0_, _za), (x1_, y1_, _za), (x1_, y1_, _zb), (x0_, y0_, _zb)]
                 dz = sum(rot(*v)[2] for v in qd) / 4
                 quads.append((dz, qd, n, _col))
+    # v322: šonai (returns) - šviesūs šonai ant baltos raidės nesimatė (raidės atrodė plokščios su „spygliais" kampuose):
+    #  šonai tamsinami iki <= 80 % priekio šviesumo (tolygus perėjimas), priekio kontūras tamsesnis
     for dz, qd, n, _col in sorted(quads, key=lambda t: t[0]):
-        col = shade(_col, n, 0.55)
+        col = shade(_col, n, 0.45)
+        col = Color(col.red * 0.8, col.green * 0.8, col.blue * 0.8)
         fpoly(qd, col, col, 0.25)
-    c.saveState(); c.setFillColor(_fc); c.setStrokeColor(HexColor("#B9B9B9")); c.setLineWidth(HAIR)
+    c.saveState(); c.setFillColor(_fc); c.setStrokeColor(HexColor("#8A8A8A")); c.setLineWidth(HAIR)
     p = c.beginPath()
     for ring in [sol.exterior] + list(sol.interiors):
         pts = list(ring.coords)

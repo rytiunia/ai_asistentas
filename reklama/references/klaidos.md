@@ -30,3 +30,9 @@ Procesinės (paskyros kopija sena, lygiagretūs pokalbiai, ASCII vardai, auseles
   šviesdėžių modulių (kojos per galinį statmenį, exploded > top view). Prieš šviesdėžę - SKILL taisyklė 26.
 - **Spalvos kodas be spalvos BOM** (2026-10-15, danbolig): NCS S 8010-R90B ir 3M 100-54 langeliai buvo balti (nebuvo NCS / 3M
   kodų bibliotekoje). Dabar `ncs_hex` + `VINYL` / `PMS`; naują kodą - įrašyti. SKILL taisyklė 28.
+- v322 (Rytis 2026-10-16, „blogas 3d atvaizdavimas", P6 ant folded / FRISK): braizyti_lapa 3D - raidžių šonai nesimatė (raidės plokščios
+  su „spygliais" kampuose). PRIEŽASTIS: korpusas `sol.buffer(-inset)` grąžina CW kontūrą, normalės atvirkščios - išoriniai šonai
+  atmesti, matėsi tik vidiniai. Dabar kiekvienas poligonas `orient(..., 1.0)` prieš šonų skaičiavimą; šonai tamsinami iki 80 %
+  (balti šonai ant baltos raidės nesimatė), tamsaus fono (RAL 9005) atlankai - ne tamsesni už 30 % pilką. Bet koks naujas
+  3D: po `buffer()` / `difference()` VISADA orient prieš normalių skaičiavimą (K.View3D.solid tai daro).
+
