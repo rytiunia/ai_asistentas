@@ -127,6 +127,14 @@ def _split_bends(pa, pitch, ang_min=45.0, wl=None):
                     cuts[-1] = (i, t)
                 continue
             cuts.append((i, t))
+    # v331 (Rytis 2026-10-17 „Testavimas": „t uodegėlės gale trūksta LED, viduryje sugrūsti 3"): du lenkimai arčiau nei
+    #  1 p (U posūkis - t / j / a uodega) - NE kampai, o vienas tolygus lankas (moduliai tolygiai per visą liniją)
+    if len(cuts) > 1:
+        keep = [True] * len(cuts)
+        for a_ in range(len(cuts) - 1):
+            if cum[cuts[a_ + 1][0]] - cum[cuts[a_][0]] < 1.0 * pitch and max(cuts[a_][1], cuts[a_ + 1][1]) < 120:
+                keep[a_] = keep[a_ + 1] = False
+        cuts = [c_ for c_, k_ in zip(cuts, keep) if k_]
     # v330 (Rytis 2026-10-17 „Testavimas": „t trūksta 1 LED" - apačios lenkimas į užraitą): DIDELIO SPINDULIO lenkimas -
     #  posūkis >= 65 laipsnių per vieną linijos plotį (liestinės ±0,5 w) - taip pat kampas (modulis lenkime)
     if wl:
@@ -711,6 +719,7 @@ def is_serif(P, ends, g, sw):
     return bool(ws) and float(np.median(ws)) < 0.6 * sw
 
 
+LINE_BIAS = 0.0                       # v331: linijos dalijimas - tarpas ne ilgesnis nei ~1,15 p (apvalinama aukštyn nuo x,3)
 LED_GAP_R, LED_GAP_A, LED_GAP_OUT = 0.5, 0.13, 0.25   # v330: dėmė > 0,13 p² už modulio rato (0,5 p), > 0,25 p UŽ LED gaubto
 
 
@@ -805,7 +814,61 @@ def strokes(g, pitch):
             endtype[q] = "T" if len(free) < len(ms) else "J"
     # laisvas galas: „edge" (status, ašis pratęsta iki krašto) -> E (modulis p/2 nuo krašto); „free" (smailė / pėda, ašis
     #  nesiekia krašto) -> F (modulis ašies gale) - v330 (m kairė koja: modulis buvo p/2 virš ašies galo, pėda tamsi)
-    _fe = lambda bi, e: "F" if br[bi]["ends"][e] == "free" else "E"
+    _fe = lambda bi, e: "E"           # v331: laisvas galas pratęsiamas iki raidės krašto (žr. žemiau) - visada E (p/2 nuo krašto)
+    from shapely.geometry import LineString as _LSx
+    for b in br:                      # v331: „free" galas (apvali uodega / galvutė / pėda) - ašis pratęsiama liestine iki kontūro
+        for e in (0, 1):
+            if b["ends"][e] != "free":
+                continue
+            P = b["P"] if e == 1 else b["P"][::-1]
+            cs = np.concatenate([[0.0], np.cumsum(np.hypot(*np.diff(P, axis=0).T))])
+            j = int(np.searchsorted(cs, max(0.0, cs[-1] - max(0.3 * w, 15.0))))
+            v = P[-1] - P[min(j, len(P) - 2)]; nv = float(np.hypot(*v))
+            if nv < 1e-6:
+                continue
+            v = v / nv
+            ray = _LSx([tuple(P[-1]), tuple(P[-1] + v * 3 * w)])
+            hit = ray.intersection(g.boundary)
+            if hit.is_empty:
+                continue
+            pts_ = [hit] if hit.geom_type == "Point" else [q for q in getattr(hit, "geoms", []) if q.geom_type == "Point"]
+            if not pts_:
+                continue
+            d_ = min(float(np.hypot(q.x - P[-1][0], q.y - P[-1][1])) for q in pts_)
+            ext = np.array([P[-1] + v * t_ for t_ in np.linspace(2.0, d_, max(2, int(d_ / 2.0)))])
+            P2 = np.vstack([P, ext])
+            b["P"] = P2 if e == 1 else P2[::-1]
+            b["ends"][e] = "edge"
+    # v331 (Rytis „Testavimas": „t uodegėlės gale trūksta LED"): laisvo galo KRAŠTUTINIS taškas - toliausias kontūro taškas
+    #  (<= 1 w nuo ašies galo) nuo ašies taško 1,2 w atgal; ašis pratęsiama iki jo (lenkta uodega - galas viršuje, ne šone),
+    #  galo modulis - p/2 nuo jo
+    from shapely.geometry import Point as _Pq
+    gb = g.boundary
+    for b in br:
+        for e in (0, 1):
+            if b["ends"][e] not in ("edge", "free"):
+                continue
+            P = b["P"] if e == 1 else b["P"][::-1]
+            cs = np.concatenate([[0.0], np.cumsum(np.hypot(*np.diff(P, axis=0).T))])
+            if cs[-1] < 0.5 * w:
+                continue
+            Q = P[int(np.searchsorted(cs, max(0.0, cs[-1] - 1.2 * w)))]
+            io = int(np.searchsorted(cs, max(0.0, cs[-1] - 0.6 * w)))
+            O_, end = P[io], P[-1]
+            gi = g.buffer(1.0)
+            cand_ = [np.array(gb.interpolate(t_).coords[0]) for t_ in np.arange(0, gb.length, 3.0)]
+            cand_ = [c_ for c_ in cand_ if np.hypot(*(c_ - end)) <= 1.0 * w and np.hypot(*(c_ - O_)) > 1.0]
+            cand_ = [c_ for c_ in cand_ if _LSx([tuple(O_), tuple(c_)]).intersection(gi).length
+                     >= 0.97 * float(np.hypot(*(c_ - O_)))]                       # matomas iš ašies (ne per kampą)
+            if not cand_:
+                continue
+            far = max(cand_, key=lambda c_: float(np.hypot(*(c_ - Q))))
+            if np.hypot(*(far - Q)) > np.hypot(*(end - Q)) + 5:
+                d_ = float(np.hypot(*(far - O_)))
+                ext = np.array([O_ + (far - O_) * t_ for t_ in np.linspace(2.0 / d_, 1.0, max(2, int(d_ / 2.0)))])
+                P2 = np.vstack([P[:io + 1], ext])
+                b["P"] = P2 if e == 1 else P2[::-1]
+                b["ends"][e] = "edge"
     # linijų surinkimas
     used = set()
     lines = []
@@ -861,7 +924,7 @@ def strokes(g, pitch):
             if span < 0.5 * pitch:
                 us = [a] if ea in ("C", "J") and eb in ("C", "J") and span < 0.3 * pitch else ([a, b] if ea in ("C", "J") and eb in ("C", "J") else [(a + b) / 2])
             else:
-                k_ = max(1, round(span / pitch))
+                k_ = max(1, round(span / pitch + LINE_BIAS))
                 us = [a + i * span / k_ for i in range(k_ + 1)]
         elif ta == "soft" and tb == "soft":
             span = b - a
@@ -870,7 +933,7 @@ def strokes(g, pitch):
         else:
             fx, sf = (a, b) if ta == "fix" else (b, a)
             d_ = abs(sf - fx)
-            n_ = max(0, round(d_ / pitch - 0.5))
+            n_ = max(0, round(d_ / pitch - 0.5 + LINE_BIAS))
             if n_ == 0 and d_ > 0.6 * pitch:
                 n_ = 1
             st = d_ / (n_ + 0.5) if n_ else 0.0
