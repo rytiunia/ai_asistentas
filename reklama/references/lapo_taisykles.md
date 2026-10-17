@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v329 (2026-10-17)
+Atnaujinta: v330 (2026-10-17)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -206,7 +206,11 @@ Formos principas (taškų skaičius iš supaprastinto gaubto, pirmas - toliausia
     aštrus kampas (A / M / W viršūnė) - modulis kampe, kampo taškas - kojų tiesių sankirtoje (plokščia viršūnė - per vidurį);
   - kiekviena linija dalijama TOLYGIAI (laisvas galas - p/2 nuo krašto, T galas - pusė tarpo): vienodos linijos -> vienodas
     kiekis (simetrija); kiekviena linija >= 0,3 p gauna >= 1 LED (A / H brūkšnys niekada be LED);
-  - serifai / užraitai (trumpa ir plona laisva atšaka) - be LED; žiedai - lyginis n, simetriška fazė; > 2 p plotis - tinklelis.
+  - serifai / užraitai (trumpa ir plona laisva atšaka) - be LED; trumpa STORA atšaka (t skersinio kairė) - su LED, nebent jos
+    tąsa irgi trumpa atšaka (i / m pėdų pora); žiedai - lyginis n, simetriška fazė; > 2 p plotis - tinklelis;
+  - PADENGIMAS (v329b, Rytis „Testavimas": „a raidėje trūksta 1 LED, t viršuje kairėje neįdėtas"): raidės plote
+    nepadengta dėmė (> 0,12 p², toliau nei 0,55 p nuo LED - a galvutė, uodega) gauna LED ten, kur jis padengia daugiausia
+    (>= 0,5 p nuo kitų, pasuktas pagal formą). Parametrai `LED_GAP_R`, `LED_GAP_A` (led_km.py).
 - `ilp` (aprėpties minimumas) - tik spec `"layout": "ilp"`.
 - Regresija: `scripts/test_led.py` (projektai/led_test), įtraukta į `regresija.py`.
 

@@ -685,6 +685,9 @@ def is_serif(P, ends, g, sw):
     return bool(ws) and float(np.median(ws)) < 0.6 * sw
 
 
+LED_GAP_R, LED_GAP_A = 0.55, 0.12      # v329b: nepadengta dėmė > 0,12 p² už 0,55 p nuo LED (Testavimas: a galvutė / uodega)
+
+
 def strokes(g, pitch):
     w = LS.stroke_max(g)
     br, loops = [], []
@@ -714,14 +717,31 @@ def strokes(g, pitch):
                 b["node"][e] = k
                 nodes[k]["m"].append((bi, e))
                 nodes[k]["corner"] |= t == "c"
-    # 2) serifai: trumpa laisva atšaka sankirtoje (>= 3 šakos)
+    # 2) serifai: PLONA laisva atšaka sankirtoje (is_serif) - visada; TRUMPA (< linijos plotis) stora atšaka - tik jei jos tąsa
+    #  kitoje sankirtos pusėje irgi trumpa atšaka arba jos nėra (i / m pėdos poros); v329b: t skersinio kairė (tąsa - ilga
+    #  dešinė) LIEKA (Rytis: „t viršuje kairėje neįdėtas")
     drop = set()
+
+    def _odir(bi, e):
+        P = br[bi]["P"] if e == 0 else br[bi]["P"][::-1]
+        cs = np.concatenate([[0.0], np.cumsum(np.hypot(*np.diff(P, axis=0).T))])
+        j = min(int(np.searchsorted(cs, min(cs[-1] * 0.5, max(w, 20.0)))), len(P) - 1)
+        v = P[j] - P[0]
+        return v / max(float(np.hypot(*v)), 1e-9)
+    short = {}
     for bi, b in enumerate(br):
         fe = [e for e in (0, 1) if b["node"][e] is None]
-        if len(fe) == 1 and (blen(b) < 1.0 * w or is_serif(b["P"], b["ends"], g, w)):
-            k = b["node"][1 - fe[0]]
-            if len(nodes[k]["m"]) >= 3:
+        if len(fe) == 1 and len(nodes[b["node"][1 - fe[0]]]["m"]) >= 3:
+            if is_serif(b["P"], b["ends"], g, w):
                 drop.add(bi)
+            elif blen(b) < 1.0 * w:
+                short[bi] = 1 - fe[0]
+    for bi, e in short.items():
+        k = br[bi]["node"][e]
+        d0 = _odir(bi, e)
+        opp = [q for q in nodes[k]["m"] if q[0] != bi and float(d0 @ _odir(*q)) < -0.85]
+        if not opp or all(q[0] in short or q[0] in drop for q in opp):
+            drop.add(bi)
     for n in nodes:
         n["m"] = [q for q in n["m"] if q[0] not in drop]
 
@@ -859,24 +879,56 @@ def strokes(g, pitch):
     # v329 TARPŲ UŽPILDYMAS („LED nedėdavo, nors reikėjo"): bet kuris raidės ašies taškas (ir storas slab serifas / pėda),
     #  esantis toliau nei 0,8 p nuo LED, gauna modulį toliausiame taške (kartojama); laisvo galo zona (< 0,5 linijos pločio
     #  nuo krašto) ir PLONI serifai (is_serif) - netikrinami
+    # v329b (Rytis 2026-10-17 „Testavimas": „a raidėje trūksta 1 LED, t viršuje kairėje neįdėtas"): PADENGIMAS - raidės plotas
+    #  (be 0,15 linijos pločio krašto juostos) turi būti <= 0,62 p nuo LED (modulio ratas = žingsnis); nepadengta -
+    #  modulis ten, kur jis padengia DAUGIAUSIA nepadengto ploto (kandidatai - raidės „šerdis", >= 0,45 p nuo kitų)
     from shapely import contains_xy as _cxy
-    core = g.buffer(-0.3 * w)                                   # ploni serifai / krašto juosta - ne
-    cand = []
-    if not core.is_empty:
-        x0_, y0_, x1_, y1_ = core.bounds
-        st_ = max(pitch / 8.0, 4.0)
+
+    def _grid(geo, st_):
+        if geo.is_empty:
+            return np.zeros((0, 2))
+        x0_, y0_, x1_, y1_ = geo.bounds
         X_, Y_ = np.meshgrid(np.arange(x0_, x1_ + st_, st_), np.arange(y0_, y1_ + st_, st_))
-        k_ = _cxy(core, X_.ravel(), Y_.ravel())
-        cand = [(float(x_), float(y_), 0.0) for x_, y_ in zip(X_.ravel()[k_], Y_.ravel()[k_])]
-    for _ in range(50):
-        if not cand or not out:
+        k_ = _cxy(geo, X_.ravel(), Y_.ravel())
+        return np.column_stack([X_.ravel()[k_], Y_.ravel()[k_]])
+    st_ = max(pitch / 20.0, 3.0)
+    T_ = _grid(g.buffer(-0.1 * w), st_)                      # tikrinami taškai (be siauros krašto juostos)
+    C_ = _grid(g.buffer(-min(0.35 * w, 0.3 * pitch)), st_)   # galimos modulio vietos (raidės šerdis)
+    R_ = LED_GAP_R * pitch                                   # ~ modulio ratas (žingsnis) su maža atsarga
+    amin = LED_GAP_A * pitch ** 2                            # ženkli tamsi dėmė (ne tarpas tarp gretimų ratų)
+    from scipy import ndimage as _nd
+    for _ in range(40):
+        if not len(T_) or not len(C_) or not out:
             break
         A_ = np.array([q[:2] for q in out])
-        dd = [float(np.min(np.hypot(*(A_ - np.array(c_[:2])).T))) for c_ in cand]
-        j_ = int(np.argmax(dd))
-        if dd[j_] <= 0.8 * pitch:
+        dT = np.min(np.hypot(T_[:, None, 0] - A_[None, :, 0], T_[:, None, 1] - A_[None, :, 1]), axis=1)
+        U_ = T_[dT > R_]
+        if len(U_) * st_ ** 2 < amin:
             break
-        out.append(tuple(float(v) for v in cand[j_]))
+        # dėmės (gretimi nepadengti taškai)
+        ix = np.rint((U_ - U_.min(axis=0)) / st_).astype(int)
+        M_ = np.zeros(ix.max(axis=0) + 1, bool); M_[ix[:, 0], ix[:, 1]] = True
+        lab, nl = _nd.label(M_, structure=np.ones((3, 3)))
+        ids = lab[ix[:, 0], ix[:, 1]]
+        sizes = np.bincount(ids)
+        big = int(np.argmax(sizes[1:])) + 1 if nl else 0
+        if not nl or sizes[big] * st_ ** 2 < amin:
+            break
+        S_ = U_[ids == big]
+        dC = np.min(np.hypot(C_[:, None, 0] - A_[None, :, 0], C_[:, None, 1] - A_[None, :, 1]), axis=1)
+        okC = C_[dC >= 0.5 * pitch]                              # papildomas - ne ant esamo (ratai gali liestis)
+        if not len(okC):
+            break
+        gain = (np.hypot(okC[:, None, 0] - S_[None, :, 0], okC[:, None, 1] - S_[None, :, 1]) <= R_).sum(axis=1)
+        j_ = int(np.argmax(gain))
+        if gain[j_] * st_ ** 2 < 0.5 * amin:
+            break
+        cx_, cy_ = okC[j_]
+        nb_ = T_[np.hypot(T_[:, 0] - cx_, T_[:, 1] - cy_) <= 0.6 * pitch]
+        ang = 0.0
+        if len(nb_) > 3:                                        # pasukimas - pagal vietinę formos kryptį
+            _w, _v = np.linalg.eigh(np.cov((nb_ - [cx_, cy_]).T)); ang = math.atan2(_v[1, 1], _v[0, 1])
+        out.append((float(cx_), float(cy_), ang))
     return out
 
 
