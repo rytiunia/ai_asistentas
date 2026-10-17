@@ -21,7 +21,8 @@
   "size": "40x40x2",
   "depth": 40,
   "ral": "9016",
-  "type": "sq"
+  "type": "sq",
+  "on_request": true
  },
  "cable_exits": [
   {

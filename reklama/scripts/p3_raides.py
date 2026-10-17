@@ -279,6 +279,12 @@ def section(K, x, y, w, h, depth, P, title=None, numbers=None, ears=True, rail_k
     uy = ym - Uh / 2
     if str(rail_kind).startswith("sq"):                     # v344: stačiakampis vamzdis (pvz. 40x40x2) - kaip rėmo pjūvis
         K.rail_section(wall, uy, xr1 - wall, Uh, t_, "sq", "left", fill=HexColor("#B4B4B4"))
+        # v346 (Rytis 2026-10-17): uždaras profilis P3 - tik pagal pareikalavimą; tada GALINĖJE sienelėje didesnė skylė
+        #  (dydis pagal iškabą - „?"), tvirtinimas per priekinę sienelę kaip U profiliui
+        hh_ = 0.42 * Uh
+        K.rect(wall - 0.3, ym - hh_ / 2, t_ + 0.6, hh_, fill=K.white if hasattr(K, "white") else HexColor("#FFFFFF"), stroke=None)
+        K.line(wall, ym - hh_ / 2, wall + t_, ym - hh_ / 2, 0.3); K.line(wall, ym + hh_ / 2, wall + t_, ym + hh_ / 2, 0.3)
+        K.T(wall + t_ + 2, uy + Uh - 3, "Ø? hole", K.F_INFO - 0.5, color=K.GREY, auto_red=False)
     else:
         K.poly([(wall, uy), (xr1, uy), (xr1, uy + Uh), (wall, uy + Uh), (wall, uy + Uh - t_), (xr1 - t_, uy + Uh - t_),
                 (xr1 - t_, uy + t_), (wall, uy + t_)], fill=HexColor("#B4B4B4"), lw=0.4)

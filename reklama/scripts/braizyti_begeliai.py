@@ -103,6 +103,10 @@ P3 = None
 if FRONT == "P3":
     import p3_raides as P3M
     P3 = P3M.cfg(spec)
+    if str(RAIL.get("type", "u")).lower().startswith(("sq", "box", "kv")) and not RAIL.get("on_request"):
+        # v346 (Rytis 2026-10-17): P3 - vengti uždaro profilio; stačiakampis - tik pagal pareikalavimą (spec rail "on_request": true)
+        K.SHEET_ERR.append("P3: uždaras (stačiakampis) rėmo profilis - tik pagal užklausos pareikalavimą (spec rail \"on_request\": true), "
+                           "standartas - U")
 
 
 def _acr_studs(letters, hs_, ST, g_off, gw, cuts=(), holes=(), vjoints=(), grid=None, vlines=()):

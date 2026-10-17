@@ -57,3 +57,6 @@ galas plexi 4 + PVC, rėmas U 30x30x2 (3277 mm - 3 statmenys); 1 lapas P3 (stand
 ## Dar tikslinama
 LED žingsnis (P3 lentelė - bus patikslinta); varžtų per šoną žingsnis; folded P3 generatorius.
 Testas: `scripts/projektai/p3_vangelonys_test/` (Vangelonys L 4300, gylis 80, rėmas 40x40x2 square RAL 9016, RAL 6017) - regresijoje.
+RĖMO PROFILIS P3 (v346, Rytis 2026-10-17): vengti uždaro profilio - standartas U; stačiakampis (uždaras) - TIK pagal užklausos
+pareikalavimą (spec `"rail": {"type": "sq", "on_request": true}`, kitaip patikra 18). Tada galinėje (sienos) sienelėje -
+didesnė skylė (dydis pagal iškabą, lape „Ø?"), distanceris tvirtinamas per priekinę sienelę kaip U profiliui (M4 + veržlė).

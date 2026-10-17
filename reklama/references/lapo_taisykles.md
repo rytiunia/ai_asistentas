@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v345 (2026-10-17)
+Atnaujinta: v346 (2026-10-17)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -184,7 +184,8 @@ Formos principas (taškų skaičius iš supaprastinto gaubto, pirmas - toliausia
   `scripts/projektai/p3_pavyzdys/`). Pjūvyje sienos simbolio nėra (v340). P3 DUGNAS (plexi galas) - 0,7 mm inside (v341);
   3D - be švytėjimo linijų už raidžių (tik P3+reflector - reflektorius); DXF - ATSKIROS GRUPĖS (BLOCK + DXF GROUP, kaip
   P6): REMAS (bėgeliai, statmenys, ausėlės su Ø), DUGNAS (su distancerių Ø ir drenažo puslankiais), PRIEKIS
-  (+ REFLEKTORIUS - P3+reflector). Pjūvyje rėmo profilis pagal spec (U / stačiakampis 40x40x2 ...), ne visada U 30 (v344).
+  (+ REFLEKTORIUS - P3+reflector). Rėmas P3 - U; uždaras (stačiakampis) tik pagal pareikalavimą (`"on_request": true`, v346),
+  tada galinėje sienelėje didesnė skylė „Ø?" (pagal iškabos dydį), tvirtinimas per priekinę kaip U. Pjūvyje rėmo profilis pagal spec (U / stačiakampis 40x40x2 ...), ne visada U 30 (v344).
 - RĖMO MONTAVIMAS - TIK KAS UŽKLAUSOJE (v345, Rytis 2026-10-17: „užklausoje nepaminėta, kad rėmas su ausėlėmis"): spec
   `"mounting"` imamas iš užklausos - ausėlės („ears") tik kai paminėtos, U laikikliai („+ hangers") - „brackets"; nepaminėta -
   `"mounting": "frame"` (rėmas be ausėlių / laikiklių, BOM be ausėlių eilutės, „Wall fixing" - „?"). Kodo numatyta „ears"
