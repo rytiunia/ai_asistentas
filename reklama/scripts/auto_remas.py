@@ -162,6 +162,49 @@ def even_pick(xa, xb, xs, k, gap=300, bonus=None):
     return list(best[1]) if best else []
 
 
+def diag_lines(o, ya, yb, t_rail, edge, x_ok, step=5.0, gap=40.0):
+    """v343 (Rytis 2026-10-17: „kodėl ne po Z?" - įstrižas per BET KURĮ štrichą, jungiantį abu bėgelius (Z, N, K, X vidurinis
+    štrichas, ne tik V / A išorinės kojelės); kampas neribojamas - statmenys tik stabilizuoja rėmą gamyboje): tinklelio paieška
+    tiesėms (xa ties ya, xb ties yb), kurių juosta t_rail (statmenai) tarp bėgelių telpa raidės viduje (kraštas edge);
+    tinkamos tiesės grupuojamos pagal centrą (> gap - atskiras štrichas), kiekvienai grupei - vidurinė (mažesnis kampas).
+    x_ok(xa, xb, wh) - galai remiasi į bėgelius. Grąžina [(xc0, xc1, b)] (b = dx / dy)."""
+    from shapely.geometry import Polygon
+    from shapely.prepared import prep
+    inner = o["geom"].buffer(-edge)
+    if inner.is_empty or yb - ya < 2 * 15 + 10:
+        return []
+    pin = prep(inner)
+    clip = Polygon([(-1e7, ya + 15), (1e7, ya + 15), (1e7, yb - 15), (-1e7, yb - 15)])
+    bx0, bx1 = o["bb"][0], o["bb"][2]
+    xs = [bx0 + step * i for i in range(int((bx1 - bx0) / step) + 1)]
+    good = []
+    for xa in xs:
+        if not pin.intersects(Point(xa, ya + 15).buffer(t_rail / 2)):
+            continue
+        for xb in xs:
+            b = (xb - xa) / (yb - ya)
+            if abs(b) < 0.08:                              # beveik vertikalus - tai stiebas (jau kandidatas)
+                continue
+            wh = t_rail / 2 * math.sqrt(1 + b * b)
+            if not x_ok(xa, xb, wh):
+                continue
+            band = Polygon([(xa - wh, ya), (xa + wh, ya), (xb + wh, yb), (xb - wh, yb)]).intersection(clip)
+            if pin.covers(band):
+                good.append(((xa + xb) / 2, xa, xb, b))
+    out = []
+    for g_ in sorted(good):
+        if out and g_[0] - out[-1][-1][0] <= gap:
+            out[-1].append(g_)
+        else:
+            out.append([g_])
+    res = []
+    for grp in out:
+        cm = grp[len(grp) // 2][0]
+        c_, xa, xb, b = min(grp, key=lambda q: (abs(q[0] - cm) > 10, abs(q[3])))
+        res.append((xa, xb, b))
+    return res
+
+
 def n_verticals(L):
     """statmenų kiekis eilutės rėmui (su galiniais) pagal ilgį (v340)"""
     for lim, n in V_STEPS:
@@ -203,6 +246,16 @@ def single_verticals(r, t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log, every
             if not (top["x0"] <= xc0 - wh and xc0 + wh <= top["x1"] and bot["x0"] <= xc1 - wh and xc1 + wh <= bot["x1"]):
                 continue
             cands.append({"x": (xc0 + xc1) / 2, "k": "d", "line": ln, "o": o})
+    if ends_only:                                    # v343: įstrižas per bet kurį štrichą (Z, N, K ...), kampas neribojamas
+        _okx = lambda xa_, xb_, wh_: (top["x0"] <= xa_ - wh_ and xa_ + wh_ <= top["x1"] and bot["x0"] <= xb_ - wh_
+                                      and xb_ + wh_ <= bot["x1"])
+        for o in r["letters"]:
+            if o["bb"][3] - o["bb"][1] < 0.6 * r["h"]:
+                continue
+            for ln in diag_lines(o, ya, yb, t_rail, edge, _okx):
+                xc_ = (ln[0] + ln[1]) / 2
+                if all(abs(xc_ - c["x"]) > 40 for c in cands if c["o"] is o):
+                    cands.append({"x": xc_, "k": "d", "line": ln, "o": o, "mid": True})   # tik tarpiniam (galai - v311)
     if not cands:
         log("  ! auto rėmas: statmenims / įstrižams vietos po raidėmis nerasta - spręsti ranka")
         return []
@@ -211,8 +264,9 @@ def single_verticals(r, t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log, every
     _p = pitch_heavy if _a / max(L / 1000, 1e-6) >= heavy_m2_m else pitch
     nv = max(2, math.ceil(L / _p) + 1)
     gap_ = 300
-    left_ = min(cands, key=lambda c: (c["x"], c["k"] != "v"))
-    right_ = max(cands, key=lambda c: (c["x"], c["k"] == "v"))
+    _ec = [c for c in cands if not c.get("mid")] or cands     # v343: galiniai - kaip iki šiol (stiebas / kojelė / dengimas)
+    left_ = min(_ec, key=lambda c: (c["x"], c["k"] != "v"))
+    right_ = max(_ec, key=lambda c: (c["x"], c["k"] == "v"))
     # v311 (Rytis 2026-10-16, LEAP26-01002: „papildoma statmena po R raide gale"; TAISYKLĖ v299): GALINIS statmuo - po
     #  KRAŠTINE pilno aukščio raide. Jei ji be stiebo / kojelės (R, P šiame šrifte) - ten, kur raidė jį dengia daugiausia
     #  (>= 50 %); ankstesnis kraštinis kandidatas lieka tarpiniu.
@@ -285,7 +339,7 @@ def single_verticals(r, t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log, every
             out.append({"x0": min(q[0] for q in poly), "x1": max(q[0] for q in poly), "y0": ya, "y1": yb, "kind": "d",
                         "auto": True, "len": math.hypot(xc1 - xc0, yb - ya), "poly": poly, "ang": math.degrees(math.atan(b)),
                         "end_v": c is left_ or c is right_})
-            log(f"  auto rėmas: ĮSTRIŽAS per kojelę x{xc0:.0f}->{xc1:.0f} ({math.hypot(xc1 - xc0, yb - ya):.0f} mm, "
+            log(f"  auto rėmas: ĮSTRIŽAS per štrichą x{xc0:.0f}->{xc1:.0f} ({math.hypot(xc1 - xc0, yb - ya):.0f} mm, "
                 f"{math.degrees(math.atan(b)):.0f}°)" + (" - galinis (raidė be stiebo, kaip EXTRA)" if c is left_ or c is right_ else ""))
     if len(out) < nv:
         log(f"  auto rėmas: statmenų {len(out)} (taisyklė {nv}) - tik panaudojamose vietose")

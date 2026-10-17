@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v342 (2026-10-17)
+Atnaujinta: v343 (2026-10-17)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -202,7 +202,9 @@ Formos principas (taškų skaičius iš supaprastinto gaubto, pirmas - toliausia
   >= 5000 - 4; tarpiniai (v342, Rytis 2026-10-17: „galimas ir įstrižas statmuo per vidurį; statmenys kuo labiau centruoti
   tarp pirmo ir paskutinio, kai daugiau nei 3 - kuo vienodesniais tarpais"): statmuo ar įstrižas - LYGIAVERČIAI; 3 - kuo
   arčiau vidurio tarp galinių, 4 - kuo vienodesni tarpai (`auto_remas.even_pick`, kelių eilučių - bendras stiebas tik
-  nedidelis pranašumas). NEBĖRA žingsnio (v87), ankstesnio
+  nedidelis pranašumas). Įstrižas tarpinis (v343, Rytis 2026-10-17: „kodėl ne po Z?"; „kampas neribojamas - statmenys tik
+  stabilizuoja rėmą gamybos, dažymo ir surinkimo eigoje") - per BET KURĮ štrichą, jungiantį abu bėgelius (Z, N, K, X
+  vidurinis, ne tik V / A kojelės), `auto_remas.diag_lines`; galiniai - kaip iki šiol (stiebas / kojelė / dengimas, v311). NEBĖRA žingsnio (v87), ankstesnio
   kraštinio kandidato kaip tarpinio (v311), statmens po kiekviena raide (akrilas v229 / v231). Lieka būtini: akcentų / dalių
   laikikliai, eilučių jungtys. EXTRA (spec client / company / title „EXTRA") - senas žingsnio principas; priverstinai spec
   `"frame_rule": "pitch" | "ends"`. `auto_remas.n_verticals`, `build(ends_only=...)`; patikra 18 PER DAUG STATMENŲ.

@@ -437,4 +437,8 @@ if __name__ == "__main__":
     assert [AR.n_verticals(x) for x in (2999, 3000, 4999, 5000)] == [2, 3, 3, 4]
     assert AR.even_pick(0, 3000, [500, 1300, 1800, 2900], 1) == [1]               # vidurinis - arčiausiai centro
     assert AR.even_pick(0, 6000, [900, 1500, 2100, 3800, 4100, 5200], 2) == [2, 4]   # 4 statmenys - vienodi tarpai
+    from shapely.geometry import Polygon as _Pg               # v343: įstrižas per vidinį štrichą (Z) - kandidatas
+    Zg = _Pg([(0, 0), (400, 0), (400, 60), (110, 400), (400, 400), (400, 460), (0, 460), (0, 400), (290, 60), (0, 60)])
+    _zl = AR.diag_lines({"geom": Zg, "bb": Zg.bounds}, 60, 400, 30, 10, lambda a_, b_, w_: True)
+    assert _zl and all(l_[0] > l_[1] for l_ in _zl), _zl                          # Z įstrižas: nuo viršaus dešinės į kairę
     print("OK p3_raides savitikra")
