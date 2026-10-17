@@ -2,7 +2,10 @@
 """LED (Kaisen PRISM, v127) išdėstymas raidėse - GAMYBOS STILIUS (v119, Rytis 2026-10-12: „led dėliojimas vis dar blogas",
 pavyzdžiai: assets/led_pavyzdziai/, ypač ALT8873 EXTRA 225978_1 / _2 - Ryčio perdaryti mūsų lapai).
 
-NUMATYTAS LED įrankis (led_sim.py Lens simuliacija - tik paprašius). Principas:
+NUMATYTAS LED įrankis (led_sim.py Lens simuliacija - tik paprašius).
+v329 (Rytis 2026-10-17): NUMATYTAS išdėstymas - "strokes" (raidės linijos, tolygiai, simetriškai, brūkšnys visada su LED,
+serifai ignoruojami; žr. strokes()); senas aprėpties "ilp" - tik spec "layout": "ilp". Regresija - scripts/test_led.py.
+Principas:
   - modulis KM-P2 HE 0,72 W (balti 6500K) / KM-P2-R HE 0,72 W (raudoni) - viena eilė per raidės ašį;
   - žingsnis („atstumas tarp centrų") pagal gylį: 50 -> 100, 70 -> 120, 80 -> 130, 100 -> 140 mm (spec "pitch" - kitaip);
   - apskritimas aplink modulį = žingsnis; statūs galai - apskritimas liečia galą (modulis p/2 nuo krašto),
@@ -126,6 +129,24 @@ def _split_bends(pa, pitch, ang_min=45.0):
             cuts.append((i, t))
     if not cuts:
         return [pa], []
+    # v329: kampo taškas - AŠTRAUS posūkio srities VIDURYS (ne vietinis maksimumas): plokščia A / M viršūnė su dviem
+    #  lenkimais - kampas per vidurį, kojos simetriškos (anksčiau A: 387 / 317 mm -> 4 / 3 LED)
+    ref = []
+    ui = lambda u: min(max(int(np.searchsorted(cum, u)), 0), len(P) - 1)
+    for i, t in cuts:                       # kampas = abiejų tiesių šakų (±0,5..1,0 p nuo lenkimo) tiesių sankirtai artimiausias
+        c0 = cum[i]                         #  ašies taškas - plokščia / apvali A, M, W viršūnė - per vidurį (simetriškai)
+        if c0 - 1.0 * pitch >= 0 and c0 + 1.0 * pitch <= cum[-1]:
+            a1, a2 = P[ui(c0 - 1.0 * pitch)], P[ui(c0 - 0.5 * pitch)]
+            b1, b2 = P[ui(c0 + 0.5 * pitch)], P[ui(c0 + 1.0 * pitch)]
+            da, db = a2 - a1, b2 - b1
+            den = da[0] * db[1] - da[1] * db[0]
+            if abs(den) > 1e-6:
+                tt_ = ((b1[0] - a1[0]) * db[1] - (b1[1] - a1[1]) * db[0]) / den
+                X_ = a1 + tt_ * da
+                lo, hi = ui(c0 - 0.6 * pitch), ui(c0 + 0.6 * pitch)
+                i = lo + int(np.argmin(np.hypot(*(P[lo:hi + 1] - X_).T)))
+        ref.append((i, t))
+    cuts = ref
     out, corners, i0 = [], [], 0
     e0, e1 = pa["ends"]
     idx = [c for c, _ in cuts]
@@ -629,7 +650,220 @@ def ilp(g, pitch, time_limit=30, n_min=0):
     return out
 
 
-def place(g, pitch, p_lx=None, layout="ilp"):
+# v329 (Rytis 2026-10-17: „tam tikrose situacijose LED nedėdavo, nors ten reikėjo; A raidėje vienoje kojelėje 3 LED, kitoje 4,
+#  ir nėra brūkšnelyje tarp kojelių"): ilp (aprėpties min. kiekis) - asimetriškas ir „taupo" trumpus brūkšnius, nes juos
+#  apšviečia kaimyninių kojų moduliai. NUMATYTA dabar - STROKES (deterministinis, pagal raidės LINIJAS):
+#  1) ašis -> šakos; aštrus lenkimas (A viršūnė, M / W / Z kampai) - kampas (modulis kampe);
+#  2) serifai / užraitai - trumpa (< linijos plotis) laisva atšaka sankirtoje - ignoruojama;
+#  3) sankirtoje šakos jungiamos į ištisines LINIJAS pagal tiesiausią porą (A koja per brūkšnio sankirtą - viena linija);
+#     neporinė šaka baigiasi ant kitos linijos (T galas - modulio nėra, pusė linijos pločio nuo jos); Y sankirta be poros -
+#     vienas modulis sankirtoje;
+#  4) kiekviena linija dalijama TOLYGIAI: laisvas galas - modulis p/2 nuo krašto, kampas / Y sankirta - modulis taške,
+#     T galas - pusė tarpo; vienodo ilgio linijos -> vienodas kiekis (simetrija); KIEKVIENA linija >= 0,3 p gauna >= 1 modulį
+#     (A / H brūkšnys niekada be LED);
+#  5) žiedai (O, D, 0) - lyginis n, simetriška fazė; plati linija (> 2 p) - tinklelis.
+def _pathd(P):
+    P = np.asarray(P, float)
+    seg = np.hypot(*np.diff(P, axis=0).T)
+    keep = np.concatenate([[True], seg > 1e-9])
+    P = P[keep]
+    return {"P": P, "cum": np.concatenate([[0.0], np.cumsum(np.hypot(*np.diff(P, axis=0).T))]), "kind": "open"}
+
+
+def is_serif(P, ends, g, sw):
+    """v329: serifas / užraitas - atšaka su laisvu galu, trumpa (< 2 x linijos plotis) ir PLONA (vidutinis plotis < 0,6 x
+    linijos pločio) - raidės linija nėra, LED jai nededamas (šviečia nuo kamieno)"""
+    from shapely.geometry import Point as _Pt
+    P = np.asarray(P, float)
+    if not (("edge" in ends or "free" in ends or "E" in ends) and len(P) > 2):
+        return False
+    L = float(np.hypot(*np.diff(P, axis=0).T).sum())
+    if L >= 2.0 * sw:
+        return False
+    bd = g.boundary
+    ws = [2 * bd.distance(_Pt(*q)) for q in P[len(P) // 4: 3 * len(P) // 4 + 1: max(1, len(P) // 8)]]
+    return bool(ws) and float(np.median(ws)) < 0.6 * sw
+
+
+def strokes(g, pitch):
+    w = LS.stroke_max(g)
+    br, loops = [], []
+    for pa in LS.skeleton_paths(g):
+        if pa["kind"] == "loop":
+            loops.append(pa); continue
+        sp, _ = _split_bends(pa, pitch)
+        for q in sp:
+            br.append({"P": np.asarray(q["P"], float), "ends": list(q["ends"])})
+    tol = max(0.35 * w, 8.0)
+    nodes = []
+
+    def nid(xy):
+        for k, n in enumerate(nodes):
+            if math.dist(n["xy"], xy) < tol:
+                return k
+        nodes.append({"xy": tuple(xy), "m": [], "corner": False})
+        return len(nodes) - 1
+
+    blen = lambda b: float(np.hypot(*np.diff(b["P"], axis=0).T).sum())
+    for bi, b in enumerate(br):
+        b["node"] = [None, None]
+        for e in (0, 1):
+            t = b["ends"][e]
+            if t in ("j", "c"):
+                k = nid(b["P"][0] if e == 0 else b["P"][-1])
+                b["node"][e] = k
+                nodes[k]["m"].append((bi, e))
+                nodes[k]["corner"] |= t == "c"
+    # 2) serifai: trumpa laisva atšaka sankirtoje (>= 3 šakos)
+    drop = set()
+    for bi, b in enumerate(br):
+        fe = [e for e in (0, 1) if b["node"][e] is None]
+        if len(fe) == 1 and (blen(b) < 1.0 * w or is_serif(b["P"], b["ends"], g, w)):
+            k = b["node"][1 - fe[0]]
+            if len(nodes[k]["m"]) >= 3:
+                drop.add(bi)
+    for n in nodes:
+        n["m"] = [q for q in n["m"] if q[0] not in drop]
+
+    def outdir(bi, e):
+        P = br[bi]["P"] if e == 0 else br[bi]["P"][::-1]
+        cs = np.concatenate([[0.0], np.cumsum(np.hypot(*np.diff(P, axis=0).T))])
+        j = min(int(np.searchsorted(cs, min(cs[-1] * 0.5, max(w, 20.0)))), len(P) - 1)
+        v = P[j] - P[0]
+        return v / max(float(np.hypot(*v)), 1e-9)
+    # 3) poros sankirtose
+    link = {}
+    endtype = {}
+    for k, n in enumerate(nodes):
+        ms = n["m"]
+        if n["corner"]:
+            for q in ms:
+                endtype[q] = "C"
+            continue
+        if len(ms) == 2:
+            if float(outdir(*ms[0]) @ outdir(*ms[1])) < -0.5:     # tąsa (> 120 laipsnių) - viena linija
+                link[ms[0]] = ms[1]; link[ms[1]] = ms[0]
+            else:                                                 # aštrus kampas (W / V viršūnė po smaigalio) - kampas
+                endtype[ms[0]] = endtype[ms[1]] = "C"
+            continue
+        if len(ms) < 2:
+            for q in ms:
+                endtype[q] = "C"
+            continue
+        free = list(ms)
+        pairs = sorted(((float(outdir(*a) @ outdir(*b_)), a, b_) for i, a in enumerate(ms) for b_ in ms[i + 1:]), key=lambda t: t[0])
+        for dot, a, b_ in pairs:
+            if dot < -0.85 and a in free and b_ in free:          # > ~150 laipsnių - tiesi tąsa
+                link[a] = b_; link[b_] = a; free.remove(a); free.remove(b_)
+        for q in free:
+            endtype[q] = "T" if len(free) < len(ms) else "J"
+    # linijų surinkimas
+    used = set()
+    lines = []
+    for bi in range(len(br)):
+        if bi in drop or bi in used:
+            continue
+        # einama į vieną galą iki nesujungto
+        cur, e = bi, 0
+        seen = {bi}
+        while (cur, e) in link:
+            nb, ne = link[(cur, e)]
+            if nb in seen:
+                break
+            seen.add(nb); cur, e = nb, 1 - ne
+        start = (cur, e)
+        P, cur, e = [], start[0], start[1]
+        ends = []
+        first = True
+        while True:
+            used.add(cur)
+            Q = br[cur]["P"] if e == 0 else br[cur]["P"][::-1]
+            if first:
+                ends.append(endtype.get((cur, e), "E" if br[cur]["node"][e] is None else "J"))
+                first = False
+            P += [tuple(q) for q in (Q if not P else Q[1:])]
+            oe = 1 - e
+            if (cur, oe) in link and link[(cur, oe)][0] not in used:
+                cur, e = link[(cur, oe)]
+                continue
+            ends.append(endtype.get((cur, oe), "E" if br[cur]["node"][oe] is None else ("J" if (cur, oe) not in link else "J")))
+            break
+        lines.append((_pathd(P), ends))
+    # 4) tolygus padalijimas
+    pos = []
+    half = w / 2.0
+    for pa, (ea, eb) in lines:
+        L = pa["cum"][-1]
+        if L < 1e-6:
+            continue
+
+        def anc(et, rev):
+            if et == "E":
+                return ("fix", min(pitch / 2.0, L / 2.0))
+            if et in ("C", "J"):
+                return ("fix", 0.0)
+            return ("soft", min(half, L / 2.0))
+        ta, a = anc(ea, False)
+        tb, b = anc(eb, True)
+        b = L - b
+        us = []
+        if ta == "fix" and tb == "fix":
+            span = b - a
+            if span < 0.5 * pitch:
+                us = [a] if ea in ("C", "J") and eb in ("C", "J") and span < 0.3 * pitch else ([a, b] if ea in ("C", "J") and eb in ("C", "J") else [(a + b) / 2])
+            else:
+                k_ = max(1, round(span / pitch))
+                us = [a + i * span / k_ for i in range(k_ + 1)]
+        elif ta == "soft" and tb == "soft":
+            span = b - a
+            n_ = max(1, round(span / pitch))
+            us = [a + span * (i + 0.5) / n_ for i in range(n_)]
+        else:
+            fx, sf = (a, b) if ta == "fix" else (b, a)
+            d_ = abs(sf - fx)
+            n_ = max(0, round(d_ / pitch - 0.5))
+            if n_ == 0 and d_ > 0.6 * pitch:
+                n_ = 1
+            st = d_ / (n_ + 0.5) if n_ else 0.0
+            sg = 1 if sf > fx else -1
+            us = [fx + sg * i * st for i in range(n_ + 1)]
+        for u in us:
+            x, y, ang = LS._at(pa, u)
+            isanc = (u <= 1e-6 and ea in ("C", "J")) or (u >= L - 1e-6 and eb in ("C", "J"))
+            pos.append((x, y, ang, isanc))
+    # 5) žiedai
+    for pa in loops:
+        L = pa["cum"][-1]
+        n = max(2, round(L / pitch)); n += n % 2
+        x0, y0, x1, y1 = g.bounds; cx = (x0 + x1) / 2
+        best = None
+        for ph in np.linspace(0, L / n, 24, endpoint=False):
+            A_ = np.array([LS._at(pa, (ph + i * L / n) % L)[:2] for i in range(n)])
+            M_ = np.column_stack([cx - (A_[:, 0] - cx), A_[:, 1]])
+            err = float(np.min(np.hypot(M_[:, None, 0] - A_[None, :, 0], M_[:, None, 1] - A_[None, :, 1]), axis=1).sum())
+            if best is None or err < best[0]:
+                best = (err, ph)
+        pos += [tuple(LS._at(pa, (best[1] + i * L / n) % L)) + (False,) for i in range(n)]
+    # kampo / sankirtos moduliai iš kelių linijų - VIENAS (artimi < 0,7 p - vidurkis), tada kiti dublikatai < 0,45 p
+    anc = [q for q in pos if q[3]]
+    merged = []
+    for q in anc:
+        grp = [r for r in anc if math.dist(q[:2], r[:2]) < 0.7 * pitch]
+        mx, my = float(np.mean([r[0] for r in grp])), float(np.mean([r[1] for r in grp]))
+        if all(math.dist((mx, my), r[:2]) >= 0.3 * pitch for r in merged):
+            merged.append((mx, my, float(q[2])))
+    out = list(merged)
+    for q in pos:
+        if not q[3] and all(math.dist(q[:2], r[:2]) >= 0.45 * pitch for r in out):
+            out.append(tuple(float(v) for v in q[:3]))
+    return out
+
+
+def place(g, pitch, p_lx=None, layout="strokes"):
+    if layout == "strokes":
+        if LS.stroke_max(g) > 2.0 * pitch:
+            return grid(g, pitch), "grid", 0, 0
+        return strokes(g, pitch), "strokes", 0, 0
     if layout == "ilp":
         return ilp(g, pitch), "ilp", 0, 0
     if layout == "pack":
@@ -680,9 +914,9 @@ def run(spec):
             p = int(min(p, max(60, round(1.6 * w_med / 10.0) * 10)))
         per = []
         for g in L:
-            pts, mode, a_, r_ = place(g, p, p_lx, gr.get("layout") or spec.get("layout") or "ilp")
+            pts, mode, a_, r_ = place(g, p, p_lx, gr.get("layout") or spec.get("layout") or "strokes")
             per.append({"g": g, "pts": pts, "mode": mode, "cov": (a_, r_)})
-        lay = gr.get("layout") or spec.get("layout") or "ilp"
+        lay = gr.get("layout") or spec.get("layout") or "strokes"
         if lay == "ilp" and len(per) > 1:
             # v133 (Rytis: „7 ir 3 bendroje grandinėje atrodys blankiau"): vienodas ryškumas grupėje - modulių tankis
             # (vnt. / veido plotas) kiekvienoje raidėje >= IL_DENS x grupės medianos; trūksta - ILP su min. kiekiu
@@ -697,7 +931,7 @@ def run(spec):
         res.append({"gr": gr, "mod": m, "pitch": p, "plx": p_lx, "letters": per, "n": n, "W": watts, "psu": psu_for(watts, MODDB[m]["V"])})
         print(f"  {gr.get('name') or 'grupė'}: {mod_label(m, gr.get('led', 'white'))} žingsnis ~{p} -> " +
               ", ".join(str(len(x['pts'])) for x in per) + f" = {n} vnt., {watts:.1f} W, {psu_for(watts, MODDB[m]['V'])[0]}" +
-              ("" if all(x["mode"] in ("chain", "pack", "ilp") for x in per) else "  (plati linija - tinklelis)") +
+              ("" if all(x["mode"] in ("chain", "pack", "ilp", "strokes") for x in per) else "  (plati linija - tinklelis)") +
               f"  [padengimas: +{sum(x['cov'][0] for x in per)} / -{sum(x['cov'][1] for x in per)}]")
     return res
 

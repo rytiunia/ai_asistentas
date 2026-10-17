@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v328 (2026-10-16)
+Atnaujinta: v329 (2026-10-17)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -198,6 +198,17 @@ Formos principas (taškų skaičius iš supaprastinto gaubto, pirmas - toliausia
     kas 5 mm, kol visos dalys gauna po 2 (LEAP26-06002: prašyta 50, smeigės kraštas 5 mm -> 65 mm, Rytis pasirinko).
 - Spalvos: visa RAL Classic paletė (213 spalvų) yra `assets/ral_classic.json` (v298). Nežinomas RAL kodas nebėra tyli
   pilka spalva, o patikros 18 klaida. Naujas kodas įrašomas į paletę.
+
+## D4. LED dėliojimas (v329, Rytis 2026-10-17: „A raidėje vienoje kojelėje 3 LED, o kitoje jau 4, ir nėra brūkšnelyje tarp kojelių")
+
+- Įrankis - `scripts/led_km.py` (Kaisen; LED PDF - atskiras dokumentas). NUMATYTAS išdėstymas `strokes` (ne `ilp`):
+  - raidės ašis -> LINIJOS: sankirtoje šakos jungiamos pagal tiesiausią tąsą (A koja per brūkšnį - viena linija);
+    aštrus kampas (A / M / W viršūnė) - modulis kampe, kampo taškas - kojų tiesių sankirtoje (plokščia viršūnė - per vidurį);
+  - kiekviena linija dalijama TOLYGIAI (laisvas galas - p/2 nuo krašto, T galas - pusė tarpo): vienodos linijos -> vienodas
+    kiekis (simetrija); kiekviena linija >= 0,3 p gauna >= 1 LED (A / H brūkšnys niekada be LED);
+  - serifai / užraitai (trumpa ir plona laisva atšaka) - be LED; žiedai - lyginis n, simetriška fazė; > 2 p plotis - tinklelis.
+- `ilp` (aprėpties minimumas) - tik spec `"layout": "ilp"`.
+- Regresija: `scripts/test_led.py` (projektai/led_test), įtraukta į `regresija.py`.
 
 ## D3. Maitinimas (v302)
 

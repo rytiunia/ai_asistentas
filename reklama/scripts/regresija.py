@@ -124,6 +124,10 @@ def main(filt):
         r = subprocess.run(["python3", os.path.join(scr, "test_p6.py")], capture_output=True, text=True)
         res.append(("test_p6 (P6 pagrindinė taisyklė)", [] if r.returncode == 0 else r.stdout.strip().splitlines()[-8:]))
         shutil.rmtree(tmp, ignore_errors=True)
+    # v329: LED dėliojimas (simetrija, brūkšnys, padengimas) - repo failų nekeičia
+    if not filt or any(f in "led test_led" for f in filt):
+        r = subprocess.run(["python3", os.path.join(SCR, "test_led.py")], capture_output=True, text=True)
+        res.append(("test_led (LED dėliojimas)", [] if r.returncode == 0 else [l for l in r.stdout.splitlines() if "!" in l][:8]))
     for name, errs in res:
         if errs and name in KNOWN:
             print(f"ŽINOMA  {name}: {KNOWN[name]}")
