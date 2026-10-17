@@ -66,13 +66,13 @@ for f in ("spec_sans.json", "spec_serif.json"):
         if far:
             err.append(f"{tag}: {far} ašies taškų toliau nei 0,75 p nuo LED (vieta be LED)")
 # v331 (Rytis 2026-10-17, „Testavimas" - slab šriftas, 3779 x 615 mm, kontūrai užpildyti): t - skersinio kairė ir uodegos
-#  galas su LED, tolygiai (t >= 7, ne 3 apačioje), a - uodega su LED (a >= 8); ne per tankiai (viso <= 80, >= 0,5 p)
+#  galas su LED, tolygiai (t >= 7, ne 3 apačioje), a - uodega su LED (a >= 8); ne per tankiai (viso <= 90, >= 0,5 p)
 spec = json.load(open(os.path.join(D, "spec_testavimas.json")))
 spec["pdf"] = os.path.join(D, spec["pdf"])
 r = LK.run(spec)[0]
 cnt = [len(x["pts"]) for x in r["letters"]]
-if len(cnt) != 11 or cnt[3] < 7 or cnt[4] < 8 or cnt[9] < 8 or sum(cnt) > 80:
-    err.append(f"Testavimas: LED kiekiai {cnt} (laukta t >= 7, a >= 8, viso <= 80)")
+if len(cnt) != 11 or cnt[3] < 7 or cnt[4] < 8 or cnt[9] < 8 or sum(cnt) > 90:
+    err.append(f"Testavimas: LED kiekiai {cnt} (laukta t >= 7, a >= 8, viso <= 90)")
 for ch, x in zip("Testavimas", r["letters"]):
     q_ = x["pts"]
     for i in range(len(q_)):

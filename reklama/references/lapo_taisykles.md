@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v332 (2026-10-17)
+Atnaujinta: v333 (2026-10-17)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -216,6 +216,14 @@ Formos principas (taškų skaičius iš supaprastinto gaubto, pirmas - toliausia
     ratas) dėmė > 0,13 p² gauna LED ten, kur padengia daugiausia (>= 0,55 p nuo kitų, pasuktas pagal formą). Serifų / pėdų
     sritys (atmestos atšakos) netikrinamos. Parametrai `LED_GAP_R / LED_GAP_A / LED_GAP_OUT` (led_km.py); testas -
     `projektai/led_test/testavimas.pdf` (t >= 7 tolygiai, a >= 8, niekur < 0,5 p).
+- v333 (Rytis 2026-10-17: „a - snapelyje trūksta, uodegėlėje per tankiai; v, i - LED per mažai"; peržiūrėtos LED Wizard 7/8,
+  SloanLED Layout Estimator, Current/GE spacing guidelines - pramonės principas: moduliai TOLYGIAI per kelią / eilę, prioritetas
+  kampams ir galams, tankis pagal gylį ir linijos plotį, eilių skaičius pagal plotį):
+  - linija dalijama taip, kad tarpas būtų <= p (+8 %) - apvalinama AUKŠTYN (`LINE_TOL`), ne žemyn (v / i turėjo 1,15-1,23 p);
+  - LYGINIMAS - centroidinė Voronoi teselacija (Lloyd, `relax`, `RELAX_IT`): kiekvienas raidės taškas priskiriamas artimiausiam
+    MATOMAM LED, LED perkeliamas į savo srities centrą (<= 0,4 p nuo pradinės vietos, ne arčiau nei 0,5 p kitų, >= 0,25 w nuo
+    šono); tuščios vietos (snapelis, galvutė) pritraukia LED, sugrūstos (uodega) išsiskiria; pasukimas - pagal raidės ašį.
+    Taikoma linijoms >= 0,6 p pločio (siauroje - viena eilė ašyje jau tolygi).
 - `ilp` (aprėpties minimumas) - tik spec `"layout": "ilp"`.
 - Regresija: `scripts/test_led.py` (projektai/led_test), įtraukta į `regresija.py`.
 

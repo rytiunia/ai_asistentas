@@ -719,7 +719,7 @@ def is_serif(P, ends, g, sw):
     return bool(ws) and float(np.median(ws)) < 0.6 * sw
 
 
-LINE_BIAS = 0.0                       # v331: linijos dalijimas - tarpas ne ilgesnis nei ~1,15 p (apvalinama aukštyn nuo x,3)
+LINE_TOL = 0.08                       # v333 (Rytis: v / i per mažai LED): tarpas linijoje <= p (+8 %), ne apvalinimas žemyn
 LED_GAP_R, LED_GAP_A, LED_GAP_OUT = 0.5, 0.13, 0.25   # v330: dėmė > 0,13 p² už modulio rato (0,5 p), > 0,25 p UŽ LED gaubto
 
 
@@ -924,16 +924,16 @@ def strokes(g, pitch):
             if span < 0.5 * pitch:
                 us = [a] if ea in ("C", "J") and eb in ("C", "J") and span < 0.3 * pitch else ([a, b] if ea in ("C", "J") and eb in ("C", "J") else [(a + b) / 2])
             else:
-                k_ = max(1, round(span / pitch + LINE_BIAS))
+                k_ = max(1, math.ceil(span / pitch - LINE_TOL))
                 us = [a + i * span / k_ for i in range(k_ + 1)]
         elif ta == "soft" and tb == "soft":
             span = b - a
-            n_ = max(1, round(span / pitch))
+            n_ = max(1, math.ceil(span / pitch - LINE_TOL))
             us = [a + span * (i + 0.5) / n_ for i in range(n_)]
         else:
             fx, sf = (a, b) if ta == "fix" else (b, a)
             d_ = abs(sf - fx)
-            n_ = max(0, round(d_ / pitch - 0.5 + LINE_BIAS))
+            n_ = max(0, math.ceil(d_ / pitch - 0.5 - LINE_TOL))
             if n_ == 0 and d_ > 0.6 * pitch:
                 n_ = 1
             st = d_ / (n_ + 0.5) if n_ else 0.0
@@ -1032,6 +1032,85 @@ def strokes(g, pitch):
         if len(nb_) > 3:                                        # pasukimas - pagal vietinę formos kryptį
             _w, _v = np.linalg.eigh(np.cov((nb_ - [cx_, cy_]).T)); ang = math.atan2(_v[1, 1], _v[0, 1])
         out.append((float(cx_), float(cy_), ang))
+    return relax(g, out, pitch, w)
+
+
+RELAX_IT = 12                         # v333: CVT (Lloyd) iteracijos
+
+
+def relax(g, pts, pitch, w, iters=None):
+    """v333 (Rytis 2026-10-17: „a raidėje LED netolygiai - snapelyje trūksta, uodegėlėje per tankiai"; LED Wizard tipo
+    programos: moduliai „tolygiai per kelią" + lygus tankis plote): LYGINIMAS - centroidinė Voronoi teselacija (Lloyd).
+    Kiekvienas raidės ploto taškas priskiriamas artimiausiam MATOMAM moduliui (tiesi linija raidės viduje - kampas
+    užstoja); modulis perkeliamas į savo srities centroidą (ne arčiau nei 0,25 w nuo šono). Kiekis nekinta - keičiasi
+    tik vietos: tuščios vietos (snapelis, galvutė) „pritraukia", sugrūstos (uodega) - išsiskiria. Pasukimas - pagal srities
+    pagrindinę kryptį (linijos kryptis)."""
+    if len(pts) < 2 or w < 0.6 * pitch:                       # siaura linija - viena eilė ašyje jau tolygi
+        return pts
+    iters = RELAX_IT if iters is None else iters
+    P0 = np.array([q[:2] for q in pts], float)
+    res = max(2.0, pitch / 30.0)
+    m, (ox, oy) = LS.raster(g, res)
+    YY, XX = np.nonzero(m)
+    st = max(1, int(round(pitch / 14.0 / res)))
+    sel = (YY % st == 0) & (XX % st == 0)
+    S = np.column_stack([ox + XX[sel] * res, oy + YY[sel] * res])
+    from shapely import contains_xy as _cxy
+    core = g.buffer(-min(0.25 * w, 0.3 * pitch))
+    if core.is_empty:
+        core = g.buffer(-0.1 * w)
+    ts = np.linspace(0.0, 1.0, 12)[1:-1]
+
+    def vis(P0, Q):                                             # P0 (k,2) moduliai, Q (n,2) taškai -> (n,k) matomumas
+        out_ = np.ones((len(Q), len(P0)), bool)
+        for k_, p0 in enumerate(P0):
+            px = p0[0] + (Q[:, 0:1] - p0[0]) * ts[None, :]; py = p0[1] + (Q[:, 1:2] - p0[1]) * ts[None, :]
+            jj = np.clip(np.rint((px - ox) / res).astype(int), 0, m.shape[1] - 1)
+            ii = np.clip(np.rint((py - oy) / res).astype(int), 0, m.shape[0] - 1)
+            out_[:, k_] = m[ii, jj].all(axis=1)
+        return out_
+    P = np.array([q[:2] for q in pts], float)
+    for _ in range(iters):
+        D = np.hypot(S[:, None, 0] - P[None, :, 0], S[:, None, 1] - P[None, :, 1])
+        V = vis(P, S)
+        D = np.where(V, D, D + 10 * pitch)                      # nematomas (už kampo) - tik jei nėra kito
+        a_ = np.argmin(D, axis=1)
+        moved = 0.0
+        for k_ in range(len(P)):
+            C_ = S[a_ == k_]
+            if not len(C_):
+                continue
+            c_ = C_.mean(axis=0)
+            if not _cxy(core, c_[0], c_[1]):
+                from shapely.geometry import Point as _Pr
+                from shapely.ops import nearest_points as _np
+                q_ = _np(core, _Pr(*c_))[0]; c_ = np.array([q_.x, q_.y])
+            dv = c_ - P0[k_]; dn = float(np.hypot(*dv))
+            if dn > 0.4 * pitch:                                    # ne toliau nei 0,4 p nuo pradinės (linijos) vietos
+                c_ = P0[k_] + dv * (0.4 * pitch / dn)
+            oth = np.delete(P, k_, axis=0)
+            if len(oth) and float(np.min(np.hypot(*(oth - c_).T))) < 0.5 * pitch:
+                continue                                            # nesugrūsti
+            moved = max(moved, float(np.hypot(*(c_ - P[k_]))))
+            P[k_] = c_
+        if moved < 0.01 * pitch:
+            break
+    D = np.hypot(S[:, None, 0] - P[None, :, 0], S[:, None, 1] - P[None, :, 1])
+    a_ = np.argmin(np.where(vis(P, S), D, D + 10 * pitch), axis=1)
+    # pasukimas - artimiausios raidės ašies (skeleto) kryptis (modulis išilgai linijos)
+    SK, TA = [], []
+    for pa in LS.skeleton_paths(g):
+        Pp = pa["P"]
+        for i_ in range(0, len(Pp), 2):
+            a2, b2 = Pp[max(i_ - 6, 0)], Pp[min(i_ + 6, len(Pp) - 1)]
+            SK.append(Pp[i_]); TA.append(math.atan2(b2[1] - a2[1], b2[0] - a2[0]))
+    SK = np.array(SK) if SK else None
+    out = []
+    for k_ in range(len(P)):
+        ang = float(pts[k_][2]) if len(pts[k_]) > 2 else 0.0
+        if SK is not None:
+            ang = TA[int(np.argmin(np.hypot(*(SK - P[k_]).T)))]
+        out.append((float(P[k_][0]), float(P[k_][1]), ang))
     return out
 
 
