@@ -142,6 +142,26 @@ def _cover_cand(o, ya, yb, t_rail, hx0, hx1, min_cov=0.5):
 V_STEPS = ((3000, 2), (5000, 3))        # L < 3000 - 2; 3000 <= L < 5000 - 3; L >= 5000 - 4
 
 
+def even_pick(xa, xb, xs, k, gap=300, bonus=None):
+    """v342 (Rytis 2026-10-17: „galimas ir įstrižas statmuo per vidurį; statmenys kuo labiau centruoti tarp pirmo ir paskutinio,
+    kai daugiau nei 3 - kuo vienodesniais tarpais"): iš kandidatų xs parenkama k tarpinių (>= gap vienas nuo kito ir nuo
+    galų), kad tarpai tarp xa .. xb būtų kuo vienodesni (mažiausia kvadratinių nuokrypių nuo L / (k + 1) suma; k = 1 -
+    arčiausiai vidurio). bonus(i) - papildomas pranašumas (mm², pvz. bendras stiebas abiem eilutėms). Grąžina indeksus."""
+    import itertools
+    ok = [i for i, x in enumerate(xs) if xa + gap <= x <= xb - gap]
+    ideal = (xb - xa) / (k + 1)
+    best = None
+    for comb in itertools.combinations(sorted(ok, key=lambda i: xs[i]), min(k, len(ok))):
+        pts = [xa] + [xs[i] for i in comb] + [xb]
+        if any(pts[j + 1] - pts[j] < gap for j in range(len(pts) - 1)):
+            continue
+        sc = sum((pts[j + 1] - pts[j] - ideal) ** 2 for j in range(len(pts) - 1)) - sum(bonus(i) for i in comb) if bonus else \
+            sum((pts[j + 1] - pts[j] - ideal) ** 2 for j in range(len(pts) - 1))
+        if best is None or sc < best[0]:
+            best = (sc, comb)
+    return list(best[1]) if best else []
+
+
 def n_verticals(L):
     """statmenų kiekis eilutės rėmui (su galiniais) pagal ilgį (v340)"""
     for lim, n in V_STEPS:
@@ -216,12 +236,9 @@ def single_verticals(r, t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log, every
         # v337 / v340 (Rytis 2026-10-17: visiems rėmams išskyrus EXTRA; kiekis n_verticals: < 3 m - 2, 3-5 m - 3, >= 5 m - 4,
         #  tarpiniai tolygiai): galiniai + tarpiniai pagal ilgį - be ankstesnio
         #  kraštinio kandidato (v311), be žingsnio (v87), be statmens po kiekviena raide (v229)
-        nv_ = n_verticals(L)                          # v340: 2 / 3 / 4 - tarpiniai tolygiai (panašūs atstumai)
-        for k_ in range(1, nv_ - 1):
-            tx_ = left_["x"] + (right_["x"] - left_["x"]) * k_ / (nv_ - 1)
-            c_ = [c for c in cands if all(abs(c["x"] - q["x"]) >= gap_ for q in chosen)]
-            if c_:
-                chosen.append(min(c_, key=lambda c: (abs(c["x"] - tx_) + (0 if c["k"] == "v" else 150))))
+        nv_ = n_verticals(L)                          # v340: 2 / 3 / 4; v342: statmuo ar įstrižas - lygiaverčiai,
+        c_ = [c for c in cands if all(abs(c["x"] - q["x"]) >= gap_ for q in chosen)]      # tarpai kuo vienodesni
+        chosen += [c_[i] for i in even_pick(left_["x"], right_["x"], [c["x"] for c in c_], nv_ - 2, gap_)]
         nv = len(chosen)
         every_letter = False
     else:
@@ -603,12 +620,16 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
         n_mid = max(0, n_mid - len(taken))
         if n_mid and not st:
             log(f"  ! auto rėmas: eilutėje y{r['xb']:.0f} tarpiniams statmenims stiebų nerasta - spręsti ranka")
-        targets = [r["xl"] + L * (k + 1) / (n_mid + 1) for k in range(n_mid)]
-        chosen = []
-        for tx in targets:
-            cand = [s for s in st if all(abs((s[0] + s[1]) / 2 - (c[0] + c[1]) / 2) > 300 for c in chosen)]
-            if not cand: break
-            chosen.append(min(cand, key=lambda s: abs((s[0] + s[1]) / 2 - tx) - (1500 if (common(s) or common_down(s)) else 0)))
+        if ends_only:                                    # v342: tarpai kuo vienodesni (bendras stiebas - nedidelis pranašumas)
+            chosen = [st[i] for i in even_pick(r["xl"], r["xr"], [(s_[0] + s_[1]) / 2 for s_ in st], n_mid, 300,
+                                               bonus=lambda i: (0.05 * L) ** 2 if (common(st[i]) or common_down(st[i])) else 0)]
+        else:
+            targets = [r["xl"] + L * (k + 1) / (n_mid + 1) for k in range(n_mid)]
+            chosen = []
+            for tx in targets:
+                cand = [s for s in st if all(abs((s[0] + s[1]) / 2 - (c[0] + c[1]) / 2) > 300 for c in chosen)]
+                if not cand: break
+                chosen.append(min(cand, key=lambda s: abs((s[0] + s[1]) / 2 - tx) - (1500 if (common(s) or common_down(s)) else 0)))
         for s in sorted(chosen):
             c = common(s)
             cd = common_down(s)

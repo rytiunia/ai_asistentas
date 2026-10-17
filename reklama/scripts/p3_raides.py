@@ -433,4 +433,8 @@ if __name__ == "__main__":
     assert {g_[0] for g_ in _d.groups} == {"REMAS", "DUGNAS", "PRIEKIS"}, [g_[0] for g_ in _d.groups]
     assert len(list(_d.blocks["DUGNAS"].query("CIRCLE"))) == len(sp)
     os.remove(_f)
+    import auto_remas as AR                                   # v340 / v342 rėmo taisyklė (bendra visiems rėmams, išskyrus EXTRA)
+    assert [AR.n_verticals(x) for x in (2999, 3000, 4999, 5000)] == [2, 3, 3, 4]
+    assert AR.even_pick(0, 3000, [500, 1300, 1800, 2900], 1) == [1]               # vidurinis - arčiausiai centro
+    assert AR.even_pick(0, 6000, [900, 1500, 2100, 3800, 4100, 5200], 2) == [2, 4]   # 4 statmenys - vienodi tarpai
     print("OK p3_raides savitikra")

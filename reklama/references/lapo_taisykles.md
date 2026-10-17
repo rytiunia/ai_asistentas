@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v341 (2026-10-17)
+Atnaujinta: v342 (2026-10-17)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -199,7 +199,10 @@ Formos principas (taškų skaičius iš supaprastinto gaubto, pirmas - toliausia
 - **RĖMO STATMENŲ KIEKIS PAGAL ILGĮ (v340, Rytis 2026-10-17: „bendra taisyklė rėmo naudojime - iki 3 m 2 statmenys, nuo
   3 m pridedamas 1 viduryje, nuo 5 m 4 statmenys, stengiantis lygiuoti panašiais atstumais per visą ilgį"; v337: visiems
   rėmams išskyrus EXTRA)**: eilutės rėmas < 3000 mm - 2 (galiniai, po kraštinėmis raidėmis, v299 / v311), 3000-4999 - 3,
-  >= 5000 - 4; tarpiniai - artimiausi tolygiems taškams (pirmenybė stiebui, ne įstrižui). NEBĖRA žingsnio (v87), ankstesnio
+  >= 5000 - 4; tarpiniai (v342, Rytis 2026-10-17: „galimas ir įstrižas statmuo per vidurį; statmenys kuo labiau centruoti
+  tarp pirmo ir paskutinio, kai daugiau nei 3 - kuo vienodesniais tarpais"): statmuo ar įstrižas - LYGIAVERČIAI; 3 - kuo
+  arčiau vidurio tarp galinių, 4 - kuo vienodesni tarpai (`auto_remas.even_pick`, kelių eilučių - bendras stiebas tik
+  nedidelis pranašumas). NEBĖRA žingsnio (v87), ankstesnio
   kraštinio kandidato kaip tarpinio (v311), statmens po kiekviena raide (akrilas v229 / v231). Lieka būtini: akcentų / dalių
   laikikliai, eilučių jungtys. EXTRA (spec client / company / title „EXTRA") - senas žingsnio principas; priverstinai spec
   `"frame_rule": "pitch" | "ends"`. `auto_remas.n_verticals`, `build(ends_only=...)`; patikra 18 PER DAUG STATMENŲ.
