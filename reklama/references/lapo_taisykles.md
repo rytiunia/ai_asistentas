@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v335 (2026-10-17)
+Atnaujinta: v336 (2026-10-17)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -175,6 +175,11 @@ Formos principas (taškų skaičius iš supaprastinto gaubto, pirmas - toliausia
 - KIEKVIENA raidės / elemento dalis (atskiras kontūras: E brūkšnelis, taškas, akcentas, kablelis) privalo liesti rėmą.
   Dalis be rėmo: `braizyti_begeliai` automatiškai deda statmenį per jos vidurį tarp artimiausių bėgelių. Jei bėgelis yra
   tik iš vienos pusės, statmuo daromas T forma (v193).
+- P3 HALO (v336, Rytis 2026-10-17: „tvirtinimai kaip P6, tik tvirtinimo taškas turi būti tvirtinamo ploto centre, o ne šone
+  ar krašte - A raidė, per kojelės ploto centrą, kuris remiasi į rėmą"): distanceris - raidės galo ∩ bėgelio (h / v /
+  įstrižo) ploto CENTROIDE (netelpa - artimiausia leistina vieta), ilgas plotas (> 400) - kiekvienos lygios dalies centre;
+  kiekis / parinkimas - kaip P6 (kvadratas / trikampis, FPS). `scripts/p3_raides.py`, `references/moduliai_p3.md`;
+  pavyzdys `scripts/projektai/p3_pavyzdys/` (standartas plexi 8 + reflektoriai +5 mm, plexi 4 + PVC).
 - Neišsprendus: patikra 18 KONSTRUKCIJA / KABO ORE (`K.SHEET_ERR`).
 - BOM sienos rėmo (wall L) ilgis = tik horizontalūs (`{RAIL_H_M}`). Raidžių rėmas - su statmenimis.
 - Jei rėme yra statmenys, jų turi būti BENT 2 (v298). Du ilgi bėgeliai su vienu statmeniu nėra stabilūs.
@@ -241,7 +246,7 @@ Formos principas (taškų skaičius iš supaprastinto gaubto, pirmas - toliausia
 
 ## E. Produktų / klientų taisyklės
 
-- Produkto šeimos taisyklės: `references/moduliai_*.md`.
+- Produkto šeimos taisyklės: `references/moduliai_*.md` (P3 halo - `moduliai_p3.md`, spec `"front": "P3"`, `"p3"`).
 - Klientų taisyklės: `references/klientai/*.md`. Pvz. Clas Ohlson vertikali plokštė: Ø11 kairėje šoninėje briaunoje PAČIAME
   VIRŠUJE, 50 mm nuo viršaus.
 - Etalonai: `assets/etalonai/`.

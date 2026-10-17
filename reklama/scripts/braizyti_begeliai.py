@@ -57,6 +57,10 @@ def _rail_pos():
             else:
                 out_.append(list(r_))
         rows_ = out_
+    # v336: „Rail U .. with ears" - eilutė PRASIDEDA rail / wallframe (anksčiau „with ears" ją atmesdavo -> balionas rodė laidą)
+    _st = next((str(r_[0]) for r_ in rows_ if re.match(r"\s*(rail|wallframe|frame|bėgel)", str(r_[1]), re.I)), None)
+    if _st:
+        return _st
     return next((str(r_[0]) for r_ in rows_ if re.search(r"\brail|wallframe|\bframe\b|bėgel", str(r_[1]), re.I)
                  and not re.search(r"ear|hanger|bracket|plate|tube|\bZ\b", str(r_[1]), re.I)), "5")
 
@@ -80,6 +84,11 @@ ACRY.update(spec.get("acrylic", {}))
 if P6F.kind(spec.get("front", "5S")) == "P10":            # v244: P10 - smeigė ant įleisto Alu dugnelio (kraštas rim) -> nuo raidės krašto >= rim + 1
     ACRY["stud"] = dict(ACRY["stud"], edge=max(float(ACRY["stud"].get("edge", 8)), float((spec.get("p10") or {}).get("rim", 5)) + 1))
 RAIL_W = float(str(RAIL["size"]).lower().split("x")[0]) if RAIL_ACR else None
+# v336 (Rytis 2026-10-17): P3 HALO - Alu korpusas, plexi galas 8 / 4 + PVC, distanceriai tvirtinamo ploto CENTRE, reflektorius
+P3 = None
+if FRONT == "P3":
+    import p3_raides as P3M
+    P3 = P3M.cfg(spec)
 
 
 def _acr_studs(letters, hs_, ST, g_off, gw, cuts=(), holes=(), vjoints=(), grid=None, vlines=()):
@@ -1744,7 +1753,8 @@ def nest_row(row):
         if kind == "RET":
             r_ = NE.nest_strips([K.perim(o["sub"]) for o in lets], depth, mat, label=str(row[1]), qty=NEST_QTY)
         else:
-            gg = [o["geom"].buffer(-3) if kind == "BACK" else o["geom"] for o in lets]
+            gg = [o["geom"].buffer(-(P3["side_t"] if P3 else 3)) if kind == "BACK" else      # v336: P3 plexi galas šono viduje
+                  (o["geom"].buffer(P3["refl_off"] if P3 else 5) if kind == "REFL" else o["geom"]) for o in lets]
             r_ = NE.nest_parts(gg, mat, label=str(row[1]), qty=NEST_QTY)
         NEST_LOG.append(f"{row[1]}: {r_['text']}")
         if r_.get("m2") is None:
@@ -1752,7 +1762,7 @@ def nest_row(row):
             return "?"
         K.FEAT.add("nest")
         return f"{r_['m2']:.2f}"
-    q2 = re.sub(r"\{(A|RET|BACK|FOIL)_([^}]+)\}", rep, q)
+    q2 = re.sub(r"\{(A|RET|BACK|FOIL|REFL)_([^}]+)\}", rep, q)
     if q2 == q and re.search(r"\d+[.,]\d+\s*m²", q) and NE.parse_material(mat)[0] and "nesting" not in q:
         K.SHEET_ERR.append(f"BOM '{row[1]}': plotas '{q}' įrašytas ranka - naudoti {{A_..}} / {{RET_..}} / {{BACK_..}} / {{FOIL_..}} (nesting)")
     row[4] = q2
@@ -1779,6 +1789,11 @@ VX0, VY0 = K.IX0 + 8, K.IY0 + 6
 W_AV, H_AV = K.IX1 - K.IX0 - 16, K.VIEW_BOT - K.IY0 - 10
 Z_PLATE_L = PZ0 + PLATE["thk"] + PLATE["gap_mm"]       # raidės ant plokštės: šonų galinė briauna nuo sienos
 Z_RAIL_L = 0 if MOUNTING == "none" else RAIL["depth"]   # v90: atskiros raidės - tiesiai ant fasado
+Z_P3B = Z_RAIL_L + (P3["refl_t"] if P3 and P3["reflector"] else 0)   # v336: P3 distancerio pagrindas (bėgelis / reflektorius)
+if P3:
+    for g in groups:
+        if not g["plate"]:
+            g["spec"].setdefault("z0", Z_P3B + float(P3["spacer"]))
 ZMAX = max([Z_PLATE_L + depth] * bool(G63) + [Z_RAIL_L + depth] * bool(G6)
            + [g["spec"].get("z0", Z_RAIL_L) + g["spec"].get("depth_mm", depth) for g in groups if not g["plate"]])
 D_W, D_H = 250, 250
@@ -2016,6 +2031,7 @@ def retcol(g):
 
 
 PVC_RAW = HexColor("#E9E9E6")                     # v186: nedažytas PVC (P1 dugnas)
+P3_PLEXI, P3_SPC, P3_REFLC = HexColor("#F7F9FB"), HexColor("#9A9EA3"), HexColor("#FFF4CC")   # v336: P3 galas / distanceris / reflektorius
 
 
 def backcol(g):
@@ -2023,7 +2039,7 @@ def backcol(g):
     br_ = g["spec"].get("back_ral") or spec.get("back_ral")
     if br_:
         return HexColor(K.ralhex(br_))
-    return PVC_RAW if FRONT == "P1" else retcol(g)
+    return PVC_RAW if FRONT == "P1" else (P3_PLEXI if FRONT == "P3" else retcol(g))
 
 
 def gfront(g):
@@ -2044,7 +2060,7 @@ def rcol(g):
 
 def P6_REAL(g):
     """v59: realus P6 vaizdavimas (stiklas 3 mm kraštas, korpusas -1,5) - visoms šviečiančioms P6 / P6+3 raidėms"""
-    return FRONT not in ("P1", "P10") and not g["spec"].get("behind") and g["spec"].get("lit", True) is not False \
+    return FRONT not in ("P1", "P10", "P3") and not g["spec"].get("behind") and g["spec"].get("lit", True) is not False \
         and g["spec"].get("depth_mm", depth) >= 20
 
 
@@ -2353,6 +2369,25 @@ if PIECES:
 view_title(FVX + fw / 2, FVY + fh + 52, "FRONT VIEW", f"SCALE 1:{SC1}" + (f"  |  SIGN FROM {N_PIECES} PIECES, joints J - red"
                                                                       if PIECES else ""))
 
+# ============================================================ v336: P3 HALO - distanceriai tvirtinamo ploto centre
+P3_SP = {}
+if P3:
+    for g in groups:
+        if g["plate"]:
+            continue
+        if not g["rails"]:
+            K.SHEET_ERR.append(f"P3 {g['name']}: be rėmo (distanceriai į sieną) - dar nepalaikoma, nurodyti rėmą")
+            continue
+        _sp, _er = P3M.spacers(g["letters"], g["rails"], P3)
+        P3_SP[g["name"]] = _sp
+        for _e in _er:
+            print("  ! " + _e); K.SHEET_ERR.append(_e)
+        print(f"  P3 {g['name']}: distanceriai {len(_sp)} (" + ", ".join(
+            str(sum(1 for q in _sp if q[2] == i_)) for i_ in range(len(g["letters"]))) + ")")
+    SUBS.update({"{SPACERS}": str(sum(len(v) for v in P3_SP.values())), "{SPACER_D}": f"{float(P3['spacer_d']):g}",
+                 "{SPACER_L}": f"{float(P3['spacer']):g}", "{REFL_N}": str(sum(len(g["letters"]) for g in groups if not g["plate"])),
+                 "{P3_BACK}": f"{float(P3['back']):g}"})
+
 # ============================================================ SIDE VIEW (RIGHT)
 GAPV = max(90, 0.13 * fw)                                   # v280: = fs_box tarpas
 SVW = FVX + fw + GAPV + ZMAX * s1          # sienos plokštuma
@@ -2397,7 +2432,14 @@ for g in order:
                          front=gfront(g))
             continue
         rect(SZx(z0 + gd_), FVY + a_ * s1, gd_ * s1, (b_ - a_) * s1, fill=K.mix(retcol(g), 0.9), lw=0.5)
-        rect(SZx(z0 + gd_), FVY + a_ * s1, 0.9, (b_ - a_) * s1, fill=facecol(g) if (g["spec"].get("behind") or FRONT == "P1") else white, lw=0.4)
+        rect(SZx(z0 + gd_), FVY + a_ * s1, 0.9, (b_ - a_) * s1, fill=facecol(g) if (g["spec"].get("behind") or FRONT in ("P1", "P3")) else white, lw=0.4)
+    if P3 and not g["plate"]:                            # v336: P3 - reflektorius (+5) ir distanceriai tarpe
+        if P3["reflector"]:
+            _ro = P3["refl_off"]
+            for a_, b_ in mg:
+                rect(SZx(Z_P3B), FVY + (a_ - _ro) * s1, P3["refl_t"] * s1, (b_ - a_ + 2 * _ro) * s1, fill=P3_REFLC, lw=0.4)
+        for _y in sorted({round(q[1], 1) for q in P3_SP.get(g["name"], [])}):
+            rect(SZx(z0), FVY + (_y - P3["r"]) * s1, (z0 - Z_P3B) * s1, 2 * P3["r"] * s1, fill=P3_SPC, lw=0.3)
 K.set_view(False)
 gp = next((g for g in groups if g["plate"]), None)
 grr = next((g for g in groups if not g["plate"]), None)
@@ -2409,7 +2451,12 @@ if gp:
            [f"{depth:.0f}", f"{Z_PLATE_L:.0f} ({'+'.join(parts)})"], K.F_DIM_MAIN)
 if grr:
     yb_ = FVY + max(g_["ly1"] for g_ in groups if not g_["plate"]) * s1   # v276: iškeltinė nuo ŽEMIAUSIOS grupės (ne per kitą)
-    if Z_RAIL_L:
+    if P3 and Z_RAIL_L:                             # v336: P3 - gylis | distanceris | (reflektorius ?) | bėgelis
+        _z0 = Z_P3B + float(P3["spacer"])
+        zz = [0, Z_RAIL_L, _z0, _z0 + depth]               # reflektorius (storis ?) - kartu su tarpu, ne atskiras 0,2 pt tarpas
+        hchain(FVY + fh + 18, [SZx(z) for z in reversed(zz)], [yb_] * len(zz),
+               [f"{depth:.0f}", f"{float(P3['spacer']):g}" + (" + refl." if P3["reflector"] else ""), f"{RAIL['depth']:.0f}"], K.F_DIM_MAIN)
+    elif Z_RAIL_L:
         zz = [0, Z_RAIL_L, Z_RAIL_L + depth]
         hchain(FVY + fh + 18, [SZx(z) for z in reversed(zz)], [yb_] * 3, [f"{depth:.0f}", f"{RAIL['depth']:.0f}"], K.F_DIM_MAIN)
     else:                                           # v90: be rėmo - tik raidės gylis
@@ -2634,6 +2681,9 @@ for g in sorted(groups, key=lambda g: bool(g["spec"].get("behind"))):   # v10: i
     for o in g["letters"]:
         if g["plate"]:      # X už plokštės - nematoma, punktyru
             K.draw_shape(o["sub"], RVtf, stroke=HexColor("#555555"), dash=(2, 1.2))
+        elif P3 and P3["reflector"]:   # v336: P3 su reflektoriumi - iš galo matosi reflektorius (+5), raidė už jo
+            K.draw_shape(K.geom_subs(o["geom"].buffer(P3["refl_off"], quad_segs=KR.BUF_QS)), RVtf, fill=P3_REFLC, stroke=black)
+            K.draw_shape(o["sub"], RVtf, stroke=HexColor("#555555"), dash=(2, 1.2))
         elif P6_REAL(g):    # v62: iš galo matosi stiklo kraštas aplink 1,5 mm mažesnį dugną
             PV.rear_view(o["geom"], RVtf, retcol(g), facecol(g), front=gfront(g))
         else:               # tikras vaizdas iš galo: raidžių dugnas (P1 - nedažytas PVC, v186)
@@ -2690,6 +2740,11 @@ for g in groups:
         continue
     for r_ in g["rails"]:
         poly([RV(*q) for q in r_["poly"]], fill=rcol(g), lw=0.4)
+    for _sx, _sy, _ in P3_SP.get(g["name"], []):         # v336: P3 distanceriai (už bėgelio - punktyru) + centro kryžius
+        cc_ = RV(_sx, _sy); _rr = max(1.2, P3["r"] * s2)
+        K.circle(cc_[0], cc_[1], _rr, fill=white, stroke=HexColor("#1F5FD0"), lw=0.6, dash=(1.2, 0.6))
+        line(cc_[0] - _rr - 2, cc_[1], cc_[0] + _rr + 2, cc_[1], 0.3, HexColor("#1F5FD0"))
+        line(cc_[0], cc_[1] - _rr - 2, cc_[0], cc_[1] + _rr + 2, 0.3, HexColor("#1F5FD0"))
     if MOUNTING == "l_hang":                            # v299 (Rytis): sienos rėmas (7) - PUNKTYRU, po 50 mm trumpesnis nuo galų
         _wl = [r_ for r_ in g["rails"] if r_["kind"] == "h" and not r_.get("support")]
         for r_ in _wl:                                  # kontūras 4 mm platesnis už raidžių L - matomas šalia jo
@@ -3648,7 +3703,23 @@ if _rty + 4 + K.F_SCALE * 1.25 > K.VIEW_BOT and TB_ON and CEX:      # v44: netel
 if _rty + 4 + K.F_SCALE * 1.25 > K.VIEW_BOT:      # v157: netelpa po vaizdu (laidų / žymų eilės) - į laisvą dešinę pusę virš juostos
     _rty = K.VIEW_BOT - 4 - K.F_SCALE * 1.25 - 3
     _rtx = RVX + rw * 0.72
-view_title(_rtx, _rty, "REAR VIEW (MIRRORED)", f"SCALE 1:{SC2}  |  true view from the back")
+view_title(_rtx, _rty, "REAR VIEW (MIRRORED)", f"SCALE 1:{SC2}  |  true view from the back" + (
+    f"  |  {sum(len(v) for v in P3_SP.values())} spacers Ø{float(P3['spacer_d']):g} (blue) - centre of fixing area" if P3 else ""))
+if P3:                                                    # v336: P3 distancerių / reflektoriaus balionai
+    for _rx3, _pat in (("spacer", r"spacer"), ("refl", r"reflector")):
+        _pos = next((str(r_[0]) for r_ in spec["bom"] if re.search(_pat, str(r_[1]), re.I)), None)
+        _all = [q for v in P3_SP.values() for q in v]
+        if not _pos or not _all or (_rx3 == "refl" and not P3["reflector"]):
+            continue
+        if _rx3 == "spacer":
+            _q = min(_all, key=lambda q: (q[1], -q[0]))
+            K.balloon_auto(*RV(_q[0], _q[1]), _pos, avoid=[(RVX, RVY, RVX + rw, RVY + rh)])
+        else:
+            _ls3 = sorted((o for g in groups if not g["plate"] for o in g["letters"]), key=lambda o: o["bb"][0])
+            _o = _ls3[len(_ls3) // 2]                     # vidurinė raidė - reflektoriaus kraštas po ja (ne per matmenis)
+            _bt = _o["geom"].buffer(P3["refl_off"] / 2).boundary
+            _q = max((c_ for c_ in getattr(_bt, "geoms", [_bt]) for c_ in c_.coords), key=lambda c_: c_[1])
+            K.balloon_auto(*RV(_q[0], _q[1]), _pos, avoid=[(RVX, RVY, RVX + rw, RVY + rh)])
 for _gi, (_gn, AG) in enumerate(ACR_GEO.items()):      # v229: akrilinio rėmo pastaba
     # v309: tik tai, kas rėme yra (vientisas rėmas - be jungčių / statmenų), su vienetais
     _np = len(AG["parts"]); _nv = len(AG["vparts"])
@@ -3721,8 +3792,8 @@ if GZ and "Z" in POS:
 
 # ============================================================ 3D VIEW
 ix, iy, iw, ih = POS["I"]
-if LEDF:                                                   # v162: po galinio vaizdo pavadinimu (laidų užrašai jį nustumia žemyn)
-    _d3 = max(0.0, _rty + 4 + K.F_SCALE * 1.25 + 8 - iy)
+if LEDF or P3:                                            # v162: po galinio vaizdo pavadinimu (laidų užrašai jį nustumia žemyn)
+    _d3 = max(0.0, _rty + 4 + K.F_SCALE * 1.25 + 8 - iy)   # v336: P3 - ilgesnis paantraštės tekstas
     iy, ih = iy + _d3, ih - _d3
 ih -= 30
 NOTE3D = spec.get("note_3d")                              # v251: aiški nuoroda 3D vaizde (pvz. dažymo sluoksniai)
@@ -3775,6 +3846,14 @@ for g in groups:
             objs.append((_ug, z0 + gd_ - PV.GLASS_EDGE, z0 + gd_, PV.GLASS_WHITE if _foil else facecol(g), facecol(g)))
             continue
         objs.append((_sh(up(o["geom"])), z0, z0 + gd_, retcol(g), facecol(g)))
+        if P3 and not g["plate"]:                        # v336: P3 - švytėjimas atgal (halo), reflektorius, distanceriai
+            if P3["reflector"]:
+                objs.append((_sh(up(o["geom"].buffer(P3["refl_off"]))), Z_RAIL_L, Z_P3B, P3_REFLC, P3_REFLC))
+            else:
+                objs.append((_sh(up(o["geom"].buffer(18).difference(o["geom"].buffer(-2)))), 0.0, 0.2,
+                             HexColor("#FFE9A3"), HexColor("#FFE9A3"), HexColor("#FFE9A3")))
+    for _sx, _sy, _ in P3_SP.get(g["name"], []):
+        objs.append((up(Point(_sx, _sy).buffer(P3["r"], 8)), Z_P3B, z0, P3_SPC, P3_SPC))
 for d_, dc_ in DECALS_RAW:                               # v11: lipdukai 3D ant grupės priekio (v13: tarp sluoksnių)
     _g = next((g for g in groups if g["name"] == dc_.get("group")), None)
     _zf = (_g["spec"].get("z0", Z_RAIL_L) + _g["spec"].get("depth_mm", depth)) if _g else ZMAX
@@ -3891,6 +3970,14 @@ if FRONT == "P1":
     _blk(X_P6, W_P6, "PROFILE P1", lambda x_, y_, w_, h_: K.p1_typical(x_, y_, w_, h_, depth, variant="rail", title="PROFILE P1 ON RAILS - TYPICAL SECTION",
                  numbers={"fit": _EAR_POS or 6, "mount": _rail_pos()}, ears=_HAS_EARS,
                  bracket=(next((str(r_[0]) for r_ in _BOM_ROWS if re.search(r"bracket|hanger", str(r_[1]), re.I)), "") if BRACKETS else None)))
+elif FRONT == "P3":                                      # v336: P3 halo pjūvis (etalonas ALT8118 Clas Ohlson Profile 3)
+    _nb3 = lambda pat_, d_: next((str(r_[0]) for r_ in _BOM_ROWS if re.search(pat_, str(r_[1]), re.I)), d_)
+    _blk(X_P6, W_P6, "PROFILE P3", lambda x_, y_, w_, h_: P3M.section(
+        K, x_, y_, w_, h_, depth, P3, ears=_HAS_EARS,
+        title="PROFILE P3 HALO" + (" + REFLECTOR - SECTION" if P3["reflector"] else " ON RAILS - TYPICAL SECTION"),
+        numbers={"face": _nb3(r"face", 1), "ret": _nb3(r"return", 2), "back": _nb3(r"back", 3), "led": _nb3(r"\bLED", 4),
+                 "mount": _rail_pos(), "fit": _EAR_POS or 6, "spacer": _nb3(r"spacer", 7), "refl": _nb3(r"reflector", 8),
+                 "pvc": _nb3(r"PVC", "A")}))
 elif FRONT == "P10":                                     # v242: P10 blokas ant akrilinio rėmo (etalonas Boots ALT6739)
     import p10_raides as _P10R
     import auto_remas as _ARs
@@ -3964,9 +4051,9 @@ def _u_area(size):                                         # profilio skerspjūv
 _A_all = sum(g["area"] for g in groups) * 1e6              # mm2
 _P_all = sum(g["per"] for g in groups) * 1000              # mm
 _kg = {
-    "face": (_A_all * 2.0 * _rho["al"]) if FRONT == "P1" else sum(g["area"] * 1e6 * spec.get("face_thk", P6F.thk(gfront(g))) for g in groups) * _rho["pmma"],
+    "face": (_A_all * 2.0 * _rho["al"]) if FRONT in ("P1", "P3") else sum(g["area"] * 1e6 * spec.get("face_thk", P6F.thk(gfront(g))) for g in groups) * _rho["pmma"],
     "return": 0.0 if FRONT == "P10" else _P_all * depth * _t["return"] * _rho["al"],
-    "back": (_A_all * 10.0 * _rho["pvc"]) if FRONT == "P1" else _A_all * _t["back"] * _rho["al"],
+    "back": (_A_all * 10.0 * _rho["pvc"]) if FRONT == "P1" else (_A_all * float(P3["back"]) * _rho["pmma"] if P3 else _A_all * _t["back"] * _rho["al"]),
     "pvc": sum(g["per"] * 1000 for g in groups if P6F.kind(gfront(g)) == "3mm") * _SV["pvc_edge_section_mm2"] * _rho["pvc"],
     "rails": (sum(r_["len"] * RAIL_W * ACRY["thk"] for g in groups for r_ in g["rails"]) * _rho["pmma"] if RAIL_ACR else
               sum(r_["len"] * _u_area(g["rsz"]["size"]) for g in groups for r_ in g["rails"]) * _rho["al"]),   # v229: akrilas
@@ -4369,7 +4456,7 @@ def export_1to1(path):
     doc = fitz.open()
     pg = doc.new_page(width=(bx1 - bx0) * k, height=(by1 - by0) * k)
     doc.set_metadata({"title": f"{spec.get('file_code', '')} 1:1"})
-    inset = spec.get("back_inset_mm", 0.7 if FRONT == "P1" else (float((spec.get("p10") or {}).get("rim", 5)) if FRONT == "P10" else 3))   # v116 / v249
+    inset = spec.get("back_inset_mm", 0.7 if FRONT == "P1" else P3["side_t"] if P3 else (float((spec.get("p10") or {}).get("rim", 5)) if FRONT == "P10" else 3))   # v116 / v249
     L_LET, L_BACK, L_FRAME = (doc.add_ocg("1_LETTERS"), doc.add_ocg(f"2_BACK_inset_{inset:g}mm"), doc.add_ocg("3_FRAME"))
     C_LET, C_BACK, C_FRAME = (0, 0, 0), (0.85, 0, 0), (0, 0.35, 0.85)
     HW = 0.1
@@ -4423,6 +4510,19 @@ def export_1to1(path):
         sh.draw_rect(fitz.Rect(P((px_, py_)), P((px_ + g["fpl_sz"], py_ + ph_))))
         sh.draw_circle(P((px_ + g["fpl_sz"] / 2, hy_)), EARS.get("hole_d", 6) / 2 * k)
     sh.finish(width=HW, color=C_FRAME, fill=None, closePath=False, oc=L_FRAME); sh.commit()
+    if P3_SP:                                           # v336: P3 - distancerių skylės (galas) ir reflektorius (+5)
+        L_SP = doc.add_ocg(f"4_SPACER_HOLES_D{float(P3['back_hole']):g}")
+        sh = pg.new_shape()
+        for _sx, _sy, _ in [q for v in P3_SP.values() for q in v]:
+            sh.draw_circle(P((_sx, _sy)), float(P3["back_hole"]) / 2 * k)
+        sh.finish(width=HW, color=(0.85, 0, 0.6), fill=None, closePath=False, oc=L_SP); sh.commit()
+        if P3["reflector"]:
+            L_RF = doc.add_ocg(f"5_REFLECTOR_+{float(P3['refl_off']):g}mm")
+            sh = pg.new_shape()
+            for g in groups:
+                for o in ([] if g["plate"] else g["letters"]):
+                    K.fitz_subs(sh, K.geom_subs(o["geom"].buffer(P3["refl_off"], quad_segs=KR.BUF_QS)), P)
+            sh.finish(width=HW, color=(0.9, 0.55, 0), fill=None, closePath=True, oc=L_RF); sh.commit()
     if P10N_STUDS:                                      # v249: ilgasriegiai - montavimo šablonas (gręžimo taškai)
         L_ST = doc.add_ocg(f"4_FIXING_HOLES_{P10_ROD['label']}" if P6N_FIX else f"4_THREADED_RODS_{P10_ROD['label']}")
         sh = pg.new_shape()
@@ -4490,3 +4590,14 @@ if ACR_GEO:                                             # v229: akrilinio rėmo 
     _dp = os.path.splitext(OUT)[0].replace("_tech", "") + "_akrilinis_remas.dxf"
     KR.saveas(_doc, _dp)   # v312: kreivės lankais
     print("OK akrilinis rėmas DXF", _dp)
+if P3_SP:                                               # v336: P3 gamybos DXF (priekis, galas + distancerių skylės, reflektorius)
+    _p3l = [o for g in groups if not g["plate"] for o in g["letters"]]
+    _p3s, _off = [], 0
+    for g in groups:
+        if g["plate"]:
+            continue
+        _p3s += [(x_, y_, i_ + _off) for x_, y_, i_ in P3_SP.get(g["name"], [])]
+        _off += len(g["letters"])
+    _dp = os.path.splitext(OUT)[0].replace("_tech", "") + "_P3.dxf"
+    P3M.write_dxf(_dp, _p3l, _p3s, P3)
+    print("OK P3 DXF", _dp)
