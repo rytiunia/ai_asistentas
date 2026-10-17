@@ -17,7 +17,7 @@ RAL 9005). Kiti šaltiniai: `klientai/alfaneon_dsv.md` (DSV P3: Plexiglas WN770 
 | `rod` / `back_hole` / `rod_hole` | M4 / 4 / 4.5 | ilgasriegis per bėgelį ir distancerį; skylės plexi / reflektoriuje, bėgelyje |
 | `back` | pagal aukštį | transparent plexiglass: raidės < 400 mm - 8 (varžtai per šoną į kraštą), >= 400 mm - 4 + PVC 3 bortelis (kaip 5S) |
 | `screw` | DIN 7982 2.9 x 9.5 | varžtai per šoną |
-| `reflector` | false | reflektorius = kontūras + `refl_off` (5 mm), už raidės ant bėgelio |
+| `reflector` | false | STANDARTAS P3 - be reflektorių; užklausoje „P3+reflector" (spec `"front": "P3+reflector"`) - reflektorius = kontūras + `refl_off` (5 mm), už raidės ant bėgelio |
 | `refl_mat` / `refl_ral` | ACM 3 mm / ? | standartas ACM (RAL pagal užklausą arba dažyta); būna `"Alu 1.5 mm"`; storis z - iš medžiagos |
 | `led` | LED modules on plexi inside, 6500K | LED ant plexi viduje; žingsnis tikslinamas; trafas - bendros taisyklės |
 | `drain` / `drain_d` | true / 8 | drenažas - Ø8 PUSLANKIAI galo kontūre žemiausiose vietose (kaip P6 ant rėmo) |
@@ -47,8 +47,9 @@ Placeholderiai BOM / MAIN DATA: `{SPACERS}`, `{SPACER_D}`, `{SPACER_L}`, `{P3_BA
 7. Failai: `<lapas>_1-1.pdf` (+ sluoksniai 4_SPACER_HOLES, 5_REFLECTOR), `<lapas>_P3.dxf` (1_FRONT_ALU2, 2_BACK_PLEXI su Ø
    skylėmis, 5_REFLECTOR), kreivės lankais.
 
-Pavyzdys: `scripts/projektai/p3_pavyzdys/` (PAVYZDYS L 3400, gylis 60, spacer 30; 1 lapas - standartas, plexi 8;
-2 lapas - reflektoriai + plexi 4 + PVC). Regresija: „order p3 halo pavyzdys" + `p3_raides.py` savitikra (A kojelių centrai).
+ETALONAS (v339, Rytis 2026-10-17: „sheet 2 - P3 profilio etalonas"): P3+reflector PAVYZDYS L 3400, gylis 60, distanceriai 30,
+galas plexi 4 + PVC, reflektoriai ACM 3 - `assets/etalonai/P3_reflector_PAVYZDYS_etalonas.pdf`, projektas
+`scripts/projektai/p3_pavyzdys/` (`build_order.py`, 1:1, `_P3.dxf`). Regresija: „order p3 halo pavyzdys" + `p3_raides.py` savitikra.
 
 ## Dar tikslinama
 LED žingsnis (P3 lentelė - bus patikslinta); varžtų per šoną žingsnis; folded P3 generatorius.

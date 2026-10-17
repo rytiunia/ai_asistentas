@@ -16,7 +16,8 @@ Kodai (spec "front", su arba be "P6_"):
   8mm color    spalvota plexi 8, frezuota kaip balta
   10mm / 15mm / 20mm / 30mm [+foil]   balta plexi, frezuota su kanteliu kaip 8 mm (tik balta arba balta + plėvelė)
   P1           nešviečianti (Al priekis) - ne šio modulio
-  P3           v336 halo (reverse-lit): priekis Alu 2, šonas Alu 1, nugara balta plexi 8 (arba 4 + PVC bortelis), distanceriai
+  P3           v336 halo (reverse-lit): priekis Alu 2, šonas Alu 1, galas plexi 8 (arba 4 + PVC bortelis), distanceriai - STANDARTAS
+               be reflektorių; P3+reflector (v339) - su reflektoriais (kontūras + 5 mm, už raidės ant bėgelio)
 Konstrukcija: 3 mm -> "3mm" (PVC bortelis); >= 8 mm -> "8mm" (frezuota briauna)."""
 import re
 
@@ -38,8 +39,10 @@ def parse(front):
                 "color": False, "kind": "P10", "warn": None}
     if u == "P1":
         return {"code": "P1", "thk": 2.0, "milled": False, "foil": False, "color": False, "kind": "P1", "warn": None}
-    if u.startswith("P3"):                          # v336: P3 halo (reverse-lit) - priekis Alu 2, šonas Alu 1, nugara balta plexi
-        return {"code": "P3", "thk": 2.0, "milled": False, "foil": False, "color": False, "kind": "P3", "warn": None}
+    if u.startswith("P3"):                          # v336: P3 halo (reverse-lit) - priekis Alu 2, šonas Alu 1, galas plexi
+        refl = "REFL" in u                          # v339: užklausoje „P3+reflector" - su reflektoriais; „P3" - be (standartas)
+        return {"code": "P3+reflector" if refl else "P3", "thk": 2.0, "milled": False, "foil": False, "color": False,
+                "kind": "P3", "reflector": refl, "warn": None}
     m = re.match(r"(\d+(?:[.,]\d+)?)", u)
     thk = float(m.group(1).replace(",", ".")) if m else 3.0
     foil = "FOIL" in u

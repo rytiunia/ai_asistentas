@@ -3996,7 +3996,7 @@ elif FRONT == "P3":                                      # v336: P3 halo pjūvis
     _nb3 = lambda pat_, d_: next((str(r_[0]) for r_ in _BOM_ROWS if re.search(pat_, str(r_[1]), re.I)), d_)
     _blk(X_P6, W_P6, "PROFILE P3", lambda x_, y_, w_, h_: P3M.section(
         K, x_, y_, w_, h_, depth, P3, ears=_HAS_EARS,
-        title="PROFILE P3 HALO" + (" + REFLECTOR - SECTION" if P3["reflector"] else " ON RAILS - TYPICAL SECTION"),
+        title=("PROFILE P3+REFLECTOR ON RAILS - SECTION" if P3["reflector"] else "PROFILE P3 HALO ON RAILS - TYPICAL SECTION"),
         numbers={"face": _nb3(r"face", 1), "ret": _nb3(r"return", 2), "back": _nb3(r"back", 3), "led": _nb3(r"\bLED", 4),
                  "mount": _rail_pos(), "fit": _EAR_POS or 6, "spacer": _nb3(r"spacer", 7), "refl": _nb3(r"reflector", 8),
                  "pvc": _nb3(r"PVC", "A")}))

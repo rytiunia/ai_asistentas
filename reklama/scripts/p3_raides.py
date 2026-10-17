@@ -42,7 +42,7 @@ DEF = {
     "face_t": 2.0,         # priekis Alu 2
     "edge": 5,             # distancerio krašto atstumas nuo galo krašto (mm)
     "split": 400,          # ilgas tvirtinamas plotas išilgai bėgelio dalijamas kas <= split
-    "reflector": False,
+    "reflector": False,    # v339: standartas P3 - be reflektorių; „P3+reflector" (spec front) - su
     "refl_off": 5,         # reflektorius = kontūras + 5 mm (outside)
     "refl_mat": "ACM 3 mm",   # standartas ACM; arba "Alu 1.5 mm"
     "refl_ral": "?",       # pagal užklausą
@@ -59,7 +59,9 @@ BACK_BY_HEIGHT = (400, 8, 4)       # raidės aukštis < 400 -> 8, >= 400 -> 4 + 
 def cfg(spec, letter_h=None):
     """letter_h - aukščiausios raidės aukštis (mm): galo storis pagal BACK_BY_HEIGHT, jei spec "p3" "back" nenurodytas"""
     import re
+    import p6_front as P6F
     P = dict(DEF)
+    P["reflector"] = bool(P6F.parse(spec.get("front", "P3")).get("reflector"))   # v339: „P3+reflector" užklausoje
     P.update(spec.get("p3") or {})
     d_ = float(spec.get("depth_mm", 60))
     if P["spacer"] is None:
@@ -400,4 +402,5 @@ if __name__ == "__main__":
     b_, dr_ = back_shape(o, P, sp)
     assert len(dr_) == 2 and all(q[1] > 590 for q in dr_), dr_
     assert b_.area < A.buffer(-1).area - 40, "puslankiai neiškirpti"
+    assert not cfg({"front": "P3"})["reflector"] and cfg({"front": "P3+reflector"})["reflector"]   # v339
     print("OK p3_raides savitikra")

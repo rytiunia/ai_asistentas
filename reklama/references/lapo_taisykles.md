@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v338 (2026-10-17)
+Atnaujinta: v339 (2026-10-17)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -179,7 +179,8 @@ Formos principas (taškų skaičius iš supaprastinto gaubto, pirmas - toliausia
   ar krašte - A raidė, per kojelės ploto centrą, kuris remiasi į rėmą"): distanceris - raidės galo ∩ bėgelio (h / v /
   įstrižo) ploto CENTROIDE (netelpa - artimiausia leistina vieta), ilgas plotas (> 400) - kiekvienos lygios dalies centre;
   kiekis / parinkimas - kaip P6 (kvadratas / trikampis, FPS). `scripts/p3_raides.py`, `references/moduliai_p3.md`;
-  pavyzdys `scripts/projektai/p3_pavyzdys/` (standartas + reflektoriai +5 mm).
+  STANDARTAS - P3 BE reflektorių; su reflektoriais - užklausoje „P3+reflector" (spec `"front": "P3+reflector"`, v339).
+  ETALONAS P3+reflector: `assets/etalonai/P3_reflector_PAVYZDYS_etalonas.pdf` (projektas `scripts/projektai/p3_pavyzdys/`).
   P3 STANDARTAI (v337, Ryčio atsakymai): distanceris Ø16, ilgis < 60 mm gyliui - 20, >= 60 - 30; sluoksniai rėmas +
   reflektorius (jei yra) + distanceriai + raidės; M4 ilgasriegis; reflektorius - ACM (RAL pagal užklausą / dažyta), būna
   Alu 1,5; LED ant plexi viduje, 6500K (žingsnis tikslinamas), trafas - pagal bendras taisykles; maketo lape plexi - tik
