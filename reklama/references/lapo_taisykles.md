@@ -227,6 +227,9 @@ Formos principas (taškų skaičius iš supaprastinto gaubto, pirmas - toliausia
 - v334 (ALT8901 SPAR LED): PLATI LINIJA (> 1,3 p, `ROWS2`) - kelios eilės lygiagrečiai kontūrui („concentric inlines", kaip
   LED Wizard / SloanLED): eilių sk. ceil(w / p - 0,2), eilė k atitraukta (2k + 1) w / (2 rows) nuo kontūro, kiekviena eilė
   tolygiai (tarpas <= p), raidės gale eilė apsisuka; didelis apskritimas / logotipas - koncentriniai žiedai (`fill_rows`).
+- v335 MODULIS (Rytis 2026-10-17, ALT8901 SPAR 8000: „palik P2, tai atitinka specifikacijas"): modulis - TIK pagal gylį
+  (kainoraščio diapazonai, `letters_default`: 60-100 mm -> KM-P2 0,72 W), NE pagal linijos plotį; plati linija -> kelios P2
+  eilės (ploto / 4x4 lentelė: d80 p140 = 2450 lx). Kaisen „in the leg" P3 lentelės (nuo d100) NETAIKOMOS modulio keitimui į P3.
 - `ilp` (aprėpties minimumas) - tik spec `"layout": "ilp"`.
 - Regresija: `scripts/test_led.py` (projektai/led_test), įtraukta į `regresija.py`.
 

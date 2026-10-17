@@ -47,6 +47,8 @@ LUX = float(_KJ.get("lux_target", 2200))
 
 
 def mod_for(depth, spec_mod=None, led="white", w=None):
+    # v335 (Rytis: ALT8901 SPAR 8000 d80, linija 215 mm - „palik P2, tai atitinka specifikacijas"): modulis tik pagal gylį;
+    #  plati linija - kelios eilės (fill_rows), ne didesnis modulis; „in the leg" lentelės modulio nekeičia
     if spec_mod:
         return spec_mod
     if w is not None and w < _KJ.get("narrow_stroke_mm", 35) and led != "red":

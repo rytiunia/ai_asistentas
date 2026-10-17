@@ -79,6 +79,9 @@ for ch, x in zip("Testavimas", r["letters"]):
         for j in range(i + 1, len(q_)):
             if math.dist(q_[i][:2], q_[j][:2]) < 0.5 * r["pitch"] - 1:
                 err.append(f"Testavimas {ch}: sugrūsta - {math.dist(q_[i][:2], q_[j][:2]):.0f} < 0,5 p")
+# v335: modulis tik pagal gylį - d80, linija 215 mm (ALT8901 SPAR 8000) -> KM-P2-W (kelios eilės), ne P3
+if LK.mod_for(80, w=215) != "KM-P2-W" or LK.mod_for(80, w=48) != "KM-P2-W" or not 215 > LK.ROWS2 * LK.pitch_for(80, "KM-P2-W"):
+    err.append(f"modulis d80: {LK.mod_for(80, w=215)} (laukta KM-P2-W, 2 eilės)")
 for e in err:
     print("  !", e)
 print("LED DĖLIOJIMAS:", "OK" if not err else f"{len(err)} klaid.")
