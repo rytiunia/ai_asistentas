@@ -856,6 +856,27 @@ def strokes(g, pitch):
     for q in pos:
         if not q[3] and all(math.dist(q[:2], r[:2]) >= 0.45 * pitch for r in out):
             out.append(tuple(float(v) for v in q[:3]))
+    # v329 TARPŲ UŽPILDYMAS („LED nedėdavo, nors reikėjo"): bet kuris raidės ašies taškas (ir storas slab serifas / pėda),
+    #  esantis toliau nei 0,8 p nuo LED, gauna modulį toliausiame taške (kartojama); laisvo galo zona (< 0,5 linijos pločio
+    #  nuo krašto) ir PLONI serifai (is_serif) - netikrinami
+    from shapely import contains_xy as _cxy
+    core = g.buffer(-0.3 * w)                                   # ploni serifai / krašto juosta - ne
+    cand = []
+    if not core.is_empty:
+        x0_, y0_, x1_, y1_ = core.bounds
+        st_ = max(pitch / 8.0, 4.0)
+        X_, Y_ = np.meshgrid(np.arange(x0_, x1_ + st_, st_), np.arange(y0_, y1_ + st_, st_))
+        k_ = _cxy(core, X_.ravel(), Y_.ravel())
+        cand = [(float(x_), float(y_), 0.0) for x_, y_ in zip(X_.ravel()[k_], Y_.ravel()[k_])]
+    for _ in range(50):
+        if not cand or not out:
+            break
+        A_ = np.array([q[:2] for q in out])
+        dd = [float(np.min(np.hypot(*(A_ - np.array(c_[:2])).T))) for c_ in cand]
+        j_ = int(np.argmax(dd))
+        if dd[j_] <= 0.8 * pitch:
+            break
+        out.append(tuple(float(v) for v in cand[j_]))
     return out
 
 
@@ -1055,8 +1076,10 @@ def sheet(spec, res, out):
             ybot = max(q[1] for q in x["pts"]) + r["pitch"] / 2 if x["pts"] else by1
             # v236 (OMODA 33580, trafaretinis šriftas): kitos formos su ta pačia x juosta, prasidedančios aukščiau / žemiau
             # (O iš 2 dalių, E iš 3 juostų) - užrašas ne ant raidės: virš -> po -> dešinėje (raidės centro aukštyje)
+            # v329 („Testavimas": v užrašas nušoko prie i) - tik ženkli persidengimo juosta (> 35 % siauresnio pločio)
             _ox = [o["g"].bounds for rr_ in res for o in rr_["letters"]
-                   if o is not x and o["g"].bounds[0] < bx1 and o["g"].bounds[2] > bx0]
+                   if o is not x and min(o["g"].bounds[2], bx1) - max(o["g"].bounds[0], bx0)
+                   > 0.35 * min(o["g"].bounds[2] - o["g"].bounds[0], bx1 - bx0)]
             above = any(ob[1] < by0 - 1 for ob in _ox)
             below = any(ob[3] > by1 + 1 for ob in _ox)
             c.setFillColor(black); c.setFont("Helvetica-Bold", 13)
