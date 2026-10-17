@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v337 (2026-10-17)
+Atnaujinta: v338 (2026-10-17)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -186,6 +186,9 @@ Formos principas (taškų skaičius iš supaprastinto gaubto, pirmas - toliausia
   „transparent plexiglass"; galas 8 mm raidėms < 400 mm, >= 400 mm - 4 mm + PVC bortelis (kaip 5S); varžtai per šoną
   DIN 7982 2,9 x 9,5; ilgame plote taškų daugiau; drenažas - Ø8 puslankiai galo kontūre (kaip P6 ant rėmo); rėmo dydis -
   užklausoje; ant folded plate - tas pats tvirtinimo standartas.
+- TVIRTINIMAI ANT STATMENŲ NESIDEDA (v338, Rytis 2026-10-17) - visiems tipams (P6 D3.2, akrilo smeigės, P3 distanceriai):
+  tik horizontaliuose bėgeliuose; statmenys / įstrižai - be tvirtinimų. Išimtis - labai didelės raidės su papildomais
+  skersiniais (taisyklė bus vėliau). Dalis, kurios joks horizontalus bėgelis nekerta (akcentas, taškas) - ant savo laikiklio (v85).
 - Neišsprendus: patikra 18 KONSTRUKCIJA / KABO ORE (`K.SHEET_ERR`).
 - BOM sienos rėmo (wall L) ilgis = tik horizontalūs (`{RAIL_H_M}`). Raidžių rėmas - su statmenimis.
 - **RĖMO STATMENYS - TIK PRIEKYJE IR GALE (v337, Rytis 2026-10-17: „per daug rėmo statmenų - jų turi būti tik priekyje ir

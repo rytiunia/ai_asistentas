@@ -31,8 +31,8 @@ Placeholderiai BOM / MAIN DATA: `{SPACERS}`, `{SPACER_D}`, `{SPACER_L}`, `{P3_BA
 („PVC fixing edge") išmetama, kai galas 8 mm.
 
 ## TVIRTINIMAS - tvirtinamo ploto CENTRE (`scripts/p3_raides.py`)
-1. Tvirtinamas plotas = raidės galo (kontūras - 1 mm šonas) ir bėgelio juostos persidengimo komponentas (h, v ir ĮSTRIŽI
-   bėgeliai - pagal jų poly). A raidė: apatinis bėgelis - dvi kojelės (du plotai), viršutinis - viršūnė.
+1. Tvirtinamas plotas = raidės galo (kontūras - 1 mm šonas) ir HORIZONTALAUS bėgelio juostos persidengimo komponentas
+   (v338: ant statmenų / įstrižų tvirtinimai nesideda; tik akcentui be horizontalaus bėgelio - jo laikiklis). A raidė: apatinis bėgelis - dvi kojelės (du plotai), viršutinis - viršūnė.
 2. Taškas - to ploto centroidas; jei ten netelpa distanceris (Ø/2 + 5 mm nuo krašto, Ø16 ant 30 mm bėgelio - ±7 nuo ašies) -
    artimiausia leistina vieta. NE štricho kraštas / galas (skirtumas nuo P6 D3.2).
 3. Ilgas plotas išilgai bėgelio (> 400 mm) - lygios dalys, taškas kiekvienos dalies centre; jei raidei taškų mažiau nei pagal

@@ -223,7 +223,13 @@ def select(o, cands, P):
 def spacers(letters, rails, P):
     """visos raidės -> distancerių taškai [(x, y, i)], klaidos (raidė < 2 distancerių - lapo klaida)"""
     out, err = [], []
+    # v338 (Rytis 2026-10-17: „ant statmenų tvirtinimai nesideda, išimtis tik labai didelės raidės su papildomais skersiniais
+    #  (taisyklė bus vėliau)"): distanceriai TIK ant horizontalių bėgelių; statmenys / įstrižai - ne. Dalis, kurios joks
+    #  horizontalus bėgelis nekerta (akcentas, taškas), - ant savo laikiklio (acc / ext_holder), kaip P6 D3.2 (v85).
+    hr = [r for r in rails if r["kind"] == "h"]
+    holders = [r for r in rails if r["kind"] != "h" and (r.get("acc") or r.get("ext_holder"))]
     for i, o in enumerate(letters):
+        rails = hr if candidates(o, hr, P) else holders
         sel, n_t = select(o, candidates(o, rails, P), P)
         for sp_ in (250, 160):                      # trūksta iki formos sk. (D - 2 bėgeliai po 1 plotą) - platų plotą
             if len(sel) >= n_t:                     #  dalinti į lygias dalis, taškas kiekvienos dalies centre
@@ -378,7 +384,10 @@ if __name__ == "__main__":
     o = {"geom": A, "bb": A.bounds}
     rails = [{"x0": -50, "x1": 650, "y0": 120, "y1": 150, "kind": "h"}, {"x0": -50, "x1": 650, "y0": 450, "y1": 480, "kind": "h"}]
     P = cfg({"depth_mm": 60}, 600)
-    sp, err = spacers([o], rails, P)
+    sp, err = spacers([o], rails + [{"x0": 280, "x1": 310, "y0": 150, "y1": 450, "kind": "v"},     # statmuo / įstrižas -
+                                    {"x0": 60, "x1": 200, "y0": 150, "y1": 450, "kind": "d",       #  tvirtinimų ant jų nėra
+                                     "poly": [(170, 150), (200, 150), (90, 450), (60, 450)]}], P)
+    assert all(130 <= y <= 155 or 445 <= y <= 480 for _, y, _ in sp), sp
     print("A:", sp, err)
     legs = [p for p in sp if p[1] > 400]
     assert len(sp) == 3 and len(legs) == 2, sp
