@@ -3343,7 +3343,8 @@ for g in groups:
                 _gg = _ce[3]; _dx = -_ce[2]
                 _ed = min(RV(_gg["x0"], 0)[0], RV(_gg["x1"], 0)[0]) if _dx < 0 else max(RV(_gg["x0"], 0)[0], RV(_gg["x1"], 0)[0])
                 _cx += [_ed + _dx * (10 + 9 * rk) for rk in range(3)]
-        _left = any(a_[0] - 2 <= x_ <= a_[0] + w_ + 4 for x_ in _cx)
+        _left = any(a_[0] - 2 <= x_ <= a_[0] + 0.36 * abs(ty_ + 1.5 - a_[1]) + w_ + 4 for x_ in _cx)   # v344: su įstrižos
+        #  išvadinės poslinkiu (žyma „322 diag." buvo kertama laido nuleidimo)
         # v157: žymos iš skirtingų grupių / krypčių nesidengia - kol kerta jau padėtą žymą, eilė toliau nuo vaizdo
         # v276 (ISO 128-22 / cad_matmenavimas_ISO.md 5 sk.): išvadinė ĮSTRIŽA (~70°), ne vertikali - nesusilieja su iškeltinėmis,
         #  matmens liniją kerta statmenai-įstrižai; lentynėlė ir tekstas - už matmenų eilių
@@ -3812,9 +3813,12 @@ if GZ and "Z" in POS:
 
 # ============================================================ 3D VIEW
 ix, iy, iw, ih = POS["I"]
-if LEDF or P3:                                            # v162: po galinio vaizdo pavadinimu (laidų užrašai jį nustumia žemyn)
-    _d3 = max(0.0, _rty + 4 + K.F_SCALE * 1.25 + 8 - iy)   # v336: P3 - ilgesnis paantraštės tekstas
-    iy, ih = iy + _d3, ih - _d3
+_rtw3 = K.pdfmetrics.stringWidth("SCALE 1:20  |  true view from the back  |  35 spacers Ø16 (blue) - centre of fixing area",
+                                 "F", K.F_SCALE) / 2 + 10
+if LEDF or (P3 and _rtx - _rtw3 < ix + iw and _rtx + _rtw3 > ix):   # v162; v336 / v344: P3 - tik kai 3D PO galiniu vaizdu
+    _d3 = max(0.0, _rty + 4 + K.F_SCALE * 1.25 + 8 - iy)
+    if ih - _d3 >= 80 or LEDF:                             #  (šalia - nestumti; kitaip 3D aukštis neigiamas -> veidrodinis)
+        iy, ih = iy + _d3, ih - _d3
 ih -= 30
 NOTE3D = spec.get("note_3d")                              # v251: aiški nuoroda 3D vaizde (pvz. dažymo sluoksniai)
 if NOTE3D:
@@ -3972,7 +3976,8 @@ if MOUNTING in ("none", "brackets"):
 _BOM_ROWS = [([r_[0], r_[1], r_[2] or "Alu box", RAIL_FIN, ((f"1 pcs. ({len(CEX)} cables x {TB_LEN:g} m, {TB_V})" if TB_LEN else f"1 pcs. (cables {', '.join(f'{c_[0]['len_m']:.1f}' for c_ in CEX)} m, {TB_V})") if TB_ON and CEX else r_[4])]
               if "trafo" in str(r_[1]).lower() and not str(r_[3]).strip() else r_) for r_ in _BOM_ROWS]
 _BOM_ROWS = [[_hang(c_) for c_ in r_] for r_ in _BOM_ROWS]
-_EAR_POS = next((str(r_[0]) for r_ in _BOM_ROWS if "ear" in str(r_[1]).lower() and not str(r_[1]).lower().startswith("rail")), "")
+_EAR_POS = next((str(r_[0]) for r_ in _BOM_ROWS if "ear" in str(r_[1]).lower()   # v344: „Wallframe .. with ears" - rėmas, ne ausėlė
+                  and not re.match(r"\s*(rail|wallframe|frame)", str(r_[1]), re.I)), "")
 _HAS_EARS = any(g.get("fplates") for g in groups)
 import p6_ref as _P6REF
 try:                                                       # v162: □ profilio gylis / aukštis pjūvyje (40x20x2 -> 0.5)
@@ -3992,7 +3997,8 @@ if FRONT == "P1":
 elif FRONT == "P3":                                      # v336: P3 halo pjūvis (etalonas ALT8118 Clas Ohlson Profile 3)
     _nb3 = lambda pat_, d_: next((str(r_[0]) for r_ in _BOM_ROWS if re.search(pat_, str(r_[1]), re.I)), d_)
     _blk(X_P6, W_P6, "PROFILE P3", lambda x_, y_, w_, h_: P3M.section(
-        K, x_, y_, w_, h_, depth, P3, ears=_HAS_EARS,
+        K, x_, y_, w_, h_, depth, P3, ears=_HAS_EARS, rail_kind="sq" if RAIL_SQ else "u",
+        rail=(float(RAIL["depth"]), *[float(v_) for v_ in str(RAIL["size"]).lower().split("x")[0::2]]),
         title=("PROFILE P3+REFLECTOR ON RAILS - SECTION" if P3["reflector"] else "PROFILE P3 HALO ON RAILS - TYPICAL SECTION"),
         numbers={"face": _nb3(r"face", 1), "ret": _nb3(r"return", 2), "back": _nb3(r"back", 3), "led": _nb3(r"\bLED", 4),
                  "mount": _rail_pos(), "fit": _EAR_POS or 6, "spacer": _nb3(r"spacer", 7), "refl": _nb3(r"reflector", 8),

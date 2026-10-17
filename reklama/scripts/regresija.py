@@ -48,6 +48,8 @@ CASES = [
     # v336-v340: P3 + P3+reflector ETALONAS (p3_raides savitikra: A kojelių centrai, tik horizontalūs bėgeliai, standartai)
     ("order p3 halo pavyzdys", "p3_pavyzdys", [["python3", "build_order.py"], ["python3", "../../p3_raides.py"]], ["P3_Pavyzdys.pdf"],
      ["*_P3.dxf"]),
+    # v344: P3 ant stačiakampio rėmo 40x40x2 (pjūvis - vamzdis, ausėlės pozicija, 3D šalia galinio vaizdo)
+    ("p3 rails square vangelonys", "p3_vangelonys_test", [["python3", B, "spec.json", "out.pdf"]], ["out.pdf"], ["out_P3.dxf"]),
     ("p6 folded bandymas", "bandymas_3500_folded", [["python3", "folded_test.py"]], ["TEST_Bandymas_folded.pdf"],
      ["TEST_Bandymas_folded_combined.dxf"]),
     # v326: patvirtintas SPAR 225960 (18 lapų: P6 ant rėmo, folded back plate + vinyl, portalas, grafika, FRISK P6 ant folded)

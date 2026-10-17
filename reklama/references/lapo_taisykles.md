@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v343 (2026-10-17)
+Atnaujinta: v344 (2026-10-17)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -184,7 +184,10 @@ Formos principas (taškų skaičius iš supaprastinto gaubto, pirmas - toliausia
   `scripts/projektai/p3_pavyzdys/`). Pjūvyje sienos simbolio nėra (v340). P3 DUGNAS (plexi galas) - 0,7 mm inside (v341);
   3D - be švytėjimo linijų už raidžių (tik P3+reflector - reflektorius); DXF - ATSKIROS GRUPĖS (BLOCK + DXF GROUP, kaip
   P6): REMAS (bėgeliai, statmenys, ausėlės su Ø), DUGNAS (su distancerių Ø ir drenažo puslankiais), PRIEKIS
-  (+ REFLEKTORIUS - P3+reflector).
+  (+ REFLEKTORIUS - P3+reflector). Pjūvyje rėmo profilis pagal spec (U / stačiakampis 40x40x2 ...), ne visada U 30 (v344).
+- Bendra (v344, testas P3 Vangelonys): BOM „Wallframe .. with ears" - rėmo eilutė, ne ausėlė (pjūvio balionas 6 rodė 5);
+  3D vaizdas nestumiamas po galinio vaizdo pavadinimu, kai stovi šalia (kitaip neigiamas aukštis - veidrodinis 3D);
+  rėmo žyma („322 diag.") perkeliama į kitą pusę, jei laido nuleidimas kerta ją su įstrižos išvadinės poslinkiu.
   P3 STANDARTAI (v337, Ryčio atsakymai): distanceris Ø16, ilgis < 60 mm gyliui - 20, >= 60 - 30; sluoksniai rėmas +
   reflektorius (jei yra) + distanceriai + raidės; M4 ilgasriegis; reflektorius - ACM (RAL pagal užklausą / dažyta), būna
   Alu 1,5; LED ant plexi viduje, 6500K (žingsnis tikslinamas), trafas - pagal bendras taisykles; maketo lape plexi - tik

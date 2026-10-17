@@ -1,0 +1,195 @@
+{
+ "client_pdf": "Vangelonys_client.pdf",
+ "scale": 2.834645669291339,
+ "crop_pt": [
+  0,
+  0,
+  4400.0,
+  830.893310546875
+ ],
+ "ignore_fills": [],
+ "qty": "1",
+ "order_no": "ALT0000_00.00_RS",
+ "rev": "A",
+ "date": "2026-10-17",
+ "company": "TEST",
+ "client": "TEST",
+ "project": "TEST P3 Vangelonys",
+ "depth_mm": 80,
+ "front": "P3",
+ "rail": {
+  "size": "40x40x2",
+  "depth": 40,
+  "ral": "9016",
+  "type": "sq"
+ },
+ "ears": {
+  "inset": 50,
+  "pitch": 1000,
+  "min_edge": 15
+ },
+ "cable_exits": [
+  {
+   "pt": [
+    2,
+    821.893310546875
+   ],
+   "voltage": "12V",
+   "label": "? m"
+  }
+ ],
+ "groups": [
+  {
+   "name": "TEXT",
+   "profile": "3",
+   "on_plate": false,
+   "return_ral": "6017",
+   "client_fill": [
+    0.102,
+    0.102,
+    0.102
+   ],
+   "frame": "verticals",
+   "led": "LED modules on plexi inside, 6500K",
+   "face_hex": "#468641"
+  }
+ ],
+ "wall": "unknown",
+ "merge_rows": false,
+ "trafo_box": false,
+ "auto_frame": true,
+ "export_1to1": true,
+ "file_code": "TEST_P3_Vangelonys",
+ "drawing_no": "TEST_P3_Vangelonys",
+ "sheet": "1 / 1",
+ "title": "TEST P3 Vangelonys - halo letters on spacers, frame 40x40x2",
+ "rails_json": "rails.json",
+ "main_data": [
+  [
+   "Quantity",
+   "?"
+  ],
+  [
+   "Overall size",
+   "{PW} x {PH}"
+  ],
+  [
+   "Profile",
+   "P3 on spacers"
+  ],
+  [
+   "Letter depth",
+   "80 + spacers {SPACER_L}"
+  ],
+  [
+   "Face / returns",
+   "Alu 2 / 1 mm, RAL 6017"
+  ],
+  [
+   "Back",
+   "{P3_BACK_TXT}"
+  ],
+  [
+   "Rails",
+   "40x40x2 square, RAL 9016"
+  ],
+  [
+   "Illumination",
+   "LED to the back (halo), 6500K"
+  ],
+  [
+   "Power",
+   "12V, cable ? m"
+  ],
+  [
+   "Wall",
+   "?"
+  ]
+ ],
+ "bom": [
+  [
+   1,
+   "Letter face",
+   "Alu 2 mm",
+   "RAL 6017",
+   "{A_TEXT} m²"
+  ],
+  [
+   2,
+   "Letter return",
+   "Alu 1 mm",
+   "RAL 6017",
+   "{PER_TEXT} m / {RET_TEXT} m²"
+  ],
+  [
+   3,
+   "Letter back (halo, light to the back)",
+   "Plexiglass {P3_BACK} mm",
+   "transparent",
+   "{PER_TEXT} m / {BACK_TEXT} m²"
+  ],
+  [
+   4,
+   "{P3_LED}",
+   "?",
+   "6500K",
+   "?"
+  ],
+  [
+   5,
+   "Wallframe {RAIL_SIZE} with ears, one frame",
+   "Aluminium",
+   "RAL 9016",
+   "{RAIL_TOTAL_M} m ({RAIL_BARS} x {BAR_M} m bars)"
+  ],
+  [
+   6,
+   "Mounting ear {RAIL_SIZE}, Ø{EAR_HOLE} hole",
+   "Aluminium",
+   "RAL 9016",
+   "{PLATES_N} pcs. ({PLATES_EXT} extended)"
+  ],
+  [
+   7,
+   "Spacer tube Ø{SPACER_D} x {SPACER_L} mm + threaded rod M4",
+   "?",
+   "?",
+   "{SPACERS} pcs."
+  ],
+  [
+   "A",
+   "PVC fixing edge for plexi",
+   "PVC 3 mm",
+   "-",
+   "{PER_TEXT} m"
+  ],
+  [
+   "B",
+   "Screw through return into {P3_SCREW_INTO}",
+   "{P3_SCREW}",
+   "-",
+   "?"
+  ],
+  [
+   8,
+   "Cable exit from rail end, 12V",
+   "cable ? m",
+   "-",
+   "1 pcs."
+  ],
+  [
+   9,
+   "PSU 12V",
+   "?",
+   "",
+   "?"
+  ],
+  [
+   10,
+   "Wall fixing",
+   "?",
+   "-",
+   "?"
+  ]
+ ]
+}

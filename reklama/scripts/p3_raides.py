@@ -248,7 +248,8 @@ def spacers(letters, rails, P):
 
 
 # ------------------------------------------------------------------ PROFILE P3 pjūvis
-def section(K, x, y, w, h, depth, P, title=None, numbers=None, ears=True, rail_kind="u", spacer_lbl=None):
+def section(K, x, y, w, h, depth, P, title=None, numbers=None, ears=True, rail_kind="u", spacer_lbl=None, rail=(30, 30, 2)):
+    """rail - (gylis, plotis, sienelė) mm; rail_kind "u" (anga į sieną) / "sq" (stačiakampis vamzdis) - v344"""
     """P3 tipinis pjūvis (schema): siena | U bėgelis (+ ausėlė) | [reflektorius] | distanceris + ilgasriegis |
     plexi galas 8 (varžtas per šoną) arba 4 + PVC bortelis | LED ant galo (šviečia atgal) | šonas Alu 1 | priekis Alu 2."""
     from reportlab.lib.colors import HexColor
@@ -264,19 +265,23 @@ def section(K, x, y, w, h, depth, P, title=None, numbers=None, ears=True, rail_k
     yt, yb = py0 + 30, py0 + ph_ - 22                      # raidės štrichas (šonai)
     ym = (yt + yb) / 2
     # mastelis: siena 10 | bėgelis 30 | refl | tarpas | gylis + balionai 24
-    tot = 30 + (P["refl_t"] if refl else 0) + float(P["spacer"]) + depth
+    rd_, rw_, rt_ = (float(v) for v in rail)
+    tot = rd_ + (P["refl_t"] if refl else 0) + float(P["spacer"]) + depth
     k = min((pw_ - 58) / tot, 1.2)
     wall = px0 + 22
-    xr1 = wall + 30 * k                                     # bėgelio sienelė prie raidės
+    xr1 = wall + rd_ * k                                    # bėgelio sienelė prie raidės
     xf0 = xr1 + (P["refl_t"] * k if refl else 0)            # reflektoriaus priekis
     xb0 = xf0 + float(P["spacer"]) * k                      # raidės galas
     xf = xb0 + depth * k                                    # priekis
     # v340 (Rytis 2026-10-17: „nereikia sienos simbolio profilio pjūvyje") - siena nebraižoma, rėmas nuo sienos plokštumos
     # U bėgelis (anga į sieną) + ausėlė
-    t_, Uh = 2 * k, 30 * k
+    t_, Uh = max(rt_ * k, 0.7), rw_ * k
     uy = ym - Uh / 2
-    K.poly([(wall, uy), (xr1, uy), (xr1, uy + Uh), (wall, uy + Uh), (wall, uy + Uh - t_), (xr1 - t_, uy + Uh - t_),
-            (xr1 - t_, uy + t_), (wall, uy + t_)], fill=HexColor("#B4B4B4"), lw=0.4)
+    if str(rail_kind).startswith("sq"):                     # v344: stačiakampis vamzdis (pvz. 40x40x2) - kaip rėmo pjūvis
+        K.rail_section(wall, uy, xr1 - wall, Uh, t_, "sq", "left", fill=HexColor("#B4B4B4"))
+    else:
+        K.poly([(wall, uy), (xr1, uy), (xr1, uy + Uh), (wall, uy + Uh), (wall, uy + Uh - t_), (xr1 - t_, uy + Uh - t_),
+                (xr1 - t_, uy + t_), (wall, uy + t_)], fill=HexColor("#B4B4B4"), lw=0.4)
     if ears:
         K.poly([(wall, uy + Uh - t_), (wall + t_, uy + Uh - t_), (wall + t_, yb + 12), (wall, yb + 12)],
                fill=HexColor("#8C8C8C"), lw=0.4)
@@ -322,10 +327,10 @@ def section(K, x, y, w, h, depth, P, title=None, numbers=None, ears=True, rail_k
     # matmenys: gylis | tarpas | (reflektorius) | bėgelis
     _ye = yt - (P["refl_off"] * k if refl else 0)
     if refl:                                                # v340: reflektoriaus storis - ne grandinėje (be „?" tarpo)
-        K.hchain(py0 + 14, [wall, xr1], [uy, uy], [f"{30:.0f}"], 7)
+        K.hchain(py0 + 14, [wall, xr1], [uy, uy], [f"{rd_:g}"], 7)
         K.hchain(py0 + 14, [xf0, xb0, xf], [_ye] * 3, [spacer_lbl or f"{float(P['spacer']):.0f}", f"{depth:.0f}"], 7)
     else:
-        K.hchain(py0 + 14, [wall, xr1, xb0, xf], [uy, uy, yt, yt], [f"{30:.0f}", spacer_lbl or f"{float(P['spacer']):.0f}",
+        K.hchain(py0 + 14, [wall, xr1, xb0, xf], [uy, uy, yt, yt], [f"{rd_:g}", spacer_lbl or f"{float(P['spacer']):.0f}",
                                                                      f"{depth:.0f}"], 7)
     # balionai
     K.leader(xf - TF / 2, ym + 4, xf + 14, ym + 4, nm["face"])

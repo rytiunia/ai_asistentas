@@ -42,7 +42,7 @@ Placeholderiai BOM / MAIN DATA: `{SPACERS}`, `{SPACER_D}`, `{SPACER_L}`, `{P3_BA
 5. Lape: galiniame vaizde distanceriai - mėlyni punktyriniai Ø su kryžiumi (už bėgelio), pavadinime kiekis; šoniniame - tarpas
    ir distanceriai; 3D - distanceriai, švytėjimas (halo) / reflektorius; BOM `{SPACERS}`, `{SPACER_D}`, `{SPACER_L}`,
    `{REFL_N}`, `{BACK_x}` (plexi - kontūras -1 mm), `{REFL_x}` (nesting kontūras +5).
-6. Pjūvis `PROFILE P3` (`p3_raides.section`): siena | U + ausėlė | (reflektorius) | distanceris + M4 | plexi galas 8 (varžtas į
+6. Pjūvis `PROFILE P3` (`p3_raides.section`; v344 - rėmo profilis pagal spec: U arba stačiakampis vamzdis, matmuo - rėmo gylis): siena | U + ausėlė | (reflektorius) | distanceris + M4 | plexi galas 8 (varžtas į
    kraštą) arba 4 + PVC bortelis (A) | LED ant galo | šonas 1 | priekis 2.
 7. Failai: `<lapas>_1-1.pdf` (+ sluoksniai 4_SPACER_HOLES, 5_REFLECTOR), `<lapas>_P3.dxf` - v341 (Rytis 2026-10-17)
    ATSKIROS GRUPĖS (BLOCK + INSERT + DXF GROUP, kaip P6 `group_layers`): 1 REMAS (bėgeliai, statmenys, ausėlės su Ø),
@@ -56,3 +56,4 @@ galas plexi 4 + PVC, rėmas U 30x30x2 (3277 mm - 3 statmenys); 1 lapas P3 (stand
 
 ## Dar tikslinama
 LED žingsnis (P3 lentelė - bus patikslinta); varžtų per šoną žingsnis; folded P3 generatorius.
+Testas: `scripts/projektai/p3_vangelonys_test/` (Vangelonys L 4300, gylis 80, rėmas 40x40x2 square RAL 9016, RAL 6017) - regresijoje.
