@@ -137,7 +137,17 @@ def _cover_cand(o, ya, yb, t_rail, hx0, hx1, min_cov=0.5):
     return None
 
 
-ENDS_MID_L = 4000      # v337: ilgesnis rėmas - + vienas statmuo per vidurį
+# v340 (Rytis 2026-10-17: „bendra taisyklė rėmo naudojime - iki 3 m 2 statmenys, nuo 3 m pridedamas 1 viduryje, nuo 5 m 4
+#  statmenys, stengiantis lygiuoti panašiais atstumais per visą ilgį"; v337 - visiems rėmams išskyrus EXTRA)
+V_STEPS = ((3000, 2), (5000, 3))        # L < 3000 - 2; 3000 <= L < 5000 - 3; L >= 5000 - 4
+
+
+def n_verticals(L):
+    """statmenų kiekis eilutės rėmui (su galiniais) pagal ilgį (v340)"""
+    for lim, n in V_STEPS:
+        if L < lim:
+            return n
+    return 4
 
 
 def single_verticals(r, t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log, every_letter=False, ends_only=True):
@@ -203,14 +213,15 @@ def single_verticals(r, t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log, every
             log(f"  auto rėmas: galinis statmuo po kraštine raide x{c_['x']:.0f} ({c_['partial'] * 100:.0f} % po raide)")
     chosen = [left_] + ([right_] if right_["x"] - left_["x"] >= gap_ else [])
     if ends_only:
-        # v337 (Rytis 2026-10-17: „per daug rėmo statmenų - jų turi būti tik priekyje ir gale, jei ilgesnė nei 4 m - papildomas
-        #  per vidurį; taikoma visiems rėmams išskyrus EXTRA"): tik 2 galiniai (+ 1 per vidurį, kai rėmas > 4 m) - be ankstesnio
+        # v337 / v340 (Rytis 2026-10-17: visiems rėmams išskyrus EXTRA; kiekis n_verticals: < 3 m - 2, 3-5 m - 3, >= 5 m - 4,
+        #  tarpiniai tolygiai): galiniai + tarpiniai pagal ilgį - be ankstesnio
         #  kraštinio kandidato (v311), be žingsnio (v87), be statmens po kiekviena raide (v229)
-        if L > ENDS_MID_L:
-            xm_ = (left_["x"] + right_["x"]) / 2
+        nv_ = n_verticals(L)                          # v340: 2 / 3 / 4 - tarpiniai tolygiai (panašūs atstumai)
+        for k_ in range(1, nv_ - 1):
+            tx_ = left_["x"] + (right_["x"] - left_["x"]) * k_ / (nv_ - 1)
             c_ = [c for c in cands if all(abs(c["x"] - q["x"]) >= gap_ for q in chosen)]
             if c_:
-                chosen.append(min(c_, key=lambda c: (abs(c["x"] - xm_) + (0 if c["k"] == "v" else 150))))
+                chosen.append(min(c_, key=lambda c: (abs(c["x"] - tx_) + (0 if c["k"] == "v" else 150))))
         nv = len(chosen)
         every_letter = False
     else:
@@ -266,7 +277,8 @@ def single_verticals(r, t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log, every
 
 def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=print, every_letter=False, v_edge=None,
           ends_only=True):
-    """v337: ends_only (numatyta, visi rėmai išskyrus EXTRA) - statmenys tik galuose (+ 1 per vidurį, kai > 4 m);
+    """v337 / v340: ends_only (numatyta, visi rėmai išskyrus EXTRA) - statmenų kiekis pagal ilgį (n_verticals: < 3 m - 2,
+    3-5 m - 3, >= 5 m - 4), tarpiniai tolygiai;
     ends_only=False - senas žingsnio principas (EXTRA: ceil(L / žingsnis) + 1, v87 / v204 / v311)."""
     """g - grupė (letters su geom / bb); grąžina (hs, vs) bėgelių dict'ų sąrašus (x0, y0, x1, y1, kind, len, poly, auto)"""
     rows = rows_of(g["letters"])
@@ -565,9 +577,9 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
         _m2m = _a / max(L / 1000, 1e-6)
         _p = pitch_heavy if _m2m >= heavy_m2_m else pitch
         n_mid = max(0, math.ceil(L / _p) - 1)
-        if ends_only:                                    # v337: tik galuose (+ 1 per vidurį, kai eilutė > 4 m)
-            n_mid = 1 if L > ENDS_MID_L else 0
-            log(f"  auto rėmas: eilutė y{r['xb']:.0f} - L {L:.0f} -> {n_mid + 2} statmenys (galuose" + (" + vidurys)" if n_mid else ")"))
+        if ends_only:                                    # v340: kiekis pagal ilgį (n_verticals), tarpiniai tolygiai
+            n_mid = n_verticals(L) - 2
+            log(f"  auto rėmas: eilutė y{r['xb']:.0f} - L {L:.0f} -> {n_mid + 2} statmenys (galuose + {n_mid} tolygiai)")
         else:
             log(f"  auto rėmas: eilutė y{r['xb']:.0f} - {_m2m:.2f} m²/m ({'masyvios' if _p == pitch_heavy else 'įprastos'}), žingsnis {_p} -> {n_mid + 2} statmenys su galiniais")
         up = rows[i - 1] if i > 0 else None

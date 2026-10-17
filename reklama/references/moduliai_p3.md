@@ -47,9 +47,10 @@ Placeholderiai BOM / MAIN DATA: `{SPACERS}`, `{SPACER_D}`, `{SPACER_L}`, `{P3_BA
 7. Failai: `<lapas>_1-1.pdf` (+ sluoksniai 4_SPACER_HOLES, 5_REFLECTOR), `<lapas>_P3.dxf` (1_FRONT_ALU2, 2_BACK_PLEXI su Ø
    skylėmis, 5_REFLECTOR), kreivės lankais.
 
-ETALONAS (v339, Rytis 2026-10-17: „sheet 2 - P3 profilio etalonas"): P3+reflector PAVYZDYS L 3400, gylis 60, distanceriai 30,
-galas plexi 4 + PVC, reflektoriai ACM 3 - `assets/etalonai/P3_reflector_PAVYZDYS_etalonas.pdf`, projektas
-`scripts/projektai/p3_pavyzdys/` (`build_order.py`, 1:1, `_P3.dxf`). Regresija: „order p3 halo pavyzdys" + `p3_raides.py` savitikra.
+ETALONAS (v339 / v340, Rytis 2026-10-17): dokumentas P3 + P3+reflector - PAVYZDYS L 3400, gylis 60, distanceriai 30,
+galas plexi 4 + PVC, rėmas U 30x30x2 (3277 mm - 3 statmenys); 1 lapas P3 (standartas), 2 lapas P3+reflector (ACM 3, +5 mm):
+`assets/etalonai/P3_ir_P3_reflector_PAVYZDYS_etalonas.pdf`, projektas `scripts/projektai/p3_pavyzdys/` (`build_order.py`, 1:1,
+`_P3.dxf`). Pjūvyje sienos simbolio nėra (v340). Regresija: „order p3 halo pavyzdys" + `p3_raides.py` savitikra.
 
 ## Dar tikslinama
 LED žingsnis (P3 lentelė - bus patikslinta); varžtų per šoną žingsnis; folded P3 generatorius.

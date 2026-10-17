@@ -45,7 +45,7 @@ CASES = [
     ("order omoda", "omoda_33580", [["python3", "build_order.py"]], ["ALT0000_Order_33580.pdf"], []),
     ("order kia", "alfaneon_kia_33597", [["python3", "kia.py"]], ["ALT0000_KIA_order_33597.pdf"], []),
     ("order bodo folded", "clasohlson_226045_bodo", [["python3", "bodo.py", "ALT0000_Order_226045.pdf"]], ["ALT0000_Order_226045.pdf"], []),
-    # v336 / v339: P3+reflector ETALONAS (p3_raides savitikra: A kojelių centrai, tik horizontalūs bėgeliai, standartai)
+    # v336-v340: P3 + P3+reflector ETALONAS (p3_raides savitikra: A kojelių centrai, tik horizontalūs bėgeliai, standartai)
     ("order p3 halo pavyzdys", "p3_pavyzdys", [["python3", "build_order.py"], ["python3", "../../p3_raides.py"]], ["P3_Pavyzdys.pdf"],
      ["*_P3.dxf"]),
     ("p6 folded bandymas", "bandymas_3500_folded", [["python3", "folded_test.py"]], ["TEST_Bandymas_folded.pdf"],

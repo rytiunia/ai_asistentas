@@ -927,13 +927,13 @@ for g in groups:
             if MOUNTING == "l_hang":                  # v269: L profiliai (BILB26-01001) - tik horizontalūs, statmenų nėra
                 vs = []
         g["rails"] = hs + vs
-        if not FRAME_EXTRA:                           # v337 patikra: rėmo statmenų - tik galuose (+ 1 per vidurį, kai > 4 m)
+        if not FRAME_EXTRA:                           # v337 / v340 patikra: statmenų ne daugiau nei n_verticals(L)
             _rn = max(1, len(hs) // 2)
-            _al = _rn * (2 + (1 if max((h_["len"] for h_ in hs), default=0) > AR.ENDS_MID_L else 0))
+            _al = _rn * AR.n_verticals(max((h_["len"] for h_ in hs), default=0))      # v340: 2 / 3 / 4 pagal ilgį
             _vx = {round((v_["x0"] + v_["x1"]) / 2 / 10) for v_ in vs if not (v_.get("acc") or v_.get("conn") or v_.get("ext_holder"))}
             if len(_vx) > _al:
-                K.SHEET_ERR.append(f"PER DAUG STATMENŲ {g['name']}: {len(_vx)} > {_al} (tik galuose + 1 per vidurį, kai > 4 m; "
-                                   "išskyrus EXTRA - v337)")
+                K.SHEET_ERR.append(f"PER DAUG STATMENŲ {g['name']}: {len(_vx)} > {_al} (< 3 m - 2, 3-5 m - 3, >= 5 m - 4; "
+                                   "išskyrus EXTRA - v340)")
         g["_geoms"] = [o["geom"] for o in g["letters"]]
         g["_vframe"], g["_vframes"], g["_vfi"] = None, [], []
         g["_hs"], g["_ears_pending"] = hs, not RAIL_ACR

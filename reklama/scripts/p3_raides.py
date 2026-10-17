@@ -270,9 +270,7 @@ def section(K, x, y, w, h, depth, P, title=None, numbers=None, ears=True, rail_k
     xf0 = xr1 + (P["refl_t"] * k if refl else 0)            # reflektoriaus priekis
     xb0 = xf0 + float(P["spacer"]) * k                      # raidės galas
     xf = xb0 + depth * k                                    # priekis
-    # siena (štrichuota)
-    K.rect(wall - 8, py0 + 6, 8, ph_ - 12, fill=HexColor("#E6E6E6"), lw=0.3)
-    K.hatch(wall - 8, py0 + 6, 8, ph_ - 12, step=4)
+    # v340 (Rytis 2026-10-17: „nereikia sienos simbolio profilio pjūvyje") - siena nebraižoma, rėmas nuo sienos plokštumos
     # U bėgelis (anga į sieną) + ausėlė
     t_, Uh = 2 * k, 30 * k
     uy = ym - Uh / 2
@@ -321,9 +319,13 @@ def section(K, x, y, w, h, depth, P, title=None, numbers=None, ears=True, rail_k
         K.line(xb0 - 1, ya, xf0 + 2, yb_, 0.5, YEL, dash=([2, 1.2], 0))
     K.set_view(False)
     # matmenys: gylis | tarpas | (reflektorius) | bėgelis
-    xs = [wall, xr1] + ([xf0] if refl else []) + [xb0, xf]
-    lb = [f"{30:.0f}"] + (["?"] if refl else []) + [spacer_lbl or f"{float(P['spacer']):.0f}", f"{depth:.0f}"]
-    K.hchain(py0 + 14, xs, [yt - (P["refl_off"] * k if refl else 0)] * len(xs), lb, 7)
+    _ye = yt - (P["refl_off"] * k if refl else 0)
+    if refl:                                                # v340: reflektoriaus storis - ne grandinėje (be „?" tarpo)
+        K.hchain(py0 + 14, [wall, xr1], [uy, uy], [f"{30:.0f}"], 7)
+        K.hchain(py0 + 14, [xf0, xb0, xf], [_ye] * 3, [spacer_lbl or f"{float(P['spacer']):.0f}", f"{depth:.0f}"], 7)
+    else:
+        K.hchain(py0 + 14, [wall, xr1, xb0, xf], [uy, uy, yt, yt], [f"{30:.0f}", spacer_lbl or f"{float(P['spacer']):.0f}",
+                                                                     f"{depth:.0f}"], 7)
     # balionai
     K.leader(xf - TF / 2, ym + 4, xf + 14, ym + 4, nm["face"])
     K.leader(xb0 + (xf - xb0) * 0.6, yb - RT / 2, xf + 14, yb - 8, nm["ret"])

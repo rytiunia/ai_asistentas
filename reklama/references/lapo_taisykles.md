@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v339 (2026-10-17)
+Atnaujinta: v340 (2026-10-17)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -180,7 +180,8 @@ Formos principas (taškų skaičius iš supaprastinto gaubto, pirmas - toliausia
   įstrižo) ploto CENTROIDE (netelpa - artimiausia leistina vieta), ilgas plotas (> 400) - kiekvienos lygios dalies centre;
   kiekis / parinkimas - kaip P6 (kvadratas / trikampis, FPS). `scripts/p3_raides.py`, `references/moduliai_p3.md`;
   STANDARTAS - P3 BE reflektorių; su reflektoriais - užklausoje „P3+reflector" (spec `"front": "P3+reflector"`, v339).
-  ETALONAS P3+reflector: `assets/etalonai/P3_reflector_PAVYZDYS_etalonas.pdf` (projektas `scripts/projektai/p3_pavyzdys/`).
+  ETALONAS P3 (1 lapas) ir P3+reflector (2 lapas): `assets/etalonai/P3_ir_P3_reflector_PAVYZDYS_etalonas.pdf` (projektas
+  `scripts/projektai/p3_pavyzdys/`). Pjūvyje sienos simbolio nėra (v340).
   P3 STANDARTAI (v337, Ryčio atsakymai): distanceris Ø16, ilgis < 60 mm gyliui - 20, >= 60 - 30; sluoksniai rėmas +
   reflektorius (jei yra) + distanceriai + raidės; M4 ilgasriegis; reflektorius - ACM (RAL pagal užklausą / dažyta), būna
   Alu 1,5; LED ant plexi viduje, 6500K (žingsnis tikslinamas), trafas - pagal bendras taisykles; maketo lape plexi - tik
@@ -192,13 +193,13 @@ Formos principas (taškų skaičius iš supaprastinto gaubto, pirmas - toliausia
   skersiniais (taisyklė bus vėliau). Dalis, kurios joks horizontalus bėgelis nekerta (akcentas, taškas) - ant savo laikiklio (v85).
 - Neišsprendus: patikra 18 KONSTRUKCIJA / KABO ORE (`K.SHEET_ERR`).
 - BOM sienos rėmo (wall L) ilgis = tik horizontalūs (`{RAIL_H_M}`). Raidžių rėmas - su statmenimis.
-- **RĖMO STATMENYS - TIK PRIEKYJE IR GALE (v337, Rytis 2026-10-17: „per daug rėmo statmenų - jų turi būti tik priekyje ir
-  gale, jei ilgesnė nei 4 m, tai papildomas per vidurį; taikoma visiems rėmams išskyrus EXTRA")**: eilutei 2 galiniai (po
-  kraštinėmis raidėmis, v299 / v311), rėmas > 4000 mm - + 1 per vidurį (artimiausias stiebas / kojelė); NEBĖRA tarpinių pagal
-  žingsnį (v87 ceil(L / 2500) + 1), ankstesnio kraštinio kandidato kaip tarpinio (v311), statmens po kiekviena raide (akrilas
-  v229 / v231). Lieka tik būtini: akcentų / dalių laikikliai, eilučių jungtys. EXTRA (spec client / company / title „EXTRA")
-  - senas žingsnio principas; priverstinai spec `"frame_rule": "pitch" | "ends"`. `auto_remas.build(ends_only=...)`;
-  patikra 18 PER DAUG STATMENŲ.
+- **RĖMO STATMENŲ KIEKIS PAGAL ILGĮ (v340, Rytis 2026-10-17: „bendra taisyklė rėmo naudojime - iki 3 m 2 statmenys, nuo
+  3 m pridedamas 1 viduryje, nuo 5 m 4 statmenys, stengiantis lygiuoti panašiais atstumais per visą ilgį"; v337: visiems
+  rėmams išskyrus EXTRA)**: eilutės rėmas < 3000 mm - 2 (galiniai, po kraštinėmis raidėmis, v299 / v311), 3000-4999 - 3,
+  >= 5000 - 4; tarpiniai - artimiausi tolygiems taškams (pirmenybė stiebui, ne įstrižui). NEBĖRA žingsnio (v87), ankstesnio
+  kraštinio kandidato kaip tarpinio (v311), statmens po kiekviena raide (akrilas v229 / v231). Lieka būtini: akcentų / dalių
+  laikikliai, eilučių jungtys. EXTRA (spec client / company / title „EXTRA") - senas žingsnio principas; priverstinai spec
+  `"frame_rule": "pitch" | "ends"`. `auto_remas.n_verticals`, `build(ends_only=...)`; patikra 18 PER DAUG STATMENŲ.
 - Jei rėme yra statmenys, jų turi būti BENT 2 (v298). Du ilgi bėgeliai su vienu statmeniu nėra stabilūs.
   Antras statmuo dedamas po KRAŠTINE (toliausia nuo pirmojo) raide. Toje raidėje jis statomas ten, kur raidė jį uždengia
   daugiausia, kad statmuo kuo mažiau matytųsi (v299, EXLANTIX - po X). Jei raidės nėra - patikra 18.

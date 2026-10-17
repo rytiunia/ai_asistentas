@@ -14,7 +14,7 @@
  "date": "2026-10-17",
  "company": "TEST",
  "client": "TEST",
- "project": "P3+reflector etalon",
+ "project": "P3 / P3+reflector",
  "depth_mm": 60,
  "front": "P3+reflector",
  "rail": {
@@ -59,11 +59,11 @@
  "trafo_box": false,
  "auto_frame": true,
  "export_1to1": true,
- "file_code": "P3_Pavyzdys",
- "drawing_no": "P3_Pavyzdys",
- "sheet": "1 / 1",
- "title": "P3+reflector etalon PAVYZDYS - halo letters on spacers with reflectors",
- "rails_json": "rails.json",
+ "file_code": "P3_Pavyzdys_P3_reflector",
+ "drawing_no": "P3_Pavyzdys_P3_reflector",
+ "sheet": "2 / 2",
+ "title": "P3+reflector - halo letters on spacers with reflectors (PAVYZDYS)",
+ "rails_json": "rails_P3_reflector.json",
  "main_data": [
   [
    "Quantity",
