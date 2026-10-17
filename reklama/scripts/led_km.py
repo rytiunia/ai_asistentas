@@ -108,7 +108,7 @@ def psu_for(watts, V=12):
     return f"{n} x {nm}", w * n
 
 
-def _split_bends(pa, pitch, ang_min=45.0):
+def _split_bends(pa, pitch, ang_min=45.0, wl=None):
     """v126: aštrus lenkimas (7, L, Z kampas) - šaka dalijama per kampą, kampe - modulis (Ryčio taisyklė 3)"""
     P, cum = pa["P"], pa["cum"]
     if pa["kind"] == "loop" or len(P) < 30:
@@ -127,6 +127,32 @@ def _split_bends(pa, pitch, ang_min=45.0):
                     cuts[-1] = (i, t)
                 continue
             cuts.append((i, t))
+    # v330 (Rytis 2026-10-17 „Testavimas": „t trūksta 1 LED" - apačios lenkimas į užraitą): DIDELIO SPINDULIO lenkimas -
+    #  posūkis >= 65 laipsnių per vieną linijos plotį (liestinės ±0,5 w) - taip pat kampas (modulis lenkime)
+    if wl:
+        def _tan(u):
+            a_, b_ = P[min(max(int(np.searchsorted(cum, u - 0.15 * wl)), 0), len(P) - 1)], P[min(int(np.searchsorted(cum, u + 0.15 * wl)), len(P) - 1)]
+            v = b_ - a_; n = math.hypot(*v)
+            return v / n if n > 1e-6 else None
+        big = []
+        for i in range(0, len(P), 3):
+            u = cum[i]
+            if u < 0.7 * wl or cum[-1] - u < 0.7 * wl:
+                continue
+            ta, tb = _tan(u - 0.5 * wl), _tan(u + 0.5 * wl)
+            if ta is None or tb is None:
+                continue
+            t = math.degrees(math.acos(max(-1, min(1, float(ta @ tb)))))
+            if t >= 65:
+                if big and cum[i] - cum[big[-1][0]] < 0.5 * pitch:
+                    if t > big[-1][1]:
+                        big[-1] = (i, t)
+                    continue
+                big.append((i, t))
+        for i, t in big:
+            if all(abs(cum[i] - cum[c]) >= 0.5 * pitch for c, _ in cuts):
+                cuts.append((i, t))
+        cuts.sort()
     if not cuts:
         return [pa], []
     # v329: kampo taškas - AŠTRAUS posūkio srities VIDURYS (ne vietinis maksimumas): plokščia A / M viršūnė su dviem
@@ -685,7 +711,7 @@ def is_serif(P, ends, g, sw):
     return bool(ws) and float(np.median(ws)) < 0.6 * sw
 
 
-LED_GAP_R, LED_GAP_A = 0.55, 0.12      # v329b: nepadengta dėmė > 0,12 p² už 0,55 p nuo LED (Testavimas: a galvutė / uodega)
+LED_GAP_R, LED_GAP_A, LED_GAP_OUT = 0.5, 0.13, 0.25   # v330: dėmė > 0,13 p² už modulio rato (0,5 p), > 0,25 p UŽ LED gaubto
 
 
 def strokes(g, pitch):
@@ -777,6 +803,9 @@ def strokes(g, pitch):
                 link[a] = b_; link[b_] = a; free.remove(a); free.remove(b_)
         for q in free:
             endtype[q] = "T" if len(free) < len(ms) else "J"
+    # laisvas galas: „edge" (status, ašis pratęsta iki krašto) -> E (modulis p/2 nuo krašto); „free" (smailė / pėda, ašis
+    #  nesiekia krašto) -> F (modulis ašies gale) - v330 (m kairė koja: modulis buvo p/2 virš ašies galo, pėda tamsi)
+    _fe = lambda bi, e: "F" if br[bi]["ends"][e] == "free" else "E"
     # linijų surinkimas
     used = set()
     lines = []
@@ -799,14 +828,14 @@ def strokes(g, pitch):
             used.add(cur)
             Q = br[cur]["P"] if e == 0 else br[cur]["P"][::-1]
             if first:
-                ends.append(endtype.get((cur, e), "E" if br[cur]["node"][e] is None else "J"))
+                ends.append(endtype.get((cur, e), _fe(cur, e) if br[cur]["node"][e] is None else "J"))
                 first = False
             P += [tuple(q) for q in (Q if not P else Q[1:])]
             oe = 1 - e
             if (cur, oe) in link and link[(cur, oe)][0] not in used:
                 cur, e = link[(cur, oe)]
                 continue
-            ends.append(endtype.get((cur, oe), "E" if br[cur]["node"][oe] is None else ("J" if (cur, oe) not in link else "J")))
+            ends.append(endtype.get((cur, oe), _fe(cur, oe) if br[cur]["node"][oe] is None else "J"))
             break
         lines.append((_pathd(P), ends))
     # 4) tolygus padalijimas
@@ -820,7 +849,7 @@ def strokes(g, pitch):
         def anc(et, rev):
             if et == "E":
                 return ("fix", min(pitch / 2.0, L / 2.0))
-            if et in ("C", "J"):
+            if et in ("C", "J", "F"):
                 return ("fix", 0.0)
             return ("soft", min(half, L / 2.0))
         ta, a = anc(ea, False)
@@ -893,7 +922,12 @@ def strokes(g, pitch):
         return np.column_stack([X_.ravel()[k_], Y_.ravel()[k_]])
     st_ = max(pitch / 20.0, 3.0)
     T_ = _grid(g.buffer(-0.1 * w), st_)                      # tikrinami taškai (be siauros krašto juostos)
-    C_ = _grid(g.buffer(-min(0.35 * w, 0.3 * pitch)), st_)   # galimos modulio vietos (raidės šerdis)
+    if drop and len(T_):                                     # serifų / pėdų sritys (atmestos atšakos) - netikrinamos
+        from shapely.geometry import LineString as _LS2
+        from shapely.ops import unary_union as _uu
+        sz = _uu([_LS2(br[bi]["P"]).buffer(0.6 * w) for bi in drop if len(br[bi]["P"]) > 1])
+        T_ = T_[~_cxy(sz, T_[:, 0], T_[:, 1])]
+    C_ = _grid(g.buffer(-min(0.25 * w, 0.25 * pitch)), st_)  # galimos modulio vietos (ne prie pat šono)
     R_ = LED_GAP_R * pitch                                   # ~ modulio ratas (žingsnis) su maža atsarga
     amin = LED_GAP_A * pitch ** 2                            # ženkli tamsi dėmė (ne tarpas tarp gretimų ratų)
     from scipy import ndimage as _nd
@@ -911,17 +945,23 @@ def strokes(g, pitch):
         lab, nl = _nd.label(M_, structure=np.ones((3, 3)))
         ids = lab[ix[:, 0], ix[:, 1]]
         sizes = np.bincount(ids)
-        big = int(np.argmax(sizes[1:])) + 1 if nl else 0
-        if not nl or sizes[big] * st_ ** 2 < amin:
+        # v330 (Rytis „Testavimas": T / i / v - gerai, t apačios kampas, a uodega - trūksta): pildoma tik dėmė UŽ esamų LED
+        #  gaubto (raidės galas, kampas, galvutė, uodega), ne tarpas tarp gretimų LED ratų linijoje
+        from shapely.geometry import MultiPoint as _MP, Point as _Pp
+        hull = _MP([tuple(q[:2]) for q in out]).convex_hull
+        good = [(int(sizes[i_]), i_) for i_ in range(1, nl + 1) if sizes[i_] * st_ ** 2 >= amin
+                and hull.distance(_Pp(*U_[ids == i_].mean(axis=0))) > LED_GAP_OUT * pitch]
+        if not good:
             break
+        big = max(good)[1]
         S_ = U_[ids == big]
         dC = np.min(np.hypot(C_[:, None, 0] - A_[None, :, 0], C_[:, None, 1] - A_[None, :, 1]), axis=1)
-        okC = C_[dC >= 0.5 * pitch]                              # papildomas - ne ant esamo (ratai gali liestis)
+        okC = C_[dC >= 0.55 * pitch]                             # papildomas - ne šalia esamo (ne dviguba pora)
         if not len(okC):
             break
         gain = (np.hypot(okC[:, None, 0] - S_[None, :, 0], okC[:, None, 1] - S_[None, :, 1]) <= R_).sum(axis=1)
         j_ = int(np.argmax(gain))
-        if gain[j_] * st_ ** 2 < 0.5 * amin:
+        if gain[j_] * st_ ** 2 < 0.5 * amin:                    # (pakartojus ta pati dėmė nebus pildoma be naudos)
             break
         cx_, cy_ = okC[j_]
         nb_ = T_[np.hypot(T_[:, 0] - cx_, T_[:, 1] - cy_) <= 0.6 * pitch]

@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v330 (2026-10-17)
+Atnaujinta: v331 (2026-10-17)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -208,9 +208,12 @@ Formos principas (taškų skaičius iš supaprastinto gaubto, pirmas - toliausia
     kiekis (simetrija); kiekviena linija >= 0,3 p gauna >= 1 LED (A / H brūkšnys niekada be LED);
   - serifai / užraitai (trumpa ir plona laisva atšaka) - be LED; trumpa STORA atšaka (t skersinio kairė) - su LED, nebent jos
     tąsa irgi trumpa atšaka (i / m pėdų pora); žiedai - lyginis n, simetriška fazė; > 2 p plotis - tinklelis;
-  - PADENGIMAS (v329b, Rytis „Testavimas": „a raidėje trūksta 1 LED, t viršuje kairėje neįdėtas"): raidės plote
-    nepadengta dėmė (> 0,12 p², toliau nei 0,55 p nuo LED - a galvutė, uodega) gauna LED ten, kur jis padengia daugiausia
-    (>= 0,5 p nuo kitų, pasuktas pagal formą). Parametrai `LED_GAP_R`, `LED_GAP_A` (led_km.py).
+  - laisvas galas: status („edge") - LED p/2 nuo krašto; smailė / pėda („free", ašis nesiekia krašto) - LED ašies gale;
+  - PADENGIMAS (v330, Rytis „Testavimas": „a trūksta 1 LED", „t trūksta 1 LED"): pildoma TIK dėmė UŽ esamų LED gaubto
+    (> 0,25 p - raidės galas, kampas, uodega, galvutė), ne tarpas tarp gretimų LED ratų: nepadengta (toliau nei 0,5 p - modulio
+    ratas) dėmė > 0,13 p² gauna LED ten, kur padengia daugiausia (>= 0,55 p nuo kitų, pasuktas pagal formą). Serifų / pėdų
+    sritys (atmestos atšakos) netikrinamos. Parametrai `LED_GAP_R / LED_GAP_A / LED_GAP_OUT` (led_km.py); testas -
+    `projektai/led_test/testavimas.pdf` (t >= 8, a >= 8).
 - `ilp` (aprėpties minimumas) - tik spec `"layout": "ilp"`.
 - Regresija: `scripts/test_led.py` (projektai/led_test), įtraukta į `regresija.py`.
 
