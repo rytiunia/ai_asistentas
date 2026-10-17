@@ -1764,7 +1764,7 @@ def nest_row(row):
         if kind == "RET":
             r_ = NE.nest_strips([K.perim(o["sub"]) for o in lets], depth, mat, label=str(row[1]), qty=NEST_QTY)
         else:
-            gg = [o["geom"].buffer(-(P3["side_t"] if P3 else 3)) if kind == "BACK" else      # v336: P3 plexi galas šono viduje
+            gg = [o["geom"].buffer(-(P3["back_inset"] if P3 else 3)) if kind == "BACK" else      # v341: P3 dugnas 0,7 inside
                   (o["geom"].buffer(P3["refl_off"] if P3 else 5) if kind == "REFL" else o["geom"]) for o in lets]
             r_ = NE.nest_parts(gg, mat, label=str(row[1]), qty=NEST_QTY)
         NEST_LOG.append(f"{row[1]}: {r_['text']}")
@@ -3867,11 +3867,8 @@ for g in groups:
             continue
         objs.append((_sh(up(o["geom"])), z0, z0 + gd_, retcol(g), facecol(g)))
         if P3 and not g["plate"]:                        # v336: P3 - švytėjimas atgal (halo), reflektorius, distanceriai
-            if P3["reflector"]:
+            if P3["reflector"]:                          # v341: P3 be reflektoriaus - jokių linijų už raidžių (švytėjimas nebraižomas)
                 objs.append((_sh(up(o["geom"].buffer(P3["refl_off"]))), Z_RAIL_L, Z_P3B, P3_REFLC, P3_REFLC))
-            else:
-                objs.append((_sh(up(o["geom"].buffer(18).difference(o["geom"].buffer(-2)))), 0.0, 0.2,
-                             HexColor("#FFE9A3"), HexColor("#FFE9A3"), HexColor("#FFE9A3")))
     for _sx, _sy, _ in P3_SP.get(g["name"], []):
         objs.append((up(Point(_sx, _sy).buffer(P3["r"], 8)), Z_P3B, z0, P3_SPC, P3_SPC))
 for d_, dc_ in DECALS_RAW:                               # v11: lipdukai 3D ant grupės priekio (v13: tarp sluoksnių)
@@ -4478,7 +4475,7 @@ def export_1to1(path):
     doc = fitz.open()
     pg = doc.new_page(width=(bx1 - bx0) * k, height=(by1 - by0) * k)
     doc.set_metadata({"title": f"{spec.get('file_code', '')} 1:1"})
-    inset = spec.get("back_inset_mm", 0.7 if FRONT == "P1" else P3["side_t"] if P3 else (float((spec.get("p10") or {}).get("rim", 5)) if FRONT == "P10" else 3))   # v116 / v249
+    inset = spec.get("back_inset_mm", 0.7 if FRONT == "P1" else P3["back_inset"] if P3 else (float((spec.get("p10") or {}).get("rim", 5)) if FRONT == "P10" else 3))   # v116 / v249
     L_LET, L_BACK, L_FRAME = (doc.add_ocg("1_LETTERS"), doc.add_ocg(f"2_BACK_inset_{inset:g}mm"), doc.add_ocg("3_FRAME"))
     C_LET, C_BACK, C_FRAME = (0, 0, 0), (0.85, 0, 0), (0, 0.35, 0.85)
     HW = 0.1
@@ -4622,5 +4619,11 @@ if P3_SP:                                               # v336: P3 gamybos DXF (
         _p3s += [(x_, y_, i_ + _off) for x_, y_, i_ in P3_SP.get(g["name"], [])]
         _off += len(g["letters"])
     _dp = os.path.splitext(OUT)[0].replace("_tech", "") + "_P3.dxf"
-    P3M.write_dxf(_dp, _p3l, _p3s, P3)
+    _fr = [list(r_["poly"]) for g in groups if not g["plate"] for r_ in g["rails"]]          # v341: rėmas - 1 grupė
+    _ea = []
+    for g in groups:
+        for fp_ in g["fplates"]:
+            px_, py_, ph_, hy_ = ear4(g, fp_)
+            _ea.append((px_, py_, px_ + g["fpl_sz"], py_ + ph_, px_ + g["fpl_sz"] / 2, hy_, float(EARS.get("hole_d", 6))))
+    P3M.write_dxf(_dp, _p3l, _p3s, P3, frame=_fr, ears=_ea)
     print("OK P3 DXF", _dp)

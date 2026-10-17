@@ -38,7 +38,8 @@ DEF = {
     "back_hole": 4,
     "rod_hole": 4.5,
     "back": None,          # None - pagal raidžių aukštį (BACK_BY_HEIGHT)
-    "side_t": 1.0,         # šonas Alu 1
+    "side_t": 1.0,         # šonas Alu 1 (pjūvio brėžiniui)
+    "back_inset": 0.7,     # v341 (Rytis 2026-10-17): P3 DUGNAS (plexi galas) - 0,7 mm inside nuo raidės kontūro
     "face_t": 2.0,         # priekis Alu 2
     "edge": 5,             # distancerio krašto atstumas nuo galo krašto (mm)
     "split": 400,          # ilgas tvirtinamas plotas išilgai bėgelio dalijamas kas <= split
@@ -117,10 +118,10 @@ def drain_points(back, prom=5.0, step=1.0, merge=30.0):
 
 
 def back_shape(o, P, sp=()):
-    """plexi galas: kontūras - side_t, drenažo Ø8 puslankiai (exterior); grąžina (geom, drenažo centrai)"""
+    """plexi galas (dugnas): kontūras - back_inset (0,7), drenažo Ø8 puslankiai (exterior); grąžina (geom, drenažo centrai)"""
     import kreives as KR
     from shapely.ops import unary_union
-    b = o["geom"].buffer(-P["side_t"], quad_segs=KR.BUF_QS)
+    b = o["geom"].buffer(-P["back_inset"], quad_segs=KR.BUF_QS)
     if not P.get("drain"):
         return b, []
     dr = [q for q in drain_points(b) if all(math.hypot(q[0] - x, q[1] - y) > P["r"] + P["drain_d"] for x, y, *_ in sp)]
@@ -154,8 +155,8 @@ def candidates(o, rails, P):
     from shapely import affinity
     geom = o["geom"]
     r = P["r"]
-    back = geom.buffer(-P["side_t"])
-    allowed = geom.buffer(-(P["side_t"] + r + P["edge"]))
+    back = geom.buffer(-P["back_inset"])
+    allowed = geom.buffer(-(P["back_inset"] + r + P["edge"]))
     out = []
     for ri, rl in enumerate(rails):
         band, u, w_ = _rail_geom(rl)
@@ -342,41 +343,60 @@ def section(K, x, y, w, h, depth, P, title=None, numbers=None, ears=True, rail_k
 
 
 # ------------------------------------------------------------------ DXF
-def write_dxf(path, letters, sp, P):
-    """1_FRONT_ALU2 - raidės kontūras; 2_BACK_PLEXI - kontūras -side_t + Ø back_hole distanceriams;
-    5_REFLECTOR - kontūras + refl_off + Ø rod_hole. Vaizdas iš priekio, y aukštyn, kreivės lankais (kreives.saveas)."""
+def write_dxf(path, letters, sp, P, frame=(), ears=()):
+    """v341 (Rytis 2026-10-17: „dxf pateikiami su atskiromis grupėmis: rėmas - viena grupė, dugnas su skylėmis - antra grupė,
+    priekis - 3 grupė"): kaip P6 (p6_dxf.group_layers) - kiekvienas sluoksnis savo BLOCK + INSERT + DXF GROUP ->
+    Corel / AutoCAD atskiros grupės: 1_REMAS (bėgeliai, statmenys, ausėlės su Ø), 2_DUGNAS (plexi galas -0,7 su distancerių
+    Ø skylėmis ir drenažo puslankiais), 3_PRIEKIS (raidės kontūras), 4_REFLEKTORIUS (tik P3+reflector: +5 su Ø).
+    frame - [poly taškai], ears - [(x0, y0, x1, y1, hx, hy, d)]. Vaizdas iš priekio, y aukštyn, kreivės lankais."""
     import ezdxf
     import kreives as KR
-    from shapely.geometry import Polygon
     doc = ezdxf.new("R2010", setup=True)
     doc.units = ezdxf.units.MM
-    LB = f"2_BACK_PLEXI_{float(P['back']):g}_HOLES_D{float(P['back_hole']):g}"
-    LR = f"5_REFLECTOR_+{float(P['refl_off']):g}_HOLES_D{float(P['rod_hole']):g}"
-    for nm_, col in (("1_FRONT_ALU2", 7), (LB, 1), (LR, 5), ("TEXT", 8)):
+    LAY = [("1_REMAS", 5), ("2_DUGNAS", 1), ("3_PRIEKIS", 7)] + ([("4_REFLEKTORIUS", 30)] if P.get("reflector") else []) \
+        + [("TEXT", 8)]
+    for nm_, col in LAY:
         doc.layers.add(nm_, color=col)
     m = doc.modelspace()
-    ymax = max(o["bb"][3] for o in letters)
+    ymax = max([o["bb"][3] for o in letters] + [q[1] for f_ in frame for q in f_])
     Q = lambda q: (round(q[0], 3), round(ymax - q[1], 3))
 
     def ring(g, layer):
         for pg in _parts(g):
             for rg in [pg.exterior] + list(pg.interiors):
                 m.add_lwpolyline([Q(c) for c in rg.coords], close=True, dxfattribs={"layer": layer})
+    for f_ in frame:
+        m.add_lwpolyline([Q(q) for q in f_], close=True, dxfattribs={"layer": "1_REMAS"})
+    for x0, y0, x1, y1, hx, hy, d in ears:
+        m.add_lwpolyline([Q(q) for q in ((x0, y0), (x1, y0), (x1, y1), (x0, y1))], close=True, dxfattribs={"layer": "1_REMAS"})
+        m.add_circle(Q((hx, hy)), d / 2, dxfattribs={"layer": "1_REMAS"})
     for i, o in enumerate(letters):
-        ring(o["geom"], "1_FRONT_ALU2")
-        ring(back_shape(o, P, [q for q in sp if q[2] == i])[0], LB)     # v337: su drenažo Ø8 puslankiais
+        ring(back_shape(o, P, [q for q in sp if q[2] == i])[0], "2_DUGNAS")     # su drenažo Ø8 puslankiais
         for x, y, j in sp:
             if j == i:
-                m.add_circle(Q((x, y)), float(P["back_hole"]) / 2, dxfattribs={"layer": LB})
+                m.add_circle(Q((x, y)), float(P["back_hole"]) / 2, dxfattribs={"layer": "2_DUGNAS"})
+        ring(o["geom"], "3_PRIEKIS")
         if P.get("reflector"):
-            ring(o["geom"].buffer(P["refl_off"], quad_segs=KR.BUF_QS), LR)
+            ring(o["geom"].buffer(P["refl_off"], quad_segs=KR.BUF_QS), "4_REFLEKTORIUS")
             for x, y, j in sp:
                 if j == i:
-                    m.add_circle(Q((x, y)), float(P["rod_hole"]) / 2, dxfattribs={"layer": LR})
-    m.add_text(f"P3 HALO: {len(sp)} spacers D{float(P['spacer_d']):g} x {float(P['spacer']):g} mm, centre of fixing area; "
-               f"back transparent plexiglass {float(P['back']):g} mm" + (" + PVC edge" if P["pvc_edge"] else "")
-               + (f", drainage D{float(P['drain_d']):g} semicircles in back contour" if P.get("drain") else "")
-               + (f"; reflector {P['refl_mat']} +{float(P['refl_off']):g} mm" if P.get("reflector") else "") + "; view FROM FRONT", dxfattribs={"layer": "TEXT", "height": 12}).set_placement((0, -40))
+                    m.add_circle(Q((x, y)), float(P["rod_hole"]) / 2, dxfattribs={"layer": "4_REFLEKTORIUS"})
+    m.add_text(f"P3{'+reflector' if P.get('reflector') else ''}: {len(sp)} spacers D{float(P['spacer_d']):g} x "
+               f"{float(P['spacer']):g} mm (holes D{float(P['back_hole']):g} in back), back transparent plexiglass "
+               f"{float(P['back']):g} mm, {float(P['back_inset']):g} mm inside" + (" + PVC edge" if P["pvc_edge"] else "")
+               + (f", drainage D{float(P['drain_d']):g} semicircles" if P.get("drain") else "")
+               + (f"; reflector {P['refl_mat']} +{float(P['refl_off']):g} mm, holes D{float(P['rod_hole']):g}" if P.get("reflector") else "")
+               + "; view FROM FRONT", dxfattribs={"layer": "TEXT", "height": 12}).set_placement((0, -40))
+    for lay, _ in LAY[:-1]:                                  # grupės: BLOCK + INSERT (0, 0) + DXF GROUP
+        ents = [e for e in m if e.dxf.layer == lay and e.dxftype() != "INSERT"]
+        if not ents:
+            continue
+        bname = lay.split("_", 1)[1]
+        blk = doc.blocks.new(name=bname)
+        for e in ents:
+            blk.add_entity(e.copy())
+            m.delete_entity(e)
+        doc.groups.new(bname).extend([m.add_blockref(bname, (0, 0), dxfattribs={"layer": lay})])
     KR.saveas(doc, path)
     return path
 
@@ -403,6 +423,14 @@ if __name__ == "__main__":
     assert cfg({}, 399)["back"] == 8 and not cfg({}, 399)["pvc_edge"] and cfg({}, 400)["back"] == 4 and cfg({}, 400)["pvc_edge"]
     b_, dr_ = back_shape(o, P, sp)
     assert len(dr_) == 2 and all(q[1] > 590 for q in dr_), dr_
-    assert b_.area < A.buffer(-1).area - 40, "puslankiai neiškirpti"
+    assert b_.area < A.buffer(-0.7).area - 40, "puslankiai neiškirpti"
     assert not cfg({"front": "P3"})["reflector"] and cfg({"front": "P3+reflector"})["reflector"]   # v339
+    assert abs(back_shape(o, dict(P, drain=False))[0].area - A.buffer(-0.7).area) < 1          # v341: dugnas 0,7 inside
+    import ezdxf, tempfile                                   # v341: DXF - atskiros grupės REMAS / DUGNAS / PRIEKIS
+    _f = tempfile.mktemp(suffix=".dxf")
+    write_dxf(_f, [o], sp, P, frame=[[(-50, 120), (650, 120), (650, 150), (-50, 150)]], ears=[(0, 150, 30, 190, 15, 175, 6)])
+    _d = ezdxf.readfile(_f)
+    assert {g_[0] for g_ in _d.groups} == {"REMAS", "DUGNAS", "PRIEKIS"}, [g_[0] for g_ in _d.groups]
+    assert len(list(_d.blocks["DUGNAS"].query("CIRCLE"))) == len(sp)
+    os.remove(_f)
     print("OK p3_raides savitikra")

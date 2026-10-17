@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v340 (2026-10-17)
+Atnaujinta: v341 (2026-10-17)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -181,7 +181,10 @@ Formos principas (taškų skaičius iš supaprastinto gaubto, pirmas - toliausia
   kiekis / parinkimas - kaip P6 (kvadratas / trikampis, FPS). `scripts/p3_raides.py`, `references/moduliai_p3.md`;
   STANDARTAS - P3 BE reflektorių; su reflektoriais - užklausoje „P3+reflector" (spec `"front": "P3+reflector"`, v339).
   ETALONAS P3 (1 lapas) ir P3+reflector (2 lapas): `assets/etalonai/P3_ir_P3_reflector_PAVYZDYS_etalonas.pdf` (projektas
-  `scripts/projektai/p3_pavyzdys/`). Pjūvyje sienos simbolio nėra (v340).
+  `scripts/projektai/p3_pavyzdys/`). Pjūvyje sienos simbolio nėra (v340). P3 DUGNAS (plexi galas) - 0,7 mm inside (v341);
+  3D - be švytėjimo linijų už raidžių (tik P3+reflector - reflektorius); DXF - ATSKIROS GRUPĖS (BLOCK + DXF GROUP, kaip
+  P6): REMAS (bėgeliai, statmenys, ausėlės su Ø), DUGNAS (su distancerių Ø ir drenažo puslankiais), PRIEKIS
+  (+ REFLEKTORIUS - P3+reflector).
   P3 STANDARTAI (v337, Ryčio atsakymai): distanceris Ø16, ilgis < 60 mm gyliui - 20, >= 60 - 30; sluoksniai rėmas +
   reflektorius (jei yra) + distanceriai + raidės; M4 ilgasriegis; reflektorius - ACM (RAL pagal užklausą / dažyta), būna
   Alu 1,5; LED ant plexi viduje, 6500K (žingsnis tikslinamas), trafas - pagal bendras taisykles; maketo lape plexi - tik

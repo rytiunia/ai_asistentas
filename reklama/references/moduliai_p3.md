@@ -31,7 +31,7 @@ Placeholderiai BOM / MAIN DATA: `{SPACERS}`, `{SPACER_D}`, `{SPACER_L}`, `{P3_BA
 („PVC fixing edge") išmetama, kai galas 8 mm.
 
 ## TVIRTINIMAS - tvirtinamo ploto CENTRE (`scripts/p3_raides.py`)
-1. Tvirtinamas plotas = raidės galo (kontūras - 1 mm šonas) ir HORIZONTALAUS bėgelio juostos persidengimo komponentas
+1. Tvirtinamas plotas = raidės dugno (kontūras - 0,7 mm, v341) ir HORIZONTALAUS bėgelio juostos persidengimo komponentas
    (v338: ant statmenų / įstrižų tvirtinimai nesideda; tik akcentui be horizontalaus bėgelio - jo laikiklis). A raidė: apatinis bėgelis - dvi kojelės (du plotai), viršutinis - viršūnė.
 2. Taškas - to ploto centroidas; jei ten netelpa distanceris (Ø/2 + 5 mm nuo krašto, Ø16 ant 30 mm bėgelio - ±7 nuo ašies) -
    artimiausia leistina vieta. NE štricho kraštas / galas (skirtumas nuo P6 D3.2).
@@ -44,8 +44,10 @@ Placeholderiai BOM / MAIN DATA: `{SPACERS}`, `{SPACER_D}`, `{SPACER_L}`, `{P3_BA
    `{REFL_N}`, `{BACK_x}` (plexi - kontūras -1 mm), `{REFL_x}` (nesting kontūras +5).
 6. Pjūvis `PROFILE P3` (`p3_raides.section`): siena | U + ausėlė | (reflektorius) | distanceris + M4 | plexi galas 8 (varžtas į
    kraštą) arba 4 + PVC bortelis (A) | LED ant galo | šonas 1 | priekis 2.
-7. Failai: `<lapas>_1-1.pdf` (+ sluoksniai 4_SPACER_HOLES, 5_REFLECTOR), `<lapas>_P3.dxf` (1_FRONT_ALU2, 2_BACK_PLEXI su Ø
-   skylėmis, 5_REFLECTOR), kreivės lankais.
+7. Failai: `<lapas>_1-1.pdf` (+ sluoksniai 4_SPACER_HOLES, 5_REFLECTOR), `<lapas>_P3.dxf` - v341 (Rytis 2026-10-17)
+   ATSKIROS GRUPĖS (BLOCK + INSERT + DXF GROUP, kaip P6 `group_layers`): 1 REMAS (bėgeliai, statmenys, ausėlės su Ø),
+   2 DUGNAS (plexi galas 0,7 mm inside + distancerių Ø4 + drenažo Ø8 puslankiai), 3 PRIEKIS (raidės kontūras),
+   4 REFLEKTORIUS (tik P3+reflector: +5 mm, Ø4,5); kreivės lankais. 3D - be švytėjimo linijų už raidžių.
 
 ETALONAS (v339 / v340, Rytis 2026-10-17): dokumentas P3 + P3+reflector - PAVYZDYS L 3400, gylis 60, distanceriai 30,
 galas plexi 4 + PVC, rėmas U 30x30x2 (3277 mm - 3 statmenys); 1 lapas P3 (standartas), 2 lapas P3+reflector (ACM 3, +5 mm):
