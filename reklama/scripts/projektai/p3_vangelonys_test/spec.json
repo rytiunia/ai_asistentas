@@ -23,11 +23,6 @@
   "ral": "9016",
   "type": "sq"
  },
- "ears": {
-  "inset": 50,
-  "pitch": 1000,
-  "min_edge": 15
- },
  "cable_exits": [
   {
    "pt": [
@@ -137,17 +132,10 @@
   ],
   [
    5,
-   "Wallframe {RAIL_SIZE} with ears, one frame",
+   "Wallframe {RAIL_SIZE}, one frame",
    "Aluminium",
    "RAL 9016",
    "{RAIL_TOTAL_M} m ({RAIL_BARS} x {BAR_M} m bars)"
-  ],
-  [
-   6,
-   "Mounting ear {RAIL_SIZE}, Ø{EAR_HOLE} hole",
-   "Aluminium",
-   "RAL 9016",
-   "{PLATES_N} pcs. ({PLATES_EXT} extended)"
   ],
   [
    7,
@@ -191,5 +179,6 @@
    "-",
    "?"
   ]
- ]
+ ],
+ "mounting": "frame"
 }

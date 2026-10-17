@@ -43,12 +43,16 @@ def _ral_txt(v):                                          # v281: NCS / PMS / ki
 RAIL_FIN = "" if str(RAIL.get("ral", "")).strip() in ("", "?") else (_ral_txt(RAIL['ral']) + (" matt" if _ral_txt(RAIL['ral']).startswith("RAL") else ""))
 
 
-def _rail_pos():
-    """v184: galutinė bėgelio (rėmo) BOM pozicija - brackets / none režime pozicijos pernumeruojamos (buvo fiksuota 5)"""
+def _bom_pos(pat, default=""):
+    """v345: GALUTINĖ (pernumeruota) BOM pozicija pagal pavadinimą - balionams, braižomiems prieš BOM lentelę (P3 distanceris)"""
+    return next((str(r_[0]) for r_ in _bom_final_rows() if re.search(pat, str(r_[1]), re.I)), default)
+
+
+def _bom_final_rows():
     rows_ = [r_ for r_ in spec.get("bom", []) if not (_NO3 and str(r_[0]).upper() in ("A", "B"))]
-    if MOUNTING in ("none", "brackets"):
+    if MOUNTING in ("none", "brackets", "frame"):
         drop_ = r"\bear\b|ears\b|mounting ear|ausėl"
-        rows_ = [r_ for r_ in rows_ if re.match(r"\s*rail", str(r_[1]), re.I) or re.search(r"bracket|hanger", str(r_[1]), re.I)
+        rows_ = [r_ for r_ in rows_ if re.match(r"\s*(rail|wallframe|frame)", str(r_[1]), re.I) or re.search(r"bracket|hanger", str(r_[1]), re.I)
                  or not re.search(drop_, str(r_[1]), re.I)]
         n_, out_ = 0, []
         for r_ in rows_:
@@ -57,6 +61,12 @@ def _rail_pos():
             else:
                 out_.append(list(r_))
         rows_ = out_
+    return rows_
+
+
+def _rail_pos():
+    """v184: galutinė bėgelio (rėmo) BOM pozicija - brackets / none režime pozicijos pernumeruojamos (buvo fiksuota 5)"""
+    rows_ = _bom_final_rows()
     # v336: „Rail U .. with ears" - eilutė PRASIDEDA rail / wallframe (anksčiau „with ears" ją atmesdavo -> balionas rodė laidą)
     _st = next((str(r_[0]) for r_ in rows_ if re.match(r"\s*(rail|wallframe|frame|bėgel)", str(r_[1]), re.I)), None)
     if _st:
@@ -797,6 +807,8 @@ EAR_HOLE = EARS["hole_d"]
 # v90 (Rytis 2026-10-11): montavimo būdas - "ears" (standartas, ausėlės), "brackets" (be ausėlių: U laikikliai per
 #  viršutinį ir apatinį bėgelį, assets/tvirtinimas.json "brackets"), "none" (atskiros raidės be rėmo - kitas modulis)
 MOUNTING = str(spec.get("mounting", "ears")).lower()
+# v345 (Rytis 2026-10-17, testas P3 Vangelonys: „užklausoje nepaminėta, kad rėmas su ausėlėmis"): "mounting": "frame" -
+#  rėmas BE ausėlių ir be laikiklių (sienos tvirtinimas - „?"); ausėlės - tik kai užklausoje nurodytos
 # v103 (Rytis 2026-10-11): sutartinis užrašas - rėmo aprašas "+ hangers" (pvz. "frame 30x30x2 + hangers RAL 7024") = U laikikliai,
 #  "+ ears" = ausėlės. Jei spec "mounting" nenurodytas - imamas iš rėmo aprašo (MAIN DATA "Rails" / "frame").
 if "mounting" not in spec:
@@ -3728,7 +3740,7 @@ view_title(_rtx, _rty, "REAR VIEW (MIRRORED)", f"SCALE 1:{SC2}  |  true view fro
     f"  |  {sum(len(v) for v in P3_SP.values())} spacers Ø{float(P3['spacer_d']):g} (blue) - centre of fixing area" if P3 else ""))
 if P3:                                                    # v336: P3 distancerių / reflektoriaus balionai
     for _rx3, _pat in (("spacer", r"spacer"), ("refl", r"reflector")):
-        _pos = next((str(r_[0]) for r_ in spec["bom"] if re.search(_pat, str(r_[1]), re.I)), None)
+        _pos = _bom_pos(_pat, None)                       # v345: pernumeruota pozicija (be ausėlių - spacer 6, ne 7)
         _all = [q for v in P3_SP.values() for q in v]
         if not _pos or not _all or (_rx3 == "refl" and not P3["reflector"]):
             continue
@@ -3947,7 +3959,7 @@ if _back_ral:
     _BOM_ROWS = [([r_[0], r_[1], r_[2], f"RAL {_back_ral}", r_[4]] if re.search(r"letter back|\bback\b", str(r_[1]), re.I)
                   and not re.search(r"plate|foil|sheet", str(r_[1]), re.I) and str(r_[3]).strip() in ("", "-") else r_)
                  for r_ in _BOM_ROWS]
-if MOUNTING in ("none", "brackets"):
+if MOUNTING in ("none", "brackets", "frame"):
     # v90 (Rytis 2026-10-11): ko brėžinyje nėra - BOM NĖRA (net su 0 m). none: be bėgelių / ausėlių / sienos tvirtinimo eilučių,
     #  vietoj jų - raidžių tvirtinimas per dugną; brackets: be ausėlių. Pozicijos pernumeruojamos.
     _drop = (r"\brail|\bear\b|ears\b|mounting ear|wall fix|bėgel|ausėl" if MOUNTING == "none" else r"\bear\b|ears\b|mounting ear|ausėl")
@@ -3958,7 +3970,8 @@ if MOUNTING in ("none", "brackets"):
             row = [row[0], "WAGO connectors inside letters + supply cable" if _wg else "Cable 12V 1.5 m from each letter (one line)",
                    row[2], row[3], "?" if _wg else f"{sum(len(g['letters']) for g in groups if not g['plate'])} pcs."]
             _kept.append(list(row)); continue
-        if MOUNTING == "brackets" and re.match(r"\s*rail", str(row[1]), re.I):   # v102: bėgelis lieka, tik be "with ears"
+        if (MOUNTING == "brackets" and re.match(r"\s*rail", str(row[1]), re.I)) or \
+                (MOUNTING == "frame" and re.match(r"\s*(rail|wallframe|frame)", str(row[1]), re.I)):   # v102 / v345: be "with ears"
             row = [row[0], re.sub(r"\s*(with|\+)\s*ears\b", "", str(row[1]), flags=re.I)] + list(row[2:])
             _kept.append(row); continue
         if re.search(_drop, str(row[1]), re.I) and not re.search(r"bracket|hanger", str(row[1]), re.I):
@@ -4097,9 +4110,10 @@ _md = [(a, subst(b)) for a, b in spec["main_data"]]
 #  nurodyti niuansai), „Drainage" - niekada (privaloma exterior opcija, nežymima)
 _wall_std = str(spec.get("wall", "concrete")).lower() in ("concrete", "", "none")
 _md = [(a, b) for a, b in _md if not re.match(r"drain", a, re.I) and not (_wall_std and re.match(r"wall|siena|facade", a, re.I))]
-if MOUNTING in ("none", "brackets"):                      # v90: be neegzistuojančių elementų
+if MOUNTING in ("none", "brackets", "frame"):             # v90: be neegzistuojančių elementų
     _md = [(a, b) for a, b in _md if not (MOUNTING == "none" and re.match(r"rail|ear|frame", a, re.I))]
-    _md = [(a, (re.sub(r"\s*\+\s*ears", " + hangers", b) if MOUNTING == "brackets" else b)) for a, b in _md]
+    _md = [(a, (re.sub(r"\s*\+\s*ears", " + hangers", b) if MOUNTING == "brackets" else
+                (re.sub(r"\s*(\+|with)\s*ears", "", b) if MOUNTING == "frame" else b))) for a, b in _md]
     if MOUNTING == "none":
         _md.append(("Mounting", "separate letters, no frame"))
 _md = [(_hang(a), _hang(b)) for a, b in _md]
