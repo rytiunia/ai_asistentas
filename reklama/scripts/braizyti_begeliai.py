@@ -84,6 +84,10 @@ ACRY.update(spec.get("acrylic", {}))
 if P6F.kind(spec.get("front", "5S")) == "P10":            # v244: P10 - smeigė ant įleisto Alu dugnelio (kraštas rim) -> nuo raidės krašto >= rim + 1
     ACRY["stud"] = dict(ACRY["stud"], edge=max(float(ACRY["stud"].get("edge", 8)), float((spec.get("p10") or {}).get("rim", 5)) + 1))
 RAIL_W = float(str(RAIL["size"]).lower().split("x")[0]) if RAIL_ACR else None
+# v337 (Rytis 2026-10-17: „rėmo statmenų tik priekyje ir gale, > 4 m - papildomas per vidurį; visiems rėmams išskyrus EXTRA"):
+#  EXTRA - senas žingsnio principas (auto_remas ends_only=False); spec "frame_rule": "pitch" / "ends" - priverstinai
+FRAME_EXTRA = (str(spec.get("frame_rule", "")).lower() == "pitch") or (str(spec.get("frame_rule", "")).lower() != "ends" and bool(
+    re.search(r"\bEXTRA\b", " ".join(str(spec.get(k_, "")) for k_ in ("client", "company", "title", "project")), re.I)))
 # v336 (Rytis 2026-10-17): P3 HALO - Alu korpusas, plexi galas 8 / 4 + PVC, distanceriai tvirtinamo ploto CENTRE, reflektorius
 P3 = None
 if FRONT == "P3":
@@ -894,7 +898,7 @@ for g in groups:
         import auto_remas as AR
         if RAIL_ACR:                                  # v229: akrilinis - bėgelio plotis (ne gylis), statmuo po kiekviena raide
             hs, vs = AR.build(g, RAIL_W, RAIL_EDGE, pitch=ACRY["v_pitch"], pitch_heavy=ACRY["v_pitch"],
-                              every_letter=bool(ACRY.get("every_letter")), v_edge=ACRY["v_edge"])
+                              every_letter=bool(ACRY.get("every_letter")), v_edge=ACRY["v_edge"], ends_only=not FRAME_EXTRA)
             # v243 (Rytis 2026-10-15: „kai raidės tokios mažos - bėgelis paplatinamas iki 60 mm (galimas ir platesnis, jei trukdo
             #  tvirtinimui ar laidams) ir naudojamas VIENAS"): jei tarp dviejų bėgelių lieka < bėgelio pločio - vienas platus
             #  bėgelis per abiejų ašių vidurį, statmenų nėra
@@ -919,10 +923,17 @@ for g in groups:
                 RAIL_W = _W1
                 RAIL["size"] = f"{_W1:g}x{ACRY['thk']:g}"
         else:
-            hs, vs = AR.build(g, t_, RAIL_EDGE)
+            hs, vs = AR.build(g, t_, RAIL_EDGE, ends_only=not FRAME_EXTRA)
             if MOUNTING == "l_hang":                  # v269: L profiliai (BILB26-01001) - tik horizontalūs, statmenų nėra
                 vs = []
         g["rails"] = hs + vs
+        if not FRAME_EXTRA:                           # v337 patikra: rėmo statmenų - tik galuose (+ 1 per vidurį, kai > 4 m)
+            _rn = max(1, len(hs) // 2)
+            _al = _rn * (2 + (1 if max((h_["len"] for h_ in hs), default=0) > AR.ENDS_MID_L else 0))
+            _vx = {round((v_["x0"] + v_["x1"]) / 2 / 10) for v_ in vs if not (v_.get("acc") or v_.get("conn") or v_.get("ext_holder"))}
+            if len(_vx) > _al:
+                K.SHEET_ERR.append(f"PER DAUG STATMENŲ {g['name']}: {len(_vx)} > {_al} (tik galuose + 1 per vidurį, kai > 4 m; "
+                                   "išskyrus EXTRA - v337)")
         g["_geoms"] = [o["geom"] for o in g["letters"]]
         g["_vframe"], g["_vframes"], g["_vfi"] = None, [], []
         g["_hs"], g["_ears_pending"] = hs, not RAIL_ACR
@@ -1736,7 +1747,7 @@ def nest_row(row):
     row = list(row)
     if len(row) < 5:
         return row
-    q, mat = str(row[4]), str(row[2])
+    q, mat = str(row[4]), subst(str(row[2]))                 # v337: medžiaga su {P3_BACK} / {REFL_MAT} - storis nestingui
 
     def rep(m):
         kind, key = m.group(1), m.group(2)
@@ -1789,8 +1800,11 @@ VX0, VY0 = K.IX0 + 8, K.IY0 + 6
 W_AV, H_AV = K.IX1 - K.IX0 - 16, K.VIEW_BOT - K.IY0 - 10
 Z_PLATE_L = PZ0 + PLATE["thk"] + PLATE["gap_mm"]       # raidės ant plokštės: šonų galinė briauna nuo sienos
 Z_RAIL_L = 0 if MOUNTING == "none" else RAIL["depth"]   # v90: atskiros raidės - tiesiai ant fasado
-Z_P3B = Z_RAIL_L + (P3["refl_t"] if P3 and P3["reflector"] else 0)   # v336: P3 distancerio pagrindas (bėgelis / reflektorius)
-if P3:
+
+Z_P3B = 0.0
+if P3:                                                     # v337: galas pagal aukščiausią raidę (< 400 - 8, >= 400 - 4 + PVC)
+    P3 = P3M.cfg(spec, max((o["bb"][3] - o["bb"][1] for g in groups if not g["plate"] for o in g["letters"]), default=0))
+    Z_P3B = Z_RAIL_L + (P3["refl_t"] if P3["reflector"] else 0)   # distancerio pagrindas: rėmas + reflektorius
     for g in groups:
         if not g["plate"]:
             g["spec"].setdefault("z0", Z_P3B + float(P3["spacer"]))
@@ -2031,7 +2045,7 @@ def retcol(g):
 
 
 PVC_RAW = HexColor("#E9E9E6")                     # v186: nedažytas PVC (P1 dugnas)
-P3_PLEXI, P3_SPC, P3_REFLC = HexColor("#F7F9FB"), HexColor("#9A9EA3"), HexColor("#FFF4CC")   # v336: P3 galas / distanceris / reflektorius
+P3_PLEXI, P3_SPC, P3_REFLC = HexColor("#E3F1FA"), HexColor("#9A9EA3"), HexColor("#FFF4CC")   # v336: P3 galas / distanceris / reflektorius
 
 
 def backcol(g):
@@ -2386,7 +2400,10 @@ if P3:
             str(sum(1 for q in _sp if q[2] == i_)) for i_ in range(len(g["letters"]))) + ")")
     SUBS.update({"{SPACERS}": str(sum(len(v) for v in P3_SP.values())), "{SPACER_D}": f"{float(P3['spacer_d']):g}",
                  "{SPACER_L}": f"{float(P3['spacer']):g}", "{REFL_N}": str(sum(len(g["letters"]) for g in groups if not g["plate"])),
-                 "{P3_BACK}": f"{float(P3['back']):g}"})
+                 "{P3_BACK}": f"{float(P3['back']):g}", "{P3_SCREW}": str(P3["screw"]), "{P3_LED}": str(P3["led"]),
+                 "{P3_SCREW_INTO}": "PVC edge" if P3["pvc_edge"] else "plexi edge", "{REFL_MAT}": str(P3["refl_mat"]),
+                 "{REFL_RAL}": str(P3["refl_ral"]),
+                 "{P3_BACK_TXT}": f"transparent plexiglass {float(P3['back']):g} mm" + (" + PVC edge" if P3["pvc_edge"] else "")})
 
 # ============================================================ SIDE VIEW (RIGHT)
 GAPV = max(90, 0.13 * fw)                                   # v280: = fs_box tarpas
@@ -2684,6 +2701,9 @@ for g in sorted(groups, key=lambda g: bool(g["spec"].get("behind"))):   # v10: i
         elif P3 and P3["reflector"]:   # v336: P3 su reflektoriumi - iš galo matosi reflektorius (+5), raidė už jo
             K.draw_shape(K.geom_subs(o["geom"].buffer(P3["refl_off"], quad_segs=KR.BUF_QS)), RVtf, fill=P3_REFLC, stroke=black)
             K.draw_shape(o["sub"], RVtf, stroke=HexColor("#555555"), dash=(2, 1.2))
+        elif P3:            # v337: P3 - korpusas, plexi galas su drenažo puslankiais
+            K.draw_shape(o["sub"], RVtf, fill=retcol(g), stroke=black)
+            K.draw_shape(K.geom_subs(P3M.back_shape(o, P3)[0]), RVtf, fill=P3_PLEXI, stroke=None)   # 1 mm šonas - be 2 kontūro
         elif P6_REAL(g):    # v62: iš galo matosi stiklo kraštas aplink 1,5 mm mažesnį dugną
             PV.rear_view(o["geom"], RVtf, retcol(g), facecol(g), front=gfront(g))
         else:               # tikras vaizdas iš galo: raidžių dugnas (P1 - nedažytas PVC, v186)
@@ -3911,6 +3931,8 @@ def _hang(t_):
 import p6_ref as _P6R                                 # Rytio etaloninis pjūvis (U / square wallframe)
 # Rytis 2026-10-07: A (PVC bortelis) ir B (varžtas 2.9) žymėjimas - tik 5S (buv. P6_3mm); P6_8mm BOM jų NĖRA
 _BOM_ROWS = [row for row in spec["bom"] if not (_NO3 and str(row[0]).upper() in ("A", "B"))]
+if P3 and not P3["pvc_edge"]:                             # v337: P3 galas 8 mm - PVC bortelio nėra
+    _BOM_ROWS = [row for row in _BOM_ROWS if not re.search(r"PVC fixing edge", str(row[1]), re.I)]
 # v100 (Rytis 2026-10-11): „Letter back" visada su spalva - standartas = šonų (return) spalva; kitokia - tik nurodžius
 #  (spec "back_ral" / grupės "back_ral")
 _g0 = next((g for g in groups if not g["plate"]), None)
@@ -4488,7 +4510,8 @@ def export_1to1(path):
             geo = geo.symmetric_difference(q)
         if o.get("geom") is not None and o["geom"].area < geo.area - 1:      # apkirpta (plokštė)
             geo = geo.intersection(o["geom"])
-        bk = K.dugnas_inset(geo, inset, spec.get("back_blunt_mm", 12))   # v108: smailios įpjovos nukertamos
+        bk = (P3M.back_shape(o, P3, [q for v_ in P3_SP.values() for q in v_])[0] if P3 and o.get("geom") is not None
+              else K.dugnas_inset(geo, inset, spec.get("back_blunt_mm", 12)))   # v108: smailios įpjovos nukertamos; v337 P3 - drenažas
         if bk.is_empty:
             continue
         sh = pg.new_shape()

@@ -137,7 +137,10 @@ def _cover_cand(o, ya, yb, t_rail, hx0, hx1, min_cov=0.5):
     return None
 
 
-def single_verticals(r, t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log, every_letter=False):
+ENDS_MID_L = 4000      # v337: ilgesnis rėmas - + vienas statmuo per vidurį
+
+
+def single_verticals(r, t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log, every_letter=False, ends_only=True):
     """v204 (Rytis 2026-10-14, „LIETUVA"): vienos eilutės rėmas - bėgeliai per VISĄ ilgį (kiekvienas iki kraštinės raidės
     krašto - edge), GALINIAI statmenys TIK ten, kur jie panaudojami: per kraštinei artimiausios raidės stiebą (L, T, E ...);
     raidės be stiebo (V, A) - ĮSTRIŽAS per kojelės vidurį kaip EXTRA (v95). Tarpiniai - per stiebus tolygiai, kiekis
@@ -199,7 +202,19 @@ def single_verticals(r, t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log, every
                 right_ = c_
             log(f"  auto rėmas: galinis statmuo po kraštine raide x{c_['x']:.0f} ({c_['partial'] * 100:.0f} % po raide)")
     chosen = [left_] + ([right_] if right_["x"] - left_["x"] >= gap_ else [])
-    chosen += [c for c in _extra if all(abs(c["x"] - q["x"]) >= gap_ for q in chosen)]
+    if ends_only:
+        # v337 (Rytis 2026-10-17: „per daug rėmo statmenų - jų turi būti tik priekyje ir gale, jei ilgesnė nei 4 m - papildomas
+        #  per vidurį; taikoma visiems rėmams išskyrus EXTRA"): tik 2 galiniai (+ 1 per vidurį, kai rėmas > 4 m) - be ankstesnio
+        #  kraštinio kandidato (v311), be žingsnio (v87), be statmens po kiekviena raide (v229)
+        if L > ENDS_MID_L:
+            xm_ = (left_["x"] + right_["x"]) / 2
+            c_ = [c for c in cands if all(abs(c["x"] - q["x"]) >= gap_ for q in chosen)]
+            if c_:
+                chosen.append(min(c_, key=lambda c: (abs(c["x"] - xm_) + (0 if c["k"] == "v" else 150))))
+        nv = len(chosen)
+        every_letter = False
+    else:
+        chosen += [c for c in _extra if all(abs(c["x"] - q["x"]) >= gap_ for q in chosen)]
     if every_letter:                                 # v229 (Rytis 2026-10-14, Leapmotor): AKRILINIS rėmas - statmuo po KIEKVIENA raide
         for o in r["letters"]:
             if o["bb"][3] - o["bb"][1] < 0.6 * r["h"] or any(c["o"] is o for c in chosen):
@@ -220,7 +235,7 @@ def single_verticals(r, t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log, every
                     chosen.append({"x": best[1], "k": "v", "o": o, "partial": best[0]})
         nv = len(chosen)
     sp_ = (right_["x"] - left_["x"]) / max(nv - 1, 1)
-    for i in range(1, (nv - 1) if not every_letter else 1):
+    for i in range(1, (nv - 1) if not (every_letter or ends_only) else 1):
         tx = left_["x"] + sp_ * i
         c_ = [c for c in cands if all(abs(c["x"] - q["x"]) >= gap_ for q in chosen)]
         if not c_:
@@ -249,7 +264,10 @@ def single_verticals(r, t_rail, edge, pitch, pitch_heavy, heavy_m2_m, log, every
     return out
 
 
-def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=print, every_letter=False, v_edge=None):
+def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=print, every_letter=False, v_edge=None,
+          ends_only=True):
+    """v337: ends_only (numatyta, visi rėmai išskyrus EXTRA) - statmenys tik galuose (+ 1 per vidurį, kai > 4 m);
+    ends_only=False - senas žingsnio principas (EXTRA: ceil(L / žingsnis) + 1, v87 / v204 / v311)."""
     """g - grupė (letters su geom / bb); grąžina (hs, vs) bėgelių dict'ų sąrašus (x0, y0, x1, y1, kind, len, poly, auto)"""
     rows = rows_of(g["letters"])
     for r in rows:
@@ -535,7 +553,7 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
                        "poly": [(rr["x0"], rr["y0"]), (rr["x1"], rr["y0"]), (rr["x1"], rr["y1"]), (rr["x0"], rr["y1"])]})
     if SINGLE:
         vs += single_verticals(rows[0], t_rail, edge if v_edge is None else v_edge, pitch, pitch_heavy, heavy_m2_m, log,
-                               every_letter=every_letter)
+                               every_letter=every_letter, ends_only=ends_only)
     # tarpiniai statmenys - per stiebus; per abi eilutes, jei stiebas sutampa (pjaunami tarp bėgelių - bėgis vientisas)
     for i, r in enumerate(rows if not SINGLE else []):
         st = [s for s in r["stems"] if r["xl"] + t_rail + 300 < (s[0] + s[1]) / 2 < r["xr"] - t_rail - 300]
@@ -547,7 +565,11 @@ def build(g, t_rail, edge=10, pitch=2500, pitch_heavy=2000, heavy_m2_m=0.5, log=
         _m2m = _a / max(L / 1000, 1e-6)
         _p = pitch_heavy if _m2m >= heavy_m2_m else pitch
         n_mid = max(0, math.ceil(L / _p) - 1)
-        log(f"  auto rėmas: eilutė y{r['xb']:.0f} - {_m2m:.2f} m²/m ({'masyvios' if _p == pitch_heavy else 'įprastos'}), žingsnis {_p} -> {n_mid + 2} statmenys su galiniais")
+        if ends_only:                                    # v337: tik galuose (+ 1 per vidurį, kai eilutė > 4 m)
+            n_mid = 1 if L > ENDS_MID_L else 0
+            log(f"  auto rėmas: eilutė y{r['xb']:.0f} - L {L:.0f} -> {n_mid + 2} statmenys (galuose" + (" + vidurys)" if n_mid else ")"))
+        else:
+            log(f"  auto rėmas: eilutė y{r['xb']:.0f} - {_m2m:.2f} m²/m ({'masyvios' if _p == pitch_heavy else 'įprastos'}), žingsnis {_p} -> {n_mid + 2} statmenys su galiniais")
         up = rows[i - 1] if i > 0 else None
 
         def common(s):

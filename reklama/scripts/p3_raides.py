@@ -25,31 +25,106 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from shapely.geometry import box as _box, Point as _Pt  # noqa: E402
 from shapely.ops import nearest_points  # noqa: E402
 
+# v337 (Rytis 2026-10-17, atsakymai į klausimyną) - STANDARTAI:
+#  distanceris Ø16, ilgis pagal raidės gylį: < 60 mm - 20, >= 60 mm - 30; sluoksniai: rėmas + reflektorius (jei yra) +
+#  distanceriai + raidės; M4 ilgasriegis (plexi Ø4, reflektorius / bėgelis Ø4,5); reflektorius - ACM (RAL pagal užklausą
+#  arba dažyta), būna Alu 1,5; LED ant plexi viduje, 6500K, žingsnis tikslinamas; maketo lape plexi - tik „transparent
+#  plexiglass"; galas 8 mm raidėms < 400 mm aukščio, >= 400 mm - 4 mm + PVC bortelis (kaip 5S); varžtai per šoną
+#  DIN 7982 2,9 x 9,5; ilgas tvirtinamas plotas - taškų daugiau; drenažas - Ø8 puslankiai galo kontūre (kaip P6 ant rėmo).
 DEF = {
-    "spacer": 30,          # mm - tarpas raidės galas -> bėgelis / reflektorius (užsakyme)
-    "spacer_d": 16,        # Ø vamzdelio (Clas Ohlson etalonas Ø16; klausimynas)
-    "rod": "M4",           # ilgasriegis per distancerį (prancūzų halo „M4 long thread screw"; klausimynas)
-    "back_hole": 4,        # Ø skylė plexi gale (Clas Ohlson Ø4 į plexi galą)
-    "rod_hole": 4.5,       # Ø skylė reflektoriuje / bėgelyje (klausimynas)
-    "back": 8,             # plexi galo storis: 8 (varžtai į kraštą) arba 4 (+ PVC bortelis)
+    "spacer": None,        # None - pagal gylį (SPACER_BY_DEPTH)
+    "spacer_d": 16,
+    "rod": "M4",
+    "back_hole": 4,
+    "rod_hole": 4.5,
+    "back": None,          # None - pagal raidžių aukštį (BACK_BY_HEIGHT)
     "side_t": 1.0,         # šonas Alu 1
     "face_t": 2.0,         # priekis Alu 2
     "edge": 5,             # distancerio krašto atstumas nuo galo krašto (mm)
     "split": 400,          # ilgas tvirtinamas plotas išilgai bėgelio dalijamas kas <= split
     "reflector": False,
     "refl_off": 5,         # reflektorius = kontūras + 5 mm (outside)
-    "refl_t": 3,           # tik brėžiniui (medžiaga / storis - klausimynas, lape „?")
+    "refl_mat": "ACM 3 mm",   # standartas ACM; arba "Alu 1.5 mm"
+    "refl_ral": "?",       # pagal užklausą
     "pvc_edge": None,      # None - pagal galą (4 mm -> True)
+    "screw": "DIN 7982 2.9 x 9.5",
+    "led": "LED modules on plexi inside, 6500K",
+    "drain_d": 8,
+    "drain": True,         # exterior - Ø8 puslankiai galo kontūre
 }
+SPACER_BY_DEPTH = (60, 20, 30)     # gylis < 60 -> 20, >= 60 -> 30
+BACK_BY_HEIGHT = (400, 8, 4)       # raidės aukštis < 400 -> 8, >= 400 -> 4 + PVC
 
 
-def cfg(spec):
+def cfg(spec, letter_h=None):
+    """letter_h - aukščiausios raidės aukštis (mm): galo storis pagal BACK_BY_HEIGHT, jei spec "p3" "back" nenurodytas"""
+    import re
     P = dict(DEF)
     P.update(spec.get("p3") or {})
+    d_ = float(spec.get("depth_mm", 60))
+    if P["spacer"] is None:
+        P["spacer"] = SPACER_BY_DEPTH[1] if d_ < SPACER_BY_DEPTH[0] else SPACER_BY_DEPTH[2]
+    if P["back"] is None:
+        P["back"] = BACK_BY_HEIGHT[1] if (letter_h or 0) < BACK_BY_HEIGHT[0] else BACK_BY_HEIGHT[2]
     if P["pvc_edge"] is None:
         P["pvc_edge"] = float(P["back"]) < 8
+    m = re.search(r"(\d+(?:[.,]\d+)?)\s*mm", str(P["refl_mat"]))
+    P["refl_t"] = float(m.group(1).replace(",", ".")) if m else 3.0
     P["r"] = float(P["spacer_d"]) / 2
     return P
+
+
+def drain_points(back, prom=5.0, step=1.0, merge=30.0):
+    """Ø8 PUSLANKIAI galo kontūre (kaip P6 ant rėmo, p6_dxf.drain_points notch): išorinio kontūro lokalūs žemiausi taškai
+    (y žemyn), kai abiem kryptimis kontūras pakyla >= prom; plokščia apačia - jos vidurys; virš taško medžiaga, po juo tuščia"""
+    out = []
+    for poly in _parts(back):
+        ring = poly.exterior
+        L = ring.length
+        n = max(16, int(L / step))
+        pts = [ring.interpolate(L * i / n) for i in range(n)]
+        ys = [p.y for p in pts]
+        for i in range(n):
+            y = ys[i]
+            if y < ys[i - 1] - 1e-6 or y < ys[(i + 1) % n] - 1e-6:
+                continue
+            ok, span = True, [i]
+            for dirn in (1, -1):
+                j, rose = i, False
+                for _ in range(n):
+                    j = (j + dirn) % n
+                    if ys[j] > y + 0.3:
+                        ok = False; break
+                    if abs(ys[j] - y) <= 0.3:
+                        span.append(j)
+                    if ys[j] <= y - prom:
+                        rose = True; break
+                if not ok or not rose:
+                    ok = False; break
+            if not ok:
+                continue
+            xs_ = sorted(pts[k].x for k in span)
+            xm = (xs_[0] + xs_[-1]) / 2
+            q = min((pts[k] for k in span), key=lambda p: abs(p.x - xm))
+            if not (poly.contains(_Pt(q.x, q.y - 6)) and poly.contains(_Pt(q.x, q.y - 2.5))
+                    and not poly.contains(_Pt(q.x, q.y + 2.5))):
+                continue
+            if all(math.hypot(q.x - a, q.y - b) > merge for a, b in out):
+                out.append((round(q.x, 2), round(q.y, 2)))
+    return out
+
+
+def back_shape(o, P, sp=()):
+    """plexi galas: kontūras - side_t, drenažo Ø8 puslankiai (exterior); grąžina (geom, drenažo centrai)"""
+    import kreives as KR
+    from shapely.ops import unary_union
+    b = o["geom"].buffer(-P["side_t"], quad_segs=KR.BUF_QS)
+    if not P.get("drain"):
+        return b, []
+    dr = [q for q in drain_points(b) if all(math.hypot(q[0] - x, q[1] - y) > P["r"] + P["drain_d"] for x, y, *_ in sp)]
+    if dr:
+        b = b.difference(unary_union([_Pt(q).buffer(P["drain_d"] / 2, quad_segs=64) for q in dr]))
+    return b, dr
 
 
 def _parts(g):
@@ -279,7 +354,7 @@ def write_dxf(path, letters, sp, P):
                 m.add_lwpolyline([Q(c) for c in rg.coords], close=True, dxfattribs={"layer": layer})
     for i, o in enumerate(letters):
         ring(o["geom"], "1_FRONT_ALU2")
-        ring(o["geom"].buffer(-P["side_t"], quad_segs=KR.BUF_QS), LB)
+        ring(back_shape(o, P, [q for q in sp if q[2] == i])[0], LB)     # v337: su drenažo Ø8 puslankiais
         for x, y, j in sp:
             if j == i:
                 m.add_circle(Q((x, y)), float(P["back_hole"]) / 2, dxfattribs={"layer": LB})
@@ -289,7 +364,9 @@ def write_dxf(path, letters, sp, P):
                 if j == i:
                     m.add_circle(Q((x, y)), float(P["rod_hole"]) / 2, dxfattribs={"layer": LR})
     m.add_text(f"P3 HALO: {len(sp)} spacers D{float(P['spacer_d']):g} x {float(P['spacer']):g} mm, centre of fixing area; "
-               "view FROM FRONT", dxfattribs={"layer": "TEXT", "height": 12}).set_placement((0, -40))
+               f"back transparent plexiglass {float(P['back']):g} mm" + (" + PVC edge" if P["pvc_edge"] else "")
+               + (f", drainage D{float(P['drain_d']):g} semicircles in back contour" if P.get("drain") else "")
+               + (f"; reflector {P['refl_mat']} +{float(P['refl_off']):g} mm" if P.get("reflector") else "") + "; view FROM FRONT", dxfattribs={"layer": "TEXT", "height": 12}).set_placement((0, -40))
     KR.saveas(doc, path)
     return path
 
@@ -300,7 +377,7 @@ if __name__ == "__main__":
     A = Polygon([(0, 600), (250, 0), (350, 0), (600, 600), (480, 600), (300, 150), (120, 600)])
     o = {"geom": A, "bb": A.bounds}
     rails = [{"x0": -50, "x1": 650, "y0": 120, "y1": 150, "kind": "h"}, {"x0": -50, "x1": 650, "y0": 450, "y1": 480, "kind": "h"}]
-    P = cfg({})
+    P = cfg({"depth_mm": 60}, 600)
     sp, err = spacers([o], rails, P)
     print("A:", sp, err)
     legs = [p for p in sp if p[1] > 400]
@@ -308,4 +385,10 @@ if __name__ == "__main__":
     for x, y, _ in legs:                                    # kojelės ploto centras (ne kraštas)
         comp = [c for c in _parts(A.buffer(-1).intersection(_box(-50, 450, 650, 480))) if c.distance(_Pt(x, y)) < 1][0]
         assert abs(comp.centroid.x - x) < 1.0, (x, comp.centroid.x)
+    # v337 standartai: distanceris pagal gylį, galas pagal aukštį, drenažas - puslankis A kojelių apačioje
+    assert cfg({"depth_mm": 50})["spacer"] == 20 and cfg({"depth_mm": 60})["spacer"] == 30
+    assert cfg({}, 399)["back"] == 8 and not cfg({}, 399)["pvc_edge"] and cfg({}, 400)["back"] == 4 and cfg({}, 400)["pvc_edge"]
+    b_, dr_ = back_shape(o, P, sp)
+    assert len(dr_) == 2 and all(q[1] > 590 for q in dr_), dr_
+    assert b_.area < A.buffer(-1).area - 40, "puslankiai neiškirpti"
     print("OK p3_raides savitikra")

@@ -26,7 +26,7 @@ import medziagos as MEDZ
 
 GAP = 10.0
 _MAT = [(r"acryl|plexi|pmma|akril|plazcryl|opal", "pmma"), (r"polycarb|\bpc\b|polikarb", "pc"),
-        (r"\bakp\b|dibond|composite|kompozit", "akp"), (r"pvc", "pvc_putu"), (r"\bps\b|polistir", "ps"),
+        (r"\bakp\b|\bacm\b|\bacp\b|dibond|composite|kompozit", "akp"), (r"pvc", "pvc_putu"), (r"\bps\b|polistir", "ps"),
         (r"\balu|alumin|aliumin", "alu")]
 
 

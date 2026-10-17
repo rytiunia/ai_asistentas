@@ -51,7 +51,7 @@
     0.102
    ],
    "frame": "verticals",
-   "led": "LED modules inside, on the back - light to the back (halo), ? K"
+   "led": "LED modules on plexi inside, 6500K"
   }
  ],
  "wall": "unknown",
@@ -65,8 +65,6 @@
  "title": "P3 example PAVYZDYS - halo letters on spacers",
  "rails_json": "rails_01.json",
  "p3": {
-  "spacer": 30,
-  "back": 8,
   "reflector": false
  },
  "main_data": [
@@ -84,7 +82,7 @@
   ],
   [
    "Letter depth",
-   "60 + spacers 30"
+   "60 + spacers {SPACER_L}"
   ],
   [
    "Face / returns",
@@ -92,7 +90,7 @@
   ],
   [
    "Back",
-   "white plexi 8 mm"
+   "{P3_BACK_TXT}"
   ],
   [
    "Rails",
@@ -100,7 +98,7 @@
   ],
   [
    "Illumination",
-   "LED to the back (halo), ?"
+   "LED to the back (halo), 6500K"
   ],
   [
    "Power",
@@ -129,15 +127,15 @@
   [
    3,
    "Letter back (halo, light to the back)",
-   "Plexi 8 mm",
-   "white",
+   "Plexiglass {P3_BACK} mm",
+   "transparent",
    "{PER_TEXT} m / {BACK_TEXT} m²"
   ],
   [
    4,
-   "LED modules on the back, inside letter",
+   "{P3_LED}",
    "?",
-   "? K",
+   "6500K",
    "?"
   ],
   [
@@ -162,9 +160,16 @@
    "{SPACERS} pcs."
   ],
   [
+   "A",
+   "PVC fixing edge for plexi",
+   "PVC 3 mm",
+   "-",
+   "{PER_TEXT} m"
+  ],
+  [
    "B",
-   "Screw through return into plexi edge",
-   "?",
+   "Screw through return into {P3_SCREW_INTO}",
+   "{P3_SCREW}",
    "-",
    "?"
   ],

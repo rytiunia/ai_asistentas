@@ -9,19 +9,26 @@ RAL 9005). Kiti šaltiniai: `klientai/alfaneon_dsv.md` (DSV P3: Plexiglas WN770 
 (halo: back plexi 8-10, spacers 25-60, M4 long thread), `klientai/clasohlson.md` (spaceriai Ø16 į plexi galą, Ø4 skylės),
 `klientai/brandfactory.md` (Coop Mega - galas balta plexi 4 mm, spaceriai 30).
 
-## Konstrukcija (spec `"front": "P3"`, `"p3": {...}`)
+## Konstrukcija (spec `"front": "P3"`, `"p3": {...}`) - STANDARTAI v337 (Ryčio atsakymai 2026-10-17)
 | raktas | numatyta | reikšmė |
 |---|---|---|
-| `spacer` | 30 | tarpas raidės galas -> bėgelis / reflektorius, mm |
-| `spacer_d` | 16 | distancerio Ø (Clas Ohlson) |
-| `back` | 8 | galas balta plexi 8 (varžtai per šoną į plexi kraštą) arba 4 (+ PVC 3 mm bortelis, varžtai į bortelį) |
-| `back_hole` / `rod_hole` | 4 / 4.5 | skylė plexi gale / reflektoriuje (DXF) |
-| `reflector` | false | reflektorius = raidės kontūras + `refl_off` (5 mm), už raidės ant bėgelio |
-| `refl_t` | 3 | tik brėžiniui; medžiaga / storis - „?" (klausimynas) |
-| `edge` | 5 | distancerio kraštas nuo galo krašto |
-| `split` | 400 | ilgas tvirtinamas plotas išilgai bėgelio dalijamas kas <= 400 |
+| `spacer` | pagal gylį | distanceris (tarpas): gylis < 60 mm - 20, >= 60 mm - 30 |
+| `spacer_d` | 16 | Ø16 |
+| `rod` / `back_hole` / `rod_hole` | M4 / 4 / 4.5 | ilgasriegis per bėgelį ir distancerį; skylės plexi / reflektoriuje, bėgelyje |
+| `back` | pagal aukštį | transparent plexiglass: raidės < 400 mm - 8 (varžtai per šoną į kraštą), >= 400 mm - 4 + PVC 3 bortelis (kaip 5S) |
+| `screw` | DIN 7982 2.9 x 9.5 | varžtai per šoną |
+| `reflector` | false | reflektorius = kontūras + `refl_off` (5 mm), už raidės ant bėgelio |
+| `refl_mat` / `refl_ral` | ACM 3 mm / ? | standartas ACM (RAL pagal užklausą arba dažyta); būna `"Alu 1.5 mm"`; storis z - iš medžiagos |
+| `led` | LED modules on plexi inside, 6500K | LED ant plexi viduje; žingsnis tikslinamas; trafas - bendros taisyklės |
+| `drain` / `drain_d` | true / 8 | drenažas - Ø8 PUSLANKIAI galo kontūre žemiausiose vietose (kaip P6 ant rėmo) |
+| `edge` / `split` | 5 / 400 | distancerio kraštas nuo galo krašto; ilgas plotas - taškų daugiau |
 
-Grupės z0 = bėgelis + (reflektorius) + `spacer` (automatiškai). Priekis Alu (`face_hex` / `return_ral`), galas balta plexi.
+Sluoksniai nuo sienos: rėmas (dydis - užklausoje) + reflektorius (jei yra) + distanceriai + raidės (grupės z0 automatiškai).
+Ant FOLDED PLATE - tvirtinimo standartas tas pats (distanceriai tvirtinamo ploto centre); generatorius folded P3 - dar
+nepadarytas (pirmam užsakymui). Maketo lape plexi - tik „transparent plexiglass" (be rūšies).
+Placeholderiai BOM / MAIN DATA: `{SPACERS}`, `{SPACER_D}`, `{SPACER_L}`, `{P3_BACK}`, `{P3_BACK_TXT}`, `{P3_SCREW}`,
+`{P3_SCREW_INTO}`, `{P3_LED}`, `{REFL_MAT}`, `{REFL_RAL}`, `{REFL_N}`, `{REFL_x}` (nesting); PVC bortelio eilutė
+(„PVC fixing edge") išmetama, kai galas 8 mm.
 
 ## TVIRTINIMAS - tvirtinamo ploto CENTRE (`scripts/p3_raides.py`)
 1. Tvirtinamas plotas = raidės galo (kontūras - 1 mm šonas) ir bėgelio juostos persidengimo komponentas (h, v ir ĮSTRIŽI
@@ -43,8 +50,5 @@ Grupės z0 = bėgelis + (reflektorius) + `spacer` (automatiškai). Priekis Alu (
 Pavyzdys: `scripts/projektai/p3_pavyzdys/` (PAVYZDYS L 3400, gylis 60, spacer 30; 1 lapas - standartas, plexi 8;
 2 lapas - reflektoriai + plexi 4 + PVC). Regresija: „order p3 halo pavyzdys" + `p3_raides.py` savitikra (A kojelių centrai).
 
-## Neišspręsta (klausimynas Ryčiui 2026-10-17, lape „?")
-Distancerio Ø / medžiaga / spalva; tvirtinimas (M4 ilgasriegis? į plexi sriegis ar įvorė; 4 mm galui - kiaurai su veržle?);
-reflektoriaus medžiaga, storis, spalva, tvirtinimas prie bėgelio; LED vieta (ant galo / ant priekio vidaus), tipas, K;
-plexi rūšis (WN770 / GS); kada 4 mm, kada 8 mm; PVC bortelio matmenys; varžtai per šoną (DIN 7982 2,9x9,5?); rėmas P3 - U 30x30x2
-ar Z / taškinis be rėmo (DSV „point mounting no rail"); minimalus tvirtinamas plotas; drenažas; trafo vieta; laido išvestis.
+## Dar tikslinama
+LED žingsnis (P3 lentelė - bus patikslinta); varžtų per šoną žingsnis; folded P3 generatorius.
