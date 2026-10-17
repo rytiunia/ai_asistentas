@@ -1,6 +1,6 @@
 # GALIOJANČIOS LAPO TAISYKLĖS + NAUDOJIMO LOGIKA (suvestinė)
 
-Atnaujinta: v333 (2026-10-17)
+Atnaujinta: v334 (2026-10-17)
 
 Rytis 2026-10-16: „išsaugok taisykles ir naudojimo logiką ir padaryk, kad kitą kartą vėl nebūtų daroma su senomis
 taisyklėmis ir nustatymais".
@@ -224,6 +224,9 @@ Formos principas (taškų skaičius iš supaprastinto gaubto, pirmas - toliausia
     MATOMAM LED, LED perkeliamas į savo srities centrą (<= 0,4 p nuo pradinės vietos, ne arčiau nei 0,5 p kitų, >= 0,25 w nuo
     šono); tuščios vietos (snapelis, galvutė) pritraukia LED, sugrūstos (uodega) išsiskiria; pasukimas - pagal raidės ašį.
     Taikoma linijoms >= 0,6 p pločio (siauroje - viena eilė ašyje jau tolygi).
+- v334 (ALT8901 SPAR LED): PLATI LINIJA (> 1,3 p, `ROWS2`) - kelios eilės lygiagrečiai kontūrui („concentric inlines", kaip
+  LED Wizard / SloanLED): eilių sk. ceil(w / p - 0,2), eilė k atitraukta (2k + 1) w / (2 rows) nuo kontūro, kiekviena eilė
+  tolygiai (tarpas <= p), raidės gale eilė apsisuka; didelis apskritimas / logotipas - koncentriniai žiedai (`fill_rows`).
 - `ilp` (aprėpties minimumas) - tik spec `"layout": "ilp"`.
 - Regresija: `scripts/test_led.py` (projektai/led_test), įtraukta į `regresija.py`.
 

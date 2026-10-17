@@ -1018,8 +1018,12 @@ def strokes(g, pitch):
             break
         big = max(good)[1]
         S_ = U_[ids == big]
+        if len(S_) > 2500:                                       # atminties riba (didelės raidės)
+            S_ = S_[np.linspace(0, len(S_) - 1, 2500).astype(int)]
         dC = np.min(np.hypot(C_[:, None, 0] - A_[None, :, 0], C_[:, None, 1] - A_[None, :, 1]), axis=1)
         okC = C_[dC >= 0.55 * pitch]                             # papildomas - ne šalia esamo (ne dviguba pora)
+        if len(okC) > 2500:
+            okC = okC[np.linspace(0, len(okC) - 1, 2500).astype(int)]
         if not len(okC):
             break
         gain = (np.hypot(okC[:, None, 0] - S_[None, :, 0], okC[:, None, 1] - S_[None, :, 1]) <= R_).sum(axis=1)
@@ -1036,6 +1040,7 @@ def strokes(g, pitch):
 
 
 RELAX_IT = 12                         # v333: CVT (Lloyd) iteracijos
+ROWS2 = 1.3                           # v334: linija plačiau nei 1,3 p - dvi ir daugiau eilių (tinklelis + lyginimas)
 
 
 def relax(g, pts, pitch, w, iters=None):
@@ -1114,10 +1119,55 @@ def relax(g, pts, pitch, w, iters=None):
     return out
 
 
+def fill_rows(g, pitch, w):
+    """v334 (ALT8901 SPAR 8000: linija 215 mm, p 140 - viena eilė palieka šonus tamsius; pramonės LED Wizard / SloanLED
+    principas „concentric inlines" - eilės lygiagrečiai kontūrui, eilių sk. pagal linijos plotį): eilių sk.
+    rows = ceil(w / p - 0,2) (>= 2); eilė k - kontūras, atitrauktas į vidų (2k + 1) * w / (2 rows) (2 eilės - po w / 4 nuo
+    abiejų šonų; raidės gale eilė apsisuka); kiekviena eilė dalijama tolygiai, tarpas <= p; nelyginio sk. vidurinė eilė - ašis
+    (strokes). Artimesni nei 0,5 p - vienas."""
+    rows = max(2, math.ceil(w / pitch - 0.2))
+    out = []
+
+    def put(q):
+        if all(math.dist(q[:2], r[:2]) >= 0.5 * pitch for r in out):
+            out.append(q)
+    rings = []
+    for k in range(rows // 2):
+        d = (2 * k + 1) * w / (2 * rows)
+        geo = g.buffer(-d, join_style=1)
+        for gg in getattr(geo, "geoms", [geo]):
+            if gg.is_empty or not hasattr(gg, "exterior"):
+                continue
+            rings += [gg.exterior] + list(gg.interiors)
+    for rg in rings:
+        L = rg.length
+        if L < 0.3 * pitch:
+            c_ = rg.centroid; put((c_.x, c_.y, 0.0)); continue
+        n = max(1, math.ceil(L / pitch - LINE_TOL))
+        for i in range(n):
+            a_ = rg.interpolate(L * i / n); b_ = rg.interpolate(L * i / n + 1.0)
+            put((a_.x, a_.y, math.atan2(b_.y - a_.y, b_.x - a_.x)))
+    if rows % 2:                                                # nelyginis - vidurinė eilė
+        if rows <= 3:
+            for q in strokes(g, pitch):
+                put(q)
+        else:                                                   # didelis plotas (apskritimas / logotipas) - vidurio taškai
+            core = g.buffer(-(rows - 1) * w / (2 * rows))
+            for gg in getattr(core, "geoms", [core]):
+                if not gg.is_empty:
+                    c_ = gg.representative_point(); put((c_.x, c_.y, 0.0))
+            if core.is_empty:
+                c_ = g.representative_point(); put((c_.x, c_.y, 0.0))
+    return out
+
+
 def place(g, pitch, p_lx=None, layout="strokes"):
     if layout == "strokes":
-        if LS.stroke_max(g) > 2.0 * pitch:
-            return grid(g, pitch), "grid", 0, 0
+        w_ = LS.stroke_max(g)
+        if w_ > ROWS2 * pitch:
+            # v334 (ALT8901 SPAR 8000: linija 215 mm, p 140 - viena eilė palieka šonus tamsius): plati linija (> 1,3 p) - kelios
+            #  eilės (pramonės „rows by stroke width") - tinklelis per plotą + Lloyd lyginimas (tolygiai, kraštai padengti)
+            return fill_rows(g, pitch, w_), "grid", 0, 0
         return strokes(g, pitch), "strokes", 0, 0
     if layout == "ilp":
         return ilp(g, pitch), "ilp", 0, 0
